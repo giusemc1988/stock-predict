@@ -1,4 +1,4 @@
-import type { FeedStatus, Instrument, Quote, Timeframe } from '../types'
+import type { Analysis, FeedStatus, Instrument, Quote, Timeframe } from '../types'
 import { TIMEFRAMES } from '../types'
 import { fmtCompact, fmtPct, fmtPrice, fmtSigned, tone } from '../lib/format'
 import { RobotIcon } from './RobotIcon'
@@ -15,11 +15,14 @@ interface Props {
   toggles: { emas: boolean; forecast: boolean; robots: boolean }
   onToggle: (k: 'emas' | 'forecast' | 'robots') => void
   onSettings: () => void
+  analysis: Analysis | null
+  buyShare: number | null
+  onAnalyst: () => void
 }
 
 const STATUS_LABEL: Record<FeedStatus, string> = { connecting: 'Connecting', live: 'Live', polling: 'Delayed', demo: 'Simulated', error: 'Error' }
 
-export function TopBar({ inst, quote, lastPrice, tf, onTf, status, source, error, toggles, onToggle, onSettings }: Props) {
+export function TopBar({ inst, quote, lastPrice, tf, onTf, status, source, error, toggles, onToggle, onSettings, analysis, buyShare, onAnalyst }: Props) {
   const chg = quote?.change ?? 0
   return (
     <header className="topbar">
@@ -51,6 +54,24 @@ export function TopBar({ inst, quote, lastPrice, tf, onTf, status, source, error
           </span>
         </div>
       </div>
+      {analysis && (
+        <button className={`ai-chip v-${analysis.verdict.toLowerCase()}`} onClick={onAnalyst} title={analysis.headline}>
+          <RobotIcon size={18} side={analysis.verdict === 'BUY' ? 'buy' : analysis.verdict === 'SELL' ? 'sell' : undefined} />
+          <span>AI says</span>
+          <b>{analysis.verdict}</b>
+          <em>{analysis.confidenceLabel} confidence</em>
+        </button>
+      )}
+      {buyShare != null && (
+        <div className="mini-pressure" title="Share of the last 5 minutes of traded volume that came from buyers">
+          <span>
+            <b className="up">{Math.round(buyShare * 100)}%</b> buyers
+          </span>
+          <div>
+            <i style={{ width: `${buyShare * 100}%` }} />
+          </div>
+        </div>
+      )}
       <div className="seg tf">
         {TIMEFRAMES.map((t) => (
           <button key={t.id} className={tf === t.id ? 'on' : ''} onClick={() => onTf(t.id)}>
@@ -66,7 +87,7 @@ export function TopBar({ inst, quote, lastPrice, tf, onTf, status, source, error
           Forecast
         </button>
         <button className={toggles.emas ? 'on' : ''} onClick={() => onToggle('emas')} title="EMA 9 / 21">
-          EMA
+          Averages
         </button>
       </div>
       <div className={`feed feed-${status}`} title={error ?? source}>

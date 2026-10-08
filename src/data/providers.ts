@@ -54,6 +54,7 @@ const parseKline = (k: BinanceKline): Candle => ({
   low: +k[3],
   close: +k[4],
   volume: +k[5],
+  buyVolume: +(k[9] as string),
 })
 
 export async function binanceKlines(pair: string, tf: Timeframe, limit = 1000): Promise<Candle[]> {
@@ -68,6 +69,17 @@ export interface Ticker24 {
   high: number
   low: number
   volume: number
+}
+
+export async function binanceDepth(pair: string, limit = 20) {
+  const d: { bids: [string, string][]; asks: [string, string][] } = await binanceGet(`/api/v3/depth?symbol=${pair}&limit=${limit}`)
+  return { bids: d.bids.map(([p, q]) => ({ price: +p, size: +q })), asks: d.asks.map(([p, q]) => ({ price: +p, size: +q })) }
+}
+
+export async function binanceRecentTrades(pair: string, limit = 500) {
+  const rows: { a: number; p: string; q: string; m: boolean; T: number }[] = await binanceGet(`/api/v3/aggTrades?symbol=${pair}&limit=${limit}`)
+  // m = buyer is the maker, i.e. the aggressive side was a SELL
+  return rows.map((r) => ({ id: String(r.a), price: +r.p, size: +r.q, side: (r.m ? 'sell' : 'buy') as 'buy' | 'sell', time: r.T }))
 }
 
 export async function binanceTickers(pairs: string[]): Promise<Ticker24[]> {
@@ -173,32 +185,74 @@ export async function finnhubQuote(symbol: string, key: string) {
   return { last: q.c as number, open: q.pc as number, high: q.h as number, low: q.l as number }
 }
 
-/** Real-time trade stream; calls onTrade(price, volume, unixMs). */
-export function finnhubTrades(symbol: string, key: string, onTrade: (p: number, v: number, t: number) => void, onState: (live: boolean) => void) {
-  let disposed = false
-  let retry: ReturnType<typeof setTimeout> | undefined
-  let ws: WebSocket | null = null
-  const open = () => {
-    ws = new WebSocket(`wss://ws.finnhub.io?token=${key}`)
-    ws.onopen = () => {
-      onState(true)
-      ws?.send(JSON.stringify({ type: 'subscribe', symbol }))
+type TradeListener = (p: number, v: number, t: number) => void
+type StateListener = (live: boolean) => void
+
+/**
+ * One shared Finnhub socket per key (the free plan allows a single connection),
+ * multiplexed across every symbol and listener in the app.
+ */
+const fh = {
+  key: '',
+  ws: null as WebSocket | null,
+  live: false,
+  retry: undefined as ReturnType<typeof setTimeout> | undefined,
+  subs: new Map<string, Set<{ onTrade: TradeListener; onState: StateListener }>>(),
+}
+
+function fhConnect() {
+  clearTimeout(fh.retry)
+  const ws = new WebSocket(`wss://ws.finnhub.io?token=${fh.key}`)
+  fh.ws = ws
+  ws.onopen = () => {
+    fh.live = true
+    for (const [sym, set] of fh.subs) {
+      ws.send(JSON.stringify({ type: 'subscribe', symbol: sym }))
+      set.forEach((l) => l.onState(true))
     }
-    ws.onmessage = (ev) => {
-      const msg = JSON.parse(ev.data)
-      if (msg.type === 'trade') for (const t of msg.data) onTrade(t.p, t.v, t.t)
-    }
-    ws.onclose = () => {
-      onState(false)
-      if (!disposed) retry = setTimeout(open, 5000)
-    }
-    ws.onerror = () => ws?.close()
   }
-  open()
+  ws.onmessage = (ev) => {
+    const msg = JSON.parse(ev.data)
+    if (msg.type !== 'trade') return
+    for (const t of msg.data) fh.subs.get(t.s)?.forEach((l) => l.onTrade(t.p, t.v, t.t))
+  }
+  ws.onclose = () => {
+    fh.live = false
+    fh.subs.forEach((set) => set.forEach((l) => l.onState(false)))
+    if (fh.ws === ws && fh.subs.size) fh.retry = setTimeout(fhConnect, 5000)
+  }
+  ws.onerror = () => ws.close()
+}
+
+/** Real-time trade stream; calls onTrade(price, volume, unixMs). Returns a disposer. */
+export function finnhubTrades(symbol: string, key: string, onTrade: TradeListener, onState: StateListener) {
+  if (fh.key !== key) {
+    fh.key = key
+    const old = fh.ws
+    fh.ws = null
+    old?.close()
+  }
+  const l = { onTrade, onState }
+  const set = fh.subs.get(symbol) ?? new Set()
+  const isNewSymbol = !set.size
+  set.add(l)
+  fh.subs.set(symbol, set)
+  if (!fh.ws) fhConnect()
+  else if (fh.live) {
+    if (isNewSymbol) fh.ws.send(JSON.stringify({ type: 'subscribe', symbol }))
+    onState(true)
+  }
   return () => {
-    disposed = true
-    clearTimeout(retry)
-    ws?.close()
+    set.delete(l)
+    if (!set.size) {
+      fh.subs.delete(symbol)
+      if (fh.live) fh.ws?.send(JSON.stringify({ type: 'unsubscribe', symbol }))
+    }
+    if (!fh.subs.size) {
+      const ws = fh.ws
+      fh.ws = null
+      ws?.close()
+    }
   }
 }
 

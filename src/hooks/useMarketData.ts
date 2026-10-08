@@ -12,6 +12,8 @@ export interface MarketData {
   error: string | null
   /** Increments on every price change so consumers can cheaply react. */
   version: number
+  /** `symbol|timeframe` the candles belong to, so stale data is never shown for a new symbol. */
+  key: string
 }
 
 /** Merge a tick into the candle list, rolling a new bar when the bucket changes. */
@@ -28,7 +30,7 @@ function applyTick(list: Candle[], price: number, volume: number, unixSec: numbe
 }
 
 export function useMarketData(inst: Instrument, tf: Timeframe, keys: ApiKeys): MarketData {
-  const [state, setState] = useState<MarketData>({ candles: [], status: 'connecting', source: '', error: null, version: 0 })
+  const [state, setState] = useState<MarketData>({ candles: [], status: 'connecting', source: '', error: null, version: 0, key: '' })
   const keysRef = useRef(keys)
   keysRef.current = keys
 
@@ -37,9 +39,10 @@ export function useMarketData(inst: Instrument, tf: Timeframe, keys: ApiKeys): M
     const cleanups: (() => void)[] = []
     const step = tfSeconds(tf)
     const set = (patch: Partial<MarketData> | ((s: MarketData) => Partial<MarketData>)) =>
-      !cancelled && setState((s) => ({ ...s, ...(typeof patch === 'function' ? patch(s) : patch), version: s.version + 1 }))
+      !cancelled && setState((s) => ({ ...s, ...(typeof patch === 'function' ? patch(s) : patch), version: s.version + 1, key }))
 
-    setState({ candles: [], status: 'connecting', source: '', error: null, version: 0 })
+    const key = `${inst.symbol}|${tf}`
+    setState({ candles: [], status: 'connecting', source: '', error: null, version: 0, key })
 
     const startDemo = (err: string | null) => {
       set({ candles: demoHistory(inst, tf), status: 'demo', source: 'Simulated feed', error: err })
@@ -62,7 +65,7 @@ export function useMarketData(inst: Instrument, tf: Timeframe, keys: ApiKeys): M
               (d) => {
                 const kl = d.k
                 if (!kl) return
-                const c: Candle = { time: Math.floor(kl.t / 1000), open: +kl.o, high: +kl.h, low: +kl.l, close: +kl.c, volume: +kl.v }
+                const c: Candle = { time: Math.floor(kl.t / 1000), open: +kl.o, high: +kl.h, low: +kl.l, close: +kl.c, volume: +kl.v, buyVolume: +kl.V }
                 set((s) => {
                   const list = s.candles
                   const last = list[list.length - 1]

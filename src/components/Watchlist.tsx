@@ -36,7 +36,7 @@ function Row({ inst, q, active, onSelect, signal }: { inst: Instrument; q?: Quot
           {q && !q.live && <span className="badge-demo">SIM</span>}
         </div>
       </div>
-      <Sparkline data={q?.spark ?? []} />
+      <Sparkline data={q?.spark ?? []} width={48} />
       <div className="wl-px">
         <div className={`wl-price mono flash-${flash}`}>{q ? fmtPrice(q.price) : '—'}</div>
         <div className={`wl-chg mono ${tone(q?.changePct ?? 0)}`}>{q ? fmtPct(q.changePct) : ''}</div>

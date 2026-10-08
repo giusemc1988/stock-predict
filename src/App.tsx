@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import type { Timeframe } from './types'
+import type { Candle, Timeframe } from './types'
 import { TIMEFRAMES } from './types'
 import { INSTRUMENTS, findInstrument } from './data/instruments'
 import type { ApiKeys } from './data/providers'
@@ -12,9 +12,14 @@ import { TopBar } from './components/TopBar'
 import { Watchlist } from './components/Watchlist'
 import { ChartPanel } from './components/ChartPanel'
 import { OrderPanel } from './components/OrderPanel'
-import { AIPanel } from './components/AIPanel'
+import { AnalystPanel } from './components/AnalystPanel'
+import { OrderFlowPanel } from './components/OrderFlowPanel'
+import { useOrderFlow } from './hooks/useOrderFlow'
+import { analyze } from './lib/analyst'
 import { BottomPanel } from './components/BottomPanel'
 import { SettingsModal } from './components/SettingsModal'
+
+const NO_CANDLES: Candle[] = []
 
 interface Prefs {
   symbol: string
@@ -29,12 +34,15 @@ export default function App() {
   const [prefs, setPrefs] = useLocalStorage<Prefs>('bluechip.prefs', { symbol: 'BTC/USDT', tf: '15m', emas: true, forecast: true, robots: true, autoTrade: false })
   const [keys, setKeys] = useLocalStorage<ApiKeys>('bluechip.keys', { alphaVantage: '', finnhub: '' })
   const [settingsOpen, setSettingsOpen] = useState(false)
+  const [rightTab, setRightTab] = useState<'ai' | 'flow' | 'trade'>('ai')
   const inst = useMemo(() => findInstrument(prefs.symbol), [prefs.symbol])
   const market = useMarketData(inst, prefs.tf, keys)
   const quotes = useQuotes(INSTRUMENTS, keys)
   const broker = usePaperBroker()
+  const flow = useOrderFlow(inst, keys)
 
-  const { candles } = market
+  // ignore candles still in flight for the previously selected symbol/timeframe
+  const candles = market.key === `${inst.symbol}|${prefs.tf}` ? market.candles : NO_CANDLES
   const lastClose = candles.length ? candles[candles.length - 1].close : quotes[inst.symbol]?.price ?? 0
 
   // Signals + backtest run on closed bars only, so robots never flicker on the forming bar.
@@ -44,6 +52,21 @@ export default function App() {
   const closed = useMemo(() => runStrategy(candlesRef.current.slice(0, -1)), [closedKey])
   // The live prediction/forecast updates with every tick.
   const live = useMemo(() => (candles.length > 40 ? runStrategy(candles).prediction : null), [candles])
+
+  // Re-analyse at most once a second; order flow updates several times a second.
+  const flowRef = useRef(flow)
+  flowRef.current = flow
+  const [analysis, setAnalysis] = useState<ReturnType<typeof analyze>>(null)
+  const liveRef = useRef(live)
+  liveRef.current = live
+  useEffect(() => {
+    const run = () => setAnalysis(analyze(candlesRef.current, closed, liveRef.current, flowRef.current))
+    run()
+    const id = setInterval(run, 1000)
+    return () => clearInterval(id)
+  }, [closed, inst.symbol])
+  const tapeTotal = flow.buyVolume + flow.sellVolume
+  const buyShare = tapeTotal ? flow.buyVolume / tapeTotal : null
 
   const lastSignal = closed.signals.length ? closed.signals[closed.signals.length - 1] : null
 
@@ -93,6 +116,9 @@ export default function App() {
         toggles={{ emas: prefs.emas, forecast: prefs.forecast, robots: prefs.robots }}
         onToggle={(k) => setPrefs((p) => ({ ...p, [k]: !p[k] }))}
         onSettings={() => setSettingsOpen(true)}
+        analysis={analysis}
+        buyShare={buyShare}
+        onAnalyst={() => setRightTab('ai')}
       />
       <Watchlist instruments={INSTRUMENTS} quotes={quotes} active={inst.symbol} onSelect={(symbol) => setPrefs((p) => ({ ...p, symbol }))} activeSignal={lastSignal} />
       <main className="center">
@@ -126,10 +152,26 @@ export default function App() {
           onSelect={(symbol) => setPrefs((p) => ({ ...p, symbol }))}
         />
       </main>
-      <div className="right">
-        <OrderPanel inst={inst} last={lastClose} account={broker.account} onPlace={place} autoTrade={prefs.autoTrade} onAutoTrade={(autoTrade) => setPrefs((p) => ({ ...p, autoTrade }))} />
-        <AIPanel prediction={live} stats={closed.stats} lastSignal={lastSignal} tfLabel={tfLabel} />
-      </div>
+      <aside className="panel right">
+        <div className="right-tabs">
+          <button className={rightTab === 'ai' ? 'on' : ''} onClick={() => setRightTab('ai')}>
+            AI Analyst
+          </button>
+          <button className={rightTab === 'flow' ? 'on' : ''} onClick={() => setRightTab('flow')}>
+            Buyers &amp; Sellers
+          </button>
+          <button className={rightTab === 'trade' ? 'on' : ''} onClick={() => setRightTab('trade')}>
+            Trade
+          </button>
+        </div>
+        <div className="right-body">
+          {rightTab === 'ai' && <AnalystPanel analysis={analysis} stats={closed.stats} lastSignal={lastSignal} symbol={inst.symbol} tfLabel={tfLabel} />}
+          {rightTab === 'flow' && <OrderFlowPanel flow={flow} last={lastClose} />}
+          {rightTab === 'trade' && (
+            <OrderPanel inst={inst} last={lastClose} account={broker.account} onPlace={place} autoTrade={prefs.autoTrade} onAutoTrade={(autoTrade) => setPrefs((p) => ({ ...p, autoTrade }))} />
+          )}
+        </div>
+      </aside>
       {settingsOpen && <SettingsModal keys={keys} onSave={setKeys} onClose={() => setSettingsOpen(false)} />}
     </div>
   )

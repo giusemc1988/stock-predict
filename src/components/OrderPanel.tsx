@@ -46,11 +46,10 @@ export function OrderPanel({ inst, last, account, onPlace, autoTrade, onAutoTrad
   }
 
   return (
-    <section className="panel order">
-      <div className="panel-head">
-        <span>Trade</span>
-        <span className="paper-badge">PAPER</span>
-      </div>
+    <div className="order">
+      <p className="paper-note">
+        <span className="paper-badge">PAPER</span> Practice money only. No real orders are sent.
+      </p>
       <div className="side-toggle">
         <button className={`buy ${side === 'buy' ? 'on' : ''}`} onClick={() => setSide('buy')}>
           Buy
@@ -108,6 +107,6 @@ export function OrderPanel({ inst, last, account, onPlace, autoTrade, onAutoTrad
           <em>Paper-trade new live robot signals automatically ({crypto ? '$1,000' : '10 shares'} per signal)</em>
         </span>
       </label>
-    </section>
+    </div>
   )
 }

@@ -19,6 +19,8 @@ export interface Candle {
   low: number
   close: number
   volume: number
+  /** Volume bought by aggressive buyers (market buys). Real for Binance, estimated otherwise. */
+  buyVolume?: number
 }
 
 export type AssetClass = 'crypto' | 'stock'
@@ -93,4 +95,51 @@ export interface StrategyResult {
   emaFast: (number | null)[]
   emaSlow: (number | null)[]
   probSeries: (number | null)[]
+}
+
+export interface BookLevel {
+  price: number
+  size: number
+}
+
+export interface TapeTrade {
+  id: string
+  price: number
+  size: number
+  side: 'buy' | 'sell'
+  time: number // ms
+}
+
+export interface OrderFlow {
+  bids: BookLevel[]
+  asks: BookLevel[]
+  trades: TapeTrade[]
+  /** Aggressive buy / sell volume over the rolling window (base units). */
+  buyVolume: number
+  sellVolume: number
+  windowSec: number
+  hasBook: boolean
+  /** True when buy/sell sides are inferred (tick rule) rather than reported by the exchange. */
+  estimated: boolean
+  source: string
+  live: boolean
+}
+
+export type Verdict = 'BUY' | 'HOLD' | 'SELL'
+
+export interface AnalystCheck {
+  label: string
+  detail: string
+  stance: 'bull' | 'bear' | 'neutral'
+}
+
+export interface Analysis {
+  verdict: Verdict
+  score: number // -1..1
+  confidence: number // 0..1, already discounted by track record
+  confidenceLabel: 'Low' | 'Medium' | 'High'
+  headline: string
+  checks: AnalystCheck[]
+  plan: { entry: number; stop: number; target: number; riskReward: number } | null
+  trackRecord: string
 }
