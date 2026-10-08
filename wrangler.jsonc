@@ -1,0 +1,9 @@
+// Cloudflare Workers static-assets deploy: `npm run build` produces dist/, `npx wrangler deploy` uploads it.
+{
+  "name": "stock-predict",
+  "compatibility_date": "2025-09-01",
+  "assets": {
+    "directory": "./dist",
+    "not_found_handling": "single-page-application"
+  }
+}
