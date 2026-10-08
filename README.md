@@ -54,9 +54,18 @@ Tune it via `DEFAULT_CONFIG` in `strategy.ts`.
 
 Each signal gets a small arrow series-marker on the exact bar plus an HTML overlay robot (`RobotIcon.tsx`, green for BUY under the low, red for SELL over the high). A `requestAnimationFrame` loop maps `time → x` and `price → y` with the chart's own coordinate APIs, so robots stay glued to their bars while you pan, zoom or rescale. Hover a robot for the trigger price, confidence and the reasons it fired. The newest robot bobs.
 
-## Paper trading (`src/hooks/usePaperBroker.ts`)
+## Paper trading (`src/hooks/useBroker.ts`, `src/broker/`)
 
-$100,000 starting cash, market / limit / stop orders, 2 bps slippage, long-only (no shorting). Limit and stop orders trigger off live prices. **Robot auto-trade** (order panel) paper-trades new signals that appear while the app is open: $1,000 per crypto buy, 10 shares per stock buy, and it sells the full position on SELL. State persists in localStorage; Reset in the bottom bar.
+Everything is practice money. Pick the account on the **Portfolio** page:
+
+- **Built-in simulator** (default): $100,000 starting cash, fills against the live prices on screen, stored in this browser. Reset any time.
+- **Alpaca paper**: a free paper account at [alpaca.markets](https://app.alpaca.markets/signup) with real market fills, positions, buying power and order history. Paste your **paper** API key ID and secret on the Portfolio page (stored only in your browser). The app only ever talks to `paper-api.alpaca.markets` and refuses live keys (those starting with `AK`), so it cannot place a real-money order. Crypto symbols trade as `BTC/USD` etc. on Alpaca, and Alpaca does not allow brackets on crypto.
+
+**Order ticket** (Trade tab): market, limit, stop and stop-limit orders, shares or dollar amount, Day / GTC, optional take-profit + stop-loss bracket (the two exits cancel each other once one fills), a "Use AI plan" button that fills the bracket from the AI Analyst, and a review screen before anything is sent. Fills, rejections and cancels pop up as notifications.
+
+**Portfolio page**: portfolio value, today's and total P&L, buying power, equity chart (1D / 1M / 3M), positions with one-click close, working orders with cancel, and full order history.
+
+**Robot auto-trade + daily loss limit**: the robot paper-trades new live signals ($1,000 per crypto buy, 10 shares per stock buy, sells the whole position on SELL). Set a daily loss limit on the Portfolio page; once today's loss reaches it, the robot stops trading until tomorrow. Your manual orders are not blocked.
 
 ## Layout
 
@@ -69,13 +78,15 @@ src/
   data/demo.ts            seeded simulated market (fallback)
   hooks/useMarketData.ts  candles for the active symbol + live stream
   hooks/useQuotes.ts      watchlist quotes + sparklines
-  hooks/usePaperBroker.ts simulated brokerage
+  hooks/useBroker.ts      one broker interface (simulator or Alpaca paper)
+  broker/sim.ts           local order-matching simulator
+  broker/alpaca.ts        Alpaca paper REST client (paper endpoint only)
   lib/indicators.ts       EMA, RSI, ATR, MACD, Bollinger, regression
   lib/strategy.ts         prediction engine + backtest
   hooks/useOrderFlow.ts   order book + buy/sell trade flow
   lib/analyst.ts          plain-English BUY / HOLD / SELL analyst
   lib/orderflow.ts        buy/sell volume helpers
-  components/             TopBar, Watchlist, ChartPanel, RobotIcon, AnalystPanel, OrderFlowPanel, OrderPanel, BottomPanel, SettingsModal
+  components/             TopBar, Watchlist, ChartPanel, RobotIcon, AnalystPanel, OrderFlowPanel, OrderTicket, PortfolioPage, AccountTables, EquityChart, BottomPanel, Toasts, SettingsModal
 ```
 
 To add a symbol, append it to `src/data/instruments.ts` (crypto `feedId` is the Binance pair, e.g. `XRPUSDT`).

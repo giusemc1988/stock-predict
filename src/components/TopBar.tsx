@@ -1,6 +1,6 @@
 import type { Analysis, FeedStatus, Instrument, Quote, Timeframe } from '../types'
 import { TIMEFRAMES } from '../types'
-import { fmtCompact, fmtPct, fmtPrice, fmtSigned, tone } from '../lib/format'
+import { fmtCompact, fmtPct, fmtPrice, fmtSigned, fmtUsd, tone } from '../lib/format'
 import { RobotIcon } from './RobotIcon'
 
 interface Props {
@@ -18,11 +18,15 @@ interface Props {
   analysis: Analysis | null
   buyShare: number | null
   onAnalyst: () => void
+  page: 'trade' | 'portfolio'
+  onPage: (p: 'trade' | 'portfolio') => void
+  equity: number
+  dayPL: number
 }
 
 const STATUS_LABEL: Record<FeedStatus, string> = { connecting: 'Connecting', live: 'Live', polling: 'Delayed', demo: 'Simulated', error: 'Error' }
 
-export function TopBar({ inst, quote, lastPrice, tf, onTf, status, source, error, toggles, onToggle, onSettings, analysis, buyShare, onAnalyst }: Props) {
+export function TopBar({ inst, quote, lastPrice, tf, onTf, status, source, error, toggles, onToggle, onSettings, analysis, buyShare, onAnalyst, page, onPage, equity, dayPL }: Props) {
   const chg = quote?.change ?? 0
   return (
     <header className="topbar">
@@ -33,6 +37,15 @@ export function TopBar({ inst, quote, lastPrice, tf, onTf, status, source, error
           <span>Terminal</span>
         </div>
       </div>
+      <nav className="nav">
+        <button className={page === 'trade' ? 'on' : ''} onClick={() => onPage('trade')}>
+          Trade
+        </button>
+        <button className={page === 'portfolio' ? 'on' : ''} onClick={() => onPage('portfolio')}>
+          Portfolio
+          <span className={`nav-pl mono ${tone(dayPL)}`}>{fmtUsd(equity)}</span>
+        </button>
+      </nav>
       <div className="ticker">
         <div className="ticker-sym">
           <b>{inst.symbol}</b>
