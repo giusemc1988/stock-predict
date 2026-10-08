@@ -1,0 +1,85 @@
+import type { FeedStatus, Instrument, Quote, Timeframe } from '../types'
+import { TIMEFRAMES } from '../types'
+import { fmtCompact, fmtPct, fmtPrice, fmtSigned, tone } from '../lib/format'
+import { RobotIcon } from './RobotIcon'
+
+interface Props {
+  inst: Instrument
+  quote?: Quote
+  lastPrice: number
+  tf: Timeframe
+  onTf: (tf: Timeframe) => void
+  status: FeedStatus
+  source: string
+  error: string | null
+  toggles: { emas: boolean; forecast: boolean; robots: boolean }
+  onToggle: (k: 'emas' | 'forecast' | 'robots') => void
+  onSettings: () => void
+}
+
+const STATUS_LABEL: Record<FeedStatus, string> = { connecting: 'Connecting', live: 'Live', polling: 'Delayed', demo: 'Simulated', error: 'Error' }
+
+export function TopBar({ inst, quote, lastPrice, tf, onTf, status, source, error, toggles, onToggle, onSettings }: Props) {
+  const chg = quote?.change ?? 0
+  return (
+    <header className="topbar">
+      <div className="brand">
+        <RobotIcon size={26} />
+        <div>
+          <b>Bluechip</b>
+          <span>Terminal</span>
+        </div>
+      </div>
+      <div className="ticker">
+        <div className="ticker-sym">
+          <b>{inst.symbol}</b>
+          <span>{inst.name}</span>
+        </div>
+        <div className={`ticker-px mono ${tone(chg)}`}>{fmtPrice(lastPrice)}</div>
+        <div className={`ticker-chg mono ${tone(chg)}`}>
+          {fmtSigned(chg, lastPrice < 10 ? 4 : 2)} ({fmtPct(quote?.changePct ?? 0)})
+        </div>
+        <div className="ticker-stats mono">
+          <span>
+            H <b>{fmtPrice(quote?.high)}</b>
+          </span>
+          <span>
+            L <b>{fmtPrice(quote?.low)}</b>
+          </span>
+          <span>
+            Vol <b>{quote ? fmtCompact(quote.volume) : '—'}</b>
+          </span>
+        </div>
+      </div>
+      <div className="seg tf">
+        {TIMEFRAMES.map((t) => (
+          <button key={t.id} className={tf === t.id ? 'on' : ''} onClick={() => onTf(t.id)}>
+            {t.label}
+          </button>
+        ))}
+      </div>
+      <div className="seg toggles">
+        <button className={toggles.robots ? 'on' : ''} onClick={() => onToggle('robots')} title="Robot signal markers">
+          🤖 Robots
+        </button>
+        <button className={toggles.forecast ? 'on' : ''} onClick={() => onToggle('forecast')} title="AI forecast cone">
+          Forecast
+        </button>
+        <button className={toggles.emas ? 'on' : ''} onClick={() => onToggle('emas')} title="EMA 9 / 21">
+          EMA
+        </button>
+      </div>
+      <div className={`feed feed-${status}`} title={error ?? source}>
+        <i />
+        <span>{STATUS_LABEL[status]}</span>
+        <em>{source}</em>
+      </div>
+      <button className="icon-btn" onClick={onSettings} title="Data sources & API keys" aria-label="Settings">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+          <circle cx="12" cy="12" r="3" />
+          <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
+        </svg>
+      </button>
+    </header>
+  )
+}
