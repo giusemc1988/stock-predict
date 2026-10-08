@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import type { Candle, Timeframe } from './types'
+import type { Candle, Instrument, Timeframe } from './types'
 import { TIMEFRAMES } from './types'
-import { INSTRUMENTS, findInstrument } from './data/instruments'
+import { INSTRUMENTS } from './data/instruments'
 import type { ApiKeys } from './data/providers'
 import { useLocalStorage } from './hooks/useLocalStorage'
 import { useMarketData } from './hooks/useMarketData'
@@ -35,9 +35,13 @@ export default function App() {
   const [keys, setKeys] = useLocalStorage<ApiKeys>('bluechip.keys', { alphaVantage: '', finnhub: '' })
   const [settingsOpen, setSettingsOpen] = useState(false)
   const [rightTab, setRightTab] = useState<'ai' | 'flow' | 'trade'>('ai')
-  const inst = useMemo(() => findInstrument(prefs.symbol), [prefs.symbol])
+  // Tickers added from the search box persist in this browser and join the built-in watchlist.
+  const [added, setAdded] = useLocalStorage<Instrument[]>('bluechip.added', [])
+  const universe = useMemo(() => [...INSTRUMENTS, ...added.filter((a) => !INSTRUMENTS.some((i) => i.symbol === a.symbol))], [added])
+  const inst = useMemo(() => universe.find((i) => i.symbol === prefs.symbol) ?? INSTRUMENTS[0], [universe, prefs.symbol])
   const market = useMarketData(inst, prefs.tf, keys)
-  const quotes = useQuotes(INSTRUMENTS, keys)
+  const quotes = useQuotes(universe, keys)
+  const addInstrument = (i: Instrument) => setAdded((list) => (list.some((x) => x.symbol === i.symbol) ? list : [...list, i]))
   const broker = usePaperBroker()
   const flow = useOrderFlow(inst, keys)
 
@@ -120,7 +124,7 @@ export default function App() {
         buyShare={buyShare}
         onAnalyst={() => setRightTab('ai')}
       />
-      <Watchlist instruments={INSTRUMENTS} quotes={quotes} active={inst.symbol} onSelect={(symbol) => setPrefs((p) => ({ ...p, symbol }))} activeSignal={lastSignal} />
+      <Watchlist instruments={universe} quotes={quotes} active={inst.symbol} onSelect={(symbol) => setPrefs((p) => ({ ...p, symbol }))} onAdd={addInstrument} activeSignal={lastSignal} />
       <main className="center">
         <section className="panel chart-panel">
           <ChartPanel
