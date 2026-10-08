@@ -69,12 +69,20 @@ export function useBroker(mode: BrokerMode, keys: AlpacaKeys, historyPeriod: '1D
       setRemoteError(null)
       return
     }
+    // a poll waits for the previous one, so a slow snapshot is not superseded forever
     let stop = false
-    refresh()
-    const id = setInterval(() => !stop && refresh(), 3000)
+    let pending = false
+    const poll = () => {
+      if (stop || pending) return
+      pending = true
+      refresh().finally(() => (pending = false))
+    }
+    poll()
+    const id = setInterval(poll, 3000)
     return () => {
       stop = true
       clearInterval(id)
+      reqSeq.current++ // drop responses for the old mode or keys
     }
   }, [alpaca, keys.keyId, keys.secret, refresh])
 
