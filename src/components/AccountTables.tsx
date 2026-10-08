@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import type { BrokerOrder, BrokerPosition } from '../broker/types'
 import { OPEN_STATUSES } from '../broker/types'
 import { fmtPct, fmtPrice, fmtUsd, tone } from '../lib/format'
@@ -14,6 +15,25 @@ const STATUS_LABEL: Record<BrokerOrder['status'], string> = {
   expired: 'Expired',
 }
 
+/** Tracks in-flight row actions so a double click can't send a request twice. */
+function usePending() {
+  const [pending, setPending] = useState<Set<string>>(() => new Set())
+  const run = async (key: string, fn: () => unknown) => {
+    if (pending.has(key)) return
+    setPending((s) => new Set(s).add(key))
+    try {
+      await fn()
+    } finally {
+      setPending((s) => {
+        const n = new Set(s)
+        n.delete(key)
+        return n
+      })
+    }
+  }
+  return [pending, run] as const
+}
+
 const qtyFmt = (q: number) => (+q.toFixed(6)).toLocaleString('en-US', { maximumFractionDigits: 6 })
 
 export function PositionsTable({
@@ -24,9 +44,10 @@ export function PositionsTable({
 }: {
   positions: BrokerPosition[]
   onSelect?: (s: string) => void
-  onClose?: (p: BrokerPosition) => void
+  onClose?: (p: BrokerPosition) => unknown
   empty?: string
 }) {
+  const [pending, run] = usePending()
   return (
     <table>
       <thead>
@@ -64,12 +85,13 @@ export function PositionsTable({
               <td className="r">
                 <button
                   className="btn-mini"
+                  disabled={pending.has(p.symbol)}
                   onClick={(e) => {
                     e.stopPropagation()
-                    if (confirm(`Sell all ${qtyFmt(p.qty)} ${p.symbol} at market (paper)?`)) onClose(p)
+                    if (confirm(`Sell all ${qtyFmt(p.qty)} ${p.symbol} at market (paper)?`)) run(p.symbol, () => onClose(p))
                   }}
                 >
-                  Close
+                  {pending.has(p.symbol) ? 'Closing…' : 'Close'}
                 </button>
               </td>
             )}
@@ -80,7 +102,8 @@ export function PositionsTable({
   )
 }
 
-export function OrdersTable({ orders, onCancel, empty = 'No orders yet.' }: { orders: BrokerOrder[]; onCancel?: (id: string) => void; empty?: string }) {
+export function OrdersTable({ orders, onCancel, empty = 'No orders yet.' }: { orders: BrokerOrder[]; onCancel?: (id: string) => unknown; empty?: string }) {
+  const [pending, run] = usePending()
   return (
     <table>
       <thead>
@@ -131,8 +154,8 @@ export function OrdersTable({ orders, onCancel, empty = 'No orders yet.' }: { or
               {onCancel && (
                 <td className="r">
                   {OPEN_STATUSES.includes(o.status) && (
-                    <button className="btn-mini" onClick={() => onCancel(o.id)}>
-                      Cancel
+                    <button className="btn-mini" disabled={pending.has(o.id)} onClick={() => run(o.id, () => onCancel(o.id))}>
+                      {pending.has(o.id) ? 'Canceling…' : 'Cancel'}
                     </button>
                   )}
                 </td>

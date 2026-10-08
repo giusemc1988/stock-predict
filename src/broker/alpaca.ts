@@ -152,13 +152,15 @@ export async function alpacaPlace(keys: AlpacaKeys, r: OrderRequest) {
     time_in_force: crypto ? 'gtc' : r.tif,
     client_order_id: `${r.source}-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 6)}`,
   }
-  if (r.limitPrice != null && (r.type === 'limit' || r.type === 'stop_limit')) body.limit_price = r.limitPrice.toFixed(2)
-  if (r.stopPrice != null && (r.type === 'stop' || r.type === 'stop_limit')) body.stop_price = r.stopPrice.toFixed(2)
+  // Alpaca allows more decimals for crypto and for stocks under $1; don't silently round those away
+  const px = (p: number) => (crypto ? String(+p.toPrecision(8)) : p.toFixed(p >= 1 ? 2 : 4))
+  if (r.limitPrice != null && (r.type === 'limit' || r.type === 'stop_limit')) body.limit_price = px(r.limitPrice)
+  if (r.stopPrice != null && (r.type === 'stop' || r.type === 'stop_limit')) body.stop_price = px(r.stopPrice)
   if (r.bracket) {
     if (crypto) throw new Error('Alpaca does not support bracket orders for crypto')
     body.order_class = 'bracket'
-    body.take_profit = { limit_price: r.bracket.takeProfit.toFixed(2) }
-    body.stop_loss = { stop_price: r.bracket.stopLoss.toFixed(2) }
+    body.take_profit = { limit_price: px(r.bracket.takeProfit) }
+    body.stop_loss = { stop_price: px(r.bracket.stopLoss) }
   }
   return call<RawOrder>(keys, '/v2/orders', { method: 'POST', body: JSON.stringify(body) })
 }

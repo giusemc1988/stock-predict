@@ -42,7 +42,7 @@ export function OrderTicket({ inst, last, broker, analysis, onSubmit, autoTrade,
   const [result, setResult] = useState<PlaceResult | null>(null)
   const crypto = inst.assetClass === 'crypto'
   const pos = broker.positions.find((p) => p.symbol === inst.symbol)
-  const bracketBlocked = broker.mode === 'alpaca' && crypto
+  const bracketBlocked = (broker.mode === 'alpaca' && crypto) || side === 'sell'
 
   const hasPrice = last > 0
   useEffect(() => {
@@ -69,8 +69,10 @@ export function OrderTicket({ inst, last, broker, analysis, onSubmit, autoTrade,
 
   const useAiPlan = () => {
     if (!analysis?.plan) return
-    setSide(analysis.verdict === 'SELL' ? 'sell' : 'buy')
-    setBracket(true)
+    // short selling is off, so a SELL plan just closes/reduces; exit legs only make sense on a buy
+    const s = analysis.verdict === 'SELL' ? 'sell' : 'buy'
+    setSide(s)
+    setBracket(s === 'buy')
     setTp(clean(analysis.plan.target))
     setSl(clean(analysis.plan.stop))
   }
@@ -200,7 +202,9 @@ export function OrderTicket({ inst, last, broker, analysis, onSubmit, autoTrade,
             Take profit & stop loss <InfoTip text="A bracket: once your order fills, a take-profit and a stop-loss are placed. When one fills, the other is canceled automatically." />
           </span>
         </label>
-        {bracketBlocked && <p className="muted tiny">Alpaca doesn't support brackets on crypto.</p>}
+        {bracketBlocked && (
+          <p className="muted tiny">{side === 'sell' ? 'Take profit & stop loss attach to buy orders.' : "Alpaca doesn't support brackets on crypto."}</p>
+        )}
         {bracket && !bracketBlocked && (
           <div className="bracket-grid">
             <label className="field">

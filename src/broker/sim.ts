@@ -61,7 +61,13 @@ const upsert = (orders: BrokerOrder[], o: BrokerOrder) => {
   return next
 }
 
-const reject = (s: SimState, o: BrokerOrder, reason: string): SimState => ({ ...s, orders: upsert(s.orders, { ...o, status: 'rejected', reason }) })
+// a rejected entry also cancels its bracket legs, so they don't linger as working orders
+const reject = (s: SimState, o: BrokerOrder, reason: string): SimState => ({
+  ...s,
+  orders: upsert(s.orders, { ...o, status: 'rejected', reason }).map((x) =>
+    x.parentId === o.id && OPEN_STATUSES.includes(x.status) ? { ...x, status: 'canceled' as const, reason: 'Entry order rejected' } : x,
+  ),
+})
 
 function fill(s: SimState, o: BrokerOrder, price: number): SimState {
   const px = o.type === 'limit' || o.type === 'stop_limit' ? price : o.side === 'buy' ? price * (1 + SLIPPAGE) : price * (1 - SLIPPAGE)

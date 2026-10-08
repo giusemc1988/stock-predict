@@ -318,6 +318,7 @@ tr.leg td { color: #aab2c0; }
 .reason { display: block; font-size: 10px; color: var(--down); white-space: normal; max-width: 220px; }
 .btn-mini { font-size: 11px; padding: 2px 8px; border: 1px solid var(--line-2); border-radius: 4px; color: var(--muted); }
 .btn-mini:hover { color: var(--text); border-color: var(--muted); }
+.btn-mini:disabled { opacity: 0.5; cursor: default; }
 
 /* ---------- nav ---------- */
 .nav { display: flex; gap: 2px; padding-right: 10px; border-right: 1px solid var(--line); }
@@ -409,7 +410,7 @@ tr.leg td { color: #aab2c0; }
 
 /* ---------- toasts ---------- */
 .toasts { position: fixed; right: 16px; bottom: 16px; display: flex; flex-direction: column; gap: 8px; z-index: 60; max-width: min(340px, calc(100vw - 32px)); }
-.toast-card { display: flex; flex-direction: column; gap: 2px; padding: 10px 12px; border-radius: 8px; background: #161c26; border: 1px solid var(--line-2); border-left-width: 3px; box-shadow: 0 12px 30px rgba(0, 0, 0, 0.45); font-size: 12px; cursor: pointer; animation: toast-in 0.2s ease-out; }
+.toast-card { display: flex; flex-direction: column; align-items: flex-start; text-align: left; color: var(--text); gap: 2px; padding: 10px 12px; border-radius: 8px; background: #161c26; border: 1px solid var(--line-2); border-left-width: 3px; box-shadow: 0 12px 30px rgba(0, 0, 0, 0.45); font-size: 12px; cursor: pointer; animation: toast-in 0.2s ease-out; }
 .toast-card span { color: var(--muted); }
 .toast-card.t-ok { border-left-color: var(--up); }
 .toast-card.t-bad { border-left-color: var(--down); }

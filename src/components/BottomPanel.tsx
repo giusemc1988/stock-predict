@@ -10,8 +10,8 @@ interface Props {
   broker: BrokerState
   signals: Signal[]
   symbol: string
-  onCancel: (id: string) => void
-  onClose: (p: BrokerPosition) => void
+  onCancel: (id: string) => unknown
+  onClose: (p: BrokerPosition) => unknown
   onSelect: (symbol: string) => void
   onPortfolio: () => void
 }

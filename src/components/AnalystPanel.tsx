@@ -84,7 +84,7 @@ export function AnalystPanel({ analysis: a, stats, lastSignal, symbol, tfLabel, 
         )}
         {a.plan && (
           <button className="ai-plan" onClick={onTrade}>
-            Open order ticket with this plan →
+            Open order ticket →
           </button>
         )}
       </div>

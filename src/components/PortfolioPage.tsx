@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import type { BrokerMode, BrokerPosition, BrokerState } from '../broker/types'
 import { OPEN_STATUSES } from '../broker/types'
 import type { AlpacaKeys } from '../broker/alpaca'
@@ -12,8 +12,8 @@ interface Props {
   broker: BrokerState
   period: '1D' | '1M' | '3M'
   onPeriod: (p: '1D' | '1M' | '3M') => void
-  onCancel: (id: string) => void
-  onClose: (p: BrokerPosition) => void
+  onCancel: (id: string) => unknown
+  onClose: (p: BrokerPosition) => unknown
   onTrade: (symbol: string) => void
   onReset: () => void
   mode: BrokerMode
@@ -30,6 +30,7 @@ export function PortfolioPage(p: Props) {
   const { broker, period } = p
   const { account, positions, orders } = broker
   const [draft, setDraft] = useState(p.alpacaKeys)
+  useEffect(() => setDraft(p.alpacaKeys), [p.alpacaKeys])
   const [keyErr, setKeyErr] = useState<string | null>(null)
   const open = orders.filter((o) => OPEN_STATUSES.includes(o.status))
   const done = orders.filter((o) => !OPEN_STATUSES.includes(o.status))
@@ -166,7 +167,7 @@ export function PortfolioPage(p: Props) {
                 <button
                   className="btn-primary"
                   onClick={() => {
-                    const bad = checkPaperKey(draft.keyId)
+                    const bad = checkPaperKey(draft.keyId) ?? (draft.secret ? null : 'Enter your paper secret key')
                     setKeyErr(bad)
                     if (!bad) p.onAlpacaKeys(draft)
                   }}

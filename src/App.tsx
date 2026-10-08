@@ -139,8 +139,11 @@ export default function App() {
     const pos = positionsRef.current.find((p) => p.symbol === inst.symbol)
     const qty = lastSignal.side === 'buy' ? (inst.assetClass === 'crypto' ? +(1000 / lastClose).toFixed(5) : 10) : pos?.qty ?? 0
     if (qty > 0) {
-      submit({ symbol: inst.symbol, side: lastSignal.side, type: 'market', qty, tif: 'day', source: 'robot' })
-      toast({ tone: 'info', title: `🤖 Robot ${lastSignal.side === 'buy' ? 'bought' : 'sold'} ${qty} ${inst.symbol}`, body: `Paper order at about ${fmtPrice(lastClose)}` })
+      const side = lastSignal.side
+      const price = lastClose
+      submit({ symbol: inst.symbol, side, type: 'market', qty, tif: 'day', source: 'robot' }).then((r) => {
+        if (r.ok) toast({ tone: 'info', title: `🤖 Robot ${side === 'buy' ? 'bought' : 'sold'} ${qty} ${inst.symbol}`, body: `Paper order at about ${fmtPrice(price)}` })
+      })
     }
   }, [lastSignal, inst, prefs.tf, prefs.autoTrade, candles.length, lastClose, submit, robotPaused, toast])
 

@@ -48,12 +48,17 @@ export function useBroker(mode: BrokerMode, keys: AlpacaKeys, historyPeriod: '1D
     return () => clearInterval(id)
   }, [alpaca])
 
+  // several refreshes can overlap (poll, place, cancel); only the newest may write state
+  const reqSeq = useRef(0)
   const refresh = useCallback(async () => {
+    const my = ++reqSeq.current
     try {
       const snap = await alpacaSnapshot(keysRef.current)
+      if (my !== reqSeq.current) return
       setRemote({ connected: snap.status === 'ACTIVE', error: null, account: snap.account, positions: snap.positions, orders: snap.orders })
       setRemoteError(null)
     } catch (e) {
+      if (my !== reqSeq.current) return
       setRemoteError(e instanceof Error ? e.message : String(e))
     }
   }, [])
