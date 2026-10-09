@@ -19,6 +19,8 @@ import type { Candle, Prediction, Signal, Timeframe } from '../types'
 import { fmtCompact, fmtPrice, fmtTime, tone } from '../lib/format'
 import { barBuyVolume, hasRealBuyVolume } from '../lib/orderflow'
 import { RobotIcon } from './RobotIcon'
+import { sma, stdev } from '../lib/indicators'
+import { loadChartConfig, saveChartConfig, type ChartConfig } from '../lib/chartConfig'
 
 const COLORS = {
   up: '#0ecb81',
@@ -28,6 +30,8 @@ const COLORS = {
   emaFast: '#f0b90b',
   emaSlow: '#a78bfa',
   forecast: '#4fd1ff',
+  sma: '#f59e0b',
+  bollinger: 'rgba(148, 163, 184, 0.7)',
 }
 
 interface Props {
@@ -59,6 +63,10 @@ export function ChartPanel(props: Props) {
     fMid: ISeriesApi<'Line'>
     fHi: ISeriesApi<'Line'>
     fLo: ISeriesApi<'Line'>
+    sma: ISeriesApi<'Line'>
+    bbUp: ISeriesApi<'Line'>
+    bbMid: ISeriesApi<'Line'>
+    bbLo: ISeriesApi<'Line'>
     markers: ISeriesMarkersPluginApi<Time>
   } | null>(null)
   const loaded = useRef<{ key: string; len: number; first: number }>({ key: '', len: 0, first: 0 })
@@ -66,6 +74,12 @@ export function ChartPanel(props: Props) {
   const candlesRef = useRef(candles)
   candlesRef.current = candles
   const [hover, setHover] = useState<Candle | null>(null)
+  const [cfg, setCfg] = useState<ChartConfig>(loadChartConfig)
+  const [settings, setSettings] = useState(false)
+  const updateCfg = (next: ChartConfig) => {
+    setCfg(next)
+    saveChartConfig(next)
+  }
 
   // create chart once
   useEffect(() => {
@@ -115,6 +129,10 @@ export function ChartPanel(props: Props) {
       fMid: line(COLORS.forecast, 2, LineStyle.Dashed),
       fHi: line('rgba(79,209,255,0.45)', 1, LineStyle.Dotted),
       fLo: line('rgba(79,209,255,0.45)', 1, LineStyle.Dotted),
+      sma: line(COLORS.sma, 1),
+      bbUp: line(COLORS.bollinger, 1, LineStyle.Dotted),
+      bbMid: line(COLORS.bollinger, 1),
+      bbLo: line(COLORS.bollinger, 1, LineStyle.Dotted),
       markers: createSeriesMarkers(candle, []),
     }
     chart.current = c
@@ -217,6 +235,29 @@ export function ChartPanel(props: Props) {
     )
   }, [candles, emaFast, emaSlow, prediction, signals, showEmas, showForecast])
 
+  // SMA and Bollinger bands from the chart's own candles; volume bars can be hidden
+  useEffect(() => {
+    const s = series.current
+    if (!s) return
+    const close = candles.map((c) => c.close)
+    const toLine = (arr: (number | null)[]) => candles.flatMap((c, i) => (arr[i] != null ? [{ time: ts(c.time), value: arr[i]! }] : []))
+    s.sma.setData(cfg.sma.on ? toLine(sma(close, cfg.sma.period)) : [])
+    if (cfg.bollinger.on) {
+      const mid = sma(close, cfg.bollinger.period)
+      const sd = stdev(close, cfg.bollinger.period)
+      const band = (k: number) => mid.map((m, i) => (m != null && sd[i] != null ? m + k * cfg.bollinger.mult * sd[i]! : null))
+      const lower = band(-1)
+      s.bbUp.setData(toLine(band(1)))
+      s.bbMid.setData(toLine(mid))
+      s.bbLo.setData(toLine(lower))
+    } else {
+      s.bbUp.setData([])
+      s.bbMid.setData([])
+      s.bbLo.setData([])
+    }
+    s.volume.applyOptions({ visible: cfg.volume })
+    s.buyVol.applyOptions({ visible: cfg.volume })
+  }, [candles, cfg])
   const robots = useMemo(() => {
     if (!showRobots) return []
     const byTime = new Map(candles.map((c) => [c.time, c]))
@@ -270,6 +311,56 @@ export function ChartPanel(props: Props) {
             </div>
           </div>
         ))}
+      </div>
+      <div className="chart-tools">
+        <button className={cfg.sma.on ? 'on' : ''} onClick={() => updateCfg({ ...cfg, sma: { ...cfg.sma, on: !cfg.sma.on } })}>
+          SMA {cfg.sma.period}
+        </button>
+        <button className={cfg.bollinger.on ? 'on' : ''} onClick={() => updateCfg({ ...cfg, bollinger: { ...cfg.bollinger, on: !cfg.bollinger.on } })}>
+          Bollinger {cfg.bollinger.period}
+        </button>
+        <button className={cfg.volume ? 'on' : ''} onClick={() => updateCfg({ ...cfg, volume: !cfg.volume })}>
+          Volume
+        </button>
+        <button className={settings ? 'on' : ''} onClick={() => setSettings((v) => !v)} aria-label="Chart settings">
+          Settings
+        </button>
+        {settings && (
+          <div className="chart-settings">
+            <label>
+              SMA period
+              <input
+                type="number"
+                min={2}
+                max={200}
+                value={cfg.sma.period}
+                onChange={(e) => updateCfg({ ...cfg, sma: { ...cfg.sma, period: Number(e.target.value) } })}
+              />
+            </label>
+            <label>
+              Bollinger period
+              <input
+                type="number"
+                min={2}
+                max={200}
+                value={cfg.bollinger.period}
+                onChange={(e) => updateCfg({ ...cfg, bollinger: { ...cfg.bollinger, period: Number(e.target.value) } })}
+              />
+            </label>
+            <label>
+              Bollinger width (σ)
+              <input
+                type="number"
+                min={0.5}
+                max={4}
+                step={0.5}
+                value={cfg.bollinger.mult}
+                onChange={(e) => updateCfg({ ...cfg, bollinger: { ...cfg.bollinger, mult: Number(e.target.value) } })}
+              />
+            </label>
+            <p className="muted">Saved in this browser. Periods are clamped to 2–200 when loaded.</p>
+          </div>
+        )}
       </div>
       {shown && (
         <div className="chart-legend">
