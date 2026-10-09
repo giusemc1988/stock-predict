@@ -4,7 +4,10 @@ export function useLocalStorage<T>(key: string, initial: T) {
   const [value, setValue] = useState<T>(() => {
     try {
       const raw = localStorage.getItem(key)
-      return raw ? { ...initial, ...JSON.parse(raw) } : initial
+      if (!raw) return initial
+      const parsed = JSON.parse(raw)
+      // Arrays (like the added-tickers list) must stay arrays; spreading them would turn them into objects.
+      return Array.isArray(initial) ? parsed : { ...initial, ...parsed }
     } catch {
       return initial
     }
