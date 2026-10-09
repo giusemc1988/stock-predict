@@ -1,0 +1,44 @@
+# 24/7 auto learning: runs one learning cycle every hour, even while the app is closed,
+# and commits the results to public/auto-learning.json (the app loads that file).
+# Paper only: it fetches public Yahoo Finance bars and never places an order.
+# To turn it off: GitHub > Settings > Secrets and variables > Actions > Variables,
+# add AUTO_LEARN = off (or disable this workflow in the Actions tab).
+name: Auto learning
+
+on:
+  schedule:
+    - cron: '17 * * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: auto-learn
+  cancel-in-progress: false
+
+jobs:
+  cycle:
+    if: vars.AUTO_LEARN != 'off'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run learn
+      - name: Save the learned stats
+        run: |
+          git config user.name "arc-analyst-learner"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add public/auto-learning.json
+          git diff --cached --quiet && exit 0
+          git commit -m "Auto learning cycle $(date -u +%Y-%m-%dT%H:%MZ)"
+          for i in 1 2 3; do
+            git pull --rebase -q origin main && git push -q origin HEAD:main && exit 0
+            sleep $((i * 5))
+          done
+          exit 1

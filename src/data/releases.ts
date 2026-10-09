@@ -2,7 +2,7 @@
  * Version and "What's new". Bump APP_VERSION and add an entry to the top of RELEASES
  * with each update. The banner shows once per version, then stays dismissed.
  */
-export const APP_VERSION = '1.0.1'
+export const APP_VERSION = '1.1.0'
 
 export interface Release {
   version: string
@@ -13,6 +13,24 @@ export interface Release {
 }
 
 export const RELEASES: Release[] = [
+  {
+    version: '1.1.0',
+    date: '2026-10-09',
+    changes: [
+      'New 24/7 auto learning (off by default). Turn it on in the Learning tab or in Settings > AI rules. Each hourly cycle replays old bars and scores every new bar with the whole analyst (trading-analyst rules, Trade Score, volatility rule, sizing), then grades the result 5 bars later.',
+      'It keeps learning while the app is closed: an hourly server cycle saves its results, and the app picks them up when you open it.',
+      'The Learning tab now has 24/7 learning (counters, last and next cycle, "Run learning cycle now"), What it learned (self-scorecard, the learner, a Teach box and a dated learning log), PAPER arena (simulated $10,000 trading new bars only) and a Success report for every signal (win rate, average gain, tracked, trend). The old research tables are under Research.',
+      'Fairer learner: a score bucket now has to beat simply buying every time by 3 points (changeable in AI rules) before the learner says BUY, so a rising market no longer looks like skill.',
+      'Not financial advice. Paper trading only; nothing here places a real order.',
+    ],
+    changesVi: [
+      'Tự học 24/7 mới (mặc định tắt). Bật trong tab Học tập hoặc Cài đặt > Quy tắc AI. Mỗi chu kỳ một giờ chạy lại nến cũ và chấm mọi nến mới bằng toàn bộ bộ phân tích (quy tắc trading-analyst, Điểm Giao dịch, quy tắc biến động, khối lượng), rồi chấm kết quả sau 5 nến.',
+      'Vẫn học khi đóng ứng dụng: chu kỳ máy chủ mỗi giờ lưu kết quả, và ứng dụng tải về khi bạn mở.',
+      'Tab Học tập giờ có Tự học 24/7 (bộ đếm, chu kỳ trước và kế tiếp, "Chạy chu kỳ học ngay"), AI đã học gì (tự chấm điểm, bộ học, ô Dạy AI và nhật ký học theo ngày), Đấu trường THỬ (10.000$ giả lập chỉ giao dịch nến mới) và Báo cáo hiệu quả cho từng tín hiệu (tỷ lệ thắng, lãi trung bình, số lần, xu hướng). Bảng nghiên cứu cũ nằm ở mục Nghiên cứu.',
+      'Bộ học công bằng hơn: một nhóm điểm phải hơn việc luôn mua 3 điểm (đổi được trong Quy tắc AI) thì bộ học mới nói MUA, nên thị trường đi lên không còn trông như kỹ năng.',
+      'Không phải lời khuyên đầu tư. Chỉ giao dịch thử nghiệm; không có lệnh thật nào được đặt.',
+    ],
+  },
   {
     version: '1.0.1',
     date: '2026-10-09',

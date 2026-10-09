@@ -22,7 +22,8 @@ import { AnalystPanel } from './components/AnalystPanel'
 import { OrderFlowPanel } from './components/OrderFlowPanel'
 import { BottomPanel } from './components/BottomPanel'
 import { PortfolioPage } from './components/PortfolioPage'
-import { LearningPanel } from './components/LearningPanel'
+import { AutoLearnPanel } from './components/AutoLearnPanel'
+import { useAutoLearning } from './hooks/useAutoLearning'
 import { AIPicks } from './components/AIPicks'
 import { WhatsNew } from './components/WhatsNew'
 import { SettingsModal } from './components/SettingsModal'
@@ -83,6 +84,8 @@ export default function App() {
   const quotes = useQuotes(universe, keys, alpacaKeys)
   const addInstrument = (i: Instrument) => setAdded((list) => (list.some((x) => x.symbol === i.symbol) ? list : [...list, i]))
   const flow = useOrderFlow(inst, keys)
+  // 24/7 auto learning runs here so it keeps going whichever tab is open (off by default)
+  const autoLearn = useAutoLearning(universe, keys, alpacaKeys, aiRules)
   const brokerApi = useBroker(prefs.brokerMode, alpacaKeys, prefs.equityPeriod)
   const broker = brokerApi.state
 
@@ -304,7 +307,7 @@ export default function App() {
                     setRightTab('trade')
                   }} onEditRules={() => setAiRulesOpen(true)} />}
               {rightTab === 'flow' && <OrderFlowPanel flow={flow} last={lastClose} />}
-              {rightTab === 'learn' && <LearningPanel />}
+              {rightTab === 'learn' && <AutoLearnPanel al={autoLearn} rules={aiRules} symbol={inst.symbol} liveScore={live?.probUp ?? null} />}
               {rightTab === 'picks' && (
                 <AIPicks
                   instruments={universe}
