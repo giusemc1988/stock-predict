@@ -103,10 +103,32 @@ export function calibrate(entries: JournalEntry[], score: number): { probability
   return { probability: (hits + PRIOR_WEIGHT * 0.5) / (n + PRIOR_WEIGHT), n }
 }
 
-/** BUY only when the learned probability clears the threshold; otherwise HOLD. */
-export function decide(entries: JournalEntry[], score: number, threshold = 0.55): { signal: JournalSignal; reason: string } {
+/**
+ * Share of all closed BUY trades that went up, shrunk toward 50% like a bucket.
+ * This is what "always buy" would have scored, so a bucket has to beat it to mean anything.
+ */
+export function baseRate(entries: JournalEntry[]): { probability: number; n: number } | null {
+  const closed = entries.filter((e) => tradeReturnPct(e) !== null && e.signal === 'BUY')
+  if (closed.length < MIN_TRADES) return null
+  const hits = closed.filter((e) => tradeReturnPct(e)! > 0).length
+  return { probability: (hits + PRIOR_WEIGHT * 0.5) / (closed.length + PRIOR_WEIGHT), n: closed.length }
+}
+
+/** Default extra hit rate a score bucket needs over the base rate before the learner says BUY. */
+export const EDGE_MARGIN = 0.03
+
+/**
+ * BUY only when the learned probability clears the threshold AND beats the base rate
+ * (always buying) by the margin; otherwise HOLD. Without the base-rate check a rising
+ * market makes every bucket look good and the learner just copies "always buy".
+ */
+export function decide(entries: JournalEntry[], score: number, threshold = 0.55, margin = EDGE_MARGIN): { signal: JournalSignal; reason: string } {
   const c = calibrate(entries, score)
-  if (!c) return { signal: 'HOLD', reason: `not enough closed trades yet (need ${MIN_TRADES})` }
-  if (c.probability >= threshold) return { signal: 'BUY', reason: `learned ${(c.probability * 100).toFixed(0)}% up from ${c.n} similar trades` }
-  return { signal: 'HOLD', reason: `learned ${(c.probability * 100).toFixed(0)}% up, below ${(threshold * 100).toFixed(0)}%` }
+  const base = baseRate(entries)
+  if (!c || !base) return { signal: 'HOLD', reason: `not enough closed trades yet (need ${MIN_TRADES})` }
+  const p = (x: number) => `${(x * 100).toFixed(0)}%`
+  if (c.probability < threshold) return { signal: 'HOLD', reason: `learned ${p(c.probability)} up, below ${p(threshold)}` }
+  if (c.probability < base.probability + margin)
+    return { signal: 'HOLD', reason: `learned ${p(c.probability)} up, but always buying scored ${p(base.probability)}, so no edge` }
+  return { signal: 'BUY', reason: `learned ${p(c.probability)} up from ${c.n} similar trades, vs ${p(base.probability)} for always buying` }
 }

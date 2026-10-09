@@ -1,6 +1,7 @@
 import { Fragment, useState } from 'react'
 import type { Instrument, Candle, Timeframe } from '../types'
-import { binanceKlines, alphaVantageCandlesCached, alpacaStockCandles, hasAlpacaData, type AlpacaDataKeys, type ApiKeys } from '../data/providers'
+import type { AlpacaDataKeys, ApiKeys } from '../data/providers'
+import { candlesFor } from '../data/series'
 import { rankPicks, savePicks, SMALL_SAMPLE, sortPicks, type Pick, type PickSort } from '../lib/picks'
 import { useT } from '../lib/i18n'
 
@@ -45,14 +46,6 @@ interface Props {
   keys: ApiKeys
   alpacaKeys: AlpacaDataKeys
   onOpen: (symbol: string) => void
-}
-
-/** Crypto from Binance (no key); stocks from Alpaca data if connected, else Alpha Vantage. */
-async function candlesFor(inst: Instrument, tf: Timeframe, keys: ApiKeys, alpaca: AlpacaDataKeys): Promise<Candle[]> {
-  if (inst.assetClass === 'crypto') return binanceKlines(inst.feedId, tf, 500)
-  if (hasAlpacaData(alpaca)) return alpacaStockCandles(inst.feedId, tf, alpaca)
-  if (keys.alphaVantage) return (await alphaVantageCandlesCached(inst.feedId, tf, keys.alphaVantage)).candles
-  throw new Error(`${inst.symbol}: no data key`)
 }
 
 export function AIPicks({ instruments, tf, keys, alpacaKeys, onOpen }: Props) {

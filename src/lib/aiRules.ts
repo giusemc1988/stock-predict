@@ -19,6 +19,8 @@ export interface AiRules {
   maxPositionPct: number
   maxTradesPerDay: number
   minScoreWarn: number
+  autoLearn: boolean // 24/7 auto learning: replay old bars and test new ones as simulated paper trades
+  learnEdgeMarginPct: number // learner needs this many points over always-buy before it says BUY
 }
 
 export const DEFAULT_AI_RULES: AiRules = {
@@ -36,6 +38,8 @@ export const DEFAULT_AI_RULES: AiRules = {
   maxPositionPct: 25,
   maxTradesPerDay: 50,
   minScoreWarn: 40,
+  autoLearn: false,
+  learnEdgeMarginPct: 3,
 }
 
 type NumKey = { [K in keyof AiRules]: AiRules[K] extends number ? K : never }[keyof AiRules]
@@ -56,6 +60,7 @@ export interface RuleField {
 export const RULE_FIELDS: RuleField[] = [
   { group: 'call', key: 'verdictThreshold', en: 'Signal strength needed for BUY / SELL', vi: 'Độ mạnh tín hiệu cần để MUA / BÁN', min: 5, max: 80, step: 1, unit: '%' },
   { group: 'call', key: 'noEdgeRule', en: 'No position when just holding beat the robot', vi: 'Không vào lệnh khi mua và giữ tốt hơn robot' },
+  { group: 'call', key: 'learnEdgeMarginPct', en: 'Learner must beat always-buy by', vi: 'Bộ học phải hơn luôn-mua ít nhất', min: 0, max: 20, step: 0.5, unit: '%' },
   { group: 'sizing', key: 'riskPerTradePct', en: 'Risk per trade', vi: 'Rủi ro mỗi giao dịch', min: 0.1, max: 5, step: 0.1, unit: '%' },
   { group: 'sizing', key: 'positionCapPct', en: 'Max position size', vi: 'Khối lượng vị thế tối đa', min: 1, max: 100, step: 1, unit: '%' },
   { group: 'sizing', key: 'thinRecordCapPct', en: 'Max size while the track record is short', vi: 'Khối lượng tối đa khi lịch sử còn ngắn', min: 0.5, max: 100, step: 0.5, unit: '%' },
@@ -67,6 +72,7 @@ export const RULE_FIELDS: RuleField[] = [
   { group: 'modules', key: 'tradeScoreOn', en: 'Trade Score (0-100)', vi: 'Điểm Giao dịch (0-100)' },
   { group: 'modules', key: 'riskScoreSizing', en: 'Size by risk score', vi: 'Khối lượng theo điểm rủi ro' },
   { group: 'modules', key: 'volatilityOn', en: 'Volatility rules (halve or stop in wild swings)', vi: 'Quy tắc biến động (giảm nửa hoặc dừng khi dao động mạnh)' },
+  { group: 'modules', key: 'autoLearn', en: '24/7 auto learning (tests old and new bars as paper trades)', vi: 'Tự học 24/7 (kiểm thử nến cũ và mới bằng giao dịch thử nghiệm)' },
   { group: 'modules', key: 'gatesOn', en: 'Risk gates (kill switch always works)', vi: 'Cổng rủi ro (công tắc dừng khẩn cấp luôn hoạt động)' },
 ]
 
