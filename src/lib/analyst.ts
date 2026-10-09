@@ -164,7 +164,7 @@ const MIN_SAMPLE = 30 // trades needed before the normal cap applies
  */
 export function sizeFor(entry: number, stop: number, trades: number, noEdge: boolean): Sizing | null {
   const stopPct = Math.abs(entry - stop) / entry
-  if (!(stopPct > 0)) return null
+  if (!Number.isFinite(stopPct) || stopPct <= 0) return null
   const riskCap = RISK_PER_TRADE / stopPct
   const notes = [`Fixed risk: 1% of the account at a ${(stopPct * 100).toFixed(1)}% stop allows ${pct(Math.min(riskCap, 1))} of it.`]
   if (noEdge) return { pctOfAccount: 0, binding: 'no-edge', notes: [...notes, 'Buying and holding beat the model here, so no position is sized.'] }
