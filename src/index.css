@@ -1,9 +1,9 @@
 :root {
-  --bg: #07090d;
-  --panel: #0f131a;
-  --panel-2: #141922;
-  --line: #1c222d;
-  --line-2: #262d3a;
+  --bg: #060b14;
+  --panel: #0d1420;
+  --panel-2: #121b29;
+  --line: #1a2434;
+  --line-2: #243043;
   --text: #e6e9ef;
   --muted: #7d8699;
   --up: #0ecb81;
@@ -60,7 +60,11 @@ a { color: var(--robot); }
 /* ---------- top bar ---------- */
 .topbar { display: flex; align-items: center; gap: 14px; padding: 0 6px; border-bottom: 1px solid var(--line); margin: 0 -6px; padding: 0 12px; background: #0a0d12; }
 .brand { display: flex; align-items: center; gap: 8px; padding-right: 14px; border-right: 1px solid var(--line); }
-.brand b { display: block; font-size: 14px; letter-spacing: 0.02em; }
+.brand b { display: block; font-size: 14px; letter-spacing: 0.02em; background: linear-gradient(90deg, var(--robot), var(--gold)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.arc-logo { flex: none; filter: drop-shadow(0 0 6px rgba(79, 209, 255, 0.45)); }
+.arc-ring { transform-origin: 16px 16px; animation: arc-spin 24s linear infinite; }
+@keyframes arc-spin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { .arc-ring { animation: none; } }
 .brand span { display: block; font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.14em; }
 .ticker { display: flex; align-items: baseline; gap: 14px; min-width: 0; flex: 1; overflow: hidden; white-space: nowrap; }
 .ticker-sym b { font-size: 15px; }
@@ -231,6 +235,16 @@ a { color: var(--robot); }
 .plan-grid div { background: var(--panel-2); border-radius: 6px; padding: 6px 8px; }
 .plan-grid span { display: block; font-size: 10px; color: var(--muted); font-family: Inter, sans-serif; }
 .plan-grid b { font-size: 12px; font-weight: 600; }
+.rulebook { margin: 12px 14px 0; padding: 10px 12px; border: 1px solid var(--line-2); border-radius: var(--radius); background: rgba(79, 209, 255, 0.04); font-size: 12px; }
+.rulebook .section-title { margin: 0 0 6px; padding: 0; }
+.rulebook p { margin: 0 0 8px; line-height: 1.5; }
+.rulebook ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.rulebook li { display: flex; gap: 8px; align-items: flex-start; }
+.rulebook li > span { width: 16px; flex: none; font-weight: 700; text-align: center; }
+.rulebook li.pass > span { color: var(--up); }
+.rulebook li.fail > span { color: var(--gold); }
+.rulebook li b { display: block; font-size: 12px; }
+.rulebook li div span { color: var(--muted); font-size: 11.5px; line-height: 1.45; }
 .track { margin: 12px 14px 0; font-size: 11.5px; color: var(--muted); line-height: 1.5; padding-left: 10px; border-left: 2px solid var(--robot); }
 .last-signal { margin: 12px 14px 0 !important; }
 .bt { margin: 12px 14px 0; border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; }

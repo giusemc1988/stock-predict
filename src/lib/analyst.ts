@@ -1,5 +1,5 @@
 /**
- * Bluechip AI analyst: turns indicators, real order flow and the model's own
+ * Arc Analyst: turns indicators, real order flow and the model's own
  * track record into a plain-English BUY / HOLD / SELL call.
  *
  * Confidence is deliberately discounted by how well the model actually did on

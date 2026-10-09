@@ -1,10 +1,10 @@
 import type { SignalSide } from '../types'
 
-/** The "Bluechip" mini robot used for chart markers and branding. */
+/** The Arc Analyst mini robot used for chart markers and branding. */
 export function RobotIcon({ side, size = 28, title }: { side?: SignalSide; size?: number; title?: string }) {
   const accent = side === 'buy' ? 'var(--up)' : side === 'sell' ? 'var(--down)' : 'var(--robot)'
   return (
-    <svg width={size} height={size} viewBox="0 0 32 32" role="img" aria-label={title ?? 'Bluechip robot'} className="robot-svg">
+    <svg width={size} height={size} viewBox="0 0 32 32" role="img" aria-label={title ?? 'Arc Analyst robot'} className="robot-svg">
       {title && <title>{title}</title>}
       <line x1="16" y1="2.5" x2="16" y2="7" stroke={accent} strokeWidth="1.8" strokeLinecap="round" />
       <circle cx="16" cy="3" r="2.2" fill={accent} className="robot-antenna" />

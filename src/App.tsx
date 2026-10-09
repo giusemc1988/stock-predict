@@ -186,7 +186,7 @@ export default function App() {
   const tfLabel = TIMEFRAMES.find((t) => t.id === prefs.tf)!.label
 
   useEffect(() => {
-    document.title = lastClose ? `${inst.symbol} ${lastClose.toLocaleString('en-US', { maximumFractionDigits: 2 })} · Bluechip` : 'Bluechip Terminal'
+    document.title = lastClose ? `${inst.symbol} ${lastClose.toLocaleString('en-US', { maximumFractionDigits: 2 })} · Arc Analyst` : 'Arc Analyst'
   }, [inst.symbol, lastClose])
 
   const select = (symbol: string) => setPrefs((p) => ({ ...p, symbol }))
@@ -282,7 +282,7 @@ export default function App() {
               </button>
             </div>
             <div className="right-body">
-              {rightTab === 'ai' && <AnalystPanel analysis={analysis} stats={closed.stats} lastSignal={lastSignal} symbol={inst.symbol} tfLabel={tfLabel} onTrade={() => setRightTab('trade')} />}
+              {rightTab === 'ai' && <AnalystPanel analysis={analysis} stats={closed.stats} lastSignal={lastSignal} symbol={inst.symbol} tfLabel={tfLabel} equity={broker.account.equity} onTrade={() => setRightTab('trade')} />}
               {rightTab === 'flow' && <OrderFlowPanel flow={flow} last={lastClose} />}
               {rightTab === 'learn' && <LearningPanel />}
               {rightTab === 'picks' && (

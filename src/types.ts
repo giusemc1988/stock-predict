@@ -85,6 +85,8 @@ export interface BacktestStats {
   buyHoldPct: number
   maxDrawdownPct: number
   avgTradePct: number
+  /** Average winning trade divided by average losing trade (0 when either side is missing). */
+  payoffRatio: number
   modelAccuracy: number
 }
 
