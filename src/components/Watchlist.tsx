@@ -6,6 +6,7 @@ import { RobotIcon } from './RobotIcon'
 import { CATALOG, toInstrument } from '../data/catalog'
 import { loadPicks, PICKS_EVENT, SMALL_SAMPLE, type Pick } from '../lib/picks'
 import { useSyncExternalStore } from 'react'
+import { useT } from '../lib/i18n'
 
 interface Props {
   instruments: Instrument[]
@@ -68,6 +69,7 @@ function Row({ inst, q, active, onSelect, signal }: { inst: Instrument; q?: Quot
 }
 
 export function Watchlist({ instruments, quotes, active, onSelect, onAdd, activeSignal }: Props) {
+  const tx = useT()
   const [filter, setFilter] = useState('')
   const [tab, setTab] = useState<'all' | 'crypto' | 'stock'>('all')
   const [sort, setSort] = useState<'default' | 'gainers' | 'losers' | 'volume' | 'success'>('default')
@@ -101,7 +103,7 @@ export function Watchlist({ instruments, quotes, active, onSelect, onAdd, active
   return (
     <aside className="panel watchlist">
       <div className="panel-head">
-        <span>Watchlist</span>
+        <span>{tx('watchlist')}</span>
         <span className="muted mono">{totalVol ? `24h vol ${fmtCompact(totalVol)}` : ''}</span>
       </div>
       <div className="search-wrap">
@@ -130,14 +132,14 @@ export function Watchlist({ instruments, quotes, active, onSelect, onAdd, active
       <div className="seg small">
         {(['all', 'crypto', 'stock'] as const).map((t) => (
           <button key={t} className={tab === t ? 'on' : ''} onClick={() => setTab(t)}>
-            {t === 'all' ? 'All' : t === 'crypto' ? 'Crypto' : 'Stocks'}
+            {t === 'all' ? tx('all') : t === 'crypto' ? tx('crypto') : tx('stocks')}
           </button>
         ))}
       </div>
       <div className="seg small">
         {(['default', 'gainers', 'losers', 'volume', 'success'] as const).map((s) => (
           <button key={s} className={sort === s ? 'on' : ''} onClick={() => setSort(s)}>
-            {s === 'default' ? 'Default' : s === 'gainers' ? 'Top gainers' : s === 'losers' ? 'Top losers' : s === 'volume' ? 'Top volume' : 'Top AI signal success'}
+            {s === 'default' ? tx('sortDefault') : s === 'gainers' ? tx('sortGainers') : s === 'losers' ? tx('sortLosers') : s === 'volume' ? tx('sortVolume') : tx('sortSuccess')}
           </button>
         ))}
       </div>

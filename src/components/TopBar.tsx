@@ -2,6 +2,7 @@ import type { Analysis, FeedStatus, Instrument, Quote, Timeframe } from '../type
 import { TIMEFRAMES } from '../types'
 import { fmtCompact, fmtPct, fmtPrice, fmtSigned, fmtUsd, tone } from '../lib/format'
 import { RobotIcon } from './RobotIcon'
+import { useT } from '../lib/i18n'
 
 interface Props {
   inst: Instrument
@@ -27,6 +28,7 @@ interface Props {
 const STATUS_LABEL: Record<FeedStatus, string> = { connecting: 'Connecting', live: 'Live', polling: 'Delayed', demo: 'Simulated', error: 'Error' }
 
 export function TopBar({ inst, quote, lastPrice, tf, onTf, status, source, error, toggles, onToggle, onSettings, analysis, buyShare, onAnalyst, page, onPage, equity, dayPL }: Props) {
+  const t = useT()
   const chg = quote?.change ?? 0
   return (
     <header className="topbar">
@@ -39,10 +41,10 @@ export function TopBar({ inst, quote, lastPrice, tf, onTf, status, source, error
       </div>
       <nav className="nav">
         <button className={page === 'trade' ? 'on' : ''} onClick={() => onPage('trade')}>
-          Trade
+          {t('trade')}
         </button>
         <button className={page === 'portfolio' ? 'on' : ''} onClick={() => onPage('portfolio')}>
-          Portfolio
+          {t('portfolio')}
           <span className={`nav-pl mono ${tone(dayPL)}`}>{fmtUsd(equity)}</span>
         </button>
       </nav>

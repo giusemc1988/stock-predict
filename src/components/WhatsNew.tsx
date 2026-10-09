@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { APP_VERSION, RELEASES } from '../data/releases'
+import { useLang, useT } from '../lib/i18n'
 
 const SEEN_KEY = 'bluechip.seenVersion'
 
@@ -13,6 +14,8 @@ function readSeen(): string | null {
 
 /** Shows the latest "What's new" once per version. Dismissing it remembers the version. */
 export function WhatsNew() {
+  const t = useT()
+  const lang = useLang()
   const [seen, setSeen] = useState(() => readSeen())
   if (seen === APP_VERSION) return null
   const latest = RELEASES.find((r) => r.version === APP_VERSION) ?? RELEASES[0]
@@ -29,15 +32,17 @@ export function WhatsNew() {
   return (
     <div className="whats-new" role="dialog" aria-label="What's new">
       <div className="whats-new-head">
-        <strong>What's new in v{APP_VERSION}</strong>
+        <strong>
+          {t('whatsNew')} v{APP_VERSION}
+        </strong>
         <span className="muted">{latest.date}</span>
       </div>
       <ul>
-        {latest.changes.map((c) => (
+        {(lang === 'vi' && latest.changesVi ? latest.changesVi : latest.changes).map((c) => (
           <li key={c}>{c}</li>
         ))}
       </ul>
-      <button onClick={dismiss}>Got it</button>
+      <button onClick={dismiss}>{t('gotIt')}</button>
     </div>
   )
 }

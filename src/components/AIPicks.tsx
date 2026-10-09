@@ -2,26 +2,29 @@ import { Fragment, useState } from 'react'
 import type { Instrument, Candle, Timeframe } from '../types'
 import { binanceKlines, alphaVantageCandlesCached, alpacaStockCandles, hasAlpacaData, type AlpacaDataKeys, type ApiKeys } from '../data/providers'
 import { rankPicks, savePicks, SMALL_SAMPLE, sortPicks, type Pick, type PickSort } from '../lib/picks'
+import { useT } from '../lib/i18n'
 
 const pct = (x: number) => `${x.toFixed(1)}%`
 
 /** Every input the analyst used for one stock, plus the baseline check. */
 function Inputs({ pick: p }: { pick: Pick }) {
+  const t = useT()
   const i = p.inputs
   return (
     <div className="pick-inputs">
       <ul>
-        <li>RSI (14): {i.rsi == null ? 'not enough data' : i.rsi.toFixed(0)}</li>
-        <li>Volume vs 20-bar average: {i.volumeVsAvg == null ? 'not enough data' : `${i.volumeVsAvg.toFixed(2)}x`}</li>
+        <li>{t('rsi')}: {i.rsi == null ? t('notEnoughData') : i.rsi.toFixed(0)}</li>
+        <li>{t('volVsAvg')}: {i.volumeVsAvg == null ? t('notEnoughData') : `${i.volumeVsAvg.toFixed(2)}x`}</li>
         <li>
-          Buying share of recent volume: {(i.buyShare * 100).toFixed(0)}%{i.buyShareEstimated ? ' (estimated from price)' : ' (reported)'}
+          {t('buyShare')}: {(i.buyShare * 100).toFixed(0)}%{i.buyShareEstimated ? ` ${t('estimated')}` : ` ${t('reported')}`}
         </li>
-        <li>News items: not connected yet</li>
+        <li>{t('newsItems')}</li>
         <li>
-          Backtest on this stock: strategy {pct(i.strategyReturnPct)} vs buy-and-hold {pct(i.buyHoldReturnPct)}. Result: <strong>{i.versusBaseline}</strong>
+          {t('backtestLine')}: {t('strategyVsHold')} {pct(i.strategyReturnPct)} vs {pct(i.buyHoldReturnPct)}. {t('result')}:{' '}
+          <strong>{i.versusBaseline === 'edge' ? t('edge') : t('noEdge')}</strong>
         </li>
       </ul>
-      <p className="muted">The analyst's reasons:</p>
+      <p className="muted">{t('analystReasons')}</p>
       <ul>
         {i.reasons.map((r) => (
           <li key={r.label}>
@@ -30,7 +33,7 @@ function Inputs({ pick: p }: { pick: Pick }) {
         ))}
       </ul>
       <p className="muted">
-        These inputs describe the past. They do not predict the next move. Not financial advice.
+        {t('inputsNote')}
       </p>
     </div>
   )
@@ -53,6 +56,7 @@ async function candlesFor(inst: Instrument, tf: Timeframe, keys: ApiKeys, alpaca
 }
 
 export function AIPicks({ instruments, tf, keys, alpacaKeys, onOpen }: Props) {
+  const t = useT()
   const [picks, setPicks] = useState<Pick[] | null>(null)
   const [busy, setBusy] = useState(false)
   const [skipped, setSkipped] = useState<string[]>([])
@@ -81,31 +85,31 @@ export function AIPicks({ instruments, tf, keys, alpacaKeys, onOpen }: Props) {
   return (
     <div className="picks">
       <p className="muted">
-        The analyst's call on each stock in your list, best first. Confidence is capped when the track record is weak. Not financial advice; paper trading only.
+        {t('picksIntro')}
       </p>
       <button onClick={scan} disabled={busy}>
-        {busy ? 'Scanning…' : picks ? 'Scan again' : 'Scan my list'}
+        {busy ? t('scanning') : picks ? t('scanAgain') : t('scanMyList')}
       </button>
       <div className="right-tabs">
         <button className={by === 'call' ? 'on' : ''} onClick={() => setBy('call')}>
-          Top AI call
+          {t('topAiCall')}
         </button>
         <button className={by === 'success' ? 'on' : ''} onClick={() => setBy('success')}>
-          Top AI signal success
+          {t('topAiSuccess')}
         </button>
       </div>
-      {skipped.length > 0 && <p className="muted">No data for: {skipped.join(', ')}</p>}
-      {picks && picks.length === 0 && <p className="muted">Not enough history to analyse yet.</p>}
-      {by === 'success' && <p className="muted">Win rate is from the app's backtest of past signals on each stock. Under {SMALL_SAMPLE} trades it is noise, not a track record.</p>}
+      {skipped.length > 0 && <p className="muted">{t('noData')}: {skipped.join(', ')}</p>}
+      {picks && picks.length === 0 && <p className="muted">{t('notEnoughHistory')}</p>}
+      {by === 'success' && <p className="muted">{t('successNote')}</p>}
       {picks && picks.length > 0 && (
         <table>
           <thead>
             <tr>
-              <th>Symbol</th>
-              <th>Call</th>
-              <th>Confidence</th>
-              <th>Past win rate</th>
-              <th>Why</th>
+              <th>{t('symbol')}</th>
+              <th>{t('call')}</th>
+              <th>{t('confidence')}</th>
+              <th>{t('pastWinRate')}</th>
+              <th>{t('why')}</th>
             </tr>
           </thead>
           <tbody>
@@ -121,14 +125,14 @@ export function AIPicks({ instruments, tf, keys, alpacaKeys, onOpen }: Props) {
                         onOpen(p.symbol)
                       }}
                     >
-                      open
+                      {t('open')}
                     </button>
                   </td>
                   <td>{p.verdict}</td>
                   <td>{p.confidenceLabel} ({Math.round(p.confidence * 100)}%)</td>
                   <td>
-                    {p.trades ? `${Math.round(p.winRate * 100)}% of ${p.trades} trades` : 'no trades'}
-                    {p.trades > 0 && p.trades < SMALL_SAMPLE ? ' (small sample)' : ''}
+                    {p.trades ? `${Math.round(p.winRate * 100)}% ${t('of')} ${p.trades} ${t('trades')}` : t('noTrades')}
+                    {p.trades > 0 && p.trades < SMALL_SAMPLE ? ` (${t('smallSample')})` : ''}
                   </td>
                   <td>{p.headline}</td>
                 </tr>
