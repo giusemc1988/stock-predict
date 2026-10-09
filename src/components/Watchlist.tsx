@@ -68,9 +68,20 @@ function Row({ inst, q, active, onSelect, signal }: { inst: Instrument; q?: Quot
 export function Watchlist({ instruments, quotes, active, onSelect, onAdd, activeSignal }: Props) {
   const [filter, setFilter] = useState('')
   const [tab, setTab] = useState<'all' | 'crypto' | 'stock'>('all')
-  const list = instruments.filter(
+  const [sort, setSort] = useState<'default' | 'gainers' | 'losers' | 'volume'>('default')
+  const filtered = instruments.filter(
     (i) => (tab === 'all' || i.assetClass === tab) && (i.symbol + i.name).toLowerCase().includes(filter.toLowerCase()),
   )
+  const list = useMemo(() => {
+    if (sort === 'default') return filtered
+    const chg = (i: Instrument) => quotes[i.symbol]?.changePct ?? 0
+    const vol = (i: Instrument) => quotes[i.symbol]?.volume ?? 0
+    const sorted = [...filtered]
+    if (sort === 'gainers') sorted.sort((a, b) => chg(b) - chg(a))
+    if (sort === 'losers') sorted.sort((a, b) => chg(a) - chg(b))
+    if (sort === 'volume') sorted.sort((a, b) => vol(b) - vol(a))
+    return sorted
+  }, [filtered, sort, quotes])
   const taken = useMemo(() => new Set(instruments.map((i) => i.symbol)), [instruments])
   const matches = useMemo(() => suggest(filter, taken), [filter, taken])
   const totalVol = Object.values(quotes).reduce((a, q) => a + (q.live ? q.volume : 0), 0)
@@ -107,6 +118,13 @@ export function Watchlist({ instruments, quotes, active, onSelect, onAdd, active
         {(['all', 'crypto', 'stock'] as const).map((t) => (
           <button key={t} className={tab === t ? 'on' : ''} onClick={() => setTab(t)}>
             {t === 'all' ? 'All' : t === 'crypto' ? 'Crypto' : 'Stocks'}
+          </button>
+        ))}
+      </div>
+      <div className="seg small">
+        {(['default', 'gainers', 'losers', 'volume'] as const).map((s) => (
+          <button key={s} className={sort === s ? 'on' : ''} onClick={() => setSort(s)}>
+            {s === 'default' ? 'Default' : s === 'gainers' ? 'Top gainers' : s === 'losers' ? 'Top losers' : 'Top volume'}
           </button>
         ))}
       </div>
