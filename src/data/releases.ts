@@ -2,7 +2,7 @@
  * Version and "What's new". Bump APP_VERSION and add an entry to the top of RELEASES
  * with each update. The banner shows once per version, then stays dismissed.
  */
-export const APP_VERSION = '0.6.0'
+export const APP_VERSION = '0.7.0'
 
 export interface Release {
   version: string
@@ -13,6 +13,24 @@ export interface Release {
 }
 
 export const RELEASES: Release[] = [
+  {
+    version: '0.7.0',
+    date: '2026-10-09',
+    changes: [
+      'Chart options: toggle SMA, Bollinger Bands and Volume on the price chart, and set their periods in the settings panel. Saved in this browser.',
+      'English and Tiếng Việt language switch in Settings.',
+      'Glass-style theme with blurred panels.',
+      'Fixed: an empty chart setting no longer saves 0 or breaks the chart.',
+      'Not financial advice. Paper trading only.',
+    ],
+    changesVi: [
+      'Tùy chọn biểu đồ: bật/tắt SMA, dải Bollinger và Khối lượng trên biểu đồ giá, và chỉnh chu kỳ trong bảng cài đặt. Được lưu trong trình duyệt này.',
+      'Chuyển đổi ngôn ngữ English và Tiếng Việt trong Cài đặt.',
+      'Giao diện kính mờ với các bảng có hiệu ứng làm mờ.',
+      'Đã sửa: ô cài đặt biểu đồ để trống không còn lưu 0 hoặc làm hỏng biểu đồ.',
+      'Không phải lời khuyên đầu tư. Chỉ giao dịch thử nghiệm.',
+    ],
+  },
   {
     version: '0.6.0',
     date: '2026-10-09',
