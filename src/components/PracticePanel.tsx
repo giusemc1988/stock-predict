@@ -18,6 +18,9 @@ interface Props {
   /** Open a market's chart (only markets in your watchlist can be opened). */
   onOpen: (symbol: string) => void
   universe: string[]
+  /** Showing the 24/7 server account instead of this browser's. */
+  serverMode: boolean
+  serverLastRun: number | null
 }
 
 const money = (x: number | null) => (x == null ? '–' : `${x >= 0 ? '+' : '−'}$${Math.abs(x).toFixed(2)}`)
@@ -46,7 +49,7 @@ function Curve({ points }: { points: { t: number; equity: number }[] }) {
 }
 
 /** Practice mode: the AI paper-trades small on live data. Status, live orders, and the report of what worked and what failed. */
-export function PracticePanel({ state, rules, symbol, priceOf, onReset, scan, onRescan, onOpen, universe }: Props) {
+export function PracticePanel({ state, rules, symbol, priceOf, onReset, scan, onRescan, onOpen, universe, serverMode, serverLastRun }: Props) {
   const lang = useLang()
   const L = (en: string, vi: string) => (lang === 'vi' ? vi : en)
   const when = (ms: number) => new Date(ms).toLocaleString(lang === 'vi' ? 'vi-VN' : 'en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })
@@ -85,7 +88,7 @@ export function PracticePanel({ state, rules, symbol, priceOf, onReset, scan, on
   const wins = shownTrades.filter((t) => t.pnl > 0)
   const fails = shownTrades.filter((t) => t.pnl <= 0)
 
-  const toggle = (key: 'practiceMode' | 'practiceOnChart' | 'practiceFeed' | 'practiceDayOn' | 'practiceLongOn' | 'practiceAutoPick' | 'practiceMovers', label: string) => (
+  const toggle = (key: 'practiceMode' | 'practiceOnChart' | 'practiceFeed' | 'practiceDayOn' | 'practiceLongOn' | 'practiceAutoPick' | 'practiceMovers' | 'practiceServer', label: string) => (
     <label className="al-toggle">
       <span>{label}</span>
       <span className="switch">
@@ -178,12 +181,28 @@ export function PracticePanel({ state, rules, symbol, priceOf, onReset, scan, on
           <div className="al-card al-hero">
             <div>
               <div className="al-kicker">{L('PRACTICE MODE · PAPER', 'CHẾ ĐỘ LUYỆN TẬP · THỬ')}</div>
-              <h3 className={on ? 'up' : 'muted'}>{on ? L('Trading practice', 'Đang luyện tập') : L('Off', 'Tắt')}</h3>
+              <h3 className={on ? 'up' : 'muted'}>{on ? (serverMode ? L('Trading 24/7 on the server', 'Đang giao dịch 24/7 trên máy chủ') : L('Trading practice', 'Đang luyện tập')) : L('Off', 'Tắt')}</h3>
+              {on && serverMode && (
+                <p className="al-note">
+                  {L(
+                    `You can close the app: the server trades every 15 minutes during US market hours on weekdays, and its trades show up here and on the chart when you come back. Last run ${serverLastRun ? when(serverLastRun) : '–'}.`,
+                    `Bạn có thể đóng ứng dụng: máy chủ giao dịch mỗi 15 phút trong giờ thị trường Mỹ vào ngày thường, và các lệnh hiện ở đây và trên biểu đồ khi bạn quay lại. Lần chạy cuối ${serverLastRun ? when(serverLastRun) : '–'}.`,
+                  )}
+                </p>
+              )}
+              {on && !serverMode && rules.practiceServer && (
+                <p className="al-note muted">
+                  {L(
+                    "The 24/7 server account hasn't run yet (it runs every 15 minutes in US market hours), so this browser trades while the app is open.",
+                    'Tài khoản máy chủ 24/7 chưa chạy (chạy mỗi 15 phút trong giờ thị trường Mỹ), nên trình duyệt này giao dịch khi ứng dụng đang mở.',
+                  )}
+                </p>
+              )}
               <p className="muted al-note">
                 {on
                   ? L(
-                      `${rules.practiceAutoPick ? `Every 5 minutes it scans your watchlist${rules.practiceMovers ? " and today's top gainers and most-traded stocks" : ''} on 15-minute bars, ranks the AI's BUY calls by Trade Score, volume and today's gain, and trades the best ones.` : `Decides on each closed bar of the chart you have open (${symbol}).`} ${rules.practiceSizePct}% of the practice account per trade. Each day: the best AI BUY becomes the long-term trade (stop and target ${LONG_WIDTH}x wider, held up to ${rules.practiceHoldDays} days), the next best become up to ${rules.practiceDayTrades} day trades that exit at stop, target, a SELL call, after ${MAX_BARS} bars, or before market close. It only trades when the AI says BUY, so some days have fewer.`,
-                      `${rules.practiceAutoPick ? `Mỗi 5 phút AI quét danh sách theo dõi${rules.practiceMovers ? ' và các mã tăng mạnh, giao dịch nhiều nhất hôm nay' : ''} trên nến 15 phút, xếp hạng lệnh MUA theo Điểm GD, khối lượng và mức tăng hôm nay, rồi giao dịch các mã tốt nhất.` : `Quyết định ở mỗi nến đóng trên biểu đồ đang mở (${symbol}).`} ${rules.practiceSizePct}% tài khoản luyện tập mỗi lệnh. Mỗi ngày: lệnh MUA tốt nhất của AI thành lệnh dài hạn (cắt lỗ và chốt lời rộng gấp ${LONG_WIDTH}, giữ tối đa ${rules.practiceHoldDays} ngày), các lệnh tốt tiếp theo thành tối đa ${rules.practiceDayTrades} lệnh trong ngày, thoát ở cắt lỗ, chốt lời, lệnh BÁN, sau ${MAX_BARS} nến hoặc trước giờ đóng cửa. AI chỉ giao dịch khi nói MUA, nên có ngày ít lệnh hơn.`,
+                      `${rules.practiceAutoPick || serverMode ? `Every ${serverMode ? 15 : 5} minutes it scans your watchlist${rules.practiceMovers ? " and today's top gainers and most-traded stocks" : ''} on 15-minute bars, ranks the AI's BUY calls by Trade Score, volume and today's gain, and trades the best ones.` : `Decides on each closed bar of the chart you have open (${symbol}).`} ${rules.practiceSizePct}% of the practice account per trade. Each day: the best AI BUY becomes the long-term trade (stop and target ${LONG_WIDTH}x wider, held up to ${rules.practiceHoldDays} days), the next best become up to ${rules.practiceDayTrades} day trades that exit at stop, target, a SELL call, after ${MAX_BARS} bars, or before market close. It only trades when the AI says BUY, so some days have fewer.`,
+                      `${rules.practiceAutoPick || serverMode ? `Mỗi ${serverMode ? 15 : 5} phút AI quét danh sách theo dõi${rules.practiceMovers ? ' và các mã tăng mạnh, giao dịch nhiều nhất hôm nay' : ''} trên nến 15 phút, xếp hạng lệnh MUA theo Điểm GD, khối lượng và mức tăng hôm nay, rồi giao dịch các mã tốt nhất.` : `Quyết định ở mỗi nến đóng trên biểu đồ đang mở (${symbol}).`} ${rules.practiceSizePct}% tài khoản luyện tập mỗi lệnh. Mỗi ngày: lệnh MUA tốt nhất của AI thành lệnh dài hạn (cắt lỗ và chốt lời rộng gấp ${LONG_WIDTH}, giữ tối đa ${rules.practiceHoldDays} ngày), các lệnh tốt tiếp theo thành tối đa ${rules.practiceDayTrades} lệnh trong ngày, thoát ở cắt lỗ, chốt lời, lệnh BÁN, sau ${MAX_BARS} nến hoặc trước giờ đóng cửa. AI chỉ giao dịch khi nói MUA, nên có ngày ít lệnh hơn.`,
                     )
                   : L('Turn it on to let the AI place practice orders. Also in Settings > AI rules.', 'Bật lên để AI đặt lệnh luyện tập. Cũng có trong Cài đặt > Quy tắc AI.')}
               </p>
@@ -203,17 +222,20 @@ export function PracticePanel({ state, rules, symbol, priceOf, onReset, scan, on
             {toggle('practiceLongOn', L('Long-term trade', 'Lệnh dài hạn'))}
             {toggle('practiceAutoPick', L('Picks its own stocks', 'Tự chọn mã'))}
             {rules.practiceAutoPick && toggle('practiceMovers', L("Today's movers", 'Mã biến động hôm nay'))}
+            {toggle('practiceServer', L('24/7 on the server', '24/7 trên máy chủ'))}
           </div>
-          {rules.practiceAutoPick && on && (
+          {(rules.practiceAutoPick || serverMode) && on && (
             <div className="al-card">
               <div className="al-report-head">
                 <div className="al-kicker">{L("TODAY'S PICKS", 'MÃ ĐƯỢC CHỌN HÔM NAY')}</div>
-                <button className="pr-rescan" onClick={onRescan} disabled={scan.busy}>
-                  {scan.busy ? L('Scanning…', 'Đang quét…') : L('Scan now', 'Quét ngay')}
-                </button>
+                {!serverMode && (
+                  <button className="pr-rescan" onClick={onRescan} disabled={scan.busy}>
+                    {scan.busy ? L('Scanning…', 'Đang quét…') : L('Scan now', 'Quét ngay')}
+                  </button>
+                )}
               </div>
               <p className="muted al-note">
-                {scan.at ? `${L('Last scan', 'Lần quét cuối')} ${when(scan.at)} · ${scan.candidates.length} ${L('markets', 'mã')}` : L('First scan is running…', 'Đang quét lần đầu…')}
+                {scan.at ? `${L('Last scan', 'Lần quét cuối')} ${when(scan.at)}${serverMode ? L(' on the server', ' trên máy chủ') : ''}` : L('First scan is running…', 'Đang quét lần đầu…')}
                 {scan.failed.length > 0 && ` · ${L('no data for', 'không có dữ liệu cho')} ${scan.failed.join(', ')}`}
               </p>
               {scan.noStockData && (
@@ -253,7 +275,7 @@ export function PracticePanel({ state, rules, symbol, priceOf, onReset, scan, on
                             {held && kindBadge(kindOf(held))}
                             <div className="muted pr-time">{L(pickSourceLabel[c.source].en, pickSourceLabel[c.source].vi)}</div>
                           </td>
-                          <td className={c.analysis?.verdict === 'BUY' ? 'up' : c.analysis?.verdict === 'SELL' ? 'down' : 'muted'}>{c.analysis?.verdict ?? '–'}</td>
+                          <td className={c.verdict === 'BUY' ? 'up' : c.verdict === 'SELL' ? 'down' : 'muted'}>{c.verdict ?? '–'}</td>
                           <td className={(c.gainPct ?? 0) >= 0 ? 'up' : 'down'}>{c.gainPct == null ? '–' : `${c.gainPct >= 0 ? '+' : ''}${c.gainPct.toFixed(1)}%`}</td>
                           <td>{c.volVsAvg == null ? '–' : `${c.volVsAvg.toFixed(1)}x`}</td>
                           <td>{c.tradeScore ?? '–'}</td>
@@ -430,7 +452,9 @@ export function PracticePanel({ state, rules, symbol, priceOf, onReset, scan, on
       )}
 
       <div className="pr-reset">
-        {confirmReset ? (
+        {serverMode ? (
+          <span className="muted">{L('This is the server account; it is not reset from the browser.', 'Đây là tài khoản máy chủ; không đặt lại từ trình duyệt.')}</span>
+        ) : confirmReset ? (
           <>
             <span className="muted">{L('Clear all practice trades and start again at $10,000?', 'Xoá mọi lệnh luyện tập và bắt đầu lại từ $10,000?')}</span>
             <button

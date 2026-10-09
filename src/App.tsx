@@ -232,6 +232,15 @@ export default function App() {
     },
     [toast],
   )
+  const onPracticeAway = useCallback(
+    (n: number) =>
+      toast({
+        tone: 'info',
+        title: langRef.current === 'vi' ? '🎯 Luyện tập khi bạn vắng mặt' : '🎯 Practice while you were away',
+        body: langRef.current === 'vi' ? `Máy chủ đã thực hiện ${n} lệnh mua/bán. Xem trong tab Luyện tập.` : `The server made ${n} buys and sells. See them in the Practice tab.`,
+      }),
+    [toast],
+  )
   const practice = usePractice({
     rules: aiRules,
     symbol: inst.symbol,
@@ -249,6 +258,7 @@ export default function App() {
     universe,
     keys,
     alpacaKeys,
+    onAway: onPracticeAway,
   })
   // practice trades may be on a different timeframe than the chart: mark the chart bar they fall in
   const snapToBar = (t: number) => {
@@ -384,7 +394,7 @@ export default function App() {
                     setPlanNonce((n) => n + 1)
                     setRightTab('trade')
                   }} onEditRules={() => setAiRulesOpen(true)} />}
-              {rightTab === 'practice' && <PracticePanel state={practice.state} rules={aiRules} symbol={inst.symbol} priceOf={practice.priceOf} onReset={practice.reset} scan={practice.scan} onRescan={practice.rescan} onOpen={(s) => select(s)} universe={universe.map((i) => i.symbol)} />}
+              {rightTab === 'practice' && <PracticePanel state={practice.state} rules={aiRules} symbol={inst.symbol} priceOf={practice.priceOf} onReset={practice.reset} scan={practice.scan} onRescan={practice.rescan} onOpen={(s) => select(s)} universe={universe.map((i) => i.symbol)} serverMode={practice.serverMode} serverLastRun={practice.serverLastRun} />}
               {rightTab === 'flow' && <OrderFlowPanel flow={flow} last={lastClose} />}
               {rightTab === 'learn' && <AutoLearnPanel al={autoLearn} rules={aiRules} symbol={inst.symbol} liveScore={live?.probUp ?? null} />}
               {rightTab === 'picks' && (
