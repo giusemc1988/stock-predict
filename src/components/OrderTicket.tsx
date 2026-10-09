@@ -3,6 +3,7 @@ import type { Analysis, Instrument } from '../types'
 import type { BrokerState, OrderRequest, OrderSide, OrderType, TimeInForce } from '../broker/types'
 import type { PlaceResult } from '../hooks/useBroker'
 import { fmtPrice, fmtUsd } from '../lib/format'
+import { riskGates, type GateLimits } from '../lib/riskGates'
 import { InfoTip } from './InfoTip'
 import { RobotIcon } from './RobotIcon'
 
@@ -15,6 +16,8 @@ interface Props {
   autoTrade: boolean
   onAutoTrade: (v: boolean) => void
   robotPaused: string | null
+  limits: GateLimits
+  onKillSwitch: (v: boolean) => void
 }
 
 const TYPES: { id: OrderType; label: string; help: string }[] = [
@@ -26,7 +29,7 @@ const TYPES: { id: OrderType; label: string; help: string }[] = [
 
 const clean = (v: number) => (v ? String(+v.toFixed(v < 1 ? 6 : v < 10 ? 4 : 2)) : '')
 
-export function OrderTicket({ inst, last, broker, analysis, onSubmit, autoTrade, onAutoTrade, robotPaused }: Props) {
+export function OrderTicket({ inst, last, broker, analysis, onSubmit, autoTrade, onAutoTrade, robotPaused, limits, onKillSwitch }: Props) {
   const [side, setSide] = useState<OrderSide>('buy')
   const [type, setType] = useState<OrderType>('market')
   const [unit, setUnit] = useState<'qty' | 'usd'>('qty')
@@ -98,6 +101,10 @@ export function OrderTicket({ inst, last, broker, analysis, onSubmit, autoTrade,
     if (up ? !(req.bracket.takeProfit > refPrice) : !(req.bracket.takeProfit < refPrice)) problems.push(`Take profit should be ${up ? 'above' : 'below'} ${fmtPrice(refPrice)}`)
     if (up ? !(req.bracket.stopLoss < refPrice) : !(req.bracket.stopLoss > refPrice)) problems.push(`Stop loss should be ${up ? 'below' : 'above'} ${fmtPrice(refPrice)}`)
   }
+
+  const gates = riskGates(req, refPrice, broker, analysis, limits)
+  for (const g of gates) if (g.level === 'block') problems.push(`${g.name}: ${g.message}`)
+  const flagged = gates.filter((g) => g.level !== 'pass')
 
   const submit = async () => {
     setBusy(true)
@@ -254,6 +261,14 @@ export function OrderTicket({ inst, last, broker, analysis, onSubmit, autoTrade,
         </span>
       </label>
 
+      <label className="auto">
+        <input type="checkbox" checked={limits.killSwitch} onChange={(e) => onKillSwitch(e.target.checked)} />
+        <span>
+          <b>Kill switch</b>
+          <em>Stops every new buy, yours and the robot's. Selling stays allowed so you can always get out.</em>
+        </span>
+      </label>
+
       {review && (
         <div className="modal-back" onClick={() => !busy && setReview(false)}>
           <div className="modal confirm" onClick={(e) => e.stopPropagation()}>
@@ -306,6 +321,18 @@ export function OrderTicket({ inst, last, broker, analysis, onSubmit, autoTrade,
                 <b>{fmtUsd(est)}</b>
               </div>
             </div>
+            <div className="section-title">
+              Risk gates <InfoTip text="Checks run before every paper order: kill switch, daily loss, account drawdown, position size, trades today, volatility and Trade Score. A red gate stops a buy; selling is never blocked." />
+            </div>
+            <ul className="gates">
+              {gates.map((g) => (
+                <li key={g.name} className={`gate ${g.level}`}>
+                  <b>{g.level === 'pass' ? '✓' : g.level === 'warn' ? '!' : '✕'} {g.name}</b>
+                  <span>{g.message}</span>
+                </li>
+              ))}
+            </ul>
+            {flagged.length === 0 && <p className="muted tiny">All gates pass.</p>}
             <p className="muted tiny">Practice money only. No real order is sent to any exchange.</p>
             <div className="modal-actions">
               <button onClick={() => setReview(false)} disabled={busy}>

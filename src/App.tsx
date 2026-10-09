@@ -11,6 +11,7 @@ import { useQuotes } from './hooks/useQuotes'
 import { useBroker } from './hooks/useBroker'
 import { useOrderFlow } from './hooks/useOrderFlow'
 import { runStrategy } from './lib/strategy'
+import { blocking, riskGates } from './lib/riskGates'
 import { analyze } from './lib/analyst'
 import { fmtPrice, fmtUsd } from './lib/format'
 import { TopBar } from './components/TopBar'
@@ -40,6 +41,7 @@ interface Prefs {
   brokerMode: BrokerMode
   lossLimit: number
   lossLimitOn: boolean
+  killSwitch: boolean
   equityPeriod: '1D' | '1M' | '3M'
 }
 
@@ -53,6 +55,7 @@ const DEFAULT_PREFS: Prefs = {
   brokerMode: 'sim',
   lossLimit: 1000,
   lossLimitOn: true,
+  killSwitch: false,
   equityPeriod: '1M',
 }
 
@@ -131,6 +134,8 @@ export default function App() {
   const seen = useRef<{ key: string; time: number }>({ key: '', time: 0 })
   const positionsRef = useRef(broker.positions)
   positionsRef.current = broker.positions
+  const gateRef = useRef({ broker, analysis, prefs })
+  gateRef.current = { broker, analysis, prefs }
   useEffect(() => {
     const k = `${inst.symbol}|${prefs.tf}`
     if (!candles.length) return
@@ -150,7 +155,14 @@ export default function App() {
     if (qty > 0) {
       const side = lastSignal.side
       const price = lastClose
-      submit({ symbol: inst.symbol, side, type: 'market', qty, tif: 'day', source: 'robot' }).then((r) => {
+      const g = gateRef.current
+      const req: OrderRequest = { symbol: inst.symbol, side, type: 'market', qty, tif: 'day', source: 'robot' }
+      const blocked = blocking(riskGates(req, price, g.broker, g.analysis, g.prefs))
+      if (blocked.length) {
+        toast({ tone: 'info', title: `Robot skipped a ${side.toUpperCase()} on ${inst.symbol}`, body: `${blocked[0].name}: ${blocked[0].message}` })
+        return
+      }
+      submit(req).then((r) => {
         if (r.ok) toast({ tone: 'info', title: `🤖 Robot ${side === 'buy' ? 'bought' : 'sold'} ${qty} ${inst.symbol}`, body: `Paper order at about ${fmtPrice(price)}` })
       })
     }
@@ -307,6 +319,8 @@ export default function App() {
                   autoTrade={prefs.autoTrade}
                   onAutoTrade={(autoTrade) => setPrefs((p) => ({ ...p, autoTrade }))}
                   robotPaused={robotPaused}
+                  limits={prefs}
+                  onKillSwitch={(killSwitch) => setPrefs((p) => ({ ...p, killSwitch }))}
                 />
               )}
             </div>

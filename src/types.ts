@@ -86,6 +86,10 @@ export interface BacktestStats {
   maxDrawdownPct: number
   avgTradePct: number
   modelAccuracy: number
+  /** Gross wins / gross losses; null when there were no losing trades. */
+  profitFactor: number | null
+  expectancyPct: number
+  maxLosingStreak: number
 }
 
 export interface StrategyResult {
@@ -142,11 +146,34 @@ export interface Analysis {
   checks: AnalystCheck[]
   plan: { entry: number; stop: number; target: number; riskReward: number } | null
   sizing: Sizing | null
+  tradeScore: TradeScore | null
   trackRecord: string
+}
+
+export type VolRegime = 'calm' | 'normal' | 'high' | 'extreme'
+
+export interface ScorePart {
+  key: 'technical' | 'fundamental' | 'sentiment' | 'risk' | 'thesis'
+  label: string
+  weight: number
+  /** 0..100, or null when the app has no data for this part. */
+  score: number | null
+  subs: { label: string; points: number; max: number; note: string }[]
+  missing?: string
+}
+
+export interface TradeScore {
+  score: number // 0..100
+  grade: 'A+' | 'A' | 'B' | 'C' | 'D' | 'F'
+  signal: string
+  parts: ScorePart[]
+  regime: VolRegime
+  volRatio: number
+  riskScore: number
 }
 
 export interface Sizing {
   pctOfAccount: number // 0..1, the smallest of the limits below
-  binding: 'risk' | 'cap' | 'no-edge'
+  binding: 'risk' | 'cap' | 'risk-score' | 'volatility' | 'no-edge'
   notes: string[]
 }

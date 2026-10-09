@@ -559,3 +559,36 @@ body {
 .chart-tools {
   top: 66px;
 }
+
+/* Trade Score (0-100) */
+.tscore { margin: 0 0 10px; border-radius: 8px; background: var(--panel-2); border: 1px solid var(--line-2); --g: var(--muted); }
+.tscore.g-a { --g: var(--up); }
+.tscore.g-b { --g: var(--gold); }
+.tscore.g-c { --g: var(--muted); }
+.tscore.g-d, .tscore.g-f { --g: var(--down); }
+.tscore summary { display: flex; align-items: center; gap: 10px; padding: 8px 10px; cursor: pointer; list-style: none; }
+.tscore summary::-webkit-details-marker { display: none; }
+.tscore-num { font-size: 22px; font-weight: 700; color: var(--g); min-width: 38px; text-align: center; }
+.tscore-main b { display: block; font-size: 12px; color: var(--g); }
+.tscore-main em { font-style: normal; font-size: 11px; color: var(--muted); }
+.tparts { list-style: none; margin: 0; padding: 0 10px 6px; display: grid; gap: 8px; }
+.tpart-head { display: grid; grid-template-columns: 1fr auto; gap: 2px 8px; font-size: 12px; }
+.tpart-head .tbar { grid-column: 1 / -1; height: 4px; border-radius: 2px; background: var(--line-2); overflow: hidden; display: block; }
+.tpart-head .tbar i { display: block; height: 100%; background: var(--g); }
+.tsub { display: block; font-size: 11px; color: #b7bfcc; line-height: 1.4; margin-top: 2px; }
+.tsub.muted { color: var(--muted); }
+.tscore > .tiny { padding: 0 10px 8px; margin: 0; }
+
+/* Backtest reality checks */
+.reality { margin: 8px 0 0; padding-left: 18px; font-size: 11px; color: var(--gold); line-height: 1.45; }
+
+/* Pre-trade risk gates */
+.gates { list-style: none; margin: 4px 0 8px; padding: 0; display: grid; gap: 4px; }
+.gate { display: grid; grid-template-columns: 120px 1fr; gap: 8px; font-size: 11px; padding: 4px 8px; border-radius: 6px; background: var(--panel-2); }
+.gate b { font-weight: 600; }
+.gate span { color: #b7bfcc; }
+.gate.pass b { color: var(--up); }
+.gate.warn b { color: var(--gold); }
+.gate.block { background: var(--down-bg); }
+.gate.block b { color: var(--down); }
+@media (max-width: 480px) { .gate { grid-template-columns: 1fr; gap: 0; } }
