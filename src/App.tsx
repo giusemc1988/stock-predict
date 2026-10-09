@@ -66,8 +66,8 @@ export default function App() {
   const [added, setAdded] = useLocalStorage<Instrument[]>('bluechip.added', [])
   const universe = useMemo(() => [...INSTRUMENTS, ...added.filter((a) => !INSTRUMENTS.some((i) => i.symbol === a.symbol))], [added])
   const inst = useMemo(() => universe.find((i) => i.symbol === prefs.symbol) ?? INSTRUMENTS[0], [universe, prefs.symbol])
-  const market = useMarketData(inst, prefs.tf, keys)
-  const quotes = useQuotes(universe, keys)
+  const market = useMarketData(inst, prefs.tf, keys, alpacaKeys)
+  const quotes = useQuotes(universe, keys, alpacaKeys)
   const addInstrument = (i: Instrument) => setAdded((list) => (list.some((x) => x.symbol === i.symbol) ? list : [...list, i]))
   const flow = useOrderFlow(inst, keys)
   const brokerApi = useBroker(prefs.brokerMode, alpacaKeys, prefs.equityPeriod)
@@ -243,7 +243,7 @@ export default function App() {
               {market.status === 'demo' && (
                 <div className="demo-note">
                   Simulated data
-                  {market.error ? ` (live source unavailable: ${market.error})` : inst.assetClass === 'stock' ? '. Add a free API key in settings for real stock data' : ''}
+                  {market.error ? ` (live source unavailable: ${market.error})` : inst.assetClass === 'stock' ? '. Connect an Alpaca paper key on the Portfolio page (or add a key in settings) for real stock data' : ''}
                 </div>
               )}
             </section>

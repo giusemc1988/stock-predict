@@ -5,9 +5,10 @@ export function useLocalStorage<T>(key: string, initial: T) {
     try {
       const raw = localStorage.getItem(key)
       if (!raw) return initial
-      const parsed = JSON.parse(raw)
-      // Arrays (like the added-tickers list) must stay arrays; spreading them would turn them into objects.
-      return Array.isArray(initial) ? parsed : { ...initial, ...parsed }
+      const saved = JSON.parse(raw)
+      // arrays are stored whole; objects are merged over the defaults so new fields get a value
+      if (Array.isArray(initial)) return (Array.isArray(saved) ? saved : initial) as T
+      return saved && typeof saved === 'object' && !Array.isArray(saved) ? { ...initial, ...saved } : initial
     } catch {
       return initial
     }
