@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import type { Instrument, Candle, Timeframe } from '../types'
 import { binanceKlines, alphaVantageCandlesCached, alpacaStockCandles, hasAlpacaData, type AlpacaDataKeys, type ApiKeys } from '../data/providers'
-import { rankPicks, type Pick } from '../lib/picks'
+import { rankPicks, SMALL_SAMPLE, sortPicks, type Pick, type PickSort } from '../lib/picks'
 
 interface Props {
   instruments: Instrument[]
@@ -23,6 +23,7 @@ export function AIPicks({ instruments, tf, keys, alpacaKeys, onOpen }: Props) {
   const [picks, setPicks] = useState<Pick[] | null>(null)
   const [busy, setBusy] = useState(false)
   const [skipped, setSkipped] = useState<string[]>([])
+  const [by, setBy] = useState<PickSort>('call')
 
   const scan = async () => {
     setBusy(true)
@@ -49,8 +50,17 @@ export function AIPicks({ instruments, tf, keys, alpacaKeys, onOpen }: Props) {
       <button onClick={scan} disabled={busy}>
         {busy ? 'Scanning…' : picks ? 'Scan again' : 'Scan my list'}
       </button>
+      <div className="right-tabs">
+        <button className={by === 'call' ? 'on' : ''} onClick={() => setBy('call')}>
+          Top AI call
+        </button>
+        <button className={by === 'success' ? 'on' : ''} onClick={() => setBy('success')}>
+          Top AI signal success
+        </button>
+      </div>
       {skipped.length > 0 && <p className="muted">No data for: {skipped.join(', ')}</p>}
       {picks && picks.length === 0 && <p className="muted">Not enough history to analyse yet.</p>}
+      {by === 'success' && <p className="muted">Win rate is from the app's backtest of past signals on each stock. Under {SMALL_SAMPLE} trades it is noise, not a track record.</p>}
       {picks && picks.length > 0 && (
         <table>
           <thead>
@@ -58,15 +68,20 @@ export function AIPicks({ instruments, tf, keys, alpacaKeys, onOpen }: Props) {
               <th>Symbol</th>
               <th>Call</th>
               <th>Confidence</th>
+              <th>Past win rate</th>
               <th>Why</th>
             </tr>
           </thead>
           <tbody>
-            {picks.map((p) => (
+            {sortPicks(picks, by).map((p) => (
               <tr key={p.symbol} onClick={() => onOpen(p.symbol)} className="pick-row">
                 <td>{p.symbol}</td>
                 <td>{p.verdict}</td>
                 <td>{p.confidenceLabel} ({Math.round(p.confidence * 100)}%)</td>
+                <td>
+                  {p.trades ? `${Math.round(p.winRate * 100)}% of ${p.trades} trades` : 'no trades'}
+                  {p.trades > 0 && p.trades < SMALL_SAMPLE ? ' (small sample)' : ''}
+                </td>
                 <td>{p.headline}</td>
               </tr>
             ))}
