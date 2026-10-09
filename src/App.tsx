@@ -246,20 +246,35 @@ export default function App() {
     killSwitch: prefs.killSwitch,
     maxTradesPerDay: aiRules.maxTradesPerDay,
     onEvent: onPracticeEvent,
+    universe,
+    keys,
+    alpacaKeys,
   })
+  // practice trades may be on a different timeframe than the chart: mark the chart bar they fall in
+  const snapToBar = (t: number) => {
+    let lo = 0
+    let hi = candles.length - 1
+    if (hi < 0 || t < candles[0].time) return t
+    while (lo < hi) {
+      const mid = (lo + hi + 1) >> 1
+      if (candles[mid].time <= t) lo = mid
+      else hi = mid - 1
+    }
+    return candles[lo].time
+  }
   const kindTag = (x: { kind?: 'day' | 'long' }) => (kindOf(x) === 'day' ? (lang === 'vi' ? 'Ngày' : 'Day') : lang === 'vi' ? 'Dài' : 'Long')
   const practiceOverlay: PracticeOverlay | null = !aiRules.practiceOnChart
     ? null
     : {
         markers: [
           ...practice.state.trades
-            .filter((x) => x.symbol === inst.symbol && x.tf === prefs.tf)
+            .filter((x) => x.symbol === inst.symbol)
             .flatMap((x) => [
               { time: x.barTime, side: 'buy' as const, text: kindTag(x) },
               { time: x.exitBarTime, side: 'sell' as const, text: `${kindTag(x)} ${x.pnl >= 0 ? '+' : '−'}$${Math.abs(x.pnl).toFixed(0)}` },
             ]),
-          ...practice.state.open.filter((x) => x.symbol === inst.symbol && x.tf === prefs.tf).map((x) => ({ time: x.barTime, side: 'buy' as const, text: kindTag(x) })),
-        ],
+          ...practice.state.open.filter((x) => x.symbol === inst.symbol).map((x) => ({ time: x.barTime, side: 'buy' as const, text: kindTag(x) })),
+        ].map((m) => ({ ...m, time: snapToBar(m.time) })),
         lines: practice.state.open
           .filter((x) => x.symbol === inst.symbol)
           .flatMap((x) => [
@@ -267,7 +282,7 @@ export default function App() {
             { price: x.stop, color: '#f6465d', title: `${kindTag(x)} ${lang === 'vi' ? 'cắt lỗ' : 'stop'}` },
             { price: x.target, color: '#0ecb81', title: `${kindTag(x)} ${lang === 'vi' ? 'chốt lời' : 'target'}` },
           ]),
-        flash: flash && flash.symbol === inst.symbol ? flash : null,
+        flash,
         flashText: flash ? (lang === 'vi' ? flash.vi : flash.en) : '',
       }
 
@@ -369,7 +384,7 @@ export default function App() {
                     setPlanNonce((n) => n + 1)
                     setRightTab('trade')
                   }} onEditRules={() => setAiRulesOpen(true)} />}
-              {rightTab === 'practice' && <PracticePanel state={practice.state} rules={aiRules} symbol={inst.symbol} priceOf={priceOf} onReset={practice.reset} />}
+              {rightTab === 'practice' && <PracticePanel state={practice.state} rules={aiRules} symbol={inst.symbol} priceOf={practice.priceOf} onReset={practice.reset} scan={practice.scan} onRescan={practice.rescan} onOpen={(s) => select(s)} universe={universe.map((i) => i.symbol)} />}
               {rightTab === 'flow' && <OrderFlowPanel flow={flow} last={lastClose} />}
               {rightTab === 'learn' && <AutoLearnPanel al={autoLearn} rules={aiRules} symbol={inst.symbol} liveScore={live?.probUp ?? null} />}
               {rightTab === 'picks' && (

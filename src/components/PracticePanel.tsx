@@ -1,6 +1,8 @@
 import { useState } from 'react'
 import { setAiRules, type AiRules } from '../lib/aiRules'
 import { useLang } from '../lib/i18n'
+import type { PracticeScan } from '../hooks/usePractice'
+import { pickSourceLabel } from '../lib/practicePicks'
 import { dayKey, exitReasonLabel, kindOf, lessons, LONG_WIDTH, MAX_BARS, PRACTICE_START, practiceEquity, practiceReport, type GroupRow, type PracticeKind, type PracticeState, type PracticeTrade } from '../lib/practice'
 
 type Tab = 'live' | 'report' | 'trades'
@@ -11,6 +13,11 @@ interface Props {
   symbol: string
   priceOf: (symbol: string) => number
   onReset: () => void
+  scan: PracticeScan
+  onRescan: () => void
+  /** Open a market's chart (only markets in your watchlist can be opened). */
+  onOpen: (symbol: string) => void
+  universe: string[]
 }
 
 const money = (x: number | null) => (x == null ? '–' : `${x >= 0 ? '+' : '−'}$${Math.abs(x).toFixed(2)}`)
@@ -39,7 +46,7 @@ function Curve({ points }: { points: { t: number; equity: number }[] }) {
 }
 
 /** Practice mode: the AI paper-trades small on live data. Status, live orders, and the report of what worked and what failed. */
-export function PracticePanel({ state, rules, symbol, priceOf, onReset }: Props) {
+export function PracticePanel({ state, rules, symbol, priceOf, onReset, scan, onRescan, onOpen, universe }: Props) {
   const lang = useLang()
   const L = (en: string, vi: string) => (lang === 'vi' ? vi : en)
   const when = (ms: number) => new Date(ms).toLocaleString(lang === 'vi' ? 'vi-VN' : 'en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })
@@ -78,7 +85,7 @@ export function PracticePanel({ state, rules, symbol, priceOf, onReset }: Props)
   const wins = shownTrades.filter((t) => t.pnl > 0)
   const fails = shownTrades.filter((t) => t.pnl <= 0)
 
-  const toggle = (key: 'practiceMode' | 'practiceOnChart' | 'practiceFeed' | 'practiceDayOn' | 'practiceLongOn', label: string) => (
+  const toggle = (key: 'practiceMode' | 'practiceOnChart' | 'practiceFeed' | 'practiceDayOn' | 'practiceLongOn' | 'practiceAutoPick' | 'practiceMovers', label: string) => (
     <label className="al-toggle">
       <span>{label}</span>
       <span className="switch">
@@ -133,6 +140,11 @@ export function PracticePanel({ state, rules, symbol, priceOf, onReset }: Props)
         {t.info.regime && ` · ${L('volatility', 'biến động')} ${t.info.regime}`}
         {` · ${L('learner', 'bộ học')} ${t.info.learner}`}
       </div>
+      {t.info.pick && (
+        <div className="pr-why">
+          <span className="al-tag">{L('PICKED', 'CHỌN')}</span> {L(t.info.pick.en, t.info.pick.vi)}
+        </div>
+      )}
       <div className="pr-why">
         <span className="al-tag">{L('OUT', 'RA')}</span> {px(t.exit)} · {L(exitReasonLabel[t.exitReason].en, exitReasonLabel[t.exitReason].vi)} · {t.bars} {L('bars', 'nến')}
       </div>
@@ -170,8 +182,8 @@ export function PracticePanel({ state, rules, symbol, priceOf, onReset }: Props)
               <p className="muted al-note">
                 {on
                   ? L(
-                      `Decides on each closed bar of the chart you have open (${symbol}), ${rules.practiceSizePct}% of the practice account per trade. Each day: the first AI BUY becomes the long-term trade (stop and target ${LONG_WIDTH}x wider, held up to ${rules.practiceHoldDays} days), the next BUYs become up to ${rules.practiceDayTrades} day trades that exit at stop, target, a SELL call, after ${MAX_BARS} bars, or before market close. It only trades when the AI says BUY, so some days have fewer.`,
-                      `Quyết định ở mỗi nến đóng trên biểu đồ đang mở (${symbol}), ${rules.practiceSizePct}% tài khoản luyện tập mỗi lệnh. Mỗi ngày: lệnh MUA đầu tiên của AI thành lệnh dài hạn (cắt lỗ và chốt lời rộng gấp ${LONG_WIDTH}, giữ tối đa ${rules.practiceHoldDays} ngày), các lệnh MUA sau thành tối đa ${rules.practiceDayTrades} lệnh trong ngày, thoát ở cắt lỗ, chốt lời, lệnh BÁN, sau ${MAX_BARS} nến hoặc trước giờ đóng cửa. AI chỉ giao dịch khi nói MUA, nên có ngày ít lệnh hơn.`,
+                      `${rules.practiceAutoPick ? `Every 5 minutes it scans your watchlist${rules.practiceMovers ? " and today's top gainers and most-traded stocks" : ''} on 15-minute bars, ranks the AI's BUY calls by Trade Score, volume and today's gain, and trades the best ones.` : `Decides on each closed bar of the chart you have open (${symbol}).`} ${rules.practiceSizePct}% of the practice account per trade. Each day: the best AI BUY becomes the long-term trade (stop and target ${LONG_WIDTH}x wider, held up to ${rules.practiceHoldDays} days), the next best become up to ${rules.practiceDayTrades} day trades that exit at stop, target, a SELL call, after ${MAX_BARS} bars, or before market close. It only trades when the AI says BUY, so some days have fewer.`,
+                      `${rules.practiceAutoPick ? `Mỗi 5 phút AI quét danh sách theo dõi${rules.practiceMovers ? ' và các mã tăng mạnh, giao dịch nhiều nhất hôm nay' : ''} trên nến 15 phút, xếp hạng lệnh MUA theo Điểm GD, khối lượng và mức tăng hôm nay, rồi giao dịch các mã tốt nhất.` : `Quyết định ở mỗi nến đóng trên biểu đồ đang mở (${symbol}).`} ${rules.practiceSizePct}% tài khoản luyện tập mỗi lệnh. Mỗi ngày: lệnh MUA tốt nhất của AI thành lệnh dài hạn (cắt lỗ và chốt lời rộng gấp ${LONG_WIDTH}, giữ tối đa ${rules.practiceHoldDays} ngày), các lệnh tốt tiếp theo thành tối đa ${rules.practiceDayTrades} lệnh trong ngày, thoát ở cắt lỗ, chốt lời, lệnh BÁN, sau ${MAX_BARS} nến hoặc trước giờ đóng cửa. AI chỉ giao dịch khi nói MUA, nên có ngày ít lệnh hơn.`,
                     )
                   : L('Turn it on to let the AI place practice orders. Also in Settings > AI rules.', 'Bật lên để AI đặt lệnh luyện tập. Cũng có trong Cài đặt > Quy tắc AI.')}
               </p>
@@ -189,7 +201,70 @@ export function PracticePanel({ state, rules, symbol, priceOf, onReset }: Props)
             {toggle('practiceFeed', L('Order pop-ups', 'Thông báo lệnh'))}
             {toggle('practiceDayOn', L('Day trades', 'Lệnh trong ngày'))}
             {toggle('practiceLongOn', L('Long-term trade', 'Lệnh dài hạn'))}
+            {toggle('practiceAutoPick', L('Picks its own stocks', 'Tự chọn mã'))}
+            {rules.practiceAutoPick && toggle('practiceMovers', L("Today's movers", 'Mã biến động hôm nay'))}
           </div>
+          {rules.practiceAutoPick && on && (
+            <div className="al-card">
+              <div className="al-report-head">
+                <div className="al-kicker">{L("TODAY'S PICKS", 'MÃ ĐƯỢC CHỌN HÔM NAY')}</div>
+                <button className="pr-rescan" onClick={onRescan} disabled={scan.busy}>
+                  {scan.busy ? L('Scanning…', 'Đang quét…') : L('Scan now', 'Quét ngay')}
+                </button>
+              </div>
+              <p className="muted al-note">
+                {scan.at ? `${L('Last scan', 'Lần quét cuối')} ${when(scan.at)} · ${scan.candidates.length} ${L('markets', 'mã')}` : L('First scan is running…', 'Đang quét lần đầu…')}
+                {scan.failed.length > 0 && ` · ${L('no data for', 'không có dữ liệu cho')} ${scan.failed.join(', ')}`}
+              </p>
+              {scan.noStockData && (
+                <p className="muted al-note">
+                  {L(
+                    'Stocks are skipped until an Alpaca paper key is connected (Portfolio page). Crypto is scanned now. Top gainers and most-traded stocks also need the Alpaca key.',
+                    'Cổ phiếu được bỏ qua cho đến khi kết nối khoá Alpaca thử nghiệm (trang Danh mục). Tiền điện tử vẫn được quét. Mã tăng mạnh và giao dịch nhiều cũng cần khoá Alpaca.',
+                  )}
+                </p>
+              )}
+              {scan.candidates.length > 0 && (
+                <table className="al-table">
+                  <thead>
+                    <tr>
+                      <th>#</th>
+                      <th>{L('Market', 'Mã')}</th>
+                      <th>{L('AI', 'AI')}</th>
+                      <th>{L('Today', 'Hôm nay')}</th>
+                      <th>{L('Volume', 'KL')}</th>
+                      <th>{L('Score', 'Điểm')}</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {scan.candidates.slice(0, 12).map((c) => {
+                      const held = state.open.find((p) => p.symbol === c.symbol)
+                      return (
+                        <tr key={c.symbol} className={c.place == null ? 'pr-dim' : ''}>
+                          <td>{c.place ?? '–'}</td>
+                          <td>
+                            {universe.includes(c.symbol) ? (
+                              <button className="pr-link" onClick={() => onOpen(c.symbol)}>
+                                {c.symbol}
+                              </button>
+                            ) : (
+                              <b>{c.symbol}</b>
+                            )}{' '}
+                            {held && kindBadge(kindOf(held))}
+                            <div className="muted pr-time">{L(pickSourceLabel[c.source].en, pickSourceLabel[c.source].vi)}</div>
+                          </td>
+                          <td className={c.analysis?.verdict === 'BUY' ? 'up' : c.analysis?.verdict === 'SELL' ? 'down' : 'muted'}>{c.analysis?.verdict ?? '–'}</td>
+                          <td className={(c.gainPct ?? 0) >= 0 ? 'up' : 'down'}>{c.gainPct == null ? '–' : `${c.gainPct >= 0 ? '+' : ''}${c.gainPct.toFixed(1)}%`}</td>
+                          <td>{c.volVsAvg == null ? '–' : `${c.volVsAvg.toFixed(1)}x`}</td>
+                          <td>{c.tradeScore ?? '–'}</td>
+                        </tr>
+                      )
+                    })}
+                  </tbody>
+                </table>
+              )}
+            </div>
+          )}
           <div className="al-tiles">
             <div>
               <span>{L('Day trades today', 'Lệnh trong ngày hôm nay')}</span>
@@ -329,6 +404,7 @@ export function PracticePanel({ state, rules, symbol, priceOf, onReset }: Props)
             const lab = exitReasonLabel[k as keyof typeof exitReasonLabel]
             return lab ? L(lab.en, lab.vi) : k
           })}
+          {groupTable(L('BY HOW IT WAS FOUND', 'THEO NGUỒN CHỌN MÃ'), r.bySource, (k) => (k === 'chart' ? L('open chart', 'biểu đồ đang mở') : L(pickSourceLabel[k as keyof typeof pickSourceLabel].en, pickSourceLabel[k as keyof typeof pickSourceLabel].vi)))}
           {groupTable(L('BY VOLATILITY', 'THEO BIẾN ĐỘNG'), r.byRegime)}
           {groupTable(L('BY LEARNER OPINION', 'THEO Ý KIẾN BỘ HỌC'), r.byLearner)}
           {groupTable(L('BY MARKET', 'THEO MÃ'), r.bySymbol)}

@@ -2,7 +2,7 @@
  * Version and "What's new". Bump APP_VERSION and add an entry to the top of RELEASES
  * with each update. The banner shows once per version, then stays dismissed.
  */
-export const APP_VERSION = '1.2.0'
+export const APP_VERSION = '1.3.0'
 
 export interface Release {
   version: string
@@ -13,6 +13,24 @@ export interface Release {
 }
 
 export const RELEASES: Release[] = [
+  {
+    version: '1.3.0',
+    date: '2026-10-09',
+    changes: [
+      "Practice mode now picks its own markets. Every 5 minutes it scans your watchlist and today's top gainers and most-traded US stocks on 15-minute bars, ranks the AI's BUY calls by Trade Score, volume and today's gain, and trades the best: the top pick becomes the day's long-term trade, the next ones the day trades. You no longer need to have the chart open.",
+      "The Practice tab shows Today's picks (rank, AI call, today's gain, volume and Trade Score), with a Scan now button. Every practice trade records why it was picked, and the report compares results by how the stock was found.",
+      "Practice orders pop up on the chart whatever market you are viewing; open a picked market's chart from the list to see its arrows and lines.",
+      "Stocks and today's movers need an Alpaca paper key (Portfolio page); without one it scans crypto only. Switches in Settings > AI rules: Picks its own stocks, and Today's movers.",
+      'Not financial advice. Paper trading only; nothing here places a real order.',
+    ],
+    changesVi: [
+      'Chế độ luyện tập giờ tự chọn mã. Mỗi 5 phút AI quét danh sách theo dõi cùng các cổ phiếu Mỹ tăng mạnh và giao dịch nhiều nhất hôm nay trên nến 15 phút, xếp hạng lệnh MUA của AI theo Điểm GD, khối lượng và mức tăng hôm nay, rồi giao dịch các mã tốt nhất: mã đứng đầu thành lệnh dài hạn trong ngày, các mã tiếp theo thành lệnh trong ngày. Không cần mở biểu đồ nữa.',
+      'Tab Luyện tập hiện Mã được chọn hôm nay (hạng, lệnh của AI, mức tăng hôm nay, khối lượng và Điểm GD) cùng nút Quét ngay. Mỗi lệnh luyện tập ghi lại lý do được chọn, và báo cáo so sánh kết quả theo nguồn chọn mã.',
+      'Lệnh luyện tập hiện lên trên biểu đồ dù bạn đang xem mã nào; mở biểu đồ của mã được chọn từ danh sách để xem mũi tên và đường giá.',
+      'Cổ phiếu và mã biến động hôm nay cần khoá Alpaca thử nghiệm (trang Danh mục); nếu không có, AI chỉ quét tiền điện tử. Công tắc trong Cài đặt > Quy tắc AI: Tự chọn mã, và Mã biến động hôm nay.',
+      'Không phải lời khuyên đầu tư. Chỉ giao dịch thử nghiệm; không có lệnh thật nào được đặt.',
+    ],
+  },
   {
     version: '1.2.0',
     date: '2026-10-09',
