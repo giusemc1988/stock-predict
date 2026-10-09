@@ -3,7 +3,7 @@ import type { Candle, FeedStatus, Instrument, Timeframe } from '../types'
 import { tfSeconds } from '../types'
 import { demoHistory, demoTick } from '../data/demo'
 import type { AlpacaDataKeys, ApiKeys } from '../data/providers'
-import { alpacaStockCandles, alphaVantageCandles, binanceKlines, binanceStream, finnhubTrades, hasAlpacaData } from '../data/providers'
+import { AV_CACHE_MS, alpacaStockCandles, alphaVantageCandlesCached, binanceKlines, binanceStream, finnhubTrades, hasAlpacaData } from '../data/providers'
 
 export interface MarketData {
   candles: Candle[]
@@ -119,17 +119,19 @@ export function useMarketData(inst: Instrument, tf: Timeframe, keys: ApiKeys, al
           return
         }
         if (k.alphaVantage) {
-          const candles = await alphaVantageCandles(inst.feedId, tf, k.alphaVantage)
+          const first = await alphaVantageCandlesCached(inst.feedId, tf, k.alphaVantage)
           if (cancelled) return
-          set({ candles, status: 'polling', source: 'Alpha Vantage', error: null })
+          // delayed data: the free plan allows 25 requests a day, so refresh only when the cache expires
+          const source = (stale: string | null) => (stale ? 'Alpha Vantage (saved, not updating)' : 'Alpha Vantage (delayed)')
+          set({ candles: first.candles, status: 'polling', source: source(first.stale), error: first.stale })
           const id = setInterval(async () => {
             try {
-              const fresh = await alphaVantageCandles(inst.feedId, tf, keysRef.current.alphaVantage)
-              set({ candles: fresh })
+              const fresh = await alphaVantageCandlesCached(inst.feedId, tf, keysRef.current.alphaVantage)
+              set({ candles: fresh.candles, source: source(fresh.stale), error: fresh.stale })
             } catch {
-              /* keep last good data on rate limit */
+              /* keep last good data */
             }
-          }, 60_000)
+          }, AV_CACHE_MS)
           cleanups.push(() => clearInterval(id))
           addFinnhub('Alpha Vantage', 'polling')
           return

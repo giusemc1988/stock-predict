@@ -10,15 +10,18 @@ export function SettingsModal({ keys, onSave, onClose }: { keys: ApiKeys; onSave
     <div className="modal-back" onClick={onClose}>
       <div className="modal" onClick={(e) => e.stopPropagation()}>
         <h3>Data sources</h3>
+        <p className="muted">Crypto streams live from Binance, no key needed. US stocks need a key, otherwise they run on the simulated feed (marked SIM).</p>
         <p className="muted">
-          Crypto streams live from Binance public market data, no key needed. US stocks need a free key, otherwise they run on the simulated feed (marked SIM). Keys stay in this browser's localStorage.
+          <b>Recommended:</b> a free <b>Alpaca paper</b> key. It gives real stock prices for the charts and watchlist, plus a practice trading account. Get it at{' '}
+          <a href="https://app.alpaca.markets/signup" target="_blank" rel="noreferrer">
+            app.alpaca.markets
+          </a>{' '}
+          (Paper account, then API Keys), and paste it on the <b>Portfolio</b> page under Alpaca paper, not here.
         </p>
-        <p className="muted">
-          Have an <b>Alpaca paper</b> key? It goes on the Portfolio page (Alpaca paper), not here. Once connected there it also streams real US stock prices, so these two keys are optional.
-        </p>
+        <p className="muted">The keys below are optional extras. Alpha Vantage's free plan allows only 25 requests a day. Keys stay in this browser.</p>
         <label className="field">
           <span>
-            Alpha Vantage key{' '}
+            Alpha Vantage key (optional){' '}
             <a href="https://www.alphavantage.co/support/#api-key" target="_blank" rel="noreferrer">
               get one
             </a>
@@ -28,7 +31,7 @@ export function SettingsModal({ keys, onSave, onClose }: { keys: ApiKeys; onSave
         </label>
         <label className="field">
           <span>
-            Finnhub key{' '}
+            Finnhub key (optional){' '}
             <a href="https://finnhub.io/register" target="_blank" rel="noreferrer">
               get one
             </a>
