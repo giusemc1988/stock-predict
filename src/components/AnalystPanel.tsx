@@ -10,11 +10,12 @@ interface Props {
   lastSignal: Signal | null
   symbol: string
   tfLabel: string
+  onTrade: () => void
 }
 
 const ICON = { bull: '▲', bear: '▼', neutral: '•' }
 
-export function AnalystPanel({ analysis: a, stats, lastSignal, symbol, tfLabel }: Props) {
+export function AnalystPanel({ analysis: a, stats, lastSignal, symbol, tfLabel, onTrade }: Props) {
   if (!a) {
     return (
       <div className="analyst">
@@ -80,6 +81,11 @@ export function AnalystPanel({ analysis: a, stats, lastSignal, symbol, tfLabel }
               <b className="up">{fmtPrice(a.plan.target)}</b>
             </div>
           </div>
+        )}
+        {a.plan && (
+          <button className="ai-plan" onClick={onTrade}>
+            Open order ticket →
+          </button>
         )}
       </div>
 
