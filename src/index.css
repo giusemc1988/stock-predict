@@ -514,7 +514,7 @@ tr.leg td { color: #aab2c0; }
 .chart-tools { position: absolute; top: 40px; left: 12px; z-index: 4; display: flex; gap: 6px; flex-wrap: wrap; font-size: 11px; }
 .chart-tools > button { padding: 4px 9px; border-radius: 999px; border: 1px solid var(--line-2); background: rgba(22, 28, 38, 0.8); color: var(--muted); cursor: pointer; }
 .chart-tools > button.on { color: var(--text); border-color: var(--up); }
-.chart-settings { position: absolute; top: 32px; left: 0; width: 240px; padding: 12px; border-radius: 10px; background: #161c26; border: 1px solid var(--line-2); display: grid; gap: 8px; box-shadow: 0 12px 30px rgba(0, 0, 0, 0.45); }
+.chart-settings { position: absolute; top: calc(100% + 6px); left: 0; width: 240px; padding: 12px; border-radius: 10px; background: #161c26; border: 1px solid var(--line-2); display: grid; gap: 8px; box-shadow: 0 12px 30px rgba(0, 0, 0, 0.45); }
 .chart-settings label { display: flex; justify-content: space-between; align-items: center; gap: 8px; color: var(--text); }
 .chart-settings input { width: 70px; background: #0d1219; color: var(--text); border: 1px solid var(--line-2); border-radius: 6px; padding: 4px 6px; }
 .chart-settings p { margin: 0; font-size: 10px; }

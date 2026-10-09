@@ -49,6 +49,31 @@ interface Props {
 
 const ts = (t: number) => t as UTCTimestamp
 
+/** Number input that keeps what the user is typing apart from the saved value.
+ *  Only a finite value inside the range is committed; an empty or bad entry is ignored until blur. */
+function NumField({ label, value, min, max, step, onCommit }: { label: string; value: number; min: number; max: number; step: number; onCommit: (v: number) => void }) {
+  const [draft, setDraft] = useState(String(value))
+  useEffect(() => setDraft(String(value)), [value])
+  return (
+    <label>
+      {label}
+      <input
+        type="number"
+        min={min}
+        max={max}
+        step={step}
+        value={draft}
+        onChange={(e) => {
+          setDraft(e.target.value)
+          const n = e.target.value.trim() === '' ? NaN : Number(e.target.value)
+          if (Number.isFinite(n) && n >= min && n <= max) onCommit(n)
+        }}
+        onBlur={() => setDraft(String(value))}
+      />
+    </label>
+  )
+}
+
 export function ChartPanel(props: Props) {
   const { symbol, tf, candles, signals, prediction, emaFast, emaSlow, showEmas, showForecast, showRobots } = props
   const host = useRef<HTMLDivElement>(null)
@@ -327,37 +352,9 @@ export function ChartPanel(props: Props) {
         </button>
         {settings && (
           <div className="chart-settings">
-            <label>
-              SMA period
-              <input
-                type="number"
-                min={2}
-                max={200}
-                value={cfg.sma.period}
-                onChange={(e) => updateCfg({ ...cfg, sma: { ...cfg.sma, period: Number(e.target.value) } })}
-              />
-            </label>
-            <label>
-              Bollinger period
-              <input
-                type="number"
-                min={2}
-                max={200}
-                value={cfg.bollinger.period}
-                onChange={(e) => updateCfg({ ...cfg, bollinger: { ...cfg.bollinger, period: Number(e.target.value) } })}
-              />
-            </label>
-            <label>
-              Bollinger width (σ)
-              <input
-                type="number"
-                min={0.5}
-                max={4}
-                step={0.5}
-                value={cfg.bollinger.mult}
-                onChange={(e) => updateCfg({ ...cfg, bollinger: { ...cfg.bollinger, mult: Number(e.target.value) } })}
-              />
-            </label>
+            <NumField label="SMA period" value={cfg.sma.period} min={2} max={200} step={1} onCommit={(v) => updateCfg({ ...cfg, sma: { ...cfg.sma, period: v } })} />
+            <NumField label="Bollinger period" value={cfg.bollinger.period} min={2} max={200} step={1} onCommit={(v) => updateCfg({ ...cfg, bollinger: { ...cfg.bollinger, period: v } })} />
+            <NumField label="Bollinger width (σ)" value={cfg.bollinger.mult} min={0.5} max={4} step={0.5} onCommit={(v) => updateCfg({ ...cfg, bollinger: { ...cfg.bollinger, mult: v } })} />
             <p className="muted">Saved in this browser. Periods are clamped to 2–200 when loaded.</p>
           </div>
         )}
