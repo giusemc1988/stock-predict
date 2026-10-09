@@ -1,7 +1,40 @@
-import { useState } from 'react'
+import { Fragment, useState } from 'react'
 import type { Instrument, Candle, Timeframe } from '../types'
 import { binanceKlines, alphaVantageCandlesCached, alpacaStockCandles, hasAlpacaData, type AlpacaDataKeys, type ApiKeys } from '../data/providers'
 import { rankPicks, savePicks, SMALL_SAMPLE, sortPicks, type Pick, type PickSort } from '../lib/picks'
+
+const pct = (x: number) => `${x.toFixed(1)}%`
+
+/** Every input the analyst used for one stock, plus the baseline check. */
+function Inputs({ pick: p }: { pick: Pick }) {
+  const i = p.inputs
+  return (
+    <div className="pick-inputs">
+      <ul>
+        <li>RSI (14): {i.rsi == null ? 'not enough data' : i.rsi.toFixed(0)}</li>
+        <li>Volume vs 20-bar average: {i.volumeVsAvg == null ? 'not enough data' : `${i.volumeVsAvg.toFixed(2)}x`}</li>
+        <li>
+          Buying share of recent volume: {(i.buyShare * 100).toFixed(0)}%{i.buyShareEstimated ? ' (estimated from price)' : ' (reported)'}
+        </li>
+        <li>News items: not connected yet</li>
+        <li>
+          Backtest on this stock: strategy {pct(i.strategyReturnPct)} vs buy-and-hold {pct(i.buyHoldReturnPct)}. Result: <strong>{i.versusBaseline}</strong>
+        </li>
+      </ul>
+      <p className="muted">The analyst's reasons:</p>
+      <ul>
+        {i.reasons.map((r) => (
+          <li key={r.label}>
+            <strong>{r.label}</strong> ({r.stance}): {r.detail}
+          </li>
+        ))}
+      </ul>
+      <p className="muted">
+        These inputs describe the past. They do not predict the next move. Not financial advice.
+      </p>
+    </div>
+  )
+}
 
 interface Props {
   instruments: Instrument[]
@@ -24,6 +57,7 @@ export function AIPicks({ instruments, tf, keys, alpacaKeys, onOpen }: Props) {
   const [busy, setBusy] = useState(false)
   const [skipped, setSkipped] = useState<string[]>([])
   const [by, setBy] = useState<PickSort>('call')
+  const [open, setOpen] = useState<string | null>(null)
 
   const scan = async () => {
     setBusy(true)
@@ -76,16 +110,36 @@ export function AIPicks({ instruments, tf, keys, alpacaKeys, onOpen }: Props) {
           </thead>
           <tbody>
             {sortPicks(picks, by).map((p) => (
-              <tr key={p.symbol} onClick={() => onOpen(p.symbol)} className="pick-row">
-                <td>{p.symbol}</td>
-                <td>{p.verdict}</td>
-                <td>{p.confidenceLabel} ({Math.round(p.confidence * 100)}%)</td>
-                <td>
-                  {p.trades ? `${Math.round(p.winRate * 100)}% of ${p.trades} trades` : 'no trades'}
-                  {p.trades > 0 && p.trades < SMALL_SAMPLE ? ' (small sample)' : ''}
-                </td>
-                <td>{p.headline}</td>
-              </tr>
+              <Fragment key={p.symbol}>
+                <tr onClick={() => setOpen(open === p.symbol ? null : p.symbol)} className="pick-row">
+                  <td>
+                    {p.symbol}{' '}
+                    <button
+                      className="link"
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        onOpen(p.symbol)
+                      }}
+                    >
+                      open
+                    </button>
+                  </td>
+                  <td>{p.verdict}</td>
+                  <td>{p.confidenceLabel} ({Math.round(p.confidence * 100)}%)</td>
+                  <td>
+                    {p.trades ? `${Math.round(p.winRate * 100)}% of ${p.trades} trades` : 'no trades'}
+                    {p.trades > 0 && p.trades < SMALL_SAMPLE ? ' (small sample)' : ''}
+                  </td>
+                  <td>{p.headline}</td>
+                </tr>
+                {open === p.symbol && (
+                  <tr>
+                    <td colSpan={5}>
+                      <Inputs pick={p} />
+                    </td>
+                  </tr>
+                )}
+              </Fragment>
             ))}
           </tbody>
         </table>

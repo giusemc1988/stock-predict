@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { APP_VERSION } from '../data/releases'
 
 /** What the AI has tested and learned, read from public/learning.json (refreshed by the daily run). */
 interface Learning {
@@ -34,7 +35,7 @@ export function LearningPanel() {
 
   return (
     <div className="learning">
-      <p className="muted">Updated {data.updated}. Paper research only, not financial advice.</p>
+      <p className="muted">App v{APP_VERSION}. Data updated {data.updated}. Paper research only, not financial advice.</p>
       <p>{data.method}</p>
 
       <h4>Direction models (accuracy vs always-up)</h4>

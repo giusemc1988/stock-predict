@@ -2,9 +2,11 @@
  * Ranks instruments by the AI analyst's call. Uses the same strategy and analyst code as the
  * chart, with no order-flow input. Paper research only, not financial advice.
  */
-import type { Analysis, Candle, OrderFlow, Verdict } from '../types'
+import type { Analysis, AnalystCheck, Candle, OrderFlow, Verdict } from '../types'
 import { runStrategy } from './strategy'
 import { analyze } from './analyst'
+import { rsi, sma } from './indicators'
+import { hasRealBuyVolume, recentBuyShare } from './orderflow'
 
 export interface Pick {
   symbol: string
@@ -16,6 +18,25 @@ export interface Pick {
   /** Past-signal success from the app's own backtest on this symbol's history. */
   winRate: number
   trades: number
+  inputs: PickInputs
+}
+
+/** Everything the analyst looked at for one stock, so the call can be checked. */
+export interface PickInputs {
+  rsi: number | null
+  /** Last bar's volume divided by its 20-bar average (1 = average). */
+  volumeVsAvg: number | null
+  /** Share of recent volume that was buying (0..1). */
+  buyShare: number
+  /** True when buy/sell split is estimated from price, not reported. */
+  buyShareEstimated: boolean
+  reasons: AnalystCheck[]
+  strategyReturnPct: number
+  buyHoldReturnPct: number
+  /** "edge" only when the strategy's backtest beat buy-and-hold on the same history. */
+  versusBaseline: 'edge' | 'no edge'
+  /** News is not connected to the app yet. */
+  newsCount: null
 }
 
 /** Below this many past trades a win rate is mostly noise, so the UI warns. */
@@ -34,6 +55,7 @@ export function rankPicks(series: { symbol: string; candles: Candle[] }[]): Pick
     const a = analyze(candles, closed, live, NO_FLOW)
     if (!a) continue
     picks.push({
+      inputs: inputsFor(candles, a, closed.stats),
       symbol,
       verdict: a.verdict,
       score: a.score,
@@ -45,6 +67,26 @@ export function rankPicks(series: { symbol: string; candles: Candle[] }[]): Pick
     })
   }
   return picks
+}
+
+function inputsFor(candles: Candle[], a: Analysis, stats: { totalReturnPct: number; buyHoldPct: number }): PickInputs {
+  const close = candles.map((c) => c.close)
+  const r = rsi(close, 14)
+  const vol = sma(candles.map((c) => c.volume), 20)
+  const v = candles[candles.length - 1].volume
+  const avg = vol[vol.length - 1]
+  const beat = stats.totalReturnPct > stats.buyHoldPct
+  return {
+    rsi: r[r.length - 1] ?? null,
+    volumeVsAvg: avg ? v / avg : null,
+    buyShare: recentBuyShare(candles, 20),
+    buyShareEstimated: !hasRealBuyVolume(candles),
+    reasons: a.checks.map(({ label, detail, stance }) => ({ label, detail, stance })),
+    strategyReturnPct: stats.totalReturnPct,
+    buyHoldReturnPct: stats.buyHoldPct,
+    versusBaseline: beat ? 'edge' : 'no edge',
+    newsCount: null,
+  }
 }
 
 export type PickSort = 'call' | 'success'
