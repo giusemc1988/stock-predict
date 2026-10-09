@@ -713,3 +713,7 @@ body {
 .pr-filter { display: flex; gap: 4px; margin-bottom: 8px; }
 .pr-filter button { flex: 1; padding: 6px 4px; font-size: 11px; border: 1px solid var(--line-2); border-radius: 6px; color: var(--muted); }
 .pr-filter button.on { color: var(--robot); border-color: var(--robot); background: rgba(79, 209, 255, 0.08); }
+.pr-rescan { padding: 4px 9px; font-size: 11px; border: 1px solid var(--robot); border-radius: 6px; color: var(--robot); background: rgba(79, 209, 255, 0.08); }
+.pr-rescan:disabled { opacity: 0.5; cursor: wait; }
+.pr-link { color: var(--robot); font-weight: 700; padding: 0; text-decoration: underline dotted; }
+.al-table tr.pr-dim td { opacity: 0.55; }

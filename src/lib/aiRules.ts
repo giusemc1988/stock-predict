@@ -30,6 +30,8 @@ export interface AiRules {
   practiceLongOn: boolean // a longer-term trade held for days
   practiceLongTrades: number // long-term trades opened per day
   practiceHoldDays: number // longest a long-term trade is held
+  practiceAutoPick: boolean // practice picks its own markets instead of trading the open chart
+  practiceMovers: boolean // the picker also scans today's top gainers and most-traded stocks
 }
 
 export const DEFAULT_AI_RULES: AiRules = {
@@ -58,6 +60,8 @@ export const DEFAULT_AI_RULES: AiRules = {
   practiceLongOn: true,
   practiceLongTrades: 1,
   practiceHoldDays: 5,
+  practiceAutoPick: true,
+  practiceMovers: true,
 }
 
 type NumKey = { [K in keyof AiRules]: AiRules[K] extends number ? K : never }[keyof AiRules]
@@ -98,6 +102,8 @@ export const RULE_FIELDS: RuleField[] = [
   { group: 'modules', key: 'practiceMode', en: 'Practice mode (AI paper-trades small on live data)', vi: 'Chế độ luyện tập (AI giao dịch thử nhỏ trên dữ liệu trực tiếp)' },
   { group: 'modules', key: 'practiceDayOn', en: 'Practice day trades (in and out the same day)', vi: 'Lệnh luyện tập trong ngày (vào và ra cùng ngày)' },
   { group: 'modules', key: 'practiceLongOn', en: 'Practice long-term trade (held for days)', vi: 'Lệnh luyện tập dài hạn (giữ nhiều ngày)' },
+  { group: 'modules', key: 'practiceAutoPick', en: 'Practice picks its own stocks (best volume, gain and Trade Score)', vi: 'Luyện tập tự chọn mã (khối lượng, mức tăng và Điểm GD tốt nhất)' },
+  { group: 'modules', key: 'practiceMovers', en: "Practice also scans today's top gainers and most-traded stocks", vi: 'Luyện tập quét thêm mã tăng mạnh và giao dịch nhiều nhất hôm nay' },
   { group: 'modules', key: 'practiceOnChart', en: 'Show practice orders on the chart (animated)', vi: 'Hiện lệnh luyện tập trên biểu đồ (có hiệu ứng)' },
   { group: 'modules', key: 'practiceFeed', en: 'Pop-up notices for practice orders', vi: 'Thông báo bật lên cho lệnh luyện tập' },
   { group: 'modules', key: 'gatesOn', en: 'Risk gates (kill switch always works)', vi: 'Cổng rủi ro (công tắc dừng khẩn cấp luôn hoạt động)' },

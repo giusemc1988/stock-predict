@@ -31,6 +31,18 @@ export interface PracticeEntryInfo {
   regime: string | null
   learner: 'BUY' | 'HOLD' | 'n/a'
   reason: string
+  /** Why the stock picker chose this market (missing when it traded the open chart). */
+  pick?: PracticePickInfo
+}
+
+export interface PracticePickInfo {
+  place: number
+  of: number
+  source: 'watchlist' | 'gainer' | 'active'
+  gainPct: number | null
+  volVsAvg: number | null
+  en: string
+  vi: string
 }
 
 export interface PracticePosition {
@@ -141,6 +153,7 @@ export interface EntryContext {
   longOn: boolean
   longTrades: number
   holdDays: number
+  pick?: PracticePickInfo
   /** % of practice equity per trade. */
   sizePct: number
   gatesOn: boolean
@@ -203,6 +216,7 @@ export function onBarClose(prev: PracticeState, ctx: EntryContext): PracticeStat
     regime,
     learner: ctx.learner,
     reason: a.headline,
+    ...(ctx.pick ? { pick: ctx.pick } : {}),
   }
   const closeBy = kind === 'day' ? dayEnd : ctx.now + ctx.holdDays * 86_400_000
   const pos: PracticePosition = { id: newId(ctx.now), symbol: ctx.symbol, tf: ctx.tf, qty, entry: ctx.price, stop: plan.stop, target: plan.target, openedAt: ctx.now, barTime: ctx.barTime, bars: 0, info, kind, asset: ctx.asset, closeBy }
@@ -214,8 +228,8 @@ export function onBarClose(prev: PracticeState, ctx: EntryContext): PracticeStat
     kind: 'buy',
     symbol: ctx.symbol,
     trade: kind,
-    en: `${label.en}: bought ${+qty.toPrecision(4)} ${ctx.symbol} at ${fmt(ctx.price)} ($${(qty * ctx.price).toFixed(0)}). AI BUY${g}. Stop ${fmt(plan.stop)}, target ${fmt(plan.target)}.`,
-    vi: `${label.vi}: mua ${+qty.toPrecision(4)} ${ctx.symbol} giá ${fmt(ctx.price)} ($${(qty * ctx.price).toFixed(0)}). AI MUA${g}. Cắt lỗ ${fmt(plan.stop)}, chốt lời ${fmt(plan.target)}.`,
+    en: `${label.en}: bought ${+qty.toPrecision(4)} ${ctx.symbol} at ${fmt(ctx.price)} ($${(qty * ctx.price).toFixed(0)}). AI BUY${g}. Stop ${fmt(plan.stop)}, target ${fmt(plan.target)}.${ctx.pick ? ` Picked: ${ctx.pick.en}.` : ''}`,
+    vi: `${label.vi}: mua ${+qty.toPrecision(4)} ${ctx.symbol} giá ${fmt(ctx.price)} ($${(qty * ctx.price).toFixed(0)}). AI MUA${g}. Cắt lỗ ${fmt(plan.stop)}, chốt lời ${fmt(plan.target)}.${ctx.pick ? ` Lý do chọn: ${ctx.pick.vi}.` : ''}`,
   })
   return s
 }
@@ -299,6 +313,7 @@ export function practiceReport(s: PracticeState, kind?: PracticeKind) {
     profitFactor: losses.length && sum(losses) !== 0 ? sum(wins) / Math.abs(sum(losses)) : null,
     byGrade: groupBy(tr, (t) => t.info.grade ?? 'n/a'),
     byKind: groupBy(tr, (t) => kindOf(t)),
+    bySource: groupBy(tr, (t) => t.info.pick?.source ?? 'chart'),
     byExit: groupBy(tr, (t) => t.exitReason),
     byRegime: groupBy(tr, (t) => t.info.regime ?? 'n/a'),
     byLearner: groupBy(tr, (t) => t.info.learner),
