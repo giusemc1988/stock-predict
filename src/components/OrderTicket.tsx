@@ -17,6 +17,8 @@ interface Props {
   onAutoTrade: (v: boolean) => void
   robotPaused: string | null
   limits: GateLimits
+  /** Bumped when the analyst's "Open order ticket" is pressed: fill in the AI plan. */
+  planNonce: number
   onKillSwitch: (v: boolean) => void
 }
 
@@ -29,7 +31,7 @@ const TYPES: { id: OrderType; label: string; help: string }[] = [
 
 const clean = (v: number) => (v ? String(+v.toFixed(v < 1 ? 6 : v < 10 ? 4 : 2)) : '')
 
-export function OrderTicket({ inst, last, broker, analysis, onSubmit, autoTrade, onAutoTrade, robotPaused, limits, onKillSwitch }: Props) {
+export function OrderTicket({ inst, last, broker, analysis, onSubmit, autoTrade, onAutoTrade, robotPaused, limits, onKillSwitch, planNonce }: Props) {
   const [side, setSide] = useState<OrderSide>('buy')
   const [type, setType] = useState<OrderType>('market')
   const [unit, setUnit] = useState<'qty' | 'usd'>('qty')
@@ -70,7 +72,7 @@ export function OrderTicket({ inst, last, broker, analysis, onSubmit, autoTrade,
     else setAmount(crypto ? clean(q) : String(Math.floor(q)))
   }
 
-  const useAiPlan = () => {
+  const applyAiPlan = () => {
     if (!analysis?.plan) return
     // short selling is off, so a SELL plan just closes/reduces; exit legs only make sense on a buy
     const s = analysis.verdict === 'SELL' ? 'sell' : 'buy'
@@ -78,7 +80,19 @@ export function OrderTicket({ inst, last, broker, analysis, onSubmit, autoTrade,
     setBracket(s === 'buy')
     setTp(clean(analysis.plan.target))
     setSl(clean(analysis.plan.stop))
+    // size the buy from the analyst's sizing, so the stop risks what the plan says
+    const pctOfAccount = analysis.sizing?.pctOfAccount ?? 0
+    if (s === 'buy' && pctOfAccount > 0 && analysis.plan.entry > 0) {
+      const q = (broker.account.equity * pctOfAccount) / analysis.plan.entry
+      setUnit('qty')
+      setAmount(crypto ? clean(q) : String(Math.max(1, Math.floor(q))))
+    }
   }
+
+  // "Open order ticket" on the AI Analyst tab fills in the plan
+  useEffect(() => {
+    if (planNonce > 0 && hasPrice) applyAiPlan()
+  }, [planNonce, hasPrice]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const req: OrderRequest = {
     symbol: inst.symbol,
@@ -225,7 +239,7 @@ export function OrderTicket({ inst, last, broker, analysis, onSubmit, autoTrade,
           </div>
         )}
         {analysis?.plan && (
-          <button className="ai-plan" onClick={useAiPlan}>
+          <button className="ai-plan" onClick={applyAiPlan}>
             <RobotIcon size={14} side={analysis.verdict === 'SELL' ? 'sell' : 'buy'} /> Use AI plan ({analysis.verdict}, stop {fmtPrice(analysis.plan.stop)}, target {fmtPrice(analysis.plan.target)})
           </button>
         )}

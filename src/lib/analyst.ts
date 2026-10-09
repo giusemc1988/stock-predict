@@ -11,6 +11,7 @@ import { ema, macd, rsi } from './indicators'
 import { bookImbalance, hasRealBuyVolume, recentBuyShare } from './orderflow'
 import { fmtPrice } from './format'
 import { tradeScore } from './tradeScore'
+import { exitPlan } from './exitPlan'
 import { getAiRules, type AiRules } from './aiRules'
 
 const clamp = (x: number, lo = -1, hi = 1) => Math.max(lo, Math.min(hi, x))
@@ -125,12 +126,8 @@ export function analyze(candles: Candle[], strat: StrategyResult, live: Predicti
           ? `Wait: the signals conflict (${bulls.length} bullish, ${bears.length} bearish). No clear edge right now.`
           : 'Wait: nothing stands out. No clear edge right now.'
 
-  const plan =
-    verdict === 'HOLD'
-      ? null
-      : verdict === 'BUY'
-        ? { entry: last, stop: last - 1.5 * atr, target: last + 3 * atr, riskReward: 2 }
-        : { entry: last, stop: last + 1.5 * atr, target: last - 3 * atr, riskReward: 2 }
+  const xp = verdict === 'HOLD' ? null : exitPlan(candles, verdict, atr)
+  const plan = xp ? { entry: xp.entry, stop: xp.stop, target: xp.target, riskReward: 2 } : null
 
   // Buy-and-hold check: if simply holding did better, the model shows no edge on this chart.
   const beatenByHold = strat.stats.trades > 0 && strat.stats.totalReturnPct < strat.stats.buyHoldPct
@@ -153,6 +150,7 @@ export function analyze(candles: Candle[], strat: StrategyResult, live: Predicti
     plan,
     sizing,
     tradeScore: ts,
+    exitPlan: xp,
     trackRecord,
   }
 }

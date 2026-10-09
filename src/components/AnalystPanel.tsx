@@ -4,7 +4,7 @@ import { realityChecks } from '../lib/metrics'
 import { fmtPct, fmtPrice, fmtTime, tone } from '../lib/format'
 import { RobotIcon } from './RobotIcon'
 import { InfoTip } from './InfoTip'
-import { useT } from '../lib/i18n'
+import { useLang, useT } from '../lib/i18n'
 
 interface Props {
   analysis: Analysis | null
@@ -20,6 +20,7 @@ const ICON = { bull: '▲', bear: '▼', neutral: '•' }
 
 export function AnalystPanel({ analysis: a, stats, lastSignal, symbol, tfLabel, onTrade, onEditRules }: Props) {
   const t = useT()
+  const lang = useLang()
   if (!a) {
     return (
       <div className="analyst">
@@ -121,6 +122,28 @@ export function AnalystPanel({ analysis: a, stats, lastSignal, symbol, tfLabel, 
               <span>Target</span>
               <b className="up">{fmtPrice(a.plan.target)}</b>
             </div>
+          </div>
+        )}
+        {a.exitPlan && (
+          <div className="xplan">
+            <div className="section-title">{t('stopAndScale')}</div>
+            <div className="xstep stop">
+              <b>
+                {t('stopLoss')} <span className="mono down">{fmtPrice(a.exitPlan.stop)}</span>
+              </b>
+              <span>{a.exitPlan.stopWhy[lang]}</span>
+            </div>
+            {a.exitPlan.steps.map((s, i) => (
+              <div key={i} className={`xstep ${s.kind}`}>
+                <b>
+                  {s.kind === 'in' ? '＋' : '−'} {s.label[lang]}
+                  {s.price != null && <span className="mono"> {fmtPrice(s.price)}</span>}
+                  <em className="mono"> {s.sharePct}%</em>
+                </b>
+                <span>{s.why[lang]}</span>
+              </div>
+            ))}
+            <p className="muted tiny">{t('scaleNote')}</p>
           </div>
         )}
         {a.sizing && (

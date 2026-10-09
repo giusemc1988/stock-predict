@@ -70,6 +70,7 @@ export default function App() {
   const [alpacaKeys, setAlpacaKeys] = useLocalStorage<AlpacaKeys>('bluechip.alpaca', { keyId: '', secret: '' })
   const [settingsOpen, setSettingsOpen] = useState(false)
   const [aiRulesOpen, setAiRulesOpen] = useState(false)
+  const [planNonce, setPlanNonce] = useState(0)
   const aiRules = useAiRules()
   const [page, setPage] = useState<'trade' | 'portfolio'>('trade')
   const [rightTab, setRightTab] = useState<'ai' | 'flow' | 'trade' | 'learn' | 'picks'>('ai')
@@ -298,7 +299,10 @@ export default function App() {
               </button>
             </div>
             <div className="right-body">
-              {rightTab === 'ai' && <AnalystPanel analysis={analysis} stats={closed.stats} lastSignal={lastSignal} symbol={inst.symbol} tfLabel={tfLabel} onTrade={() => setRightTab('trade')} onEditRules={() => setAiRulesOpen(true)} />}
+              {rightTab === 'ai' && <AnalystPanel analysis={analysis} stats={closed.stats} lastSignal={lastSignal} symbol={inst.symbol} tfLabel={tfLabel} onTrade={() => {
+                    setPlanNonce((n) => n + 1)
+                    setRightTab('trade')
+                  }} onEditRules={() => setAiRulesOpen(true)} />}
               {rightTab === 'flow' && <OrderFlowPanel flow={flow} last={lastClose} />}
               {rightTab === 'learn' && <LearningPanel />}
               {rightTab === 'picks' && (
@@ -324,6 +328,7 @@ export default function App() {
                   onAutoTrade={(autoTrade) => setPrefs((p) => ({ ...p, autoTrade }))}
                   robotPaused={robotPaused}
                   limits={prefs}
+                  planNonce={planNonce}
                   onKillSwitch={(killSwitch) => setPrefs((p) => ({ ...p, killSwitch }))}
                 />
               )}

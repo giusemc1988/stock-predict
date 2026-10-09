@@ -147,7 +147,31 @@ export interface Analysis {
   plan: { entry: number; stop: number; target: number; riskReward: number } | null
   sizing: Sizing | null
   tradeScore: TradeScore | null
+  exitPlan: ExitPlan | null
   trackRecord: string
+}
+
+/** English and Vietnamese versions of one generated sentence. */
+export interface Bilingual {
+  en: string
+  vi: string
+}
+
+export interface PlanStep {
+  kind: 'in' | 'out'
+  label: Bilingual
+  /** null for a trailing exit with no fixed price. */
+  price: number | null
+  sharePct: number
+  why: Bilingual
+}
+
+export interface ExitPlan {
+  entry: number
+  stop: number
+  target: number
+  stopWhy: Bilingual
+  steps: PlanStep[]
 }
 
 export type VolRegime = 'calm' | 'normal' | 'high' | 'extreme'
