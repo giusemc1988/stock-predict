@@ -17,7 +17,7 @@ export const RELEASES: Release[] = [
     version: '1.2.0',
     date: '2026-10-09',
     changes: [
-      'New Practice mode (off by default). The AI paper-trades small sizes on live data while the app is open, in its own $10,000 practice account, even though no method has beaten buying every bar yet. All risk gates stay on. Turn it on in the new Practice tab or in Settings > AI rules.',
+      'New Practice mode, switched on so it starts trading right away. The AI paper-trades small sizes on live data while the app is open, in its own $10,000 practice account, even though no method has beaten buying every bar yet. All risk gates stay on. Turn it off any time in the new Practice tab or in Settings > AI rules.',
       'Watch it trade: practice buys and sells appear on the chart as gold arrows, open trades show entry, stop and target lines, and each new order pops up on the chart and as a notification. Each of these has its own switch.',
       'Practice report: an activity feed, win rate and P&L over time, what it learned (by Trade Score grade, exit type, volatility, learner opinion and market), and lists of successful and failed trades with why each was opened and closed.',
       'Each day it makes up to 4 quick day trades, all closed before market close, plus 1 long-term trade held up to 5 days with a wider stop and target. Both counts and the holding time can be changed in Settings > AI rules, and each kind has its own switch. It only trades when the AI says BUY, so some days have fewer.',
@@ -26,7 +26,7 @@ export const RELEASES: Release[] = [
       'Not financial advice. Paper trading only; nothing here places a real order.',
     ],
     changesVi: [
-      'Chế độ Luyện tập mới (mặc định tắt). AI giao dịch thử khối lượng nhỏ trên dữ liệu thật khi ứng dụng đang mở, trong tài khoản luyện tập $10,000 riêng, dù chưa có phương pháp nào thắng việc mua mọi nến. Mọi cổng rủi ro vẫn bật. Bật trong tab Luyện tập mới hoặc trong Cài đặt > Quy tắc AI.',
+      'Chế độ Luyện tập mới, đã bật sẵn để bắt đầu giao dịch ngay. AI giao dịch thử khối lượng nhỏ trên dữ liệu thật khi ứng dụng đang mở, trong tài khoản luyện tập $10,000 riêng, dù chưa có phương pháp nào thắng việc mua mọi nến. Mọi cổng rủi ro vẫn bật. Có thể tắt bất cứ lúc nào trong tab Luyện tập mới hoặc trong Cài đặt > Quy tắc AI.',
       'Xem AI giao dịch: lệnh mua và bán luyện tập hiện trên biểu đồ bằng mũi tên vàng, lệnh đang mở có đường giá vào, cắt lỗ và chốt lời, mỗi lệnh mới hiện lên trên biểu đồ và thành thông báo. Mỗi phần có công tắc riêng.',
       'Báo cáo luyện tập: nhật ký hoạt động, tỷ lệ thắng và lãi/lỗ theo thời gian, AI đã học gì (theo hạng Điểm Giao dịch, cách thoát, biến động, ý kiến bộ học và mã), cùng danh sách lệnh thành công và thất bại kèm lý do vào và ra.',
       'Mỗi ngày AI làm tối đa 4 lệnh trong ngày nhanh, tất cả đóng trước giờ đóng cửa, cùng 1 lệnh dài hạn giữ tối đa 5 ngày với cắt lỗ và chốt lời rộng hơn. Có thể đổi số lệnh và thời gian giữ trong Cài đặt > Quy tắc AI, mỗi loại có công tắc riêng. AI chỉ giao dịch khi nói MUA, nên có ngày ít lệnh hơn.',

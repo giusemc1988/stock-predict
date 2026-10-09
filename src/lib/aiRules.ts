@@ -49,7 +49,7 @@ export const DEFAULT_AI_RULES: AiRules = {
   minScoreWarn: 40,
   autoLearn: false,
   learnEdgeMarginPct: 3,
-  practiceMode: false,
+  practiceMode: true,
   practiceSizePct: 2,
   practiceOnChart: true,
   practiceFeed: true,
