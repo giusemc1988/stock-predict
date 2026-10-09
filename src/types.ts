@@ -141,5 +141,12 @@ export interface Analysis {
   headline: string
   checks: AnalystCheck[]
   plan: { entry: number; stop: number; target: number; riskReward: number } | null
+  sizing: Sizing | null
   trackRecord: string
+}
+
+export interface Sizing {
+  pctOfAccount: number // 0..1, the smallest of the limits below
+  binding: 'risk' | 'cap' | 'no-edge'
+  notes: string[]
 }

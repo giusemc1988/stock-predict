@@ -2,7 +2,7 @@
  * Version and "What's new". Bump APP_VERSION and add an entry to the top of RELEASES
  * with each update. The banner shows once per version, then stays dismissed.
  */
-export const APP_VERSION = '0.7.0'
+export const APP_VERSION = '0.8.0'
 
 export interface Release {
   version: string
@@ -13,6 +13,22 @@ export interface Release {
 }
 
 export const RELEASES: Release[] = [
+  {
+    version: '0.8.0',
+    date: '2026-10-09',
+    changes: [
+      'AI analyst plans now say how much of the account to use: 1% at risk per idea, capped at 10% (5% until the model has 30 trades).',
+      'If buy-and-hold beat the model on a chart, the analyst says there is no edge and sizes nothing.',
+      'The analyst card shows the not-financial-advice note.',
+      'Not financial advice. Paper trading only.',
+    ],
+    changesVi: [
+      'Kế hoạch của phân tích AI giờ cho biết nên dùng bao nhiêu tài khoản: rủi ro tối đa 1% cho mỗi ý tưởng, giới hạn 10% (5% cho đến khi mô hình có 30 giao dịch).',
+      'Nếu mua và giữ đã làm tốt hơn mô hình trên một biểu đồ, phân tích AI sẽ nói không có lợi thế và không đề xuất khối lượng.',
+      'Thẻ phân tích AI hiển thị lưu ý không phải lời khuyên đầu tư.',
+      'Không phải lời khuyên đầu tư. Chỉ giao dịch thử nghiệm.',
+    ],
+  },
   {
     version: '0.7.0',
     date: '2026-10-09',
