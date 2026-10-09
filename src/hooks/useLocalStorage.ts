@@ -8,7 +8,7 @@ export function useLocalStorage<T>(key: string, initial: T) {
       const saved = JSON.parse(raw)
       // arrays are stored whole; objects are merged over the defaults so new fields get a value
       if (Array.isArray(initial)) return (Array.isArray(saved) ? saved : initial) as T
-      return saved && typeof saved === 'object' ? { ...initial, ...saved } : initial
+      return saved && typeof saved === 'object' && !Array.isArray(saved) ? { ...initial, ...saved } : initial
     } catch {
       return initial
     }

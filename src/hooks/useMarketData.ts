@@ -94,9 +94,17 @@ export function useMarketData(inst: Instrument, tf: Timeframe, keys: ApiKeys, al
             ),
           )
         }
+        let candles: Candle[] | null = null
         if (useAlpaca) {
-          const candles = await alpacaStockCandles(inst.feedId, tf, alpacaRef.current)
+          try {
+            candles = await alpacaStockCandles(inst.feedId, tf, alpacaRef.current)
+          } catch (e) {
+            // a configured Alpha Vantage key is the fallback; without one, show the Alpaca error
+            if (!k.alphaVantage) throw e
+          }
           if (cancelled) return
+        }
+        if (candles) {
           set({ candles, status: 'polling', source: 'Alpaca (IEX)', error: null })
           const id = setInterval(async () => {
             try {

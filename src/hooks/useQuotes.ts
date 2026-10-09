@@ -21,6 +21,8 @@ const mkQuote = (symbol: string, price: number, open: number, high: number, low:
 export function useQuotes(instruments: Instrument[], keys: ApiKeys, alpaca: AlpacaDataKeys) {
   const [quotes, setQuotes] = useState<Record<string, Quote>>({})
   const demoSet = useRef(new Set<string>())
+  const quotesRef = useRef(quotes)
+  quotesRef.current = quotes
   const useAlpaca = hasAlpacaData(alpaca)
 
   useEffect(() => {
@@ -65,22 +67,56 @@ export function useQuotes(instruments: Instrument[], keys: ApiKeys, alpaca: Alpa
     })()
 
     // stocks
+    const finnhubPoll = async (list: Instrument[]) => {
+      for (const s of list) {
+        try {
+          const q = await finnhubQuote(s.feedId, keys.finnhub)
+          if (cancelled) return
+          demoSet.current.delete(s.symbol)
+          put(mkQuote(s.symbol, q.last, q.open, q.high, q.low, 0, [], true))
+        } catch {
+          if (cancelled) return
+          if (!demoSet.current.has(s.symbol)) seedDemo([s])
+        }
+      }
+    }
+    // Alpaca had nothing for these: use Finnhub if configured, else keep the last real
+    // price but stop calling it live, and simulate only symbols that never had one.
+    const fallback = (list: Instrument[]) => {
+      if (!list.length) return
+      if (keys.finnhub) return finnhubPoll(list)
+      const fresh = list.filter((s) => !demoSet.current.has(s.symbol))
+      setQuotes((st) => {
+        const next = { ...st }
+        for (const s of fresh) if (next[s.symbol]?.live) next[s.symbol] = { ...next[s.symbol], live: false }
+        return next
+      })
+      seedDemo(fresh.filter((s) => !quotesRef.current[s.symbol]))
+    }
     if (useAlpaca && stocks.length) {
       let busy = false
       const poll = async () => {
         if (busy) return
         busy = true
         try {
-          const snaps = await alpacaSnapshots(stocks.map((s) => s.feedId), alpaca)
+          let snaps: Awaited<ReturnType<typeof alpacaSnapshots>> = {}
+          try {
+            snaps = await alpacaSnapshots(stocks.map((s) => s.feedId), alpaca)
+          } catch {
+            /* every symbol falls back below */
+          }
+          if (cancelled) return
+          const missing: Instrument[] = []
           for (const s of stocks) {
             const q = snaps[s.feedId]
-            if (q) {
-              demoSet.current.delete(s.symbol)
-              put(mkQuote(s.symbol, q.last, q.open, q.high, q.low, q.volume, [], true))
-            } else if (!demoSet.current.has(s.symbol)) seedDemo([s])
+            if (!q) {
+              missing.push(s)
+              continue
+            }
+            demoSet.current.delete(s.symbol)
+            put(mkQuote(s.symbol, q.last, q.open, q.high, q.low, q.volume, [], true))
           }
-        } catch {
-          seedDemo(stocks.filter((s) => !demoSet.current.has(s.symbol)))
+          await fallback(missing)
         } finally {
           busy = false
         }
@@ -89,18 +125,8 @@ export function useQuotes(instruments: Instrument[], keys: ApiKeys, alpaca: Alpa
       const id = setInterval(poll, 10_000)
       cleanups.push(() => clearInterval(id))
     } else if (keys.finnhub) {
-      const poll = async () => {
-        for (const s of stocks) {
-          try {
-            const q = await finnhubQuote(s.feedId, keys.finnhub)
-            put(mkQuote(s.symbol, q.last, q.open, q.high, q.low, 0, [], true))
-          } catch {
-            if (!demoSet.current.has(s.symbol)) seedDemo([s])
-          }
-        }
-      }
-      poll()
-      const id = setInterval(poll, 15_000)
+      finnhubPoll(stocks)
+      const id = setInterval(() => finnhubPoll(stocks), 15_000)
       cleanups.push(() => clearInterval(id))
     } else seedDemo(stocks)
 
