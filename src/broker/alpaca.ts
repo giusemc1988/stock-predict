@@ -14,8 +14,12 @@ export interface AlpacaKeys {
 export function checkPaperKey(keyId: string) {
   if (!keyId) return 'Enter your paper API key ID'
   if (/^AK/i.test(keyId)) return 'That looks like a LIVE key (starts with AK). Only paper keys (start with PK) are allowed here.'
+  if (!/^PK/i.test(keyId)) return 'Alpaca paper key IDs start with PK. Check that you copied the Key ID from the Paper account on app.alpaca.markets.'
   return null
 }
+
+/** Alpha Vantage keys are 16 letters/digits; Alpaca key IDs start with PK or AK and are longer. */
+export const looksLikeAlphaVantage = (k: string) => /^[A-Z0-9]{16}$/i.test(k) && !/^(PK|AK)/i.test(k)
 
 async function call<T>(keys: AlpacaKeys, path: string, init: RequestInit = {}): Promise<T> {
   const bad = checkPaperKey(keys.keyId)

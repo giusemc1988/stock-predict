@@ -305,6 +305,7 @@ export default function App() {
             onMode={(brokerMode) => setPrefs((p) => ({ ...p, brokerMode }))}
             alpacaKeys={alpacaKeys}
             onAlpacaKeys={setAlpacaKeys}
+            onAlphaVantageKey={(alphaVantage) => setKeys((k) => ({ ...k, alphaVantage }))}
             lossLimit={prefs.lossLimit}
             onLossLimit={(lossLimit) => setPrefs((p) => ({ ...p, lossLimit }))}
             lossLimitOn={prefs.lossLimitOn}

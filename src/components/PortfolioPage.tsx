@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import type { BrokerMode, BrokerPosition, BrokerState } from '../broker/types'
 import { OPEN_STATUSES } from '../broker/types'
 import type { AlpacaKeys } from '../broker/alpaca'
-import { checkPaperKey } from '../broker/alpaca'
+import { checkPaperKey, looksLikeAlphaVantage } from '../broker/alpaca'
 import { fmtPct, fmtUsd, tone } from '../lib/format'
 import { EquityChart } from './EquityChart'
 import { OrdersTable, PositionsTable } from './AccountTables'
@@ -20,6 +20,8 @@ interface Props {
   onMode: (m: BrokerMode) => void
   alpacaKeys: AlpacaKeys
   onAlpacaKeys: (k: AlpacaKeys) => void
+  /** An Alpha Vantage key pasted into the Alpaca form is saved here instead. */
+  onAlphaVantageKey: (k: string) => void
   lossLimit: number
   onLossLimit: (v: number) => void
   lossLimitOn: boolean
@@ -32,6 +34,7 @@ export function PortfolioPage(p: Props) {
   const [draft, setDraft] = useState(p.alpacaKeys)
   useEffect(() => setDraft(p.alpacaKeys), [p.alpacaKeys])
   const [keyErr, setKeyErr] = useState<string | null>(null)
+  const [keyNote, setKeyNote] = useState<string | null>(null)
   const open = orders.filter((o) => OPEN_STATUSES.includes(o.status))
   const done = orders.filter((o) => !OPEN_STATUSES.includes(o.status))
   const invested = positions.reduce((a, x) => a + x.marketValue, 0)
@@ -148,13 +151,23 @@ export function PortfolioPage(p: Props) {
               </div>
             ) : (
               <div className="card-body">
-                <p>
-                  Real paper-trading account with real market fills, from Alpaca (free). Create a paper account at{' '}
-                  <a href="https://app.alpaca.markets/signup" target="_blank" rel="noreferrer">
-                    alpaca.markets
-                  </a>
-                  , then copy your <b>paper</b> API key and secret here. Live keys are refused. The same key also feeds real US stock prices to the charts and watchlist.
-                </p>
+                <p>Free practice account with real market fills from Alpaca. The same key also gives real US stock prices on the charts and watchlist.</p>
+                <ol className="key-steps">
+                  <li>
+                    Sign up at{' '}
+                    <a href="https://app.alpaca.markets/signup" target="_blank" rel="noreferrer">
+                      app.alpaca.markets
+                    </a>
+                    .
+                  </li>
+                  <li>Switch to your <b>Paper</b> account (account menu, top left).</li>
+                  <li>
+                    On the Home page find <b>API Keys</b> and click <b>Generate New Keys</b>.
+                  </li>
+                  <li>
+                    Paste the <b>Key</b> (starts with PK) and the <b>Secret</b> below.
+                  </li>
+                </ol>
                 <label className="field flush">
                   <span>API key ID</span>
                   <input className="mono" value={draft.keyId} onChange={(e) => setDraft({ ...draft, keyId: e.target.value.trim() })} placeholder="PK…" />
@@ -163,10 +176,23 @@ export function PortfolioPage(p: Props) {
                   <span>Secret key</span>
                   <input className="mono" type="password" value={draft.secret} onChange={(e) => setDraft({ ...draft, secret: e.target.value.trim() })} />
                 </label>
+                {keyNote && <p className="ticket-ok">{keyNote}</p>}
                 {(keyErr || broker.error) && <p className="ticket-warn">{keyErr ?? broker.error}</p>}
                 <button
                   className="btn-primary"
                   onClick={() => {
+                    // an Alpha Vantage key is a stock-data key, not a brokerage key: store it where it works
+                    const av = [draft.keyId, draft.secret].find(looksLikeAlphaVantage)
+                    if (av) {
+                      p.onAlphaVantageKey(av)
+                      setDraft(p.alpacaKeys)
+                      setKeyErr(null)
+                      setKeyNote(
+                        'That is an Alpha Vantage key, so it was saved as your stock data key and stock charts now use real (delayed) prices. To trade on Alpaca you still need an Alpaca paper key (steps above).',
+                      )
+                      return
+                    }
+                    setKeyNote(null)
                     const bad = checkPaperKey(draft.keyId) ?? (draft.secret ? null : 'Enter your paper secret key')
                     setKeyErr(bad)
                     if (!bad) p.onAlpacaKeys(draft)

@@ -142,14 +142,30 @@ function easternToUnix(s: string) {
   return Math.floor((asUtc + (asUtc - etOfUtc)) / 1000)
 }
 
+function avError(json: Record<string, string>, symbol: string) {
+  const msg = json.Note || json.Information || ''
+  if (/rate limit|requests per day|25 requests|spreading out/i.test(msg))
+    return 'Alpha Vantage free limit reached (25 requests a day). Add an Alpaca paper key on the Portfolio page for unlimited prices'
+  if (/premium/i.test(msg)) return 'This Alpha Vantage request needs a premium plan'
+  if (/apikey|api key/i.test(msg) || /apikey/i.test(json['Error Message'] ?? '')) return 'Alpha Vantage rejected the key. Check it in settings'
+  if (json['Error Message']) return `Alpha Vantage has no data for ${symbol}`
+  return msg || 'Alpha Vantage: no data'
+}
+
 export async function alphaVantageCandles(symbol: string, tf: Timeframe, key: string): Promise<Candle[]> {
   const interval = AV_INTERVAL[tf]
-  const url = interval
-    ? `https://www.alphavantage.co/query?function=TIME_SERIES_INTRADAY&symbol=${symbol}&interval=${interval}&outputsize=full&apikey=${key}`
-    : `https://www.alphavantage.co/query?function=TIME_SERIES_DAILY&symbol=${symbol}&outputsize=compact&apikey=${key}`
-  const json = await fetchJson(url, 15000)
+  const get = (size: 'full' | 'compact') =>
+    fetchJson(
+      interval
+        ? `https://www.alphavantage.co/query?function=TIME_SERIES_INTRADAY&symbol=${symbol}&interval=${interval}&outputsize=${size}&apikey=${key}`
+        : `https://www.alphavantage.co/query?function=TIME_SERIES_DAILY&symbol=${symbol}&outputsize=compact&apikey=${key}`,
+      15000,
+    )
+  let json = await get('full')
+  // free keys may not get full intraday history; the latest 100 bars still work
+  if (interval && !Object.keys(json).some((k) => k.startsWith('Time Series')) && /premium/i.test(json.Information ?? '')) json = await get('compact')
   const seriesKey = Object.keys(json).find((k) => k.startsWith('Time Series'))
-  if (!seriesKey) throw new Error(json.Note || json.Information || json['Error Message'] || 'Alpha Vantage: no data')
+  if (!seriesKey) throw new Error(avError(json, symbol))
   const rows = Object.entries(json[seriesKey] as Record<string, Record<string, string>>)
     .map(([ts, v]) => ({
       time: interval ? easternToUnix(ts) : Math.floor(Date.parse(ts + 'T00:00:00Z') / 1000),
@@ -161,6 +177,38 @@ export async function alphaVantageCandles(symbol: string, tf: Timeframe, key: st
     }))
     .sort((a, b) => a.time - b.time)
   return tf === '4h' ? aggregate(rows, tfSeconds('4h')) : rows
+}
+
+/** How long Alpha Vantage candles are reused; the free plan only allows 25 requests a day. */
+export const AV_CACHE_MS = 15 * 60_000
+
+/**
+ * Alpha Vantage candles cached in localStorage per symbol and timeframe, so reloads and
+ * timeframe switches don't burn the daily quota. When a request fails (usually the daily
+ * limit) the last saved candles are returned with the error in `stale`.
+ */
+export async function alphaVantageCandlesCached(symbol: string, tf: Timeframe, key: string): Promise<{ candles: Candle[]; stale: string | null }> {
+  const id = `bluechip.av.${symbol}|${tf}`
+  let saved: { t: number; key: string; candles: Candle[] } | null = null
+  try {
+    saved = JSON.parse(localStorage.getItem(id) ?? 'null')
+  } catch {
+    /* storage blocked or corrupt */
+  }
+  if (saved && saved.key !== key) saved = null
+  if (saved && Date.now() - saved.t < AV_CACHE_MS) return { candles: saved.candles, stale: null }
+  try {
+    const candles = await alphaVantageCandles(symbol, tf, key)
+    try {
+      localStorage.setItem(id, JSON.stringify({ t: Date.now(), key, candles: candles.slice(-1000) }))
+    } catch {
+      /* storage full: still show the data */
+    }
+    return { candles, stale: null }
+  } catch (e) {
+    if (saved?.candles.length) return { candles: saved.candles, stale: e instanceof Error ? e.message : String(e) }
+    throw e
+  }
 }
 
 export function aggregate(rows: Candle[], step: number): Candle[] {
