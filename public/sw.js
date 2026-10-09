@@ -1,6 +1,6 @@
 // Network-first cache for the app shell so the home-screen app opens even on a flaky connection.
 // Market data (cross-origin APIs and WebSockets) is never cached.
-const CACHE = 'arc-analyst-v1'
+const CACHE = 'bluechip-v1'
 
 self.addEventListener('install', () => self.skipWaiting())
 
