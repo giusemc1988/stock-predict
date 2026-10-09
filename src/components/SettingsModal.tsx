@@ -5,7 +5,7 @@ import { setLang, useLang, useT } from '../lib/i18n'
 /** Alpaca key IDs start with PK (paper) or AK (live); they don't work as Alpha Vantage or Finnhub keys. */
 const looksAlpaca = (v: string) => /^(PK|AK)[A-Z0-9]{14,}$/i.test(v)
 
-export function SettingsModal({ keys, onSave, onClose }: { keys: ApiKeys; onSave: (k: ApiKeys) => void; onClose: () => void }) {
+export function SettingsModal({ keys, onSave, onClose, onOpenAiRules }: { keys: ApiKeys; onSave: (k: ApiKeys) => void; onClose: () => void; onOpenAiRules: () => void }) {
   const t = useT()
   const lang = useLang()
   const [draft, setDraft] = useState(keys)
@@ -23,6 +23,10 @@ export function SettingsModal({ keys, onSave, onClose }: { keys: ApiKeys; onSave
               Tiếng Việt
             </button>
           </div>
+        </div>
+        <div className="field">
+          <span>{t('aiRules')}</span>
+          <button onClick={onOpenAiRules}>{t('editAiRules')} →</button>
         </div>
         <h3>Data sources</h3>
         <p className="muted">Crypto streams live from Binance, no key needed. US stocks need a key, otherwise they run on the simulated feed (marked SIM).</p>

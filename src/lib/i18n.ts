@@ -84,6 +84,16 @@ const en = {
   symbol: 'Symbol',
   of: 'of',
   horizon: 'Horizon',
+  aiRules: 'AI rules',
+  editAiRules: 'Edit AI rules',
+  aiRulesIntro: 'Change how the AI analyst decides, sizes and checks orders. Saved in this browser. Paper trading only; not financial advice.',
+  rulesCall: 'The call',
+  rulesSizing: 'Position size (% of account)',
+  rulesGates: 'Risk gates',
+  rulesModules: 'Modules',
+  resetDefaults: 'Reset to defaults',
+  save: 'Save',
+  cancel: 'Cancel',
 } as const
 
 export type Key = keyof typeof en
@@ -166,6 +176,16 @@ const vi: Record<Key, string> = {
   symbol: 'Mã',
   of: 'trên',
   horizon: 'Kỳ hạn',
+  aiRules: 'Quy tắc AI',
+  editAiRules: 'Sửa quy tắc AI',
+  aiRulesIntro: 'Thay đổi cách phân tích AI ra quyết định, tính khối lượng và kiểm tra lệnh. Lưu trong trình duyệt này. Chỉ giao dịch thử nghiệm; không phải lời khuyên đầu tư.',
+  rulesCall: 'Khuyến nghị',
+  rulesSizing: 'Khối lượng vị thế (% tài khoản)',
+  rulesGates: 'Cổng rủi ro',
+  rulesModules: 'Mô-đun',
+  resetDefaults: 'Khôi phục mặc định',
+  save: 'Lưu',
+  cancel: 'Hủy',
 }
 
 const DICT: Record<Lang, Record<Key, string>> = { en, vi }

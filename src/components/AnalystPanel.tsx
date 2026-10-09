@@ -4,6 +4,7 @@ import { realityChecks } from '../lib/metrics'
 import { fmtPct, fmtPrice, fmtTime, tone } from '../lib/format'
 import { RobotIcon } from './RobotIcon'
 import { InfoTip } from './InfoTip'
+import { useT } from '../lib/i18n'
 
 interface Props {
   analysis: Analysis | null
@@ -12,11 +13,13 @@ interface Props {
   symbol: string
   tfLabel: string
   onTrade: () => void
+  onEditRules: () => void
 }
 
 const ICON = { bull: '▲', bear: '▼', neutral: '•' }
 
-export function AnalystPanel({ analysis: a, stats, lastSignal, symbol, tfLabel, onTrade }: Props) {
+export function AnalystPanel({ analysis: a, stats, lastSignal, symbol, tfLabel, onTrade, onEditRules }: Props) {
+  const t = useT()
   if (!a) {
     return (
       <div className="analyst">
@@ -206,6 +209,10 @@ export function AnalystPanel({ analysis: a, stats, lastSignal, symbol, tfLabel, 
           </ul>
         )}
       </details>
+
+      <button className="link-btn" onClick={onEditRules}>
+        {t('editAiRules')} →
+      </button>
 
       <p className="disclaimer">Research, not advice. Arc Analyst is an automated read of price and volume patterns, which often fail. Only trade money you can afford to lose.</p>
     </div>

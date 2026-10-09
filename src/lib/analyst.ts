@@ -11,12 +11,13 @@ import { ema, macd, rsi } from './indicators'
 import { bookImbalance, hasRealBuyVolume, recentBuyShare } from './orderflow'
 import { fmtPrice } from './format'
 import { tradeScore } from './tradeScore'
+import { getAiRules, type AiRules } from './aiRules'
 
 const clamp = (x: number, lo = -1, hi = 1) => Math.max(lo, Math.min(hi, x))
 const stanceOf = (v: number, dead = 0.15): AnalystCheck['stance'] => (v > dead ? 'bull' : v < -dead ? 'bear' : 'neutral')
 const pct = (x: number) => `${Math.round(x * 100)}%`
 
-export function analyze(candles: Candle[], strat: StrategyResult, live: Prediction | null, flow: OrderFlow): Analysis | null {
+export function analyze(candles: Candle[], strat: StrategyResult, live: Prediction | null, flow: OrderFlow, rules: AiRules = getAiRules()): Analysis | null {
   if (candles.length < 60 || !live) return null
   const close = candles.map((c) => c.close)
   const last = close[close.length - 1]
@@ -103,7 +104,8 @@ export function analyze(candles: Candle[], strat: StrategyResult, live: Predicti
 
   const wsum = checks.reduce((a, c) => a + c.weight, 0)
   const score = checks.reduce((a, c) => a + c.score * c.weight, 0) / wsum
-  const verdict: Verdict = score > 0.2 ? 'BUY' : score < -0.2 ? 'SELL' : 'HOLD'
+  const th = rules.verdictThreshold / 100
+  const verdict: Verdict = score > th ? 'BUY' : score < -th ? 'SELL' : 'HOLD'
 
   // Discount by real track record on this chart.
   const acc = strat.stats.modelAccuracy
@@ -132,8 +134,8 @@ export function analyze(candles: Candle[], strat: StrategyResult, live: Predicti
 
   // Buy-and-hold check: if simply holding did better, the model shows no edge on this chart.
   const beatenByHold = strat.stats.trades > 0 && strat.stats.totalReturnPct < strat.stats.buyHoldPct
-  const ts = tradeScore({ candles, stats: strat.stats, flow, riskReward: plan?.riskReward ?? null, agreement: agree })
-  const sizing = plan ? sizeFor(plan.entry, plan.stop, strat.stats.trades, beatenByHold, ts) : null
+  const ts = !rules.tradeScoreOn ? null : tradeScore({ candles, stats: strat.stats, flow, riskReward: plan?.riskReward ?? null, agreement: agree })
+  const sizing = plan ? sizeFor(plan.entry, plan.stop, strat.stats.trades, beatenByHold && rules.noEdgeRule, ts, rules) : null
   const trackRecord =
     (acc === 0
       ? 'Not enough history yet to grade the model on this chart.'
@@ -155,44 +157,43 @@ export function analyze(candles: Candle[], strat: StrategyResult, live: Predicti
   }
 }
 
-const RISK_PER_TRADE = 0.01 // risk at most 1% of the account on one idea
-const SINGLE_POSITION_CAP = 0.1 // one position at most 10% of the account
-const THIN_RECORD_CAP = 0.05 // half the cap until the model has a longer record
-const MIN_SAMPLE = 30 // trades needed before the normal cap applies
-
 /**
  * Sizing ladder: take the smallest of the limits and say which one binds. Kelly is
  * deliberately not used: the model's accuracy is per bar, not per trade, so a Kelly
  * fraction from it would overstate the edge. Educational only, not financial advice.
  */
-export function sizeFor(entry: number, stop: number, trades: number, noEdge: boolean, ts?: TradeScore | null): Sizing | null {
+export function sizeFor(entry: number, stop: number, trades: number, noEdge: boolean, ts?: TradeScore | null, rules: AiRules = getAiRules()): Sizing | null {
   const stopPct = Math.abs(entry - stop) / entry
   if (!Number.isFinite(stopPct) || stopPct <= 0) return null
-  const riskCap = RISK_PER_TRADE / stopPct
-  const notes = [`Fixed risk: 1% of the account at a ${(stopPct * 100).toFixed(1)}% stop allows ${pct(Math.min(riskCap, 1))} of it.`]
+  const riskPerTrade = rules.riskPerTradePct / 100
+  const positionCap = rules.positionCapPct / 100
+  const thinCap = Math.min(positionCap, rules.thinRecordCapPct / 100)
+  const riskCap = riskPerTrade / stopPct
+  const notes = [`Fixed risk: ${rules.riskPerTradePct}% of the account at a ${(stopPct * 100).toFixed(1)}% stop allows ${pct(Math.min(riskCap, 1))} of it.`]
   if (noEdge) return { pctOfAccount: 0, binding: 'no-edge', notes: [...notes, 'Buying and holding beat the model here, so no position is sized.'] }
-  if (ts?.regime === 'extreme')
+  const vol = rules.volatilityOn ? ts?.regime : undefined
+  if (ts && vol === 'extreme')
     return { pctOfAccount: 0, binding: 'volatility', notes: [...notes, `Swings are ${ts.volRatio.toFixed(1)}x their usual size, so no position is sized until they calm down.`] }
 
-  const proven = trades >= MIN_SAMPLE
-  const cap = proven ? SINGLE_POSITION_CAP : THIN_RECORD_CAP
+  const proven = trades >= rules.minSample
+  const cap = proven ? positionCap : thinCap
   notes.push(
     proven
-      ? `Position cap: ${pct(SINGLE_POSITION_CAP)} of the account.`
-      : `Only ${trades} trades so far (needs ${MIN_SAMPLE}+), so the cap is ${pct(THIN_RECORD_CAP)}. Paper trade first.`,
+      ? `Position cap: ${pct(positionCap)} of the account.`
+      : `Only ${trades} trades so far (needs ${rules.minSample}+), so the cap is ${pct(thinCap)}. Paper trade first.`,
   )
   const limits: { v: number; b: Sizing['binding'] }[] = [
     { v: riskCap, b: 'risk' },
     { v: cap, b: 'cap' },
   ]
-  if (ts) {
-    // ai-trading-claude risk agent: 5% base scaled by risk score / 70, capped at 10%, floor 1%
-    const riskScoreCap = clamp(0.05 * (ts.riskScore / 70), 0.01, SINGLE_POSITION_CAP)
+  if (ts && rules.riskScoreSizing) {
+    // ai-trading-claude risk agent: 5% base scaled by risk score / 70, kept between 1% and the position cap
+    const riskScoreCap = clamp(0.05 * (ts.riskScore / 70), Math.min(0.01, positionCap), positionCap)
     notes.push(`Risk score ${ts.riskScore}/100 suggests up to ${(riskScoreCap * 100).toFixed(1)}% (5% x score / 70).`)
     limits.push({ v: riskScoreCap, b: 'risk-score' })
   }
   let best = limits.reduce((a, b) => (b.v < a.v ? b : a))
-  if (ts?.regime === 'high') {
+  if (ts && vol === 'high') {
     notes.push(`Swings are ${ts.volRatio.toFixed(1)}x their usual size, so the size is halved.`)
     best = { v: best.v / 2, b: 'volatility' }
   }

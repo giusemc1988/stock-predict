@@ -11,6 +11,7 @@
 import type { BrokerState, OrderRequest } from '../broker/types'
 import type { Analysis } from '../types'
 import { fmtUsd } from './format'
+import { getAiRules, type AiRules } from './aiRules'
 
 export interface GateCheck {
   name: string
@@ -24,11 +25,7 @@ export interface GateLimits {
   lossLimit: number
 }
 
-export const MAX_DRAWDOWN = 0.2 // stop new buys after a 20% fall from the account's high
-export const MAX_POSITION = 0.25 // one symbol at most 25% of the account
-export const MAX_TRADES_PER_DAY = 50
-
-export function riskGates(req: OrderRequest, price: number, broker: BrokerState, analysis: Analysis | null, limits: GateLimits, now = Date.now()): GateCheck[] {
+export function riskGates(req: OrderRequest, price: number, broker: BrokerState, analysis: Analysis | null, limits: GateLimits, rules: AiRules = getAiRules(), now = Date.now()): GateCheck[] {
   const checks: GateCheck[] = []
   const buy = req.side === 'buy'
   const equity = broker.account.equity
@@ -38,6 +35,13 @@ export function riskGates(req: OrderRequest, price: number, broker: BrokerState,
       ? { name: 'Kill switch', level: 'block', message: 'The kill switch is on. New buys are stopped; you can still sell.' }
       : { name: 'Kill switch', level: 'pass', message: limits.killSwitch ? 'On, but selling is always allowed.' : 'Off.' },
   )
+  if (!rules.gatesOn) {
+    checks.push({ name: 'Other gates', level: 'warn', message: 'Turned off in Settings > AI rules. Only the kill switch is checked.' })
+    return checks
+  }
+  const MAX_DRAWDOWN = rules.maxDrawdownPct / 100
+  const MAX_POSITION = rules.maxPositionPct / 100
+  const MAX_TRADES_PER_DAY = rules.maxTradesPerDay
 
   const lossHit = limits.lossLimitOn && limits.lossLimit > 0 && broker.account.dayPL <= -limits.lossLimit
   checks.push(
@@ -50,7 +54,7 @@ export function riskGates(req: OrderRequest, price: number, broker: BrokerState,
   const dd = peak > 0 ? 1 - equity / peak : 0
   checks.push(
     dd >= MAX_DRAWDOWN && buy
-      ? { name: 'Drawdown', level: 'block', message: `The account is ${(dd * 100).toFixed(0)}% below its high (limit ${MAX_DRAWDOWN * 100}%). Buys are paused.` }
+      ? { name: 'Drawdown', level: 'block', message: `The account is ${(dd * 100).toFixed(0)}% below its high (limit ${rules.maxDrawdownPct}%). Buys are paused.` }
       : { name: 'Drawdown', level: 'pass', message: `${(dd * 100).toFixed(1)}% below the account's high.` },
   )
 
@@ -59,7 +63,7 @@ export function riskGates(req: OrderRequest, price: number, broker: BrokerState,
   const share = equity > 0 ? after / equity : 0
   checks.push(
     buy && share > MAX_POSITION
-      ? { name: 'Concentration', level: 'block', message: `This would put ${(share * 100).toFixed(0)}% of the account in ${req.symbol} (limit ${MAX_POSITION * 100}%).` }
+      ? { name: 'Concentration', level: 'block', message: `This would put ${(share * 100).toFixed(0)}% of the account in ${req.symbol} (limit ${rules.maxPositionPct}%).` }
       : { name: 'Concentration', level: 'pass', message: `${(share * 100).toFixed(0)}% of the account in ${req.symbol} after this order.` },
   )
 
@@ -75,15 +79,17 @@ export function riskGates(req: OrderRequest, price: number, broker: BrokerState,
   const ts = analysis?.tradeScore
   if (ts) {
     const r = ts.regime
+    if (rules.volatilityOn) {
+      checks.push(
+        buy && r === 'extreme'
+          ? { name: 'Volatility', level: 'block', message: `Swings are ${ts.volRatio.toFixed(1)}x normal. Buys wait until it calms down.` }
+          : buy && r === 'high'
+            ? { name: 'Volatility', level: 'warn', message: `Swings are ${ts.volRatio.toFixed(1)}x normal. Consider half your usual size.` }
+            : { name: 'Volatility', level: 'pass', message: `Swings are ${ts.volRatio.toFixed(1)}x normal (${r}).` },
+      )
+    }
     checks.push(
-      buy && r === 'extreme'
-        ? { name: 'Volatility', level: 'block', message: `Swings are ${ts.volRatio.toFixed(1)}x normal. Buys wait until it calms down.` }
-        : buy && r === 'high'
-          ? { name: 'Volatility', level: 'warn', message: `Swings are ${ts.volRatio.toFixed(1)}x normal. Consider half your usual size.` }
-          : { name: 'Volatility', level: 'pass', message: `Swings are ${ts.volRatio.toFixed(1)}x normal (${r}).` },
-    )
-    checks.push(
-      buy && ts.score < 40
+      buy && ts.score < rules.minScoreWarn
         ? { name: 'Trade Score', level: 'warn', message: `Score ${ts.score}/100 (${ts.grade}, ${ts.signal}). The setup is weak.` }
         : { name: 'Trade Score', level: 'pass', message: `Score ${ts.score}/100 (${ts.grade}, ${ts.signal}).` },
     )

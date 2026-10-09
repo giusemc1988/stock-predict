@@ -592,3 +592,13 @@ body {
 .gate.block { background: var(--down-bg); }
 .gate.block b { color: var(--down); }
 @media (max-width: 480px) { .gate { grid-template-columns: 1fr; gap: 0; } }
+
+/* Settings > AI rules */
+.modal.ai-rules { max-height: 88vh; overflow-y: auto; }
+.rules-group { margin: 6px 0 10px; }
+.rule-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; font-size: 12px; padding: 5px 0; border-bottom: 1px solid var(--line); }
+.rule-row.toggle { justify-content: flex-start; }
+.rule-input { display: inline-flex; align-items: center; gap: 4px; }
+.rule-input input { width: 76px; text-align: right; }
+.rule-input em { font-style: normal; color: var(--muted); }
+.link-btn { background: none; border: 0; padding: 0; color: var(--accent); font-size: 12px; cursor: pointer; }

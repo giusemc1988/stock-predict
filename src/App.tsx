@@ -26,6 +26,8 @@ import { LearningPanel } from './components/LearningPanel'
 import { AIPicks } from './components/AIPicks'
 import { WhatsNew } from './components/WhatsNew'
 import { SettingsModal } from './components/SettingsModal'
+import { AiRulesModal } from './components/AiRulesModal'
+import { useAiRules } from './lib/aiRules'
 import { Toasts, type Toast } from './components/Toasts'
 import { useT } from './lib/i18n'
 
@@ -67,6 +69,8 @@ export default function App() {
   const [keys, setKeys] = useLocalStorage<ApiKeys>('bluechip.keys', { alphaVantage: '', finnhub: '' })
   const [alpacaKeys, setAlpacaKeys] = useLocalStorage<AlpacaKeys>('bluechip.alpaca', { keyId: '', secret: '' })
   const [settingsOpen, setSettingsOpen] = useState(false)
+  const [aiRulesOpen, setAiRulesOpen] = useState(false)
+  const aiRules = useAiRules()
   const [page, setPage] = useState<'trade' | 'portfolio'>('trade')
   const [rightTab, setRightTab] = useState<'ai' | 'flow' | 'trade' | 'learn' | 'picks'>('ai')
   const [toasts, setToasts] = useState<Toast[]>([])
@@ -106,11 +110,11 @@ export default function App() {
   liveRef.current = live
   const [analysis, setAnalysis] = useState<ReturnType<typeof analyze>>(null)
   useEffect(() => {
-    const run = () => setAnalysis(analyze(candlesRef.current, closed, liveRef.current, flowRef.current))
+    const run = () => setAnalysis(analyze(candlesRef.current, closed, liveRef.current, flowRef.current, aiRules))
     run()
     const id = setInterval(run, 1000)
     return () => clearInterval(id)
-  }, [closed, inst.symbol])
+  }, [closed, inst.symbol, aiRules])
   const tapeTotal = flow.buyVolume + flow.sellVolume
   const buyShare = tapeTotal ? flow.buyVolume / tapeTotal : null
 
@@ -294,7 +298,7 @@ export default function App() {
               </button>
             </div>
             <div className="right-body">
-              {rightTab === 'ai' && <AnalystPanel analysis={analysis} stats={closed.stats} lastSignal={lastSignal} symbol={inst.symbol} tfLabel={tfLabel} onTrade={() => setRightTab('trade')} />}
+              {rightTab === 'ai' && <AnalystPanel analysis={analysis} stats={closed.stats} lastSignal={lastSignal} symbol={inst.symbol} tfLabel={tfLabel} onTrade={() => setRightTab('trade')} onEditRules={() => setAiRulesOpen(true)} />}
               {rightTab === 'flow' && <OrderFlowPanel flow={flow} last={lastClose} />}
               {rightTab === 'learn' && <LearningPanel />}
               {rightTab === 'picks' && (
@@ -352,7 +356,18 @@ export default function App() {
           />
         </main>
       )}
-      {settingsOpen && <SettingsModal keys={keys} onSave={setKeys} onClose={() => setSettingsOpen(false)} />}
+      {settingsOpen && (
+        <SettingsModal
+          keys={keys}
+          onSave={setKeys}
+          onClose={() => setSettingsOpen(false)}
+          onOpenAiRules={() => {
+            setSettingsOpen(false)
+            setAiRulesOpen(true)
+          }}
+        />
+      )}
+      {aiRulesOpen && <AiRulesModal onClose={() => setAiRulesOpen(false)} />}
       <Toasts toasts={toasts} onClose={(id) => setToasts((s) => s.filter((t) => t.id !== id))} />
     </div>
   )
