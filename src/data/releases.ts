@@ -2,7 +2,7 @@
  * Version and "What's new". Bump APP_VERSION and add an entry to the top of RELEASES
  * with each update. The banner shows once per version, then stays dismissed.
  */
-export const APP_VERSION = '1.1.0'
+export const APP_VERSION = '1.1.1'
 
 export interface Release {
   version: string
@@ -13,6 +13,20 @@ export interface Release {
 }
 
 export const RELEASES: Release[] = [
+  {
+    version: '1.1.1',
+    date: '2026-10-09',
+    changes: [
+      'Auto learning on the server now runs every hour during US market hours on weekdays and once a day on weekends, about 210 short runs a month, so it stays free. Crypto bars that close overnight are still scored on the next run.',
+      'Auto learning uses no AI tokens: it is plain code, not Claude.',
+      'Not financial advice. Paper trading only.',
+    ],
+    changesVi: [
+      'Tự học trên máy chủ giờ chạy mỗi giờ trong giờ thị trường Mỹ vào ngày thường và mỗi ngày một lần vào cuối tuần, khoảng 210 lần ngắn mỗi tháng, nên vẫn miễn phí. Nến tiền điện tử đóng ban đêm vẫn được chấm ở lần chạy sau.',
+      'Tự học không tốn token AI: đây là mã thường, không phải Claude.',
+      'Không phải lời khuyên đầu tư. Chỉ giao dịch thử nghiệm.',
+    ],
+  },
   {
     version: '1.1.0',
     date: '2026-10-09',

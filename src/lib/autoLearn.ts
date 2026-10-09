@@ -35,8 +35,28 @@ const MAX_PENDING = 600
 const MAX_ARENA_TRADES = 60
 const RECENT = 20
 export const ARENA_START = 10_000
-/** How often a cycle runs, in the browser and on the server. */
+/** How often a cycle runs in the browser while the app is open. */
 export const CYCLE_MS = 60 * 60_000
+
+/**
+ * The server job's schedule (keep in step with .github/workflows/auto-learn.yml): minute 17
+ * of every hour 13:00-21:00 UTC on weekdays (US market hours) and 12:17 UTC on weekends.
+ * About 210 runs a month, well inside GitHub's free 2,000 minutes. New bars missed
+ * overnight are scored on the next run, so no bars are skipped.
+ */
+export function nextServerRun(nowMs: number): number {
+  const d = new Date(nowMs)
+  d.setUTCMinutes(17, 0, 0)
+  if (d.getTime() <= nowMs) d.setUTCHours(d.getUTCHours() + 1)
+  for (let k = 0; k < 72; k++) {
+    const day = d.getUTCDay()
+    const h = d.getUTCHours()
+    const weekday = day >= 1 && day <= 5
+    if ((weekday && h >= 13 && h <= 21) || (!weekday && h === 12)) return d.getTime()
+    d.setUTCHours(h + 1)
+  }
+  return d.getTime()
+}
 
 export type SignalKey =
   | 'every_bar'
