@@ -186,7 +186,7 @@ export default function App() {
   const tfLabel = TIMEFRAMES.find((t) => t.id === prefs.tf)!.label
 
   useEffect(() => {
-    document.title = lastClose ? `${inst.symbol} ${lastClose.toLocaleString('en-US', { maximumFractionDigits: 2 })} · Bluechip` : 'Bluechip Terminal'
+    document.title = lastClose ? `${inst.symbol} ${lastClose.toLocaleString('en-US', { maximumFractionDigits: 2 })} · Arc Analyst` : 'Arc Analyst'
   }, [inst.symbol, lastClose])
 
   const select = (symbol: string) => setPrefs((p) => ({ ...p, symbol }))

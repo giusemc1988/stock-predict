@@ -319,7 +319,7 @@ export function ChartPanel(props: Props) {
             <div className="robot-tip">
               <div className="robot-tip-head">
                 <RobotIcon side={sig.side} size={16} />
-                <b>{sig.side === 'buy' ? 'Bluechip BUY' : 'Bluechip SELL'}</b>
+                <b>{sig.side === 'buy' ? 'Arc BUY' : 'Arc SELL'}</b>
                 <span>{fmtTime(sig.time)}</span>
               </div>
               <div className="robot-tip-row">

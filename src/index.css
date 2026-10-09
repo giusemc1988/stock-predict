@@ -1,9 +1,9 @@
 :root {
-  --bg: #07090d;
-  --panel: #0f131a;
-  --panel-2: #141922;
-  --line: #1c222d;
-  --line-2: #262d3a;
+  --bg: #060b14;
+  --panel: #0d1420;
+  --panel-2: #121b29;
+  --line: #1a2434;
+  --line-2: #243043;
   --text: #e6e9ef;
   --muted: #7d8699;
   --up: #0ecb81;
@@ -60,7 +60,11 @@ a { color: var(--robot); }
 /* ---------- top bar ---------- */
 .topbar { display: flex; align-items: center; gap: 14px; padding: 0 6px; border-bottom: 1px solid var(--line); margin: 0 -6px; padding: 0 12px; background: #0a0d12; }
 .brand { display: flex; align-items: center; gap: 8px; padding-right: 14px; border-right: 1px solid var(--line); }
-.brand b { display: block; font-size: 14px; letter-spacing: 0.02em; }
+.brand b { display: block; font-size: 14px; letter-spacing: 0.02em; background: linear-gradient(90deg, var(--robot), var(--gold)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.arc-logo { flex: none; filter: drop-shadow(0 0 6px rgba(79, 209, 255, 0.45)); }
+.arc-ring { transform-origin: 16px 16px; animation: arc-spin 24s linear infinite; }
+@keyframes arc-spin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { .arc-ring { animation: none; } }
 .brand span { display: block; font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.14em; }
 .ticker { display: flex; align-items: baseline; gap: 14px; min-width: 0; flex: 1; overflow: hidden; white-space: nowrap; }
 .ticker-sym b { font-size: 15px; }

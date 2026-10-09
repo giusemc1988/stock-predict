@@ -1,6 +1,7 @@
 import type { Analysis, FeedStatus, Instrument, Quote, Timeframe } from '../types'
 import { TIMEFRAMES } from '../types'
 import { fmtCompact, fmtPct, fmtPrice, fmtSigned, fmtUsd, tone } from '../lib/format'
+import { ArcLogo } from './ArcLogo'
 import { RobotIcon } from './RobotIcon'
 import { useT } from '../lib/i18n'
 
@@ -33,10 +34,10 @@ export function TopBar({ inst, quote, lastPrice, tf, onTf, status, source, error
   return (
     <header className="topbar">
       <div className="brand">
-        <RobotIcon size={26} />
+        <ArcLogo size={28} />
         <div>
-          <b>Bluechip</b>
-          <span>Terminal</span>
+          <b>Arc Analyst</b>
+          <span>Research, not promises</span>
         </div>
       </div>
       <nav className="nav">
