@@ -4,7 +4,7 @@ import { fmtCompact, fmtPct, fmtPrice, tone } from '../lib/format'
 import { Sparkline } from './Sparkline'
 import { RobotIcon } from './RobotIcon'
 import { CATALOG, toInstrument } from '../data/catalog'
-import { loadPicks, PICKS_EVENT, SMALL_SAMPLE, type Pick } from '../lib/picks'
+import { loadPicks, PICKS_EVENT, type Pick } from '../lib/picks'
 import { useSyncExternalStore } from 'react'
 import { useT } from '../lib/i18n'
 
@@ -146,8 +146,8 @@ export function Watchlist({ instruments, quotes, active, onSelect, onAdd, active
       {sort === 'success' && (
         <p className="muted small">
           {picksBySymbol.size === 0
-            ? 'Run "Scan my list" in the AI Picks tab first.'
-            : `Past win rate from the last AI Picks scan. Under ${SMALL_SAMPLE} trades is noise. Not financial advice.`}
+            ? tx('scanFirst')
+            : tx('successFromScan')}
         </p>
       )}
       <div className="wl-list">

@@ -171,19 +171,25 @@ const vi: Record<Key, string> = {
 const DICT: Record<Lang, Record<Key, string>> = { en, vi }
 const EVENT = 'bluechip:lang'
 
+// Kept in memory too, so the choice still applies for this visit when storage is blocked
+let memLang: Lang = 'en'
+
 export function getLang(): Lang {
   try {
-    return localStorage.getItem('bluechip.lang') === 'vi' ? 'vi' : 'en'
+    const v = localStorage.getItem('bluechip.lang')
+    if (v === 'en' || v === 'vi') return v
   } catch {
-    return 'en'
+    /* storage blocked: fall back to the in-memory choice */
   }
+  return memLang
 }
 
 export function setLang(l: Lang) {
+  memLang = l
   try {
     localStorage.setItem('bluechip.lang', l)
   } catch {
-    /* storage blocked: the language lasts for this visit only */
+    /* storage blocked: the in-memory choice still applies */
   }
   window.dispatchEvent(new Event(EVENT))
 }
