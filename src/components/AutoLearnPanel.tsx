@@ -69,10 +69,10 @@ export function AutoLearnPanel({ al, rules, symbol, liveScore }: Props) {
               </h3>
               <p className="muted">
                 {al.serverFresh
-                  ? L('Hourly server cycle · works while the app is closed', 'Chu kỳ máy chủ mỗi giờ · chạy cả khi đóng ứng dụng')
+                  ? L('Server cycle hourly in US market hours, daily on weekends · works while the app is closed', 'Máy chủ chạy mỗi giờ trong giờ thị trường Mỹ, mỗi ngày vào cuối tuần · chạy cả khi đóng ứng dụng')
                   : L(
-                      'The hourly server cycle has not reported yet, so learning runs only while this app is open.',
-                      'Chu kỳ máy chủ mỗi giờ chưa báo kết quả, nên chỉ học khi ứng dụng đang mở.',
+                      'The server cycle has not reported in the last day, so learning runs only while this app is open.',
+                      'Chu kỳ máy chủ chưa báo kết quả trong ngày qua, nên chỉ học khi ứng dụng đang mở.',
                     )}
               </p>
             </div>

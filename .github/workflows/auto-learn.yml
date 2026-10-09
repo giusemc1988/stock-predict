@@ -1,5 +1,9 @@
-# 24/7 auto learning: runs one learning cycle every hour, even while the app is closed,
-# and commits the results to public/auto-learning.json (the app loads that file).
+# 24/7 auto learning: runs learning cycles even while the app is closed and commits the
+# results to public/auto-learning.json (the app loads that file).
+# Schedule (keep in step with nextServerRun in src/lib/autoLearn.ts): hourly 13:17-21:17 UTC
+# on weekdays (US market hours) plus 12:17 UTC on weekends, about 210 runs of ~1 minute a
+# month, well inside the 2,000 free minutes for a private repo. Bars that close between
+# runs (crypto overnight) are scored on the next run, so nothing is skipped.
 # Paper only: it fetches public Yahoo Finance bars and never places an order.
 # To turn it off: GitHub > Settings > Secrets and variables > Actions > Variables,
 # add AUTO_LEARN = off (or disable this workflow in the Actions tab).
@@ -7,7 +11,8 @@ name: Auto learning
 
 on:
   schedule:
-    - cron: '17 * * * *'
+    - cron: '17 13-21 * * 1-5'
+    - cron: '17 12 * * 0,6'
   workflow_dispatch:
 
 permissions:
@@ -21,14 +26,14 @@ jobs:
   cycle:
     if: vars.AUTO_LEARN != 'off'
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 5
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: 22
           cache: npm
-      - run: npm ci
+      - run: npm ci --no-audit --no-fund
       - run: npm run learn
       - name: Save the learned stats
         run: |

@@ -3,12 +3,12 @@ import type { Instrument } from '../types'
 import { hasAlpacaData, type AlpacaDataKeys, type ApiKeys } from '../data/providers'
 import { candlesFor } from '../data/series'
 import type { AiRules } from '../lib/aiRules'
-import { CYCLE_MS, emptyState, parseState, runCycle, type LearnState, type LogEntry } from '../lib/autoLearn'
+import { CYCLE_MS, emptyState, nextServerRun, parseState, runCycle, type LearnState, type LogEntry } from '../lib/autoLearn'
 
 const KEY = 'arc.autoLearn.v1'
 const NOTES_KEY = 'arc.autoLearn.notes.v1'
-/** The server job is hourly; older than this means it has stopped reporting. */
-const SERVER_FRESH_MS = 3 * 60 * 60_000
+/** The longest normal gap between server runs is Sunday 12:17 to Monday 13:17 UTC; older than this means it has stopped. */
+const SERVER_FRESH_MS = 30 * 60 * 60_000
 
 function loadLocal(): LearnState {
   try {
@@ -52,7 +52,7 @@ export interface AutoLearning {
 
 /**
  * In-app half of 24/7 learning: while the app is open and the toggle is on, run a cycle
- * every hour on the markets this browser can fetch. The hourly server job keeps going
+ * every hour on the markets this browser can fetch. The server job keeps going
  * while the app is closed; whichever copy ran last is the one shown and continued.
  */
 export function useAutoLearning(universe: Instrument[], keys: ApiKeys, alpaca: AlpacaDataKeys, rules: AiRules): AutoLearning {
@@ -140,7 +140,13 @@ export function useAutoLearning(universe: Instrument[], keys: ApiKeys, alpaca: A
     })
   }, [])
 
-  const nextCycle = state.lastCycle == null ? null : state.lastCycle + CYCLE_MS
+  const [now, setNow] = useState(() => Date.now())
+  useEffect(() => {
+    const id = setInterval(() => setNow(Date.now()), 60_000)
+    return () => clearInterval(id)
+  }, [])
+  // the server's next run when it is reporting, otherwise this browser's next hourly cycle
+  const nextCycle = serverFresh ? nextServerRun(now) : state.lastCycle == null ? null : state.lastCycle + CYCLE_MS
 
   return { state, running, error, serverLast, serverFresh, nextCycle, runNow: () => void cycle(), notes, addNote, markets }
 }
