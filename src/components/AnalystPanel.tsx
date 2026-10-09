@@ -82,6 +82,17 @@ export function AnalystPanel({ analysis: a, stats, lastSignal, symbol, tfLabel, 
             </div>
           </div>
         )}
+        {a.sizing && (
+          <ul className="sizing">
+            <li>
+              <b className="mono">Size at most {(a.sizing.pctOfAccount * 100).toFixed(1)}% of the account</b>
+              {a.sizing.binding === 'no-edge' ? ' (no position)' : ''}
+            </li>
+            {a.sizing.notes.map((n) => (
+              <li key={n}>{n}</li>
+            ))}
+          </ul>
+        )}
         {a.plan && (
           <button className="ai-plan" onClick={onTrade}>
             Open order ticket →

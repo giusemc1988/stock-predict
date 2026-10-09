@@ -1,5 +1,5 @@
 /**
- * Bluechip prediction engine.
+ * Arc Analyst prediction engine.
  *
  * A walk-forward online logistic regression learns P(close[t+H] > close[t]) from a
  * handful of normalised technical features. It only ever trains on bars whose

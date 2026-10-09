@@ -26,6 +26,40 @@ export const RELEASES: Release[] = [
     ],
   },
   {
+    version: '0.8.0',
+    date: '2026-10-09',
+    changes: [
+      'AI analyst plans now say how much of the account to use: 1% at risk per idea, capped at 10% (5% until the model has 30 trades).',
+      'If buy-and-hold beat the model on a chart, the analyst says there is no edge and sizes nothing.',
+      'The analyst card shows the not-financial-advice note.',
+      'Not financial advice. Paper trading only.',
+    ],
+    changesVi: [
+      'Kế hoạch của phân tích AI giờ cho biết nên dùng bao nhiêu tài khoản: rủi ro tối đa 1% cho mỗi ý tưởng, giới hạn 10% (5% cho đến khi mô hình có 30 giao dịch).',
+      'Nếu mua và giữ đã làm tốt hơn mô hình trên một biểu đồ, phân tích AI sẽ nói không có lợi thế và không đề xuất khối lượng.',
+      'Thẻ phân tích AI hiển thị lưu ý không phải lời khuyên đầu tư.',
+      'Không phải lời khuyên đầu tư. Chỉ giao dịch thử nghiệm.',
+    ],
+  },
+  {
+    version: '0.7.0',
+    date: '2026-10-09',
+    changes: [
+      'Chart options: toggle SMA, Bollinger Bands and Volume on the price chart, and set their periods in the settings panel. Saved in this browser.',
+      'English and Tiếng Việt language switch in Settings.',
+      'Glass-style theme with blurred panels.',
+      'Fixed: an empty chart setting no longer saves 0 or breaks the chart.',
+      'Not financial advice. Paper trading only.',
+    ],
+    changesVi: [
+      'Tùy chọn biểu đồ: bật/tắt SMA, dải Bollinger và Khối lượng trên biểu đồ giá, và chỉnh chu kỳ trong bảng cài đặt. Được lưu trong trình duyệt này.',
+      'Chuyển đổi ngôn ngữ English và Tiếng Việt trong Cài đặt.',
+      'Giao diện kính mờ với các bảng có hiệu ứng làm mờ.',
+      'Đã sửa: ô cài đặt biểu đồ để trống không còn lưu 0 hoặc làm hỏng biểu đồ.',
+      'Không phải lời khuyên đầu tư. Chỉ giao dịch thử nghiệm.',
+    ],
+  },
+  {
     version: '0.6.0',
     date: '2026-10-09',
     changes: [
