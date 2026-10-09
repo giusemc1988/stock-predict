@@ -22,6 +22,7 @@ import { OrderFlowPanel } from './components/OrderFlowPanel'
 import { BottomPanel } from './components/BottomPanel'
 import { PortfolioPage } from './components/PortfolioPage'
 import { LearningPanel } from './components/LearningPanel'
+import { AIPicks } from './components/AIPicks'
 import { SettingsModal } from './components/SettingsModal'
 import { Toasts, type Toast } from './components/Toasts'
 
@@ -61,7 +62,7 @@ export default function App() {
   const [alpacaKeys, setAlpacaKeys] = useLocalStorage<AlpacaKeys>('bluechip.alpaca', { keyId: '', secret: '' })
   const [settingsOpen, setSettingsOpen] = useState(false)
   const [page, setPage] = useState<'trade' | 'portfolio'>('trade')
-  const [rightTab, setRightTab] = useState<'ai' | 'flow' | 'trade' | 'learn'>('ai')
+  const [rightTab, setRightTab] = useState<'ai' | 'flow' | 'trade' | 'learn' | 'picks'>('ai')
   const [toasts, setToasts] = useState<Toast[]>([])
   // Tickers added from the search box persist in this browser and join the built-in watchlist.
   const [added, setAdded] = useLocalStorage<Instrument[]>('bluechip.added', [])
@@ -272,11 +273,26 @@ export default function App() {
               <button className={rightTab === 'learn' ? 'on' : ''} onClick={() => setRightTab('learn')}>
                 Learning
               </button>
+              <button className={rightTab === 'picks' ? 'on' : ''} onClick={() => setRightTab('picks')}>
+                AI Picks
+              </button>
             </div>
             <div className="right-body">
               {rightTab === 'ai' && <AnalystPanel analysis={analysis} stats={closed.stats} lastSignal={lastSignal} symbol={inst.symbol} tfLabel={tfLabel} onTrade={() => setRightTab('trade')} />}
               {rightTab === 'flow' && <OrderFlowPanel flow={flow} last={lastClose} />}
               {rightTab === 'learn' && <LearningPanel />}
+              {rightTab === 'picks' && (
+                <AIPicks
+                  instruments={universe}
+                  tf={prefs.tf}
+                  keys={keys}
+                  alpacaKeys={alpacaKeys}
+                  onOpen={(symbol) => {
+                    select(symbol)
+                    setRightTab('ai')
+                  }}
+                />
+              )}
               {rightTab === 'trade' && (
                 <OrderTicket
                   inst={inst}
