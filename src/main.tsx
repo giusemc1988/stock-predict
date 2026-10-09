@@ -15,3 +15,20 @@ if (import.meta.env.PROD && 'serviceWorker' in navigator) {
     navigator.serviceWorker.register('./sw.js').catch(() => {})
   })
 }
+
+// Reload the page when a newer build is deployed, so the app never runs an old version.
+if (import.meta.env.PROD) {
+  const current = document.querySelector<HTMLScriptElement>('script[type="module"]')?.getAttribute('src')
+  const checkForUpdate = async () => {
+    if (document.visibilityState !== 'visible' || !current) return
+    try {
+      const html = await fetch('./', { cache: 'no-store' }).then((r) => r.text())
+      const latest = new DOMParser().parseFromString(html, 'text/html').querySelector<HTMLScriptElement>('script[type="module"]')?.getAttribute('src')
+      if (latest && latest !== current) window.location.reload()
+    } catch {
+      /* offline or blocked: try again on the next check */
+    }
+  }
+  setInterval(checkForUpdate, 3 * 60 * 1000)
+  document.addEventListener('visibilitychange', checkForUpdate)
+}
