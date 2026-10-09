@@ -26,7 +26,8 @@ import { AutoLearnPanel } from './components/AutoLearnPanel'
 import { useAutoLearning } from './hooks/useAutoLearning'
 import { usePractice } from './hooks/usePractice'
 import { PracticePanel } from './components/PracticePanel'
-import { kindOf, type PracticeEvent } from './lib/practice'
+import { dayKey, kindOf, type PracticeEvent } from './lib/practice'
+import type { AiActiveRow } from './components/Watchlist'
 import type { PracticeOverlay } from './components/ChartPanel'
 import { useLang, useT } from './lib/i18n'
 import { AIPicks } from './components/AIPicks'
@@ -84,9 +85,20 @@ export default function App() {
   // Tickers added from the search box persist in this browser and join the built-in watchlist.
   const [added, setAdded] = useLocalStorage<Instrument[]>('bluechip.added', [])
   const universe = useMemo(() => [...INSTRUMENTS, ...added.filter((a) => !INSTRUMENTS.some((i) => i.symbol === a.symbol))], [added])
-  const inst = useMemo(() => universe.find((i) => i.symbol === prefs.symbol) ?? INSTRUMENTS[0], [universe, prefs.symbol])
+  // markets practice mode is watching or trading join the chart and quotes (not your saved watchlist)
+  const [aiSymbols, setAiSymbols] = useState<string[]>([])
+  const chartUniverse = useMemo(
+    () => [
+      ...universe,
+      ...aiSymbols
+        .filter((s) => !universe.some((i) => i.symbol === s))
+        .map((s): Instrument => ({ symbol: s, name: 'AI practice pick', assetClass: s.includes('/') ? 'crypto' : 'stock', feedId: s.includes('/') ? s.replace('/', '') : s, demoPrice: 100, demoVol: 0.4 })),
+    ],
+    [universe, aiSymbols],
+  )
+  const inst = useMemo(() => chartUniverse.find((i) => i.symbol === prefs.symbol) ?? INSTRUMENTS[0], [chartUniverse, prefs.symbol])
   const market = useMarketData(inst, prefs.tf, keys, alpacaKeys)
-  const quotes = useQuotes(universe, keys, alpacaKeys)
+  const quotes = useQuotes(chartUniverse, keys, alpacaKeys)
   const addInstrument = (i: Instrument) => setAdded((list) => (list.some((x) => x.symbol === i.symbol) ? list : [...list, i]))
   const flow = useOrderFlow(inst, keys)
   // 24/7 auto learning runs here so it keeps going whichever tab is open (off by default)
@@ -228,10 +240,14 @@ export default function App() {
     (e: PracticeEvent) => {
       const r = practiceRules.current
       if (r.practiceOnChart) setFlash(e)
+      // follow the AI: open the chart of the market it just traded
+      if (r.practiceFollow && e.kind !== 'skip') setPrefs((p) => (p.symbol === e.symbol ? p : { ...p, symbol: e.symbol }))
       if (r.practiceFeed) toast({ tone: e.kind === 'buy' ? 'info' : (e.pnl ?? 0) >= 0 ? 'ok' : 'bad', title: `🎯 ${langRef.current === 'vi' ? 'Luyện tập' : 'Practice'}: ${e.kind === 'buy' ? (langRef.current === 'vi' ? 'MUA' : 'BUY') : langRef.current === 'vi' ? 'BÁN' : 'SELL'} ${e.symbol}`, body: langRef.current === 'vi' ? e.vi : e.en })
     },
     [toast],
   )
+  // practice only uses real prices: a simulated quote never moves a practice trade or its P&L
+  const livePriceOf = useCallback((s: string) => (quotes[s]?.live ? quotes[s].price : 0), [quotes])
   const onPracticeAway = useCallback(
     (n: number) =>
       toast({
@@ -250,7 +266,7 @@ export default function App() {
     analysis,
     liveScore: live?.probUp ?? null,
     journal: autoLearn.state.journal,
-    priceOf,
+    priceOf: livePriceOf,
     quotesKey: quotes,
     killSwitch: prefs.killSwitch,
     maxTradesPerDay: aiRules.maxTradesPerDay,
@@ -272,6 +288,19 @@ export default function App() {
     }
     return candles[lo].time
   }
+  // "AI active" list pinned at the top of the watchlist: open trades, today's closed trades, today's best picks
+  const [todayKey] = useState(() => dayKey(Date.now()))
+  const aiActive = useMemo<AiActiveRow[]>(() => {
+    const st = practice.state
+    const rows: AiActiveRow[] = st.open.map((p) => ({ symbol: p.symbol, status: 'trade', kind: kindOf(p), entry: p.entry, qty: p.qty }))
+    for (const t of [...st.trades].reverse())
+      if (dayKey(t.closedAt) === todayKey && !rows.some((r) => r.symbol === t.symbol)) rows.push({ symbol: t.symbol, status: 'closed', kind: kindOf(t), pnl: t.pnl })
+    for (const c of practice.scan.candidates.filter((c) => c.place != null).slice(0, 5))
+      if (!rows.some((r) => r.symbol === c.symbol)) rows.push({ symbol: c.symbol, status: 'watching', place: c.place ?? undefined, gainPct: c.gainPct })
+    return rows
+  }, [practice.state, practice.scan.candidates, todayKey])
+  const aiKey = aiRules.practiceMode ? aiActive.map((r) => r.symbol).join(',') : ''
+  useEffect(() => setAiSymbols(aiKey ? aiKey.split(',') : []), [aiKey])
   const kindTag = (x: { kind?: 'day' | 'long' }) => (kindOf(x) === 'day' ? (lang === 'vi' ? 'Ngày' : 'Day') : lang === 'vi' ? 'Dài' : 'Long')
   const practiceOverlay: PracticeOverlay | null = !aiRules.practiceOnChart
     ? null
@@ -323,6 +352,7 @@ export default function App() {
         dayPL={broker.account.dayPL}
       />
       <Watchlist
+        aiActive={aiRules.practiceMode && aiRules.practiceWatchlist ? aiActive : null}
         instruments={universe}
         quotes={quotes}
         active={inst.symbol}
@@ -394,7 +424,7 @@ export default function App() {
                     setPlanNonce((n) => n + 1)
                     setRightTab('trade')
                   }} onEditRules={() => setAiRulesOpen(true)} />}
-              {rightTab === 'practice' && <PracticePanel state={practice.state} rules={aiRules} symbol={inst.symbol} priceOf={practice.priceOf} onReset={practice.reset} scan={practice.scan} onRescan={practice.rescan} onOpen={(s) => select(s)} universe={universe.map((i) => i.symbol)} serverMode={practice.serverMode} serverLastRun={practice.serverLastRun} />}
+              {rightTab === 'practice' && <PracticePanel state={practice.state} rules={aiRules} symbol={inst.symbol} priceOf={practice.priceOf} onReset={practice.reset} scan={practice.scan} onRescan={practice.rescan} onOpen={(s) => select(s)} universe={chartUniverse.map((i) => i.symbol)} serverMode={practice.serverMode} serverLastRun={practice.serverLastRun} />}
               {rightTab === 'flow' && <OrderFlowPanel flow={flow} last={lastClose} />}
               {rightTab === 'learn' && <AutoLearnPanel al={autoLearn} rules={aiRules} symbol={inst.symbol} liveScore={live?.probUp ?? null} />}
               {rightTab === 'picks' && (
