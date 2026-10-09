@@ -10,7 +10,7 @@
     "preview": "vite preview",
     "learn:build": "vite build --ssr scripts/learn-cycle.ts --outDir .learn --emptyOutDir --logLevel warn",
     "learn": "npm run learn:build && node .learn/learn-cycle.js",
-    "test": "node scripts/journal.test.ts && npm run learn:build && node .learn/learn-cycle.js --demo --cycles 3 --out .learn/demo.json"
+    "test": "node scripts/journal.test.ts && node scripts/practice.test.ts && npm run learn:build && node .learn/learn-cycle.js --demo --cycles 3 --out .learn/demo.json"
   },
   "dependencies": {
     "lightweight-charts": "^5.2.1",

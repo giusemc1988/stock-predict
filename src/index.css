@@ -666,3 +666,50 @@ body {
   .al-when { grid-template-columns: 1fr 1fr; }
   .al-when button { grid-column: 1 / -1; }
 }
+
+/* Practice mode */
+.live-dot { display: inline-block; width: 6px; height: 6px; margin-left: 5px; border-radius: 50%; background: var(--up); vertical-align: middle; animation: live-pulse 1.6s ease-in-out infinite; }
+@keyframes live-pulse { 0%, 100% { opacity: 1; box-shadow: 0 0 0 0 rgba(14, 203, 129, 0.6); } 50% { opacity: 0.6; box-shadow: 0 0 0 4px rgba(14, 203, 129, 0); } }
+.practice .pr-tabs { grid-template-columns: repeat(3, 1fr); }
+.pr-subtoggles { display: flex; gap: 14px; flex-wrap: wrap; margin: -2px 0 8px; font-size: 11px; color: var(--muted); }
+.practice .al-tiles { grid-template-columns: repeat(auto-fit, minmax(90px, 1fr)); }
+.practice .al-tiles em { font-style: normal; font-size: 10px; }
+.pr-curve { width: 100%; height: 70px; display: block; }
+.pr-curve path { fill: none; stroke-width: 1.6; vector-effect: non-scaling-stroke; }
+.pr-curve path.up { stroke: var(--up); }
+.pr-curve path.down { stroke: var(--down); }
+.pr-curve .pr-base { stroke: var(--line-2); stroke-dasharray: 3 3; vector-effect: non-scaling-stroke; }
+.pr-feed, .pr-trades, .pr-lessons { list-style: none; margin: 0; padding: 0; }
+.pr-lessons li { padding: 4px 0; border-bottom: 1px solid var(--line); line-height: 1.45; }
+.pr-lessons li:last-child { border-bottom: 0; }
+.pr-feed li { display: grid; grid-template-columns: auto 1fr auto; gap: 8px; align-items: baseline; padding: 5px 0; border-bottom: 1px solid var(--line); animation: pr-in 0.35s ease-out; }
+.pr-feed li:last-child { border-bottom: 0; }
+.pr-kind { font: 700 10px var(--mono); padding: 1px 5px; border-radius: 4px; letter-spacing: 0.04em; }
+.pr-feed .buy .pr-kind { color: var(--up); background: rgba(14, 203, 129, 0.12); }
+.pr-feed .sell .pr-kind { color: var(--gold); background: rgba(240, 185, 11, 0.12); }
+.pr-feed .skip .pr-kind { color: var(--muted); background: var(--line); }
+.pr-feed .skip .pr-text { color: var(--muted); }
+.pr-time { font-size: 10px; white-space: nowrap; }
+.pr-trade { padding: 6px 0 6px 8px; border-bottom: 1px solid var(--line); border-left: 2px solid var(--up); margin-bottom: 4px; }
+.pr-trade.loss { border-left-color: var(--down); }
+.pr-trade-head { display: flex; gap: 8px; align-items: baseline; flex-wrap: wrap; }
+.pr-trade-head > b:last-child { margin-left: auto; font-family: var(--mono); }
+.pr-why { font-size: 11px; color: var(--muted); margin-top: 2px; line-height: 1.4; }
+.pr-fail { color: var(--down); }
+.pr-reset { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; justify-content: flex-end; margin-top: 8px; font-size: 11px; }
+.pr-reset button { padding: 5px 9px; border: 1px solid var(--line-2); border-radius: 6px; color: var(--muted); }
+.pr-reset button.danger { color: var(--down); border-color: var(--down); }
+@keyframes pr-in { from { opacity: 0; transform: translateY(-4px); background: rgba(240, 185, 11, 0.12); } to { opacity: 1; transform: none; background: transparent; } }
+.chart-wrap .practice-flash { position: absolute; top: 44px; left: 50%; z-index: 6; transform: translateX(-50%); max-width: min(420px, 86%); display: flex; flex-direction: column; gap: 2px; padding: 8px 12px; border-radius: 8px; border: 1px solid var(--gold); background: rgba(24, 26, 32, 0.94); box-shadow: 0 6px 24px rgba(0, 0, 0, 0.45); font-size: 12px; pointer-events: none; animation: practice-flash 4.5s ease-out forwards; }
+.practice-flash b { color: var(--gold); font-size: 13px; }
+.practice-flash.buy { border-color: var(--up); }
+.practice-flash.buy b { color: var(--up); }
+.practice-flash.sell.loss { border-color: var(--down); }
+.practice-flash.sell.loss b { color: var(--down); }
+@keyframes practice-flash { 0% { opacity: 0; transform: translate(-50%, -12px) scale(0.92); } 8% { opacity: 1; transform: translate(-50%, 0) scale(1.04); } 14% { transform: translate(-50%, 0) scale(1); } 80% { opacity: 1; } 100% { opacity: 0; transform: translate(-50%, -6px); } }
+@media (prefers-reduced-motion: reduce) { .live-dot, .pr-feed li { animation: none; } .chart-wrap .practice-flash { animation-duration: 0.01s; animation-delay: 4s; } }
+.pr-kindtag { display: inline-block; font: 700 9px var(--mono); letter-spacing: 0.04em; text-transform: uppercase; padding: 1px 5px; border-radius: 4px; color: var(--robot); background: rgba(79, 209, 255, 0.1); white-space: nowrap; }
+.pr-kindtag.long { color: var(--gold); background: rgba(240, 185, 11, 0.12); }
+.pr-filter { display: flex; gap: 4px; margin-bottom: 8px; }
+.pr-filter button { flex: 1; padding: 6px 4px; font-size: 11px; border: 1px solid var(--line-2); border-radius: 6px; color: var(--muted); }
+.pr-filter button.on { color: var(--robot); border-color: var(--robot); background: rgba(79, 209, 255, 0.08); }
