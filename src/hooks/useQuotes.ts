@@ -45,6 +45,7 @@ export function useQuotes(instruments: Instrument[], keys: ApiKeys, alpaca: Alpa
         const tickers = await binanceTickers(crypto.map((c) => c.feedId))
         if (cancelled) return
         const sparks = await Promise.all(crypto.map((c) => binanceKlines(c.feedId, '1h', 48).then((k) => k.map((x) => x.close)).catch(() => [])))
+        if (cancelled) return
         tickers.forEach((t) => {
           const inst = crypto.find((c) => c.feedId === t.symbol)!
           put(mkQuote(inst.symbol, t.last, t.open, t.high, t.low, t.volume, sparks[crypto.indexOf(inst)], true))
@@ -60,7 +61,7 @@ export function useQuotes(instruments: Instrument[], keys: ApiKeys, alpaca: Alpa
           ),
         )
       } catch {
-        seedDemo(crypto)
+        if (!cancelled) seedDemo(crypto)
       }
     })()
 
