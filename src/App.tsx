@@ -11,6 +11,7 @@ import { useQuotes } from './hooks/useQuotes'
 import { useBroker } from './hooks/useBroker'
 import { useOrderFlow } from './hooks/useOrderFlow'
 import { runStrategy } from './lib/strategy'
+import { blocking, riskGates } from './lib/riskGates'
 import { analyze } from './lib/analyst'
 import { fmtPrice, fmtUsd } from './lib/format'
 import { TopBar } from './components/TopBar'
@@ -25,6 +26,8 @@ import { LearningPanel } from './components/LearningPanel'
 import { AIPicks } from './components/AIPicks'
 import { WhatsNew } from './components/WhatsNew'
 import { SettingsModal } from './components/SettingsModal'
+import { AiRulesModal } from './components/AiRulesModal'
+import { useAiRules } from './lib/aiRules'
 import { Toasts, type Toast } from './components/Toasts'
 import { useT } from './lib/i18n'
 
@@ -40,6 +43,7 @@ interface Prefs {
   brokerMode: BrokerMode
   lossLimit: number
   lossLimitOn: boolean
+  killSwitch: boolean
   equityPeriod: '1D' | '1M' | '3M'
 }
 
@@ -53,6 +57,7 @@ const DEFAULT_PREFS: Prefs = {
   brokerMode: 'sim',
   lossLimit: 1000,
   lossLimitOn: true,
+  killSwitch: false,
   equityPeriod: '1M',
 }
 
@@ -64,6 +69,9 @@ export default function App() {
   const [keys, setKeys] = useLocalStorage<ApiKeys>('bluechip.keys', { alphaVantage: '', finnhub: '' })
   const [alpacaKeys, setAlpacaKeys] = useLocalStorage<AlpacaKeys>('bluechip.alpaca', { keyId: '', secret: '' })
   const [settingsOpen, setSettingsOpen] = useState(false)
+  const [aiRulesOpen, setAiRulesOpen] = useState(false)
+  const [planNonce, setPlanNonce] = useState(0)
+  const aiRules = useAiRules()
   const [page, setPage] = useState<'trade' | 'portfolio'>('trade')
   const [rightTab, setRightTab] = useState<'ai' | 'flow' | 'trade' | 'learn' | 'picks'>('ai')
   const [toasts, setToasts] = useState<Toast[]>([])
@@ -103,11 +111,11 @@ export default function App() {
   liveRef.current = live
   const [analysis, setAnalysis] = useState<ReturnType<typeof analyze>>(null)
   useEffect(() => {
-    const run = () => setAnalysis(analyze(candlesRef.current, closed, liveRef.current, flowRef.current))
+    const run = () => setAnalysis(analyze(candlesRef.current, closed, liveRef.current, flowRef.current, aiRules))
     run()
     const id = setInterval(run, 1000)
     return () => clearInterval(id)
-  }, [closed, inst.symbol])
+  }, [closed, inst.symbol, aiRules])
   const tapeTotal = flow.buyVolume + flow.sellVolume
   const buyShare = tapeTotal ? flow.buyVolume / tapeTotal : null
 
@@ -131,6 +139,8 @@ export default function App() {
   const seen = useRef<{ key: string; time: number }>({ key: '', time: 0 })
   const positionsRef = useRef(broker.positions)
   positionsRef.current = broker.positions
+  const gateRef = useRef({ broker, analysis, prefs })
+  gateRef.current = { broker, analysis, prefs }
   useEffect(() => {
     const k = `${inst.symbol}|${prefs.tf}`
     if (!candles.length) return
@@ -150,7 +160,14 @@ export default function App() {
     if (qty > 0) {
       const side = lastSignal.side
       const price = lastClose
-      submit({ symbol: inst.symbol, side, type: 'market', qty, tif: 'day', source: 'robot' }).then((r) => {
+      const g = gateRef.current
+      const req: OrderRequest = { symbol: inst.symbol, side, type: 'market', qty, tif: 'day', source: 'robot' }
+      const blocked = blocking(riskGates(req, price, g.broker, g.analysis, g.prefs))
+      if (blocked.length) {
+        toast({ tone: 'info', title: `Robot skipped a ${side.toUpperCase()} on ${inst.symbol}`, body: `${blocked[0].name}: ${blocked[0].message}` })
+        return
+      }
+      submit(req).then((r) => {
         if (r.ok) toast({ tone: 'info', title: `🤖 Robot ${side === 'buy' ? 'bought' : 'sold'} ${qty} ${inst.symbol}`, body: `Paper order at about ${fmtPrice(price)}` })
       })
     }
@@ -282,7 +299,10 @@ export default function App() {
               </button>
             </div>
             <div className="right-body">
-              {rightTab === 'ai' && <AnalystPanel analysis={analysis} stats={closed.stats} lastSignal={lastSignal} symbol={inst.symbol} tfLabel={tfLabel} onTrade={() => setRightTab('trade')} />}
+              {rightTab === 'ai' && <AnalystPanel analysis={analysis} stats={closed.stats} lastSignal={lastSignal} symbol={inst.symbol} tfLabel={tfLabel} onTrade={() => {
+                    setPlanNonce((n) => n + 1)
+                    setRightTab('trade')
+                  }} onEditRules={() => setAiRulesOpen(true)} />}
               {rightTab === 'flow' && <OrderFlowPanel flow={flow} last={lastClose} />}
               {rightTab === 'learn' && <LearningPanel />}
               {rightTab === 'picks' && (
@@ -307,6 +327,9 @@ export default function App() {
                   autoTrade={prefs.autoTrade}
                   onAutoTrade={(autoTrade) => setPrefs((p) => ({ ...p, autoTrade }))}
                   robotPaused={robotPaused}
+                  limits={prefs}
+                  planNonce={planNonce}
+                  onKillSwitch={(killSwitch) => setPrefs((p) => ({ ...p, killSwitch }))}
                 />
               )}
             </div>
@@ -338,7 +361,18 @@ export default function App() {
           />
         </main>
       )}
-      {settingsOpen && <SettingsModal keys={keys} onSave={setKeys} onClose={() => setSettingsOpen(false)} />}
+      {settingsOpen && (
+        <SettingsModal
+          keys={keys}
+          onSave={setKeys}
+          onClose={() => setSettingsOpen(false)}
+          onOpenAiRules={() => {
+            setSettingsOpen(false)
+            setAiRulesOpen(true)
+          }}
+        />
+      )}
+      {aiRulesOpen && <AiRulesModal onClose={() => setAiRulesOpen(false)} />}
       <Toasts toasts={toasts} onClose={(id) => setToasts((s) => s.filter((t) => t.id !== id))} />
     </div>
   )

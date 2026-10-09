@@ -3,6 +3,7 @@ import type { Analysis, Instrument } from '../types'
 import type { BrokerState, OrderRequest, OrderSide, OrderType, TimeInForce } from '../broker/types'
 import type { PlaceResult } from '../hooks/useBroker'
 import { fmtPrice, fmtUsd } from '../lib/format'
+import { riskGates, type GateLimits } from '../lib/riskGates'
 import { InfoTip } from './InfoTip'
 import { RobotIcon } from './RobotIcon'
 
@@ -15,6 +16,10 @@ interface Props {
   autoTrade: boolean
   onAutoTrade: (v: boolean) => void
   robotPaused: string | null
+  limits: GateLimits
+  /** Bumped when the analyst's "Open order ticket" is pressed: fill in the AI plan. */
+  planNonce: number
+  onKillSwitch: (v: boolean) => void
 }
 
 const TYPES: { id: OrderType; label: string; help: string }[] = [
@@ -26,7 +31,7 @@ const TYPES: { id: OrderType; label: string; help: string }[] = [
 
 const clean = (v: number) => (v ? String(+v.toFixed(v < 1 ? 6 : v < 10 ? 4 : 2)) : '')
 
-export function OrderTicket({ inst, last, broker, analysis, onSubmit, autoTrade, onAutoTrade, robotPaused }: Props) {
+export function OrderTicket({ inst, last, broker, analysis, onSubmit, autoTrade, onAutoTrade, robotPaused, limits, onKillSwitch, planNonce }: Props) {
   const [side, setSide] = useState<OrderSide>('buy')
   const [type, setType] = useState<OrderType>('market')
   const [unit, setUnit] = useState<'qty' | 'usd'>('qty')
@@ -67,7 +72,7 @@ export function OrderTicket({ inst, last, broker, analysis, onSubmit, autoTrade,
     else setAmount(crypto ? clean(q) : String(Math.floor(q)))
   }
 
-  const useAiPlan = () => {
+  const applyAiPlan = () => {
     if (!analysis?.plan) return
     // short selling is off, so a SELL plan just closes/reduces; exit legs only make sense on a buy
     const s = analysis.verdict === 'SELL' ? 'sell' : 'buy'
@@ -75,7 +80,19 @@ export function OrderTicket({ inst, last, broker, analysis, onSubmit, autoTrade,
     setBracket(s === 'buy')
     setTp(clean(analysis.plan.target))
     setSl(clean(analysis.plan.stop))
+    // size the buy from the analyst's sizing, so the stop risks what the plan says
+    const pctOfAccount = analysis.sizing?.pctOfAccount ?? 0
+    if (s === 'buy' && pctOfAccount > 0 && analysis.plan.entry > 0) {
+      const q = (broker.account.equity * pctOfAccount) / analysis.plan.entry
+      setUnit('qty')
+      setAmount(crypto ? clean(q) : String(Math.max(1, Math.floor(q))))
+    }
   }
+
+  // "Open order ticket" on the AI Analyst tab fills in the plan
+  useEffect(() => {
+    if (planNonce > 0 && hasPrice) applyAiPlan()
+  }, [planNonce, hasPrice]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const req: OrderRequest = {
     symbol: inst.symbol,
@@ -98,6 +115,10 @@ export function OrderTicket({ inst, last, broker, analysis, onSubmit, autoTrade,
     if (up ? !(req.bracket.takeProfit > refPrice) : !(req.bracket.takeProfit < refPrice)) problems.push(`Take profit should be ${up ? 'above' : 'below'} ${fmtPrice(refPrice)}`)
     if (up ? !(req.bracket.stopLoss < refPrice) : !(req.bracket.stopLoss > refPrice)) problems.push(`Stop loss should be ${up ? 'below' : 'above'} ${fmtPrice(refPrice)}`)
   }
+
+  const gates = riskGates(req, refPrice, broker, analysis, limits)
+  for (const g of gates) if (g.level === 'block') problems.push(`${g.name}: ${g.message}`)
+  const flagged = gates.filter((g) => g.level !== 'pass')
 
   const submit = async () => {
     setBusy(true)
@@ -218,7 +239,7 @@ export function OrderTicket({ inst, last, broker, analysis, onSubmit, autoTrade,
           </div>
         )}
         {analysis?.plan && (
-          <button className="ai-plan" onClick={useAiPlan}>
+          <button className="ai-plan" onClick={applyAiPlan}>
             <RobotIcon size={14} side={analysis.verdict === 'SELL' ? 'sell' : 'buy'} /> Use AI plan ({analysis.verdict}, stop {fmtPrice(analysis.plan.stop)}, target {fmtPrice(analysis.plan.target)})
           </button>
         )}
@@ -251,6 +272,14 @@ export function OrderTicket({ inst, last, broker, analysis, onSubmit, autoTrade,
             Paper-trade new live robot signals automatically ({crypto ? '$1,000' : '10 shares'} per buy, sells the whole position on sell).
           </em>
           {robotPaused && autoTrade && <em className="down">{robotPaused}</em>}
+        </span>
+      </label>
+
+      <label className="auto">
+        <input type="checkbox" checked={limits.killSwitch} onChange={(e) => onKillSwitch(e.target.checked)} />
+        <span>
+          <b>Kill switch</b>
+          <em>Stops every new buy, yours and the robot's. Selling stays allowed so you can always get out.</em>
         </span>
       </label>
 
@@ -306,6 +335,18 @@ export function OrderTicket({ inst, last, broker, analysis, onSubmit, autoTrade,
                 <b>{fmtUsd(est)}</b>
               </div>
             </div>
+            <div className="section-title">
+              Risk gates <InfoTip text="Checks run before every paper order: kill switch, daily loss, account drawdown, position size, trades today, volatility and Trade Score. A red gate stops a buy; selling is never blocked." />
+            </div>
+            <ul className="gates">
+              {gates.map((g) => (
+                <li key={g.name} className={`gate ${g.level}`}>
+                  <b>{g.level === 'pass' ? '✓' : g.level === 'warn' ? '!' : '✕'} {g.name}</b>
+                  <span>{g.message}</span>
+                </li>
+              ))}
+            </ul>
+            {flagged.length === 0 && <p className="muted tiny">All gates pass.</p>}
             <p className="muted tiny">Practice money only. No real order is sent to any exchange.</p>
             <div className="modal-actions">
               <button onClick={() => setReview(false)} disabled={busy}>

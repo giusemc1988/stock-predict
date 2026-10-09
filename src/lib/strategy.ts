@@ -13,6 +13,7 @@
  * Educational tool only. This is not financial advice.
  */
 import type { BacktestStats, Candle, Prediction, Signal, StrategyResult } from '../types'
+import { tradeMetrics } from './metrics'
 import { atr, ema, macd, regressionSlope, rsi, sma, stdev, zscore } from './indicators'
 
 export interface StrategyConfig {
@@ -194,6 +195,7 @@ export function runStrategy(candles: Candle[], cfg: StrategyConfig = DEFAULT_CON
     maxDrawdownPct: maxDd * 100,
     avgTradePct: tradeRets.length ? (tradeRets.reduce((a, b) => a + b, 0) / tradeRets.length) * 100 : 0,
     modelAccuracy: graded ? correct / graded : 0,
+    ...tradeMetrics(tradeRets),
   }
 
   return {

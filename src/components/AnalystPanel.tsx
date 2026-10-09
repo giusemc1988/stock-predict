@@ -1,8 +1,10 @@
 import type { Analysis, BacktestStats, Signal } from '../types'
 import { planText } from '../lib/analyst'
+import { realityChecks } from '../lib/metrics'
 import { fmtPct, fmtPrice, fmtTime, tone } from '../lib/format'
 import { RobotIcon } from './RobotIcon'
 import { InfoTip } from './InfoTip'
+import { useLang, useT } from '../lib/i18n'
 
 interface Props {
   analysis: Analysis | null
@@ -11,11 +13,14 @@ interface Props {
   symbol: string
   tfLabel: string
   onTrade: () => void
+  onEditRules: () => void
 }
 
 const ICON = { bull: '▲', bear: '▼', neutral: '•' }
 
-export function AnalystPanel({ analysis: a, stats, lastSignal, symbol, tfLabel, onTrade }: Props) {
+export function AnalystPanel({ analysis: a, stats, lastSignal, symbol, tfLabel, onTrade, onEditRules }: Props) {
+  const t = useT()
+  const lang = useLang()
   if (!a) {
     return (
       <div className="analyst">
@@ -50,6 +55,43 @@ export function AnalystPanel({ analysis: a, stats, lastSignal, symbol, tfLabel, 
 
       <p className="headline">{a.headline}</p>
 
+      {a.tradeScore && (
+        <details className={`tscore g-${a.tradeScore.grade === 'A+' ? 'a' : a.tradeScore.grade.toLowerCase()}`}>
+          <summary>
+            <span className="tscore-num mono">{a.tradeScore.score}</span>
+            <span className="tscore-main">
+              <b>
+                Trade Score · {a.tradeScore.grade} · {a.tradeScore.signal}
+              </b>
+              <em>Five-part 0-100 score: technical, fundamental, sentiment, risk and thesis. Tap for the breakdown.</em>
+            </span>
+          </summary>
+          <ul className="tparts">
+            {a.tradeScore.parts.map((p) => (
+              <li key={p.key}>
+                <div className="tpart-head">
+                  <b>{p.label}</b>
+                  <span className="mono">{p.score == null ? 'n/a' : `${p.score}/100`}</span>
+                  <i className="tbar">
+                    <i style={{ width: `${p.score ?? 0}%` }} />
+                  </i>
+                </div>
+                {p.subs.map((sub) => (
+                  <span key={sub.label} className="tsub">
+                    <b className="mono">
+                      {sub.points}/{sub.max}
+                    </b>{' '}
+                    {sub.label}: {sub.note}
+                  </span>
+                ))}
+                {p.missing && <span className="tsub muted">{p.missing}</span>}
+              </li>
+            ))}
+          </ul>
+          <p className="muted tiny">Weights 25/25/20/15/15; parts without data are left out and the rest scaled up. Rubric adapted from AI Trading Analyst for Claude Code (MIT).</p>
+        </details>
+      )}
+
       <div className="section-title">Why</div>
       <ul className="checks">
         {a.checks.map((c) => (
@@ -80,6 +122,28 @@ export function AnalystPanel({ analysis: a, stats, lastSignal, symbol, tfLabel, 
               <span>Target</span>
               <b className="up">{fmtPrice(a.plan.target)}</b>
             </div>
+          </div>
+        )}
+        {a.exitPlan && (
+          <div className="xplan">
+            <div className="section-title">{t('stopAndScale')}</div>
+            <div className="xstep stop">
+              <b>
+                {t('stopLoss')} <span className="mono down">{fmtPrice(a.exitPlan.stop)}</span>
+              </b>
+              <span>{a.exitPlan.stopWhy[lang]}</span>
+            </div>
+            {a.exitPlan.steps.map((s, i) => (
+              <div key={i} className={`xstep ${s.kind}`}>
+                <b>
+                  {s.kind === 'in' ? '＋' : '−'} {s.label[lang]}
+                  {s.price != null && <span className="mono"> {fmtPrice(s.price)}</span>}
+                  <em className="mono"> {s.sharePct}%</em>
+                </b>
+                <span>{s.why[lang]}</span>
+              </div>
+            ))}
+            <p className="muted tiny">{t('scaleNote')}</p>
           </div>
         )}
         {a.sizing && (
@@ -143,8 +207,35 @@ export function AnalystPanel({ analysis: a, stats, lastSignal, symbol, tfLabel, 
             <span>Model right</span>
             <b className="mono">{(stats.modelAccuracy * 100).toFixed(0)}%</b>
           </div>
+          <div>
+            <span>
+              Profit factor <InfoTip text="Money won on winning trades divided by money lost on losing ones. Above 1 means winners outweigh losers." />
+            </span>
+            <b className="mono">{stats.profitFactor == null ? 'no losses' : stats.profitFactor.toFixed(2)}</b>
+          </div>
+          <div>
+            <span>
+              Avg per trade <InfoTip text="Expectancy: what one trade made on average, counting both wins and losses." />
+            </span>
+            <b className={`mono ${tone(stats.expectancyPct)}`}>{fmtPct(stats.expectancyPct)}</b>
+          </div>
+          <div>
+            <span>Losses in a row</span>
+            <b className="mono">{stats.maxLosingStreak}</b>
+          </div>
         </div>
+        {realityChecks(stats).length > 0 && (
+          <ul className="reality">
+            {realityChecks(stats).map((f) => (
+              <li key={f}>{f}</li>
+            ))}
+          </ul>
+        )}
       </details>
+
+      <button className="link-btn" onClick={onEditRules}>
+        {t('editAiRules')} →
+      </button>
 
       <p className="disclaimer">Research, not advice. Arc Analyst is an automated read of price and volume patterns, which often fail. Only trade money you can afford to lose.</p>
     </div>
