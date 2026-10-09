@@ -1,6 +1,5 @@
 import type { Analysis, BacktestStats, Signal } from '../types'
 import { planText } from '../lib/analyst'
-import { BINDING_TEXT, sizePlan } from '../lib/rulebook'
 import { fmtPct, fmtPrice, fmtTime, tone } from '../lib/format'
 import { RobotIcon } from './RobotIcon'
 import { InfoTip } from './InfoTip'
@@ -11,13 +10,12 @@ interface Props {
   lastSignal: Signal | null
   symbol: string
   tfLabel: string
-  equity: number
   onTrade: () => void
 }
 
 const ICON = { bull: '▲', bear: '▼', neutral: '•' }
 
-export function AnalystPanel({ analysis: a, stats, lastSignal, symbol, tfLabel, equity, onTrade }: Props) {
+export function AnalystPanel({ analysis: a, stats, lastSignal, symbol, tfLabel, onTrade }: Props) {
   if (!a) {
     return (
       <div className="analyst">
@@ -28,7 +26,6 @@ export function AnalystPanel({ analysis: a, stats, lastSignal, symbol, tfLabel, 
       </div>
     )
   }
-  const sizing = sizePlan(a, stats, equity)
   const side = a.verdict === 'BUY' ? 'buy' : a.verdict === 'SELL' ? 'sell' : undefined
   return (
     <div className="analyst">
@@ -91,28 +88,6 @@ export function AnalystPanel({ analysis: a, stats, lastSignal, symbol, tfLabel, 
           </button>
         )}
       </div>
-
-      {sizing && (
-        <div className="rulebook">
-          <div className="section-title">
-            Arc rulebook <InfoTip text="Position-sizing and edge checks from the trading-analyst skill: risk 1% per trade, quarter Kelly only with a measured edge, at most 10% in one stock. The smallest size wins." />
-          </div>
-          <p>
-            Paper size: <b className="mono">{sizing.shares}</b> {symbol} (≈ ${fmtPrice(sizing.value, 0)}), set by {BINDING_TEXT[sizing.binding]}.
-          </p>
-          <ul>
-            {sizing.checks.map((c) => (
-              <li key={c.rule} className={c.pass ? 'pass' : 'fail'}>
-                <span>{c.pass ? '✓' : '!'}</span>
-                <div>
-                  <b>{c.rule}</b>
-                  <span>{c.detail}</span>
-                </div>
-              </li>
-            ))}
-          </ul>
-        </div>
-      )}
 
       <p className="track">{a.trackRecord}</p>
 

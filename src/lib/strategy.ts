@@ -1,5 +1,5 @@
 /**
- * Arc Analyst prediction engine.
+ * Bluechip prediction engine.
  *
  * A walk-forward online logistic regression learns P(close[t+H] > close[t]) from a
  * handful of normalised technical features. It only ever trains on bars whose
@@ -186,10 +186,6 @@ export function runStrategy(candles: Candle[], cfg: StrategyConfig = DEFAULT_CON
   if (inPos) equity *= close[n - 1] / entry
 
   const firstIdx = probSeries.findIndex((p) => p != null)
-  const winRets = tradeRets.filter((r) => r > 0)
-  const lossRets = tradeRets.filter((r) => r <= 0)
-  const avgWin = winRets.length ? winRets.reduce((a, b) => a + b, 0) / winRets.length : 0
-  const avgLoss = lossRets.length ? -lossRets.reduce((a, b) => a + b, 0) / lossRets.length : 0
   const stats: BacktestStats = {
     trades: tradeRets.length,
     winRate: tradeRets.length ? tradeRets.filter((r) => r > 0).length / tradeRets.length : 0,
@@ -197,7 +193,6 @@ export function runStrategy(candles: Candle[], cfg: StrategyConfig = DEFAULT_CON
     buyHoldPct: firstIdx >= 0 ? (close[n - 1] / close[firstIdx] - 1) * 100 : 0,
     maxDrawdownPct: maxDd * 100,
     avgTradePct: tradeRets.length ? (tradeRets.reduce((a, b) => a + b, 0) / tradeRets.length) * 100 : 0,
-    payoffRatio: avgWin > 0 && avgLoss > 0 ? avgWin / avgLoss : 0,
     modelAccuracy: graded ? correct / graded : 0,
   }
 

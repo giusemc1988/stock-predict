@@ -235,16 +235,6 @@ a { color: var(--robot); }
 .plan-grid div { background: var(--panel-2); border-radius: 6px; padding: 6px 8px; }
 .plan-grid span { display: block; font-size: 10px; color: var(--muted); font-family: Inter, sans-serif; }
 .plan-grid b { font-size: 12px; font-weight: 600; }
-.rulebook { margin: 12px 14px 0; padding: 10px 12px; border: 1px solid var(--line-2); border-radius: var(--radius); background: rgba(79, 209, 255, 0.04); font-size: 12px; }
-.rulebook .section-title { margin: 0 0 6px; padding: 0; }
-.rulebook p { margin: 0 0 8px; line-height: 1.5; }
-.rulebook ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
-.rulebook li { display: flex; gap: 8px; align-items: flex-start; }
-.rulebook li > span { width: 16px; flex: none; font-weight: 700; text-align: center; }
-.rulebook li.pass > span { color: var(--up); }
-.rulebook li.fail > span { color: var(--gold); }
-.rulebook li b { display: block; font-size: 12px; }
-.rulebook li div span { color: var(--muted); font-size: 11.5px; line-height: 1.45; }
 .track { margin: 12px 14px 0; font-size: 11.5px; color: var(--muted); line-height: 1.5; padding-left: 10px; border-left: 2px solid var(--robot); }
 .last-signal { margin: 12px 14px 0 !important; }
 .bt { margin: 12px 14px 0; border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; }
