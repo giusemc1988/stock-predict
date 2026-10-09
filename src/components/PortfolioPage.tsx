@@ -169,8 +169,17 @@ export function PortfolioPage(p: Props) {
                   </li>
                 </ol>
                 <label className="field flush">
-                  <span>API key ID</span>
-                  <input className="mono" value={draft.keyId} onChange={(e) => setDraft({ ...draft, keyId: e.target.value.trim() })} placeholder="PK…" />
+                  <span>API key ID (or paste Key and Secret together here)</span>
+                  <textarea
+                    className="mono key-box"
+                    rows={2}
+                    value={draft.keyId}
+                    onChange={(e) => setDraft({ ...draft, keyId: e.target.value })}
+                    placeholder="PK…"
+                    spellCheck={false}
+                    autoCapitalize="off"
+                    autoCorrect="off"
+                  />
                 </label>
                 <label className="field flush">
                   <span>Secret key</span>
@@ -182,7 +191,10 @@ export function PortfolioPage(p: Props) {
                   className="btn-primary"
                   onClick={() => {
                     // an Alpha Vantage key is a stock-data key, not a brokerage key: store it where it works
-                    const av = [draft.keyId, draft.secret].find(looksLikeAlphaVantage)
+                    // one box can hold "KEY:SECRET", "KEY SECRET" or the two on separate lines
+                    const parts = draft.keyId.split(/[\s:,;]+/).filter(Boolean)
+                    const keys = parts.length === 2 ? { keyId: parts[0], secret: parts[1] } : { keyId: parts.join(''), secret: draft.secret.trim() }
+                    const av = [keys.keyId, keys.secret].find(looksLikeAlphaVantage)
                     if (av) {
                       p.onAlphaVantageKey(av)
                       setDraft(p.alpacaKeys)
@@ -193,9 +205,10 @@ export function PortfolioPage(p: Props) {
                       return
                     }
                     setKeyNote(null)
-                    const bad = checkPaperKey(draft.keyId) ?? (draft.secret ? null : 'Enter your paper secret key')
+                    const bad = checkPaperKey(keys.keyId) ?? (keys.secret ? null : 'Enter your paper secret key in the Secret box, or paste Key and Secret together in the first box')
                     setKeyErr(bad)
-                    if (!bad) p.onAlpacaKeys(draft)
+                    setDraft(keys)
+                    if (!bad) p.onAlpacaKeys(keys)
                   }}
                 >
                   Save & connect
