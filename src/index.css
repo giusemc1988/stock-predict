@@ -479,3 +479,33 @@ tr.leg td { color: #aab2c0; }
   .chart-key { font-size: 10px; gap: 2px 10px; }
 }
 .key-box { resize: vertical; font-size: 12px; color: inherit; word-break: break-all; }
+
+/* "What's new" banner, shown once per app version */
+.whats-new {
+  position: fixed;
+  right: 16px;
+  bottom: 16px;
+  z-index: 50;
+  max-width: min(360px, calc(100vw - 32px));
+  padding: 14px 16px;
+  border-radius: 10px;
+  background: #161c26;
+  color: var(--text);
+  border: 1px solid var(--line-2);
+  border-left: 3px solid var(--up);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+  font-size: 13px;
+}
+.whats-new-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+.whats-new ul {
+  margin: 0 0 12px;
+  padding-left: 18px;
+}
+.whats-new li + li {
+  margin-top: 4px;
+}

@@ -23,6 +23,7 @@ import { BottomPanel } from './components/BottomPanel'
 import { PortfolioPage } from './components/PortfolioPage'
 import { LearningPanel } from './components/LearningPanel'
 import { AIPicks } from './components/AIPicks'
+import { WhatsNew } from './components/WhatsNew'
 import { SettingsModal } from './components/SettingsModal'
 import { Toasts, type Toast } from './components/Toasts'
 
@@ -192,6 +193,7 @@ export default function App() {
 
   return (
     <div className={`app page-${page}`}>
+      <WhatsNew />
       <TopBar
         inst={inst}
         quote={quotes[inst.symbol]}
