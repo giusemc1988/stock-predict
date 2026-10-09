@@ -1,6 +1,6 @@
-# Bluechip Terminal
+# Arc Analyst
 
-A dark, multi-panel trading dashboard: live candlestick chart (TradingView Lightweight Charts v5), watchlist, paper-trading order panel, a client-side prediction engine, and "Bluechip" robot markers at every BUY / SELL trigger.
+A dark, multi-panel trading dashboard: live candlestick chart (TradingView Lightweight Charts v5), watchlist, paper-trading order panel, a client-side prediction engine, and Arc robot markers at every BUY / SELL trigger.
 
 > **Not financial advice.** Predictions are experimental technical-analysis output. Orders are simulated (paper) only; nothing is ever sent to a broker.
 

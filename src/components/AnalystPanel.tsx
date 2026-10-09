@@ -33,7 +33,7 @@ export function AnalystPanel({ analysis: a, stats, lastSignal, symbol, tfLabel, 
         <RobotIcon side={side} size={44} />
         <div className="verdict-main">
           <span className="verdict-sub">
-            AI view on {symbol} · {tfLabel} chart
+            Arc view on {symbol} · {tfLabel} chart
           </span>
           <span className="verdict-word">{a.verdict}</span>
         </div>
@@ -146,7 +146,7 @@ export function AnalystPanel({ analysis: a, stats, lastSignal, symbol, tfLabel, 
         </div>
       </details>
 
-      <p className="disclaimer">Not financial advice. This is an automated read of price and volume patterns, which often fail. Only trade money you can afford to lose.</p>
+      <p className="disclaimer">Research, not advice. Arc Analyst is an automated read of price and volume patterns, which often fail. Only trade money you can afford to lose.</p>
     </div>
   )
 }

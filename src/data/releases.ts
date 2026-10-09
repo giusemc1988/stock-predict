@@ -2,7 +2,7 @@
  * Version and "What's new". Bump APP_VERSION and add an entry to the top of RELEASES
  * with each update. The banner shows once per version, then stays dismissed.
  */
-export const APP_VERSION = '0.8.0'
+export const APP_VERSION = '0.9.0'
 
 export interface Release {
   version: string
@@ -13,6 +13,18 @@ export interface Release {
 }
 
 export const RELEASES: Release[] = [
+  {
+    version: '0.9.0',
+    date: '2026-10-09',
+    changes: [
+      'Bluechip is now Arc Analyst: new arc-reactor logo, app icon and navy and gold colors.',
+      'Research, not promises. Paper trading only.',
+    ],
+    changesVi: [
+      'Bluechip nay là Arc Analyst: logo lò phản ứng hồ quang mới, biểu tượng ứng dụng và màu xanh navy với vàng.',
+      'Nghiên cứu, không hứa hẹn. Chỉ giao dịch thử nghiệm.',
+    ],
+  },
   {
     version: '0.8.0',
     date: '2026-10-09',
