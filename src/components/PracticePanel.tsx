@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { setAiRules, type AiRules } from '../lib/aiRules'
 import { useLang } from '../lib/i18n'
-import { exitReasonLabel, lessons, MAX_BARS, PRACTICE_START, practiceEquity, practiceReport, type GroupRow, type PracticeState, type PracticeTrade } from '../lib/practice'
+import { dayKey, exitReasonLabel, kindOf, lessons, LONG_WIDTH, MAX_BARS, PRACTICE_START, practiceEquity, practiceReport, type GroupRow, type PracticeKind, type PracticeState, type PracticeTrade } from '../lib/practice'
 
 type Tab = 'live' | 'report' | 'trades'
 
@@ -45,17 +45,40 @@ export function PracticePanel({ state, rules, symbol, priceOf, onReset }: Props)
   const when = (ms: number) => new Date(ms).toLocaleString(lang === 'vi' ? 'vi-VN' : 'en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })
   const [tab, setTab] = useState<Tab>('live')
   const [confirmReset, setConfirmReset] = useState(false)
+  const [only, setOnly] = useState<'all' | PracticeKind>('all')
   const on = rules.practiceMode
-  const r = practiceReport(state)
+  const r = practiceReport(state, only === 'all' ? undefined : only)
+  const shownTrades = only === 'all' ? state.trades : state.trades.filter((t) => kindOf(t) === only)
+  const curve = shownTrades.reduce((pts, t) => [...pts, { t: t.closedAt, equity: pts[pts.length - 1].equity + t.pnl }], [{ t: 0, equity: PRACTICE_START }])
+  const kindName = (k: PracticeKind) => (k === 'day' ? L('Day trade', 'Trong ngày') : L('Long-term', 'Dài hạn'))
+  const kindBadge = (k: PracticeKind) => <span className={`pr-kindtag ${k}`}>{kindName(k)}</span>
+  // today's quota use, counted on the US Eastern trading day
+  const [today] = useState(() => dayKey(Date.now()))
+  const usedToday = (k: PracticeKind) => [...state.trades, ...state.open].filter((t) => kindOf(t) === k && dayKey(t.openedAt) === today).length
+  const filterBar = (
+    <div className="pr-filter" role="group">
+      {(
+        [
+          ['all', 'All trades', 'Tất cả'],
+          ['day', 'Day trades', 'Trong ngày'],
+          ['long', 'Long-term', 'Dài hạn'],
+        ] as const
+      ).map(([id, en, vi]) => (
+        <button key={id} className={only === id ? 'on' : ''} onClick={() => setOnly(id)}>
+          {L(en, vi)}
+        </button>
+      ))}
+    </div>
+  )
   const equity = practiceEquity(state)
   const openPnl = state.open.reduce((a, p) => {
     const now = priceOf(p.symbol)
     return a + (now > 0 ? (now - p.entry) * p.qty : 0)
   }, 0)
-  const wins = state.trades.filter((t) => t.pnl > 0)
-  const fails = state.trades.filter((t) => t.pnl <= 0)
+  const wins = shownTrades.filter((t) => t.pnl > 0)
+  const fails = shownTrades.filter((t) => t.pnl <= 0)
 
-  const toggle = (key: 'practiceMode' | 'practiceOnChart' | 'practiceFeed', label: string) => (
+  const toggle = (key: 'practiceMode' | 'practiceOnChart' | 'practiceFeed' | 'practiceDayOn' | 'practiceLongOn', label: string) => (
     <label className="al-toggle">
       <span>{label}</span>
       <span className="switch">
@@ -95,6 +118,7 @@ export function PracticePanel({ state, rules, symbol, priceOf, onReset }: Props)
   const tradeRow = (t: PracticeTrade) => (
     <li key={t.id} className={`pr-trade ${t.pnl > 0 ? 'win' : 'loss'}`}>
       <div className="pr-trade-head">
+        {kindBadge(kindOf(t))}
         <b>{t.symbol}</b>
         <span className="muted">{t.tf}</span>
         <span className="muted">{when(t.closedAt)}</span>
@@ -146,8 +170,8 @@ export function PracticePanel({ state, rules, symbol, priceOf, onReset }: Props)
               <p className="muted al-note">
                 {on
                   ? L(
-                      `Decides on each closed bar of the chart you have open (${symbol}), ${rules.practiceSizePct}% of the practice account per trade, exits at stop, target, a SELL call or after ${MAX_BARS} bars.`,
-                      `Quyết định ở mỗi nến đóng trên biểu đồ đang mở (${symbol}), ${rules.practiceSizePct}% tài khoản luyện tập mỗi lệnh, thoát ở cắt lỗ, chốt lời, lệnh BÁN hoặc sau ${MAX_BARS} nến.`,
+                      `Decides on each closed bar of the chart you have open (${symbol}), ${rules.practiceSizePct}% of the practice account per trade. Each day: the first AI BUY becomes the long-term trade (stop and target ${LONG_WIDTH}x wider, held up to ${rules.practiceHoldDays} days), the next BUYs become up to ${rules.practiceDayTrades} day trades that exit at stop, target, a SELL call, after ${MAX_BARS} bars, or before market close. It only trades when the AI says BUY, so some days have fewer.`,
+                      `Quyết định ở mỗi nến đóng trên biểu đồ đang mở (${symbol}), ${rules.practiceSizePct}% tài khoản luyện tập mỗi lệnh. Mỗi ngày: lệnh MUA đầu tiên của AI thành lệnh dài hạn (cắt lỗ và chốt lời rộng gấp ${LONG_WIDTH}, giữ tối đa ${rules.practiceHoldDays} ngày), các lệnh MUA sau thành tối đa ${rules.practiceDayTrades} lệnh trong ngày, thoát ở cắt lỗ, chốt lời, lệnh BÁN, sau ${MAX_BARS} nến hoặc trước giờ đóng cửa. AI chỉ giao dịch khi nói MUA, nên có ngày ít lệnh hơn.`,
                     )
                   : L('Turn it on to let the AI place practice orders. Also in Settings > AI rules.', 'Bật lên để AI đặt lệnh luyện tập. Cũng có trong Cài đặt > Quy tắc AI.')}
               </p>
@@ -163,6 +187,18 @@ export function PracticePanel({ state, rules, symbol, priceOf, onReset }: Props)
           <div className="pr-subtoggles">
             {toggle('practiceOnChart', L('Orders on chart', 'Lệnh trên biểu đồ'))}
             {toggle('practiceFeed', L('Order pop-ups', 'Thông báo lệnh'))}
+            {toggle('practiceDayOn', L('Day trades', 'Lệnh trong ngày'))}
+            {toggle('practiceLongOn', L('Long-term trade', 'Lệnh dài hạn'))}
+          </div>
+          <div className="al-tiles">
+            <div>
+              <span>{L('Day trades today', 'Lệnh trong ngày hôm nay')}</span>
+              <b>{rules.practiceDayOn ? `${usedToday('day')} / ${rules.practiceDayTrades}` : L('off', 'tắt')}</b>
+            </div>
+            <div>
+              <span>{L('Long-term today', 'Dài hạn hôm nay')}</span>
+              <b>{rules.practiceLongOn ? `${usedToday('long')} / ${rules.practiceLongTrades}` : L('off', 'tắt')}</b>
+            </div>
           </div>
 
           <div className="al-tiles">
@@ -195,6 +231,7 @@ export function PracticePanel({ state, rules, symbol, priceOf, onReset }: Props)
                 <thead>
                   <tr>
                     <th>{L('Market', 'Mã')}</th>
+                    <th>{L('Type', 'Loại')}</th>
                     <th>{L('Entry', 'Vào')}</th>
                     <th>{L('Stop / target', 'Cắt lỗ / chốt')}</th>
                     <th>P&L</th>
@@ -208,6 +245,10 @@ export function PracticePanel({ state, rules, symbol, priceOf, onReset }: Props)
                       <tr key={p.id}>
                         <td>
                           <b>{p.symbol}</b> <span className="muted">{p.tf}</span>
+                        </td>
+                        <td>
+                          {kindBadge(kindOf(p))}
+                          {p.closeBy != null && <div className="muted pr-time">{L('by', 'trước')} {when(p.closeBy)}</div>}
                         </td>
                         <td>{px(p.entry)}</td>
                         <td>
@@ -243,6 +284,7 @@ export function PracticePanel({ state, rules, symbol, priceOf, onReset }: Props)
 
       {tab === 'report' && (
         <>
+          {filterBar}
           <div className="al-tiles">
             <div>
               <span>{L('Trades', 'Lệnh')}</span>
@@ -271,7 +313,7 @@ export function PracticePanel({ state, rules, symbol, priceOf, onReset }: Props)
           </div>
           <div className="al-card">
             <div className="al-kicker">{L('P&L OVER TIME', 'LÃI/LỖ THEO THỜI GIAN')}</div>
-            {state.curve.length < 2 ? <p className="muted al-note">{L('The curve starts after the first closed trade.', 'Đường cong bắt đầu sau lệnh đóng đầu tiên.')}</p> : <Curve points={state.curve} />}
+            {curve.length < 2 ? <p className="muted al-note">{L('The curve starts after the first closed trade.', 'Đường cong bắt đầu sau lệnh đóng đầu tiên.')}</p> : <Curve points={curve} />}
           </div>
           <div className="al-card">
             <div className="al-kicker">{L('WHAT IT LEARNED', 'AI ĐÃ HỌC GÌ')}</div>
@@ -281,6 +323,7 @@ export function PracticePanel({ state, rules, symbol, priceOf, onReset }: Props)
               ))}
             </ul>
           </div>
+          {only === 'all' && groupTable(L('DAY TRADES VS LONG-TERM', 'TRONG NGÀY SO VỚI DÀI HẠN'), r.byKind, (k) => kindName(k as PracticeKind))}
           {groupTable(L('BY TRADE SCORE GRADE', 'THEO HẠNG ĐIỂM GIAO DỊCH'), r.byGrade)}
           {groupTable(L('BY HOW IT EXITED', 'THEO CÁCH THOÁT LỆNH'), r.byExit, (k) => {
             const lab = exitReasonLabel[k as keyof typeof exitReasonLabel]
@@ -294,6 +337,7 @@ export function PracticePanel({ state, rules, symbol, priceOf, onReset }: Props)
 
       {tab === 'trades' && (
         <>
+          {filterBar}
           <div className="al-card">
             <div className="al-kicker">
               {L('SUCCESSFUL', 'THÀNH CÔNG')} ({wins.length})

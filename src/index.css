@@ -708,3 +708,8 @@ body {
 .practice-flash.sell.loss b { color: var(--down); }
 @keyframes practice-flash { 0% { opacity: 0; transform: translate(-50%, -12px) scale(0.92); } 8% { opacity: 1; transform: translate(-50%, 0) scale(1.04); } 14% { transform: translate(-50%, 0) scale(1); } 80% { opacity: 1; } 100% { opacity: 0; transform: translate(-50%, -6px); } }
 @media (prefers-reduced-motion: reduce) { .live-dot, .pr-feed li { animation: none; } .chart-wrap .practice-flash { animation-duration: 0.01s; animation-delay: 4s; } }
+.pr-kindtag { display: inline-block; font: 700 9px var(--mono); letter-spacing: 0.04em; text-transform: uppercase; padding: 1px 5px; border-radius: 4px; color: var(--robot); background: rgba(79, 209, 255, 0.1); white-space: nowrap; }
+.pr-kindtag.long { color: var(--gold); background: rgba(240, 185, 11, 0.12); }
+.pr-filter { display: flex; gap: 4px; margin-bottom: 8px; }
+.pr-filter button { flex: 1; padding: 6px 4px; font-size: 11px; border: 1px solid var(--line-2); border-radius: 6px; color: var(--muted); }
+.pr-filter button.on { color: var(--robot); border-color: var(--robot); background: rgba(79, 209, 255, 0.08); }

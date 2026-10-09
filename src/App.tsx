@@ -26,7 +26,7 @@ import { AutoLearnPanel } from './components/AutoLearnPanel'
 import { useAutoLearning } from './hooks/useAutoLearning'
 import { usePractice } from './hooks/usePractice'
 import { PracticePanel } from './components/PracticePanel'
-import type { PracticeEvent } from './lib/practice'
+import { kindOf, type PracticeEvent } from './lib/practice'
 import type { PracticeOverlay } from './components/ChartPanel'
 import { useLang, useT } from './lib/i18n'
 import { AIPicks } from './components/AIPicks'
@@ -235,6 +235,7 @@ export default function App() {
   const practice = usePractice({
     rules: aiRules,
     symbol: inst.symbol,
+    asset: inst.assetClass,
     tf: prefs.tf,
     candles,
     analysis,
@@ -246,6 +247,7 @@ export default function App() {
     maxTradesPerDay: aiRules.maxTradesPerDay,
     onEvent: onPracticeEvent,
   })
+  const kindTag = (x: { kind?: 'day' | 'long' }) => (kindOf(x) === 'day' ? (lang === 'vi' ? 'Ngày' : 'Day') : lang === 'vi' ? 'Dài' : 'Long')
   const practiceOverlay: PracticeOverlay | null = !aiRules.practiceOnChart
     ? null
     : {
@@ -253,17 +255,17 @@ export default function App() {
           ...practice.state.trades
             .filter((x) => x.symbol === inst.symbol && x.tf === prefs.tf)
             .flatMap((x) => [
-              { time: x.barTime, side: 'buy' as const, text: 'P' },
-              { time: x.exitBarTime, side: 'sell' as const, text: `P ${x.pnl >= 0 ? '+' : '−'}$${Math.abs(x.pnl).toFixed(0)}` },
+              { time: x.barTime, side: 'buy' as const, text: kindTag(x) },
+              { time: x.exitBarTime, side: 'sell' as const, text: `${kindTag(x)} ${x.pnl >= 0 ? '+' : '−'}$${Math.abs(x.pnl).toFixed(0)}` },
             ]),
-          ...practice.state.open.filter((x) => x.symbol === inst.symbol && x.tf === prefs.tf).map((x) => ({ time: x.barTime, side: 'buy' as const, text: 'P' })),
+          ...practice.state.open.filter((x) => x.symbol === inst.symbol && x.tf === prefs.tf).map((x) => ({ time: x.barTime, side: 'buy' as const, text: kindTag(x) })),
         ],
         lines: practice.state.open
           .filter((x) => x.symbol === inst.symbol)
           .flatMap((x) => [
-            { price: x.entry, color: '#f0b90b', title: lang === 'vi' ? 'LT vào' : 'Practice in' },
-            { price: x.stop, color: '#f6465d', title: lang === 'vi' ? 'LT cắt lỗ' : 'Practice stop' },
-            { price: x.target, color: '#0ecb81', title: lang === 'vi' ? 'LT chốt lời' : 'Practice target' },
+            { price: x.entry, color: '#f0b90b', title: `${kindTag(x)} ${lang === 'vi' ? 'vào' : 'in'}` },
+            { price: x.stop, color: '#f6465d', title: `${kindTag(x)} ${lang === 'vi' ? 'cắt lỗ' : 'stop'}` },
+            { price: x.target, color: '#0ecb81', title: `${kindTag(x)} ${lang === 'vi' ? 'chốt lời' : 'target'}` },
           ]),
         flash: flash && flash.symbol === inst.symbol ? flash : null,
         flashText: flash ? (lang === 'vi' ? flash.vi : flash.en) : '',

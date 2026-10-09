@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import type { Analysis, Candle } from '../types'
+import type { Analysis, AssetClass, Candle } from '../types'
 import type { AiRules } from '../lib/aiRules'
 import { baseRate, decide, type JournalEntry } from '../lib/journal'
 import { emptyPractice, onBarClose, onPrice, parsePractice, type PracticeEvent, type PracticeState } from '../lib/practice'
@@ -17,6 +17,7 @@ function load(): PracticeState {
 interface Args {
   rules: AiRules
   symbol: string
+  asset: AssetClass
   tf: string
   candles: Candle[]
   analysis: Analysis | null
@@ -31,7 +32,7 @@ interface Args {
 }
 
 /** Runs practice mode while the app is open: decides on each closed bar, exits on live prices. */
-export function usePractice({ rules, symbol, tf, candles, analysis, liveScore, journal, priceOf, quotesKey, killSwitch, maxTradesPerDay, onEvent }: Args) {
+export function usePractice({ rules, symbol, asset, tf, candles, analysis, liveScore, journal, priceOf, quotesKey, killSwitch, maxTradesPerDay, onEvent }: Args) {
   const [state, setState] = useState<PracticeState>(load)
   const on = rules.practiceMode
 
@@ -56,8 +57,8 @@ export function usePractice({ rules, symbol, tf, candles, analysis, liveScore, j
   }, [state.events, onEvent])
 
   // decide once per closed bar on the open chart
-  const ctx = useRef({ analysis, liveScore, journal, rules, killSwitch, maxTradesPerDay })
-  ctx.current = { analysis, liveScore, journal, rules, killSwitch, maxTradesPerDay }
+  const ctx = useRef({ analysis, liveScore, journal, rules, killSwitch, maxTradesPerDay, asset })
+  ctx.current = { analysis, liveScore, journal, rules, killSwitch, maxTradesPerDay, asset }
   const n = candles.length
   const closed = n > 1 ? candles[n - 2] : null
   const seen = useRef('')
@@ -84,6 +85,12 @@ export function usePractice({ rules, symbol, tf, candles, analysis, liveScore, j
         barTime: closed.time,
         analysis: c.analysis,
         learner,
+        asset: c.asset,
+        dayOn: c.rules.practiceDayOn,
+        dayTrades: c.rules.practiceDayTrades,
+        longOn: c.rules.practiceLongOn,
+        longTrades: c.rules.practiceLongTrades,
+        holdDays: c.rules.practiceHoldDays,
         sizePct: c.rules.practiceSizePct,
         gatesOn: c.rules.gatesOn,
         maxDrawdownPct: c.rules.maxDrawdownPct,
@@ -94,8 +101,15 @@ export function usePractice({ rules, symbol, tf, candles, analysis, liveScore, j
     )
   }, [closed, symbol, tf, on])
 
-  // stops and targets on every live price, for every market with an open practice trade
+  // stops and targets on every live price, for every market with an open practice trade,
+  // plus a once-a-minute check so day trades close before market close even when prices stop moving
   const lastBar = n ? candles[n - 1].time : 0
+  const [minute, setMinute] = useState(0)
+  useEffect(() => {
+    if (!on) return
+    const id = setInterval(() => setMinute((m) => m + 1), 60_000)
+    return () => clearInterval(id)
+  }, [on])
   useEffect(() => {
     if (!on) return
     setState((s) => {
@@ -107,7 +121,7 @@ export function usePractice({ rules, symbol, tf, candles, analysis, liveScore, j
       }
       return cur
     })
-  }, [on, priceOf, quotesKey, symbol, lastBar])
+  }, [on, priceOf, quotesKey, symbol, lastBar, minute])
 
   const reset = useCallback(() => setState(emptyPractice()), [])
   return { state, reset }
