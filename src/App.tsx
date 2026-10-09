@@ -26,6 +26,7 @@ import { AIPicks } from './components/AIPicks'
 import { WhatsNew } from './components/WhatsNew'
 import { SettingsModal } from './components/SettingsModal'
 import { Toasts, type Toast } from './components/Toasts'
+import { useT } from './lib/i18n'
 
 const NO_CANDLES: Candle[] = []
 
@@ -58,6 +59,7 @@ const DEFAULT_PREFS: Prefs = {
 let toastSeq = 0
 
 export default function App() {
+  const t = useT()
   const [prefs, setPrefs] = useLocalStorage<Prefs>('bluechip.prefs', DEFAULT_PREFS)
   const [keys, setKeys] = useLocalStorage<ApiKeys>('bluechip.keys', { alphaVantage: '', finnhub: '' })
   const [alpacaKeys, setAlpacaKeys] = useLocalStorage<AlpacaKeys>('bluechip.alpaca', { keyId: '', secret: '' })
@@ -264,19 +266,19 @@ export default function App() {
           <aside className="panel right">
             <div className="right-tabs">
               <button className={rightTab === 'ai' ? 'on' : ''} onClick={() => setRightTab('ai')}>
-                AI Analyst
+                {t('aiAnalyst')}
               </button>
               <button className={rightTab === 'flow' ? 'on' : ''} onClick={() => setRightTab('flow')}>
-                Buyers &amp; Sellers
+                {t('buyersSellers')}
               </button>
               <button className={rightTab === 'trade' ? 'on' : ''} onClick={() => setRightTab('trade')}>
-                Trade
+                {t('trade')}
               </button>
               <button className={rightTab === 'learn' ? 'on' : ''} onClick={() => setRightTab('learn')}>
-                Learning
+                {t('learning')}
               </button>
               <button className={rightTab === 'picks' ? 'on' : ''} onClick={() => setRightTab('picks')}>
-                AI Picks
+                {t('aiPicks')}
               </button>
             </div>
             <div className="right-body">

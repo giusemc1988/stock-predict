@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { APP_VERSION } from '../data/releases'
+import { useT } from '../lib/i18n'
 
 /** What the AI has tested and learned, read from public/learning.json (refreshed by the daily run). */
 interface Learning {
@@ -20,6 +21,7 @@ interface Stats {
 const pct = (x?: number) => (x === undefined ? '–' : `${(x * 100).toFixed(1)}%`)
 
 export function LearningPanel() {
+  const t = useT()
   const [data, setData] = useState<Learning | null>(null)
   const [error, setError] = useState<string | null>(null)
 
@@ -35,16 +37,18 @@ export function LearningPanel() {
 
   return (
     <div className="learning">
-      <p className="muted">App v{APP_VERSION}. Data updated {data.updated}. Paper research only, not financial advice.</p>
+      <p className="muted">
+        {t('learnUpdated')} v{APP_VERSION}. {t('learnDataUpdated')} {data.updated}. {t('learnPaper')}
+      </p>
       <p>{data.method}</p>
 
-      <h4>Direction models (accuracy vs always-up)</h4>
+      <h4>{t('directionModels')}</h4>
       <table>
         <thead>
           <tr>
-            <th>Horizon</th>
-            <th>Always up</th>
-            <th>Logistic</th>
+            <th>{t('horizon')}</th>
+            <th>{t('alwaysUp')}</th>
+            <th>{t('logistic')}</th>
             <th>AUC</th>
           </tr>
         </thead>
@@ -60,17 +64,19 @@ export function LearningPanel() {
         </tbody>
       </table>
 
-      <h4>Journal learner replay, by year</h4>
+      <h4>{t('replayTitle')}</h4>
       {Object.entries(data.replay.results).map(([h, years]) => (
         <details key={h}>
-          <summary>{h}-day horizon</summary>
+          <summary>
+            {h} {t('horizonDay')}
+          </summary>
           <table>
             <thead>
               <tr>
-                <th>Year</th>
-                <th>Learner trades</th>
-                <th>Learner hit rate</th>
-                <th>Always-buy hit rate</th>
+                <th>{t('year')}</th>
+                <th>{t('learnerTrades')}</th>
+                <th>{t('learnerHit')}</th>
+                <th>{t('alwaysBuyHit')}</th>
               </tr>
             </thead>
             <tbody>
@@ -87,16 +93,16 @@ export function LearningPanel() {
         </details>
       ))}
 
-      <h4>What we learned</h4>
+      <h4>{t('lessons')}</h4>
       <ul>
         {data.lessons.map((l) => (
           <li key={l}>{l}</li>
         ))}
       </ul>
 
-      <h4>Daily runs</h4>
+      <h4>{t('dailyRuns')}</h4>
       {data.daily.length === 0 ? (
-        <p className="muted">No daily runs recorded yet.</p>
+        <p className="muted">{t('noDailyRuns')}</p>
       ) : (
         <ul>
           {data.daily.map((d) => (

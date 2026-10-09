@@ -21,6 +21,7 @@ import { barBuyVolume, hasRealBuyVolume } from '../lib/orderflow'
 import { RobotIcon } from './RobotIcon'
 import { sma, stdev } from '../lib/indicators'
 import { loadChartConfig, saveChartConfig, type ChartConfig } from '../lib/chartConfig'
+import { useT } from '../lib/i18n'
 
 const COLORS = {
   up: '#0ecb81',
@@ -75,6 +76,7 @@ function NumField({ label, value, min, max, step, onCommit }: { label: string; v
 }
 
 export function ChartPanel(props: Props) {
+  const t = useT()
   const { symbol, tf, candles, signals, prediction, emaFast, emaSlow, showEmas, showForecast, showRobots } = props
   const host = useRef<HTMLDivElement>(null)
   const overlay = useRef<HTMLDivElement>(null)
@@ -345,17 +347,17 @@ export function ChartPanel(props: Props) {
           Bollinger {cfg.bollinger.period}
         </button>
         <button className={cfg.volume ? 'on' : ''} onClick={() => updateCfg({ ...cfg, volume: !cfg.volume })}>
-          Volume
+          {t('volume')}
         </button>
-        <button className={settings ? 'on' : ''} onClick={() => setSettings((v) => !v)} aria-label="Chart settings">
-          Settings
+        <button className={settings ? 'on' : ''} onClick={() => setSettings((v) => !v)} aria-label={t('chartSettings')}>
+          {t('settings')}
         </button>
         {settings && (
           <div className="chart-settings">
-            <NumField label="SMA period" value={cfg.sma.period} min={2} max={200} step={1} onCommit={(v) => updateCfg({ ...cfg, sma: { ...cfg.sma, period: v } })} />
-            <NumField label="Bollinger period" value={cfg.bollinger.period} min={2} max={200} step={1} onCommit={(v) => updateCfg({ ...cfg, bollinger: { ...cfg.bollinger, period: v } })} />
-            <NumField label="Bollinger width (σ)" value={cfg.bollinger.mult} min={0.5} max={4} step={0.5} onCommit={(v) => updateCfg({ ...cfg, bollinger: { ...cfg.bollinger, mult: v } })} />
-            <p className="muted">Saved in this browser. Periods are clamped to 2–200 when loaded.</p>
+            <NumField label={t('smaPeriod')} value={cfg.sma.period} min={2} max={200} step={1} onCommit={(v) => updateCfg({ ...cfg, sma: { ...cfg.sma, period: v } })} />
+            <NumField label={t('bollPeriod')} value={cfg.bollinger.period} min={2} max={200} step={1} onCommit={(v) => updateCfg({ ...cfg, bollinger: { ...cfg.bollinger, period: v } })} />
+            <NumField label={t('bollWidth')} value={cfg.bollinger.mult} min={0.5} max={4} step={0.5} onCommit={(v) => updateCfg({ ...cfg, bollinger: { ...cfg.bollinger, mult: v } })} />
+            <p className="muted">{t('savedHere')}</p>
           </div>
         )}
       </div>
