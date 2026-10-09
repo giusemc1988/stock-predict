@@ -6,7 +6,7 @@
  * this chart (walk-forward hit rate). Near 50% means "coin flip", and the call is
  * labelled low confidence accordingly. Educational only, not financial advice.
  */
-import type { Analysis, AnalystCheck, Candle, OrderFlow, Prediction, StrategyResult, Verdict } from '../types'
+import type { Analysis, AnalystCheck, Candle, OrderFlow, Prediction, Sizing, StrategyResult, Verdict } from '../types'
 import { ema, macd, rsi } from './indicators'
 import { bookImbalance, hasRealBuyVolume, recentBuyShare } from './orderflow'
 import { fmtPrice } from './format'
@@ -129,12 +129,15 @@ export function analyze(candles: Candle[], strat: StrategyResult, live: Predicti
         ? { entry: last, stop: last - 1.5 * atr, target: last + 3 * atr, riskReward: 2 }
         : { entry: last, stop: last + 1.5 * atr, target: last - 3 * atr, riskReward: 2 }
 
+  // Buy-and-hold check: if simply holding did better, the model shows no edge on this chart.
+  const beatenByHold = strat.stats.trades > 0 && strat.stats.totalReturnPct < strat.stats.buyHoldPct
+  const sizing = plan ? sizeFor(plan.entry, plan.stop, strat.stats.trades, beatenByHold) : null
   const trackRecord =
-    acc === 0
+    (acc === 0
       ? 'Not enough history yet to grade the model on this chart.'
       : `On this chart the model's past calls were right ${pct(acc)} of the time (a coin flip is 50%). ${
           acc < 0.55 ? 'That is barely better than chance, so treat this as a lean, not a forecast.' : 'Useful, but past accuracy does not guarantee future results.'
-        }`
+        }`) + (beatenByHold ? ' Buying and holding did better than the model here, so there is no edge on this chart.' : '')
 
   return {
     verdict,
@@ -144,8 +147,36 @@ export function analyze(candles: Candle[], strat: StrategyResult, live: Predicti
     headline,
     checks: checks.map(({ label, detail, stance }) => ({ label, detail, stance })),
     plan,
+    sizing,
     trackRecord,
   }
+}
+
+const RISK_PER_TRADE = 0.01 // risk at most 1% of the account on one idea
+const SINGLE_POSITION_CAP = 0.1 // one position at most 10% of the account
+const THIN_RECORD_CAP = 0.05 // half the cap until the model has a longer record
+const MIN_SAMPLE = 30 // trades needed before the normal cap applies
+
+/**
+ * Sizing ladder: take the smallest of the limits and say which one binds. Kelly is
+ * deliberately not used: the model's accuracy is per bar, not per trade, so a Kelly
+ * fraction from it would overstate the edge. Educational only, not financial advice.
+ */
+export function sizeFor(entry: number, stop: number, trades: number, noEdge: boolean): Sizing | null {
+  const stopPct = Math.abs(entry - stop) / entry
+  if (!(stopPct > 0)) return null
+  const riskCap = RISK_PER_TRADE / stopPct
+  const notes = [`Fixed risk: 1% of the account at a ${(stopPct * 100).toFixed(1)}% stop allows ${pct(Math.min(riskCap, 1))} of it.`]
+  if (noEdge) return { pctOfAccount: 0, binding: 'no-edge', notes: [...notes, 'Buying and holding beat the model here, so no position is sized.'] }
+
+  const proven = trades >= MIN_SAMPLE
+  const cap = proven ? SINGLE_POSITION_CAP : THIN_RECORD_CAP
+  notes.push(
+    proven
+      ? `Position cap: ${pct(SINGLE_POSITION_CAP)} of the account.`
+      : `Only ${trades} trades so far (needs ${MIN_SAMPLE}+), so the cap is ${pct(THIN_RECORD_CAP)}. Paper trade first.`,
+  )
+  return { pctOfAccount: Math.min(riskCap, cap), binding: riskCap <= cap ? 'risk' : 'cap', notes }
 }
 
 const name = (c: AnalystCheck) => (c.label === 'AI model' ? 'the AI model' : c.label.toLowerCase())
