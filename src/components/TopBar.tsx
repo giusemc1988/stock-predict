@@ -2,6 +2,7 @@ import type { Analysis, FeedStatus, Instrument, Quote, Timeframe } from '../type
 import { TIMEFRAMES } from '../types'
 import { fmtCompact, fmtPct, fmtPrice, fmtSigned, fmtUsd, tone } from '../lib/format'
 import { ArcLogo } from './ArcLogo'
+import { APP_VERSION } from '../data/releases'
 import { RobotIcon } from './RobotIcon'
 import { useT } from '../lib/i18n'
 
@@ -37,7 +38,9 @@ export function TopBar({ inst, quote, lastPrice, tf, onTf, status, source, error
         <ArcLogo size={28} />
         <div>
           <b>Arc Analyst</b>
-          <span>Research, not promises</span>
+          <span>
+            Research, not promises · <i className="app-ver">v{APP_VERSION}</i>
+          </span>
         </div>
       </div>
       <nav className="nav">

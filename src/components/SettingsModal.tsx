@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import type { ApiKeys } from '../data/providers'
 import { setLang, useLang, useT } from '../lib/i18n'
+import { APP_VERSION } from '../data/releases'
 
 /** Alpaca key IDs start with PK (paper) or AK (live); they don't work as Alpha Vantage or Finnhub keys. */
 const looksAlpaca = (v: string) => /^(PK|AK)[A-Z0-9]{14,}$/i.test(v)
@@ -58,6 +59,9 @@ export function SettingsModal({ keys, onSave, onClose, onOpenAiRules }: { keys: 
           <input value={draft.finnhub} onChange={(e) => setDraft({ ...draft, finnhub: e.target.value.trim() })} placeholder="Real-time stock trades + quotes" />
           {looksAlpaca(draft.finnhub) && <small className="warn">This looks like an Alpaca key. Put it on the Portfolio page instead.</small>}
         </label>
+        <p className="muted tiny">
+          {t('appVersion')} v{APP_VERSION}
+        </p>
         <div className="modal-actions">
           <button onClick={onClose}>Cancel</button>
           <button
