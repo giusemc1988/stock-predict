@@ -3,6 +3,7 @@
  *  - Binance public market data (keyless, REST + WebSocket) for crypto pairs.
  *  - Alpha Vantage (free API key) for US stock candles, polled.
  *  - Finnhub (free API key) for real-time US stock trades + quotes.
+ *  - Alpaca market data (the paper brokerage keys) for US stock candles + quotes.
  *  - Demo feed fallback so the app always runs.
  */
 import type { Candle, Instrument, Timeframe } from '../types'
@@ -257,3 +258,74 @@ export function finnhubTrades(symbol: string, key: string, onTrade: TradeListene
 }
 
 export const supportsLive = (inst: Instrument, keys: ApiKeys) => inst.assetClass === 'crypto' || !!keys.alphaVantage || !!keys.finnhub
+
+// ---------- Alpaca market data (free IEX feed, same paper keys as the brokerage) ----------
+
+export interface AlpacaDataKeys {
+  keyId: string
+  secret: string
+}
+
+/** Paper keys start with PK; anything else (empty, live AK keys) is not used for data. */
+export const hasAlpacaData = (k: AlpacaDataKeys) => /^PK/i.test(k.keyId) && !!k.secret
+
+const ALPACA_DATA = 'https://data.alpaca.markets'
+const ALPACA_TF: Record<Timeframe, string> = { '1m': '1Min', '5m': '5Min', '15m': '15Min', '1h': '1Hour', '4h': '4Hour', '1d': '1Day' }
+// how far back to ask for so ~1000 bars come back once nights and weekends are skipped
+const ALPACA_LOOKBACK_DAYS: Record<Timeframe, number> = { '1m': 7, '5m': 30, '15m': 60, '1h': 200, '4h': 600, '1d': 1500 }
+
+async function alpacaData<T>(k: AlpacaDataKeys, path: string): Promise<T> {
+  const ctrl = new AbortController()
+  const t = setTimeout(() => ctrl.abort(), 10000)
+  try {
+    let res: Response
+    try {
+      res = await fetch(ALPACA_DATA + path, { signal: ctrl.signal, headers: { 'APCA-API-KEY-ID': k.keyId, 'APCA-API-SECRET-KEY': k.secret } })
+    } catch {
+      throw new Error('Could not reach Alpaca market data')
+    }
+    const body = await res.json().catch(() => ({}))
+    if (res.status === 401 || res.status === 403) throw new Error('Alpaca rejected the paper key (check key ID and secret)')
+    if (!res.ok) throw new Error(body.message || `Alpaca data error ${res.status}`)
+    return body as T
+  } finally {
+    clearTimeout(t)
+  }
+}
+
+interface AlpacaBar {
+  t: string
+  o: number
+  h: number
+  l: number
+  c: number
+  v: number
+}
+
+export async function alpacaStockCandles(symbol: string, tf: Timeframe, k: AlpacaDataKeys): Promise<Candle[]> {
+  const start = new Date(Date.now() - ALPACA_LOOKBACK_DAYS[tf] * 86400_000).toISOString()
+  const q = `timeframe=${ALPACA_TF[tf]}&start=${start}&limit=1000&sort=desc&feed=iex&adjustment=split`
+  const json = await alpacaData<{ bars: AlpacaBar[] | null }>(k, `/v2/stocks/${encodeURIComponent(symbol)}/bars?${q}`)
+  const rows = (json.bars ?? []).map((b) => ({ time: Math.floor(Date.parse(b.t) / 1000), open: b.o, high: b.h, low: b.l, close: b.c, volume: b.v })).reverse()
+  if (!rows.length) throw new Error(`Alpaca: no bars for ${symbol}`)
+  return rows
+}
+
+interface AlpacaSnap {
+  latestTrade?: { p: number }
+  dailyBar?: AlpacaBar
+  prevDailyBar?: AlpacaBar
+}
+
+/** Latest price and today's range for many symbols in one request. */
+export async function alpacaSnapshots(symbols: string[], k: AlpacaDataKeys) {
+  const json = await alpacaData<Record<string, AlpacaSnap>>(k, `/v2/stocks/snapshots?symbols=${symbols.map(encodeURIComponent).join(',')}&feed=iex`)
+  const out: Record<string, { last: number; open: number; high: number; low: number; volume: number }> = {}
+  for (const [sym, s] of Object.entries(json)) {
+    const last = s.latestTrade?.p ?? s.dailyBar?.c
+    if (!last) continue
+    // change is measured from yesterday's close, like the Finnhub quote
+    out[sym] = { last, open: s.prevDailyBar?.c ?? s.dailyBar?.o ?? last, high: s.dailyBar?.h ?? last, low: s.dailyBar?.l ?? last, volume: s.dailyBar?.v ?? 0 }
+  }
+  return out
+}

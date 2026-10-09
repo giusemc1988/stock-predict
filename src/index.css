@@ -162,6 +162,7 @@ a { color: var(--robot); }
 .field input { width: 100%; padding: 7px 10px; background: var(--panel-2); border: 1px solid var(--line); border-radius: 6px; outline: none; }
 .field input:focus { border-color: var(--accent); }
 .field input:disabled { color: var(--muted); }
+.field small.warn { display: block; margin-top: 4px; color: var(--gold); font-size: 11px; }
 .stepper { display: grid; grid-template-columns: 32px 1fr 32px; gap: 4px; }
 .stepper input { text-align: center; }
 .stepper button { background: var(--panel-2); border: 1px solid var(--line); border-radius: 6px; color: var(--muted); }

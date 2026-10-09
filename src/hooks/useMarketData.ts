@@ -2,8 +2,8 @@ import { useEffect, useRef, useState } from 'react'
 import type { Candle, FeedStatus, Instrument, Timeframe } from '../types'
 import { tfSeconds } from '../types'
 import { demoHistory, demoTick } from '../data/demo'
-import type { ApiKeys } from '../data/providers'
-import { alphaVantageCandles, binanceKlines, binanceStream, finnhubTrades } from '../data/providers'
+import type { AlpacaDataKeys, ApiKeys } from '../data/providers'
+import { alpacaStockCandles, alphaVantageCandles, binanceKlines, binanceStream, finnhubTrades, hasAlpacaData } from '../data/providers'
 
 export interface MarketData {
   candles: Candle[]
@@ -29,10 +29,13 @@ function applyTick(list: Candle[], price: number, volume: number, unixSec: numbe
   return next
 }
 
-export function useMarketData(inst: Instrument, tf: Timeframe, keys: ApiKeys): MarketData {
+export function useMarketData(inst: Instrument, tf: Timeframe, keys: ApiKeys, alpaca: AlpacaDataKeys): MarketData {
   const [state, setState] = useState<MarketData>({ candles: [], status: 'connecting', source: '', error: null, version: 0, key: '' })
   const keysRef = useRef(keys)
   keysRef.current = keys
+  const alpacaRef = useRef(alpaca)
+  alpacaRef.current = alpaca
+  const useAlpaca = hasAlpacaData(alpaca)
 
   useEffect(() => {
     let cancelled = false
@@ -79,7 +82,34 @@ export function useMarketData(inst: Instrument, tf: Timeframe, keys: ApiKeys): M
           )
           return
         }
-        // stocks
+        // stocks: Alpaca (paper keys) first, then Alpha Vantage
+        const addFinnhub = (base: string, idle: 'polling') => {
+          if (!k.finnhub) return
+          cleanups.push(
+            finnhubTrades(
+              inst.feedId,
+              k.finnhub,
+              (p, v, t) => set((s) => ({ candles: applyTick(s.candles, p, v, Math.floor(t / 1000), step) })),
+              (live) => set({ status: live ? 'live' : idle, source: live ? `${base} + Finnhub` : base }),
+            ),
+          )
+        }
+        if (useAlpaca) {
+          const candles = await alpacaStockCandles(inst.feedId, tf, alpacaRef.current)
+          if (cancelled) return
+          set({ candles, status: 'polling', source: 'Alpaca (IEX)', error: null })
+          const id = setInterval(async () => {
+            try {
+              const fresh = await alpacaStockCandles(inst.feedId, tf, alpacaRef.current)
+              set({ candles: fresh })
+            } catch {
+              /* keep last good data */
+            }
+          }, k.finnhub ? 60_000 : 15_000)
+          cleanups.push(() => clearInterval(id))
+          addFinnhub('Alpaca (IEX)', 'polling')
+          return
+        }
         if (k.alphaVantage) {
           const candles = await alphaVantageCandles(inst.feedId, tf, k.alphaVantage)
           if (cancelled) return
@@ -93,16 +123,7 @@ export function useMarketData(inst: Instrument, tf: Timeframe, keys: ApiKeys): M
             }
           }, 60_000)
           cleanups.push(() => clearInterval(id))
-          if (k.finnhub) {
-            cleanups.push(
-              finnhubTrades(
-                inst.feedId,
-                k.finnhub,
-                (p, v, t) => set((s) => ({ candles: applyTick(s.candles, p, v, Math.floor(t / 1000), step) })),
-                (live) => set({ status: live ? 'live' : 'polling', source: live ? 'Alpha Vantage + Finnhub' : 'Alpha Vantage' }),
-              ),
-            )
-          }
+          addFinnhub('Alpha Vantage', 'polling')
           return
         }
         startDemo(k.finnhub ? 'Add an Alpha Vantage key for stock history' : null)
@@ -115,7 +136,7 @@ export function useMarketData(inst: Instrument, tf: Timeframe, keys: ApiKeys): M
       cancelled = true
       cleanups.forEach((f) => f())
     }
-  }, [inst, tf, keys.alphaVantage, keys.finnhub])
+  }, [inst, tf, keys.alphaVantage, keys.finnhub, useAlpaca, alpaca.keyId, alpaca.secret])
 
   return state
 }

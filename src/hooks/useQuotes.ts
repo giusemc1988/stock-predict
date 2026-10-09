@@ -1,8 +1,8 @@
 import { useEffect, useRef, useState } from 'react'
 import type { Instrument, Quote } from '../types'
 import { demoHistory, demoPrice, demoSessionOpen, demoTick } from '../data/demo'
-import type { ApiKeys } from '../data/providers'
-import { binanceKlines, binanceStream, binanceTickers, finnhubQuote } from '../data/providers'
+import type { AlpacaDataKeys, ApiKeys } from '../data/providers'
+import { alpacaSnapshots, binanceKlines, binanceStream, binanceTickers, finnhubQuote, hasAlpacaData } from '../data/providers'
 
 const mkQuote = (symbol: string, price: number, open: number, high: number, low: number, volume: number, spark: number[], live: boolean): Quote => ({
   symbol,
@@ -17,10 +17,11 @@ const mkQuote = (symbol: string, price: number, open: number, high: number, low:
   updatedAt: Date.now(),
 })
 
-/** Watchlist quotes: Binance 24h tickers over WebSocket for crypto, Finnhub or the demo feed for stocks. */
-export function useQuotes(instruments: Instrument[], keys: ApiKeys) {
+/** Watchlist quotes: Binance 24h tickers over WebSocket for crypto; Alpaca, Finnhub or the demo feed for stocks. */
+export function useQuotes(instruments: Instrument[], keys: ApiKeys, alpaca: AlpacaDataKeys) {
   const [quotes, setQuotes] = useState<Record<string, Quote>>({})
   const demoSet = useRef(new Set<string>())
+  const useAlpaca = hasAlpacaData(alpaca)
 
   useEffect(() => {
     let cancelled = false
@@ -64,7 +65,30 @@ export function useQuotes(instruments: Instrument[], keys: ApiKeys) {
     })()
 
     // stocks
-    if (keys.finnhub) {
+    if (useAlpaca && stocks.length) {
+      let busy = false
+      const poll = async () => {
+        if (busy) return
+        busy = true
+        try {
+          const snaps = await alpacaSnapshots(stocks.map((s) => s.feedId), alpaca)
+          for (const s of stocks) {
+            const q = snaps[s.feedId]
+            if (q) {
+              demoSet.current.delete(s.symbol)
+              put(mkQuote(s.symbol, q.last, q.open, q.high, q.low, q.volume, [], true))
+            } else if (!demoSet.current.has(s.symbol)) seedDemo([s])
+          }
+        } catch {
+          seedDemo(stocks.filter((s) => !demoSet.current.has(s.symbol)))
+        } finally {
+          busy = false
+        }
+      }
+      poll()
+      const id = setInterval(poll, 10_000)
+      cleanups.push(() => clearInterval(id))
+    } else if (keys.finnhub) {
       const poll = async () => {
         for (const s of stocks) {
           try {
@@ -100,7 +124,7 @@ export function useQuotes(instruments: Instrument[], keys: ApiKeys) {
       cancelled = true
       cleanups.forEach((f) => f())
     }
-  }, [instruments, keys.finnhub])
+  }, [instruments, keys.finnhub, useAlpaca, alpaca.keyId, alpaca.secret])
 
   return quotes
 }

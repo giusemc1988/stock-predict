@@ -153,7 +153,7 @@ export function PortfolioPage(p: Props) {
                   <a href="https://app.alpaca.markets/signup" target="_blank" rel="noreferrer">
                     alpaca.markets
                   </a>
-                  , then copy your <b>paper</b> API key and secret here. Live keys are refused.
+                  , then copy your <b>paper</b> API key and secret here. Live keys are refused. The same key also feeds real US stock prices to the charts and watchlist.
                 </p>
                 <label className="field flush">
                   <span>API key ID</span>
