@@ -53,3 +53,25 @@ export function sortPicks(picks: Pick[], by: PickSort): Pick[] {
   if (by === 'success') return [...picks].sort((x, y) => y.winRate - x.winRate || y.trades - x.trades)
   return [...picks].sort((x, y) => RANK[x.verdict] - RANK[y.verdict] || y.score - x.score)
 }
+
+const PICKS_KEY = 'bluechip.picks'
+export const PICKS_EVENT = 'bluechip:picks'
+
+/** Last scan's results, kept so the watchlist can sort by them. Browser storage only. */
+export function savePicks(picks: Pick[]) {
+  try {
+    localStorage.setItem(PICKS_KEY, JSON.stringify({ at: Date.now(), picks }))
+    window.dispatchEvent(new Event(PICKS_EVENT))
+  } catch {
+    /* storage blocked: the list just stays unsorted by success */
+  }
+}
+
+export function loadPicks(): Pick[] {
+  try {
+    const raw = localStorage.getItem(PICKS_KEY)
+    return raw ? (JSON.parse(raw).picks as Pick[]) : []
+  } catch {
+    return []
+  }
+}

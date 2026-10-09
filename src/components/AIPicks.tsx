@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import type { Instrument, Candle, Timeframe } from '../types'
 import { binanceKlines, alphaVantageCandlesCached, alpacaStockCandles, hasAlpacaData, type AlpacaDataKeys, type ApiKeys } from '../data/providers'
-import { rankPicks, SMALL_SAMPLE, sortPicks, type Pick, type PickSort } from '../lib/picks'
+import { rankPicks, savePicks, SMALL_SAMPLE, sortPicks, type Pick, type PickSort } from '../lib/picks'
 
 interface Props {
   instruments: Instrument[]
@@ -38,7 +38,9 @@ export function AIPicks({ instruments, tf, keys, alpacaKeys, onOpen }: Props) {
       }
     }
     setSkipped(failed)
-    setPicks(rankPicks(series))
+    const ranked = rankPicks(series)
+    savePicks(ranked)
+    setPicks(ranked)
     setBusy(false)
   }
 
