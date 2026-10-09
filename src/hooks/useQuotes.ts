@@ -21,8 +21,6 @@ const mkQuote = (symbol: string, price: number, open: number, high: number, low:
 export function useQuotes(instruments: Instrument[], keys: ApiKeys, alpaca: AlpacaDataKeys) {
   const [quotes, setQuotes] = useState<Record<string, Quote>>({})
   const demoSet = useRef(new Set<string>())
-  const quotesRef = useRef(quotes)
-  quotesRef.current = quotes
   const useAlpaca = hasAlpacaData(alpaca)
 
   useEffect(() => {
@@ -80,18 +78,20 @@ export function useQuotes(instruments: Instrument[], keys: ApiKeys, alpaca: Alpa
         }
       }
     }
-    // Alpaca had nothing for these: use Finnhub if configured, else keep the last real
-    // price but stop calling it live, and simulate only symbols that never had one.
+    // symbols that got a real quote in this effect; on failure they keep that price, marked not live
+    const gotReal = new Set<string>()
+    // Alpaca had nothing for these: use Finnhub if configured, else simulate the ones without a real price
     const fallback = (list: Instrument[]) => {
       if (!list.length) return
       if (keys.finnhub) return finnhubPoll(list)
-      const fresh = list.filter((s) => !demoSet.current.has(s.symbol))
-      setQuotes((st) => {
-        const next = { ...st }
-        for (const s of fresh) if (next[s.symbol]?.live) next[s.symbol] = { ...next[s.symbol], live: false }
-        return next
-      })
-      seedDemo(fresh.filter((s) => !quotesRef.current[s.symbol]))
+      const stale = list.filter((s) => gotReal.has(s.symbol))
+      if (stale.length)
+        setQuotes((st) => {
+          const next = { ...st }
+          for (const s of stale) if (next[s.symbol]) next[s.symbol] = { ...next[s.symbol], live: false }
+          return next
+        })
+      seedDemo(list.filter((s) => !gotReal.has(s.symbol) && !demoSet.current.has(s.symbol)))
     }
     if (useAlpaca && stocks.length) {
       let busy = false
@@ -114,6 +114,7 @@ export function useQuotes(instruments: Instrument[], keys: ApiKeys, alpaca: Alpa
               continue
             }
             demoSet.current.delete(s.symbol)
+            gotReal.add(s.symbol)
             put(mkQuote(s.symbol, q.last, q.open, q.high, q.low, q.volume, [], true))
           }
           await fallback(missing)
