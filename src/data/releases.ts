@@ -2,7 +2,7 @@
  * Version and "What's new". Bump APP_VERSION and add an entry to the top of RELEASES
  * with each update. The banner shows once per version, then stays dismissed.
  */
-export const APP_VERSION = '1.3.0'
+export const APP_VERSION = '1.4.0'
 
 export interface Release {
   version: string
@@ -13,6 +13,26 @@ export interface Release {
 }
 
 export const RELEASES: Release[] = [
+  {
+    version: '1.4.0',
+    date: '2026-10-09',
+    changes: [
+      'Practice now trades 24/7 on the server, so you can close the app. Every 15 minutes during US market hours on weekdays it scans the watchlist and today\'s top gainers and most-traded stocks, then makes its day trades and long-term trade. No Alpaca key needed.',
+      'When you come back, its trades are on the chart and in the Practice tab (activity feed, report, wins and fails), and a pop-up says how many buys and sells it made while you were away.',
+      'New "AI active" list at the top of the watchlist: the stocks practice is trading (with live P&L), closed today, or watching as its best picks, so you never have to look for them. Tap one to open its chart with the practice arrows. Optional: let the chart follow each new practice trade (off by default). Both switches are in Settings > AI rules.',
+      'Day trades are closed by the 4 pm ET market close. Stops and targets reached between runs are filled at the stop or target price.',
+      'Switch: "Practice 24/7 on the server" in Settings > AI rules (on). Turned off, practice trades in your browser while the app is open, as before. The server uses the default rules (4 day trades and 1 long-term trade a day, 2% per trade).',
+      'Not financial advice. Paper trading only; nothing here places a real order.',
+    ],
+    changesVi: [
+      'Luyện tập giờ giao dịch 24/7 trên máy chủ, nên bạn có thể đóng ứng dụng. Mỗi 15 phút trong giờ thị trường Mỹ vào ngày thường, AI quét danh sách theo dõi cùng các mã tăng mạnh và giao dịch nhiều nhất hôm nay, rồi làm các lệnh trong ngày và lệnh dài hạn. Không cần khoá Alpaca.',
+      'Khi bạn quay lại, các lệnh hiện trên biểu đồ và trong tab Luyện tập (nhật ký hoạt động, báo cáo, thắng và thua), và một thông báo cho biết AI đã mua bán bao nhiêu lệnh khi bạn vắng mặt.',
+      'Danh sách "AI đang hoạt động" mới ở đầu danh sách theo dõi: các mã luyện tập đang giữ (kèm lãi/lỗ trực tiếp), đã đóng hôm nay, hoặc đang theo dõi là mã tốt nhất, nên bạn không phải tự tìm. Bấm vào một mã để mở biểu đồ cùng mũi tên luyện tập. Tuỳ chọn: biểu đồ tự chuyển theo mỗi lệnh luyện tập mới (mặc định tắt). Cả hai công tắc ở Cài đặt > Quy tắc AI.',
+      'Lệnh trong ngày đóng trước giờ đóng cửa 4 giờ chiều (giờ New York). Cắt lỗ và chốt lời chạm giữa các lần chạy được khớp đúng ở giá cắt lỗ hoặc chốt lời.',
+      'Công tắc: "Luyện tập 24/7 trên máy chủ" trong Cài đặt > Quy tắc AI (bật). Khi tắt, luyện tập chạy trong trình duyệt khi ứng dụng đang mở như trước. Máy chủ dùng quy tắc mặc định (4 lệnh trong ngày và 1 lệnh dài hạn mỗi ngày, 2% mỗi lệnh).',
+      'Không phải lời khuyên đầu tư. Chỉ giao dịch thử nghiệm; không có lệnh thật nào được đặt.',
+    ],
+  },
   {
     version: '1.3.0',
     date: '2026-10-09',

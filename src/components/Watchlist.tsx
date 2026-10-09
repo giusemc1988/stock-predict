@@ -6,9 +6,23 @@ import { RobotIcon } from './RobotIcon'
 import { CATALOG, toInstrument } from '../data/catalog'
 import { loadPicks, PICKS_EVENT, type Pick } from '../lib/picks'
 import { useSyncExternalStore } from 'react'
-import { useT } from '../lib/i18n'
+import { useLang, useT } from '../lib/i18n'
+
+/** One market practice mode is trading, closed today, or watching. */
+export interface AiActiveRow {
+  symbol: string
+  status: 'trade' | 'closed' | 'watching'
+  kind?: 'day' | 'long'
+  entry?: number
+  qty?: number
+  pnl?: number
+  place?: number
+  gainPct?: number | null
+}
 
 interface Props {
+  /** Pinned "AI active" list; null hides it. */
+  aiActive: AiActiveRow[] | null
   instruments: Instrument[]
   quotes: Record<string, Quote>
   active: string
@@ -68,7 +82,45 @@ function Row({ inst, q, active, onSelect, signal }: { inst: Instrument; q?: Quot
   )
 }
 
-export function Watchlist({ instruments, quotes, active, onSelect, onAdd, activeSignal }: Props) {
+function AiActive({ rows, quotes, active, onSelect }: { rows: AiActiveRow[]; quotes: Record<string, Quote>; active: string; onSelect: (s: string) => void }) {
+  const lang = useLang()
+  const L = (en: string, vi: string) => (lang === 'vi' ? vi : en)
+  const money = (x: number) => `${x >= 0 ? '+' : '−'}$${Math.abs(x).toFixed(2)}`
+  return (
+    <div className="ai-active">
+      <div className="ai-active-head">
+        <span>🎯 {L('AI active', 'AI đang hoạt động')}</span>
+        <span className="muted">{rows.length ? L('practice · paper', 'luyện tập · thử') : ''}</span>
+      </div>
+      {rows.length === 0 && <p className="muted ai-active-empty">{L('Nothing yet. Picks and practice trades show up here on their own.', 'Chưa có gì. Mã được chọn và lệnh luyện tập sẽ tự hiện ở đây.')}</p>}
+      {rows.map((r) => {
+        // simulated quotes never show as practice P&L
+        const px = quotes[r.symbol]?.live ? quotes[r.symbol].price : undefined
+        const live = r.status === 'trade' && px && r.entry != null && r.qty != null ? (px - r.entry) * r.qty : null
+        const pnl = r.status === 'closed' ? r.pnl ?? null : live
+        const badge =
+          r.status === 'trade'
+            ? r.kind === 'long'
+              ? L('In trade · long', 'Đang giữ · dài hạn')
+              : L('In trade · day', 'Đang giữ · trong ngày')
+            : r.status === 'closed'
+              ? L('Closed today', 'Đã đóng hôm nay')
+              : `${L('Watching', 'Theo dõi')}${r.place ? ` #${r.place}` : ''}`
+        return (
+          <button key={r.symbol} className={`ai-row ${r.status} ${active === r.symbol ? 'active' : ''}`} onClick={() => onSelect(r.symbol)}>
+            <span className="ai-sym">{r.symbol}</span>
+            <span className={`ai-badge ${r.status}`}>{badge}</span>
+            <span className={`ai-pnl mono ${pnl == null ? 'muted' : pnl >= 0 ? 'up' : 'down'}`}>
+              {pnl != null ? money(pnl) : r.gainPct != null ? `${r.gainPct >= 0 ? '+' : ''}${r.gainPct.toFixed(1)}%` : px ? fmtPrice(px) : '—'}
+            </span>
+          </button>
+        )
+      })}
+    </div>
+  )
+}
+
+export function Watchlist({ aiActive, instruments, quotes, active, onSelect, onAdd, activeSignal }: Props) {
   const tx = useT()
   const [filter, setFilter] = useState('')
   const [tab, setTab] = useState<'all' | 'crypto' | 'stock'>('all')
@@ -102,6 +154,7 @@ export function Watchlist({ instruments, quotes, active, onSelect, onAdd, active
   const totalVol = Object.values(quotes).reduce((a, q) => a + (q.live ? q.volume : 0), 0)
   return (
     <aside className="panel watchlist">
+      {aiActive && <AiActive rows={aiActive} quotes={quotes} active={active} onSelect={onSelect} />}
       <div className="panel-head">
         <span>{tx('watchlist')}</span>
         <span className="muted mono">{totalVol ? `24h vol ${fmtCompact(totalVol)}` : ''}</span>

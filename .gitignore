@@ -25,3 +25,6 @@ dist-ssr
 
 # auto-learning server build
 .learn
+
+# practice server build
+.practice

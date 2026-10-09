@@ -5,7 +5,7 @@
  * reasons it was taken and how it ended, so the report can show what worked and what failed.
  * Paper only: nothing here reaches a broker.
  */
-import type { Analysis, AssetClass } from '../types'
+import type { Analysis, AssetClass, Candle } from '../types'
 
 export const PRACTICE_START = 10_000
 /** A day trade that has neither stopped out nor hit target is closed after this many bars. */
@@ -116,6 +116,26 @@ export interface PracticeState {
   events: PracticeEvent[]
   /** Equity after each closed trade, for the curve. */
   curve: { t: number; equity: number }[]
+  /** Set by the server job (scripts/practice-cycle.ts): when it ran, what it picked, and bars it has seen. */
+  server?: PracticeServerInfo
+}
+
+/** One row of a stock-picker scan, small enough to save. */
+export interface PickRow {
+  symbol: string
+  source: 'watchlist' | 'gainer' | 'active'
+  verdict: Analysis['verdict'] | null
+  gainPct: number | null
+  volVsAvg: number | null
+  tradeScore: number | null
+  place: number | null
+}
+
+export interface PracticeServerInfo {
+  lastRun: number
+  lastBars: Record<string, number>
+  picks: PickRow[]
+  failed: string[]
 }
 
 export const emptyPractice = (): PracticeState => ({ v: 1, realized: 0, peak: PRACTICE_START, open: [], trades: [], events: [], curve: [{ t: Date.now(), equity: PRACTICE_START }] })
@@ -154,6 +174,8 @@ export interface EntryContext {
   longTrades: number
   holdDays: number
   pick?: PracticePickInfo
+  /** When day trades must be out, if not the market's own close (the server closes all of them with the stock market). */
+  dayEnd?: number
   /** % of practice equity per trade. */
   sizePct: number
   gatesOn: boolean
@@ -180,7 +202,7 @@ export function onBarClose(prev: PracticeState, ctx: EntryContext): PracticeStat
   const today = dayKey(ctx.now)
   const openedToday = (k: PracticeKind) => [...s.trades, ...s.open].filter((t) => kindOf(t) === k && dayKey(t.openedAt) === today).length
   const holding = (k: PracticeKind) => s.open.some((p) => p.symbol === ctx.symbol && kindOf(p) === k)
-  const dayEnd = sessionEnd(ctx.asset, ctx.now)
+  const dayEnd = ctx.dayEnd ?? sessionEnd(ctx.asset, ctx.now)
   let kind: PracticeKind
   if (ctx.longOn && openedToday('long') < ctx.longTrades && !holding('long')) kind = 'long'
   else if (ctx.dayOn && openedToday('day') < ctx.dayTrades && !holding('day') && ctx.now < dayEnd - LAST_ENTRY_MS) kind = 'day'
@@ -231,6 +253,26 @@ export function onBarClose(prev: PracticeState, ctx: EntryContext): PracticeStat
     en: `${label.en}: bought ${+qty.toPrecision(4)} ${ctx.symbol} at ${fmt(ctx.price)} ($${(qty * ctx.price).toFixed(0)}). AI BUY${g}. Stop ${fmt(plan.stop)}, target ${fmt(plan.target)}.${ctx.pick ? ` Picked: ${ctx.pick.en}.` : ''}`,
     vi: `${label.vi}: mua ${+qty.toPrecision(4)} ${ctx.symbol} giá ${fmt(ctx.price)} ($${(qty * ctx.price).toFixed(0)}). AI MUA${g}. Cắt lỗ ${fmt(plan.stop)}, chốt lời ${fmt(plan.target)}.${ctx.pick ? ` Lý do chọn: ${ctx.pick.vi}.` : ''}`,
   })
+  return s
+}
+
+/** Bars since the last check, oldest first: closes trades whose stop or target the bar's low or high reached,
+ *  at the stop or target price (the stop first when one bar reaches both). Returns null when nothing changed. */
+export function onBars(prev: PracticeState, symbol: string, bars: Candle[], now: number): PracticeState | null {
+  if (!prev.open.some((p) => p.symbol === symbol)) return null
+  let s: PracticeState | null = null
+  for (const b of bars) {
+    const cur: PracticeState = s ?? prev
+    const hits = cur.open.filter((p) => p.symbol === symbol && b.time > p.barTime && (b.low <= p.stop || b.high >= p.target))
+    if (!hits.length) continue
+    const next: PracticeState = s ?? structuredClone(prev)
+    for (const h of hits) {
+      const p = next.open.find((x) => x.id === h.id)!
+      if (b.low <= p.stop) close(next, p, p.stop, 'stop', b.time, now)
+      else close(next, p, p.target, 'target', b.time, now)
+    }
+    s = next
+  }
   return s
 }
 

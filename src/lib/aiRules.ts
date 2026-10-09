@@ -32,6 +32,9 @@ export interface AiRules {
   practiceHoldDays: number // longest a long-term trade is held
   practiceAutoPick: boolean // practice picks its own markets instead of trading the open chart
   practiceMovers: boolean // the picker also scans today's top gainers and most-traded stocks
+  practiceServer: boolean // show the 24/7 server practice account (trades while the app is closed)
+  practiceWatchlist: boolean // pin the markets practice is watching or trading at the top of the watchlist
+  practiceFollow: boolean // the chart jumps to each new practice trade
 }
 
 export const DEFAULT_AI_RULES: AiRules = {
@@ -62,6 +65,9 @@ export const DEFAULT_AI_RULES: AiRules = {
   practiceHoldDays: 5,
   practiceAutoPick: true,
   practiceMovers: true,
+  practiceServer: true,
+  practiceWatchlist: true,
+  practiceFollow: false,
 }
 
 type NumKey = { [K in keyof AiRules]: AiRules[K] extends number ? K : never }[keyof AiRules]
@@ -104,6 +110,9 @@ export const RULE_FIELDS: RuleField[] = [
   { group: 'modules', key: 'practiceLongOn', en: 'Practice long-term trade (held for days)', vi: 'Lệnh luyện tập dài hạn (giữ nhiều ngày)' },
   { group: 'modules', key: 'practiceAutoPick', en: 'Practice picks its own stocks (best volume, gain and Trade Score)', vi: 'Luyện tập tự chọn mã (khối lượng, mức tăng và Điểm GD tốt nhất)' },
   { group: 'modules', key: 'practiceMovers', en: "Practice also scans today's top gainers and most-traded stocks", vi: 'Luyện tập quét thêm mã tăng mạnh và giao dịch nhiều nhất hôm nay' },
+  { group: 'modules', key: 'practiceServer', en: 'Practice 24/7 on the server (keeps trading while the app is closed)', vi: 'Luyện tập 24/7 trên máy chủ (vẫn giao dịch khi đóng ứng dụng)' },
+  { group: 'modules', key: 'practiceWatchlist', en: 'Show what practice is watching and trading at the top of the watchlist', vi: 'Hiện các mã luyện tập đang theo dõi và giao dịch ở đầu danh sách' },
+  { group: 'modules', key: 'practiceFollow', en: 'Chart follows each new practice trade', vi: 'Biểu đồ tự chuyển theo mỗi lệnh luyện tập mới' },
   { group: 'modules', key: 'practiceOnChart', en: 'Show practice orders on the chart (animated)', vi: 'Hiện lệnh luyện tập trên biểu đồ (có hiệu ứng)' },
   { group: 'modules', key: 'practiceFeed', en: 'Pop-up notices for practice orders', vi: 'Thông báo bật lên cho lệnh luyện tập' },
   { group: 'modules', key: 'gatesOn', en: 'Risk gates (kill switch always works)', vi: 'Cổng rủi ro (công tắc dừng khẩn cấp luôn hoạt động)' },

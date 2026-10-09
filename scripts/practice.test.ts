@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict'
-import { dayKey, emptyPractice, kindOf, lessons, onBarClose, onPrice, practiceEquity, practiceReport, sessionEnd, type EntryContext } from '../src/lib/practice.ts'
+import { dayKey, emptyPractice, kindOf, lessons, onBarClose, onBars, onPrice, practiceEquity, practiceReport, sessionEnd, type EntryContext } from '../src/lib/practice.ts'
 import type { Analysis } from '../src/types.ts'
 
 const buy = { verdict: 'BUY', score: 0.6, headline: 'Trend up', tradeScore: { score: 70, grade: 'B', regime: 'normal' }, exitPlan: { entry: 100, stop: 95, target: 110 }, plan: null } as unknown as Analysis
@@ -68,4 +68,13 @@ assert.equal(kindOf(next.open[next.open.length - 1]), 'long')
 // reports per kind
 assert.equal(practiceReport(held, 'long').n, 1)
 assert.equal(practiceReport(held, 'day').n, 0)
+// server exits between runs: a bar's low reaching the stop closes at the stop price, not the bar close
+const ob = onBars(s, 'AAPL', [{ time: 1000, open: 100, high: 100, low: 90, close: 90, volume: 1 }, { time: 1900, open: 100, high: 103, low: 99, close: 101, volume: 1 }], 5)
+assert.equal(ob, null, 'the entry bar and bars that miss both levels change nothing')
+const hit = onBars(s, 'AAPL', [{ time: 1900, open: 100, high: 111, low: 94, close: 105, volume: 1 }], 5)!
+assert.equal(hit.trades[0].exitReason, 'stop', 'stop first when one bar reaches both')
+assert.equal(hit.trades[0].exit, 95)
+assert.equal(onBars(s, 'AAPL', [{ time: 1900, open: 100, high: 111, low: 99, close: 105, volume: 1 }], 5)!.trades[0].exit, 110)
+// a server dayEnd closes crypto day trades with the stock market
+assert.equal(onBarClose(emptyPractice(), ctx({ asset: 'crypto', dayEnd: Date.UTC(2026, 9, 9, 19, 55) })).open[0].closeBy, Date.UTC(2026, 9, 9, 19, 55))
 console.log('practice tests passed')
