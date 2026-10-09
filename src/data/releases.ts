@@ -2,7 +2,7 @@
  * Version and "What's new". Bump APP_VERSION and add an entry to the top of RELEASES
  * with each update. The banner shows once per version, then stays dismissed.
  */
-export const APP_VERSION = '1.0.0'
+export const APP_VERSION = '1.0.1'
 
 export interface Release {
   version: string
@@ -13,6 +13,18 @@ export interface Release {
 }
 
 export const RELEASES: Release[] = [
+  {
+    version: '1.0.1',
+    date: '2026-10-09',
+    changes: [
+      'The version you are running now shows next to the Arc Analyst name at the top, and at the bottom of Settings.',
+      'Not financial advice. Paper trading only.',
+    ],
+    changesVi: [
+      'Phiên bản bạn đang chạy giờ hiển thị cạnh tên Arc Analyst ở trên cùng, và ở cuối phần Cài đặt.',
+      'Không phải lời khuyên đầu tư. Chỉ giao dịch thử nghiệm.',
+    ],
+  },
   {
     version: '1.0.0',
     date: '2026-10-09',

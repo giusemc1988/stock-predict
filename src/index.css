@@ -612,3 +612,4 @@ body {
 .xstep.stop { border-left-color: var(--down); }
 .xstep.in { border-left-color: var(--up); }
 .xstep.out { border-left-color: var(--gold); }
+.brand .app-ver { font-style: normal; color: var(--gold); letter-spacing: 0.04em; text-transform: none; }
