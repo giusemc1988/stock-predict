@@ -10,6 +10,7 @@ import {
   createSeriesMarkers,
   type IChartApi,
   type ISeriesApi,
+  type IPriceLine,
   type ISeriesMarkersPluginApi,
   type MouseEventParams,
   type Time,
@@ -22,6 +23,15 @@ import { RobotIcon } from './RobotIcon'
 import { sma, stdev } from '../lib/indicators'
 import { loadChartConfig, saveChartConfig, type ChartConfig } from '../lib/chartConfig'
 import { useT } from '../lib/i18n'
+import type { PracticeEvent } from '../lib/practice'
+
+/** Practice-mode trades drawn on the chart: entry/exit markers, open-trade lines, and a flash on each new order. */
+export interface PracticeOverlay {
+  markers: { time: number; side: 'buy' | 'sell'; text: string }[]
+  lines: { price: number; color: string; title: string }[]
+  flash: PracticeEvent | null
+  flashText: string
+}
 
 const COLORS = {
   up: '#0ecb81',
@@ -33,6 +43,7 @@ const COLORS = {
   forecast: '#4fd1ff',
   sma: '#f59e0b',
   bollinger: 'rgba(148, 163, 184, 0.7)',
+  practice: '#f0b90b',
 }
 
 interface Props {
@@ -46,6 +57,7 @@ interface Props {
   showEmas: boolean
   showForecast: boolean
   showRobots: boolean
+  practice?: PracticeOverlay | null
 }
 
 const ts = (t: number) => t as UTCTimestamp
@@ -77,7 +89,7 @@ function NumField({ label, value, min, max, step, onCommit }: { label: string; v
 
 export function ChartPanel(props: Props) {
   const t = useT()
-  const { symbol, tf, candles, signals, prediction, emaFast, emaSlow, showEmas, showForecast, showRobots } = props
+  const { symbol, tf, candles, signals, prediction, emaFast, emaSlow, showEmas, showForecast, showRobots, practice } = props
   const host = useRef<HTMLDivElement>(null)
   const overlay = useRef<HTMLDivElement>(null)
   const chart = useRef<IChartApi | null>(null)
@@ -239,7 +251,8 @@ export function ChartPanel(props: Props) {
     loaded.current = { key, len: candles.length, first: candles[0].time }
   }, [candles, symbol, tf])
 
-  // overlays: EMAs, forecast cone, arrow markers
+  // overlays: EMAs, forecast cone, arrow markers (practice markers compared by value, not identity)
+  const marksKey = JSON.stringify(practice?.markers ?? [])
   useEffect(() => {
     const s = series.current
     if (!s) return
@@ -251,16 +264,42 @@ export function ChartPanel(props: Props) {
     s.fMid.setData(fc.map((f) => ({ time: ts(f.time), value: f.value })))
     s.fHi.setData(fc.map((f) => ({ time: ts(f.time), value: f.upper })))
     s.fLo.setData(fc.map((f) => ({ time: ts(f.time), value: f.lower })))
+    const barTimes = new Set(candles.map((c) => c.time))
+    const practiceMarks = (JSON.parse(marksKey) as PracticeOverlay['markers'])
+      .filter((m) => barTimes.has(m.time))
+      .map((m) => ({
+        time: ts(m.time),
+        position: m.side === 'buy' ? ('belowBar' as const) : ('aboveBar' as const),
+        shape: m.side === 'buy' ? ('arrowUp' as const) : ('arrowDown' as const),
+        color: COLORS.practice,
+        text: m.text,
+        size: 1,
+      }))
     s.markers.setMarkers(
-      signals.map((sig) => ({
-        time: ts(sig.time),
-        position: sig.side === 'buy' ? 'belowBar' : 'aboveBar',
-        shape: sig.side === 'buy' ? 'arrowUp' : 'arrowDown',
-        color: sig.side === 'buy' ? COLORS.up : COLORS.down,
-        size: 0.6,
-      })),
+      [
+        ...signals.map((sig) => ({
+          time: ts(sig.time),
+          position: sig.side === 'buy' ? ('belowBar' as const) : ('aboveBar' as const),
+          shape: sig.side === 'buy' ? ('arrowUp' as const) : ('arrowDown' as const),
+          color: sig.side === 'buy' ? COLORS.up : COLORS.down,
+          size: 0.6,
+        })),
+        ...practiceMarks,
+      ].sort((a, b) => (a.time as number) - (b.time as number)),
     )
-  }, [candles, emaFast, emaSlow, prediction, signals, showEmas, showForecast])
+  }, [candles, emaFast, emaSlow, prediction, signals, showEmas, showForecast, marksKey])
+
+  // practice mode: entry, stop and target lines for open practice trades
+  const practiceLines = useRef<IPriceLine[]>([])
+  const linesKey = JSON.stringify(practice?.lines ?? [])
+  useEffect(() => {
+    const s = series.current
+    if (!s) return
+    for (const l of practiceLines.current) s.candle.removePriceLine(l)
+    practiceLines.current = (JSON.parse(linesKey) as PracticeOverlay['lines']).map((l) =>
+      s.candle.createPriceLine({ price: l.price, color: l.color, lineWidth: 1, lineStyle: LineStyle.Dashed, axisLabelVisible: true, title: l.title }),
+    )
+  }, [linesKey, symbol, tf])
 
   // SMA and Bollinger bands from the chart's own candles; volume bars can be hidden
   useEffect(() => {
@@ -301,6 +340,12 @@ export function ChartPanel(props: Props) {
   return (
     <div className="chart-wrap">
       <div ref={host} className="chart-host" />
+      {practice?.flash && (
+        <div key={practice.flash.id} className={`practice-flash ${practice.flash.kind}${practice.flash.kind === 'sell' ? ((practice.flash.pnl ?? 0) >= 0 ? ' win' : ' loss') : ''}`} role="status">
+          <b>🎯 {practice.flash.kind === 'buy' ? 'BUY' : 'SELL'} {practice.flash.symbol}</b>
+          <span>{practice.flashText}</span>
+        </div>
+      )}
       <div ref={overlay} className="robot-layer">
         {robots.map(({ sig, anchor }) => (
           <div

@@ -24,13 +24,17 @@ import { BottomPanel } from './components/BottomPanel'
 import { PortfolioPage } from './components/PortfolioPage'
 import { AutoLearnPanel } from './components/AutoLearnPanel'
 import { useAutoLearning } from './hooks/useAutoLearning'
+import { usePractice } from './hooks/usePractice'
+import { PracticePanel } from './components/PracticePanel'
+import type { PracticeEvent } from './lib/practice'
+import type { PracticeOverlay } from './components/ChartPanel'
+import { useLang, useT } from './lib/i18n'
 import { AIPicks } from './components/AIPicks'
 import { WhatsNew } from './components/WhatsNew'
 import { SettingsModal } from './components/SettingsModal'
 import { AiRulesModal } from './components/AiRulesModal'
 import { useAiRules } from './lib/aiRules'
 import { Toasts, type Toast } from './components/Toasts'
-import { useT } from './lib/i18n'
 
 const NO_CANDLES: Candle[] = []
 
@@ -74,7 +78,8 @@ export default function App() {
   const [planNonce, setPlanNonce] = useState(0)
   const aiRules = useAiRules()
   const [page, setPage] = useState<'trade' | 'portfolio'>('trade')
-  const [rightTab, setRightTab] = useState<'ai' | 'flow' | 'trade' | 'learn' | 'picks'>('ai')
+  const [rightTab, setRightTab] = useState<'ai' | 'flow' | 'trade' | 'learn' | 'picks' | 'practice'>('ai')
+  const lang = useLang()
   const [toasts, setToasts] = useState<Toast[]>([])
   // Tickers added from the search box persist in this browser and join the built-in watchlist.
   const [added, setAdded] = useLocalStorage<Instrument[]>('bluechip.added', [])
@@ -213,6 +218,57 @@ export default function App() {
   const priceOf = (s: string) => (s === inst.symbol ? lastClose : quotes[s]?.price ?? 0)
   const onClose = (pos: { symbol: string }) => closePosition(pos.symbol, priceOf(pos.symbol))
 
+  // Practice mode: the AI paper-trades small on live data in its own practice account
+  const [flash, setFlash] = useState<PracticeEvent | null>(null)
+  const practiceRules = useRef(aiRules)
+  practiceRules.current = aiRules
+  const langRef = useRef(lang)
+  langRef.current = lang
+  const onPracticeEvent = useCallback(
+    (e: PracticeEvent) => {
+      const r = practiceRules.current
+      if (r.practiceOnChart) setFlash(e)
+      if (r.practiceFeed) toast({ tone: e.kind === 'buy' ? 'info' : (e.pnl ?? 0) >= 0 ? 'ok' : 'bad', title: `🎯 ${langRef.current === 'vi' ? 'Luyện tập' : 'Practice'}: ${e.kind === 'buy' ? (langRef.current === 'vi' ? 'MUA' : 'BUY') : langRef.current === 'vi' ? 'BÁN' : 'SELL'} ${e.symbol}`, body: langRef.current === 'vi' ? e.vi : e.en })
+    },
+    [toast],
+  )
+  const practice = usePractice({
+    rules: aiRules,
+    symbol: inst.symbol,
+    tf: prefs.tf,
+    candles,
+    analysis,
+    liveScore: live?.probUp ?? null,
+    journal: autoLearn.state.journal,
+    priceOf,
+    quotesKey: quotes,
+    killSwitch: prefs.killSwitch,
+    maxTradesPerDay: aiRules.maxTradesPerDay,
+    onEvent: onPracticeEvent,
+  })
+  const practiceOverlay: PracticeOverlay | null = !aiRules.practiceOnChart
+    ? null
+    : {
+        markers: [
+          ...practice.state.trades
+            .filter((x) => x.symbol === inst.symbol && x.tf === prefs.tf)
+            .flatMap((x) => [
+              { time: x.barTime, side: 'buy' as const, text: 'P' },
+              { time: x.exitBarTime, side: 'sell' as const, text: `P ${x.pnl >= 0 ? '+' : '−'}$${Math.abs(x.pnl).toFixed(0)}` },
+            ]),
+          ...practice.state.open.filter((x) => x.symbol === inst.symbol && x.tf === prefs.tf).map((x) => ({ time: x.barTime, side: 'buy' as const, text: 'P' })),
+        ],
+        lines: practice.state.open
+          .filter((x) => x.symbol === inst.symbol)
+          .flatMap((x) => [
+            { price: x.entry, color: '#f0b90b', title: lang === 'vi' ? 'LT vào' : 'Practice in' },
+            { price: x.stop, color: '#f6465d', title: lang === 'vi' ? 'LT cắt lỗ' : 'Practice stop' },
+            { price: x.target, color: '#0ecb81', title: lang === 'vi' ? 'LT chốt lời' : 'Practice target' },
+          ]),
+        flash: flash && flash.symbol === inst.symbol ? flash : null,
+        flashText: flash ? (lang === 'vi' ? flash.vi : flash.en) : '',
+      }
+
   return (
     <div className={`app page-${page}`}>
       <WhatsNew />
@@ -265,6 +321,7 @@ export default function App() {
                 showEmas={prefs.emas}
                 showForecast={prefs.forecast}
                 showRobots={prefs.robots}
+                practice={practiceOverlay}
               />
               {market.status === 'demo' && (
                 <div className="demo-note">
@@ -300,12 +357,17 @@ export default function App() {
               <button className={rightTab === 'picks' ? 'on' : ''} onClick={() => setRightTab('picks')}>
                 {t('aiPicks')}
               </button>
+              <button className={rightTab === 'practice' ? 'on' : ''} onClick={() => setRightTab('practice')}>
+                {lang === 'vi' ? 'Luyện tập' : 'Practice'}
+                {aiRules.practiceMode && <i className="live-dot" />}
+              </button>
             </div>
             <div className="right-body">
               {rightTab === 'ai' && <AnalystPanel analysis={analysis} stats={closed.stats} lastSignal={lastSignal} symbol={inst.symbol} tfLabel={tfLabel} onTrade={() => {
                     setPlanNonce((n) => n + 1)
                     setRightTab('trade')
                   }} onEditRules={() => setAiRulesOpen(true)} />}
+              {rightTab === 'practice' && <PracticePanel state={practice.state} rules={aiRules} symbol={inst.symbol} priceOf={priceOf} onReset={practice.reset} />}
               {rightTab === 'flow' && <OrderFlowPanel flow={flow} last={lastClose} />}
               {rightTab === 'learn' && <AutoLearnPanel al={autoLearn} rules={aiRules} symbol={inst.symbol} liveScore={live?.probUp ?? null} />}
               {rightTab === 'picks' && (

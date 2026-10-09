@@ -2,7 +2,7 @@
  * Version and "What's new". Bump APP_VERSION and add an entry to the top of RELEASES
  * with each update. The banner shows once per version, then stays dismissed.
  */
-export const APP_VERSION = '1.1.1'
+export const APP_VERSION = '1.2.0'
 
 export interface Release {
   version: string
@@ -13,6 +13,24 @@ export interface Release {
 }
 
 export const RELEASES: Release[] = [
+  {
+    version: '1.2.0',
+    date: '2026-10-09',
+    changes: [
+      'New Practice mode (off by default). The AI paper-trades small sizes on live data while the app is open, in its own $10,000 practice account, even though no method has beaten buying every bar yet. All risk gates stay on. Turn it on in the new Practice tab or in Settings > AI rules.',
+      'Watch it trade: practice buys and sells appear on the chart as gold arrows, open trades show entry, stop and target lines, and each new order pops up on the chart and as a notification. Each of these has its own switch.',
+      'Practice report: an activity feed, win rate and P&L over time, what it learned (by Trade Score grade, exit type, volatility, learner opinion and market), and lists of successful and failed trades with why each was opened and closed.',
+      'Trade size is 2% of the practice account by default (Settings > AI rules), halved in high volatility.',
+      'Not financial advice. Paper trading only; nothing here places a real order.',
+    ],
+    changesVi: [
+      'Chế độ Luyện tập mới (mặc định tắt). AI giao dịch thử khối lượng nhỏ trên dữ liệu thật khi ứng dụng đang mở, trong tài khoản luyện tập $10,000 riêng, dù chưa có phương pháp nào thắng việc mua mọi nến. Mọi cổng rủi ro vẫn bật. Bật trong tab Luyện tập mới hoặc trong Cài đặt > Quy tắc AI.',
+      'Xem AI giao dịch: lệnh mua và bán luyện tập hiện trên biểu đồ bằng mũi tên vàng, lệnh đang mở có đường giá vào, cắt lỗ và chốt lời, mỗi lệnh mới hiện lên trên biểu đồ và thành thông báo. Mỗi phần có công tắc riêng.',
+      'Báo cáo luyện tập: nhật ký hoạt động, tỷ lệ thắng và lãi/lỗ theo thời gian, AI đã học gì (theo hạng Điểm Giao dịch, cách thoát, biến động, ý kiến bộ học và mã), cùng danh sách lệnh thành công và thất bại kèm lý do vào và ra.',
+      'Khối lượng mặc định là 2% tài khoản luyện tập (Cài đặt > Quy tắc AI), giảm một nửa khi biến động cao.',
+      'Không phải lời khuyên đầu tư. Chỉ giao dịch thử nghiệm; không có lệnh thật nào được đặt.',
+    ],
+  },
   {
     version: '1.1.1',
     date: '2026-10-09',

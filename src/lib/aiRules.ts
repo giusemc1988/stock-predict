@@ -21,6 +21,10 @@ export interface AiRules {
   minScoreWarn: number
   autoLearn: boolean // 24/7 auto learning: replay old bars and test new ones as simulated paper trades
   learnEdgeMarginPct: number // learner needs this many points over always-buy before it says BUY
+  practiceMode: boolean // AI paper-trades small on live data in its own practice account
+  practiceSizePct: number // % of the practice account per trade
+  practiceOnChart: boolean // show practice orders on the chart, with animation
+  practiceFeed: boolean // pop-up notices for practice orders
 }
 
 export const DEFAULT_AI_RULES: AiRules = {
@@ -40,6 +44,10 @@ export const DEFAULT_AI_RULES: AiRules = {
   minScoreWarn: 40,
   autoLearn: false,
   learnEdgeMarginPct: 3,
+  practiceMode: false,
+  practiceSizePct: 2,
+  practiceOnChart: true,
+  practiceFeed: true,
 }
 
 type NumKey = { [K in keyof AiRules]: AiRules[K] extends number ? K : never }[keyof AiRules]
@@ -64,6 +72,7 @@ export const RULE_FIELDS: RuleField[] = [
   { group: 'sizing', key: 'riskPerTradePct', en: 'Risk per trade', vi: 'Rủi ro mỗi giao dịch', min: 0.1, max: 5, step: 0.1, unit: '%' },
   { group: 'sizing', key: 'positionCapPct', en: 'Max position size', vi: 'Khối lượng vị thế tối đa', min: 1, max: 100, step: 1, unit: '%' },
   { group: 'sizing', key: 'thinRecordCapPct', en: 'Max size while the track record is short', vi: 'Khối lượng tối đa khi lịch sử còn ngắn', min: 0.5, max: 100, step: 0.5, unit: '%' },
+  { group: 'sizing', key: 'practiceSizePct', en: 'Practice mode trade size (of practice account)', vi: 'Khối lượng mỗi lệnh luyện tập (của tài khoản luyện tập)', min: 0.5, max: 10, step: 0.5, unit: '%' },
   { group: 'sizing', key: 'minSample', en: 'Trades needed for a full track record', vi: 'Số giao dịch cần cho lịch sử đầy đủ', min: 1, max: 500, step: 1 },
   { group: 'gates', key: 'maxDrawdownPct', en: 'Pause buys after account drop of', vi: 'Dừng mua khi tài khoản giảm', min: 1, max: 100, step: 1, unit: '%' },
   { group: 'gates', key: 'maxPositionPct', en: 'Max share of account in one symbol', vi: 'Tỷ trọng tối đa của một mã', min: 1, max: 100, step: 1, unit: '%' },
@@ -73,6 +82,9 @@ export const RULE_FIELDS: RuleField[] = [
   { group: 'modules', key: 'riskScoreSizing', en: 'Size by risk score', vi: 'Khối lượng theo điểm rủi ro' },
   { group: 'modules', key: 'volatilityOn', en: 'Volatility rules (halve or stop in wild swings)', vi: 'Quy tắc biến động (giảm nửa hoặc dừng khi dao động mạnh)' },
   { group: 'modules', key: 'autoLearn', en: '24/7 auto learning (tests old and new bars as paper trades)', vi: 'Tự học 24/7 (kiểm thử nến cũ và mới bằng giao dịch thử nghiệm)' },
+  { group: 'modules', key: 'practiceMode', en: 'Practice mode (AI paper-trades small on live data)', vi: 'Chế độ luyện tập (AI giao dịch thử nhỏ trên dữ liệu trực tiếp)' },
+  { group: 'modules', key: 'practiceOnChart', en: 'Show practice orders on the chart (animated)', vi: 'Hiện lệnh luyện tập trên biểu đồ (có hiệu ứng)' },
+  { group: 'modules', key: 'practiceFeed', en: 'Pop-up notices for practice orders', vi: 'Thông báo bật lên cho lệnh luyện tập' },
   { group: 'modules', key: 'gatesOn', en: 'Risk gates (kill switch always works)', vi: 'Cổng rủi ro (công tắc dừng khẩn cấp luôn hoạt động)' },
 ]
 
