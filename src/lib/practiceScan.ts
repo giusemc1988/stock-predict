@@ -62,17 +62,21 @@ export async function scanCycle(input: ScanInput): Promise<ScanResult> {
   const raw: Omit<PracticeCandidate, 'rank' | 'place'>[] = []
   const prices: Record<string, number> = {}
   const newBars: Record<string, Candle[]> = {}
+  const latestTimes: Record<string, number> = {}
   for (const m of input.markets) {
     try {
       const all = await input.fetchBars(m)
+      if (!all.length) continue
       const bars = all.slice(0, -1)
+      // exits need only prices; the 80-bar minimum is for the analysis behind new entries
+      prices[m.symbol] = all[all.length - 1].close
+      latestTimes[m.symbol] = (bars[bars.length - 1] ?? all[all.length - 1]).time
+      const seen = input.lastBars[m.symbol]
+      newBars[m.symbol] = seen == null ? [] : all.filter((b) => b.time > seen)
       if (bars.length < 80) continue
       const strat = runStrategy(bars)
       const a = analyze(bars, strat, strat.prediction, NO_FLOW, rules)
       const last = bars[bars.length - 1]
-      prices[m.symbol] = all[all.length - 1].close
-      const seen = input.lastBars[m.symbol]
-      newBars[m.symbol] = seen == null ? [] : all.filter((b) => b.time > seen)
       raw.push({
         symbol: m.symbol,
         asset: m.asset,
@@ -103,10 +107,9 @@ export async function scanCycle(input: ScanInput): Promise<ScanResult> {
   const apply = (prev: PracticeState) => {
     let s = prev
     // exits first: stops and targets reached since the last scan, then market close or end of hold on the latest price
-    for (const x of ranked) {
-      s = onBars(s, x.symbol, newBars[x.symbol] ?? [], now) ?? s
-      const px = prices[x.symbol]
-      if (px) s = onPrice(s, x.symbol, px, x.barTime, now) ?? s
+    for (const symbol of Object.keys(prices)) {
+      s = onBars(s, symbol, newBars[symbol] ?? [], now) ?? s
+      s = onPrice(s, symbol, prices[symbol], latestTimes[symbol], now) ?? s
     }
     // then entries, best pick first: the top BUY takes the day's long-term slot, the next ones the day trades
     for (const x of fresh) {

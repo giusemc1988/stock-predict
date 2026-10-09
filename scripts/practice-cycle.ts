@@ -94,7 +94,7 @@ const r = await scanCycle({
   // the server is not running overnight, so crypto day trades also close with the stock market
   dayEnd: sessionEnd('stock', now),
 })
-if (r.candidates.length === 0) {
+if (Object.keys(r.prices).length === 0) {
   console.error(`No market data at all (${r.failed.join(', ')}); leaving the saved state unchanged.`)
   process.exit(1)
 }

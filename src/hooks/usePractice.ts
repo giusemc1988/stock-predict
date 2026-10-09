@@ -121,14 +121,15 @@ export function usePractice({ rules, symbol, asset, tf, candles, analysis, liveS
       if (n) awayRef.current?.(n)
     }
   }, [serverMode, server])
+  // remember the newest server event seen, so the next visit can count what happened since
   useEffect(() => {
-    if (!state.events[0]) return
+    if (!serverMode || !state.events[0]) return
     try {
       localStorage.setItem(SEEN_KEY, state.events[0].id)
     } catch {
       /* ignore */
     }
-  }, [state.events])
+  }, [state.events, serverMode])
 
   useEffect(() => {
     try {
