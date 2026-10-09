@@ -91,6 +91,13 @@ a { color: var(--robot); }
 .watchlist { display: flex; flex-direction: column; }
 .search { margin: 0 12px 8px; padding: 7px 10px; background: var(--panel-2); border: 1px solid var(--line); border-radius: 6px; outline: none; }
 .search:focus { border-color: var(--accent); }
+.search-wrap { position: relative; }
+.suggest { position: absolute; top: 100%; left: 12px; right: 12px; z-index: 20; margin-top: -4px; background: var(--panel-2); border: 1px solid var(--line); border-radius: 6px; box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45); overflow: hidden; }
+.suggest-row { display: grid; grid-template-columns: 96px 1fr auto; gap: 8px; align-items: center; width: 100%; padding: 7px 10px; background: none; border: 0; border-bottom: 1px solid var(--line); color: inherit; text-align: left; cursor: pointer; font-size: 12px; }
+.suggest-row:last-child { border-bottom: 0; }
+.suggest-row:hover { background: var(--line); }
+.suggest-row .muted { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.suggest-tag { font-size: 10px; color: var(--accent); white-space: nowrap; }
 .wl-list { overflow-y: auto; flex: 1; scrollbar-width: thin; }
 .wl-row { display: grid; grid-template-columns: minmax(0, 1fr) 48px 84px; align-items: center; gap: 8px; width: 100%; padding: 8px 12px; text-align: left; border-left: 2px solid transparent; }
 .wl-row:hover { background: var(--panel-2); }

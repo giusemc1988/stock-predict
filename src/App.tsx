@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import type { Candle, Timeframe } from './types'
+import type { Candle, Instrument, Timeframe } from './types'
 import { TIMEFRAMES } from './types'
-import { INSTRUMENTS, findInstrument } from './data/instruments'
+import { INSTRUMENTS } from './data/instruments'
 import type { ApiKeys } from './data/providers'
 import type { BrokerMode, BrokerOrder, OrderRequest } from './broker/types'
 import type { AlpacaKeys } from './broker/alpaca'
@@ -62,9 +62,13 @@ export default function App() {
   const [page, setPage] = useState<'trade' | 'portfolio'>('trade')
   const [rightTab, setRightTab] = useState<'ai' | 'flow' | 'trade'>('ai')
   const [toasts, setToasts] = useState<Toast[]>([])
-  const inst = useMemo(() => findInstrument(prefs.symbol), [prefs.symbol])
+  // Tickers added from the search box persist in this browser and join the built-in watchlist.
+  const [added, setAdded] = useLocalStorage<Instrument[]>('bluechip.added', [])
+  const universe = useMemo(() => [...INSTRUMENTS, ...added.filter((a) => !INSTRUMENTS.some((i) => i.symbol === a.symbol))], [added])
+  const inst = useMemo(() => universe.find((i) => i.symbol === prefs.symbol) ?? INSTRUMENTS[0], [universe, prefs.symbol])
   const market = useMarketData(inst, prefs.tf, keys)
-  const quotes = useQuotes(INSTRUMENTS, keys)
+  const quotes = useQuotes(universe, keys)
+  const addInstrument = (i: Instrument) => setAdded((list) => (list.some((x) => x.symbol === i.symbol) ? list : [...list, i]))
   const flow = useOrderFlow(inst, keys)
   const brokerApi = useBroker(prefs.brokerMode, alpacaKeys, prefs.equityPeriod)
   const broker = brokerApi.state
@@ -210,13 +214,14 @@ export default function App() {
         dayPL={broker.account.dayPL}
       />
       <Watchlist
-        instruments={INSTRUMENTS}
+        instruments={universe}
         quotes={quotes}
         active={inst.symbol}
         onSelect={(s) => {
           select(s)
           setPage('trade')
         }}
+        onAdd={addInstrument}
         activeSignal={lastSignal}
       />
       {page === 'trade' ? (
