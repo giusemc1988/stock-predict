@@ -4,6 +4,8 @@ import { fmtCompact, fmtPct, fmtPrice, tone } from '../lib/format'
 import { Sparkline } from './Sparkline'
 import { RobotIcon } from './RobotIcon'
 import { CATALOG, toInstrument } from '../data/catalog'
+import { loadPicks, PICKS_EVENT, SMALL_SAMPLE, type Pick } from '../lib/picks'
+import { useSyncExternalStore } from 'react'
 
 interface Props {
   instruments: Instrument[]
@@ -68,12 +70,23 @@ function Row({ inst, q, active, onSelect, signal }: { inst: Instrument; q?: Quot
 export function Watchlist({ instruments, quotes, active, onSelect, onAdd, activeSignal }: Props) {
   const [filter, setFilter] = useState('')
   const [tab, setTab] = useState<'all' | 'crypto' | 'stock'>('all')
-  const [sort, setSort] = useState<'default' | 'gainers' | 'losers' | 'volume'>('default')
+  const [sort, setSort] = useState<'default' | 'gainers' | 'losers' | 'volume' | 'success'>('default')
+  // last AI Picks scan, from browser storage; re-read whenever a new scan is saved
+  const picks = useSyncExternalStore(
+    (cb) => {
+      window.addEventListener(PICKS_EVENT, cb)
+      return () => window.removeEventListener(PICKS_EVENT, cb)
+    },
+    () => JSON.stringify(loadPicks()),
+  )
+  const picksBySymbol = useMemo(() => new Map((JSON.parse(picks) as Pick[]).map((p) => [p.symbol, p])), [picks])
   const filtered = instruments.filter(
     (i) => (tab === 'all' || i.assetClass === tab) && (i.symbol + i.name).toLowerCase().includes(filter.toLowerCase()),
   )
   const list = useMemo(() => {
     if (sort === 'default') return filtered
+    const won = (i: Instrument) => picksBySymbol.get(i.symbol)?.winRate ?? -1
+    if (sort === 'success') return [...filtered].sort((a, b) => won(b) - won(a))
     const chg = (i: Instrument) => quotes[i.symbol]?.changePct ?? 0
     const vol = (i: Instrument) => quotes[i.symbol]?.volume ?? 0
     const sorted = [...filtered]
@@ -81,7 +94,7 @@ export function Watchlist({ instruments, quotes, active, onSelect, onAdd, active
     if (sort === 'losers') sorted.sort((a, b) => chg(a) - chg(b))
     if (sort === 'volume') sorted.sort((a, b) => vol(b) - vol(a))
     return sorted
-  }, [filtered, sort, quotes])
+  }, [filtered, sort, quotes, picksBySymbol])
   const taken = useMemo(() => new Set(instruments.map((i) => i.symbol)), [instruments])
   const matches = useMemo(() => suggest(filter, taken), [filter, taken])
   const totalVol = Object.values(quotes).reduce((a, q) => a + (q.live ? q.volume : 0), 0)
@@ -122,12 +135,19 @@ export function Watchlist({ instruments, quotes, active, onSelect, onAdd, active
         ))}
       </div>
       <div className="seg small">
-        {(['default', 'gainers', 'losers', 'volume'] as const).map((s) => (
+        {(['default', 'gainers', 'losers', 'volume', 'success'] as const).map((s) => (
           <button key={s} className={sort === s ? 'on' : ''} onClick={() => setSort(s)}>
-            {s === 'default' ? 'Default' : s === 'gainers' ? 'Top gainers' : s === 'losers' ? 'Top losers' : 'Top volume'}
+            {s === 'default' ? 'Default' : s === 'gainers' ? 'Top gainers' : s === 'losers' ? 'Top losers' : s === 'volume' ? 'Top volume' : 'Top AI signal success'}
           </button>
         ))}
       </div>
+      {sort === 'success' && (
+        <p className="muted small">
+          {picksBySymbol.size === 0
+            ? 'Run "Scan my list" in the AI Picks tab first.'
+            : `Past win rate from the last AI Picks scan. Under ${SMALL_SAMPLE} trades is noise. Not financial advice.`}
+        </p>
+      )}
       <div className="wl-list">
         {list.map((i) => (
           <Row key={i.symbol} inst={i} q={quotes[i.symbol]} active={i.symbol === active} onSelect={() => onSelect(i.symbol)} signal={i.symbol === active ? activeSignal : null} />
