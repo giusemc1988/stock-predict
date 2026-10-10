@@ -214,6 +214,9 @@ export function usePractice({ rules, symbol, asset, tf, candles, analysis, liveS
         maxDataAgeMin: c.rules.maxDataAgeMin,
         costs: costsFrom(c.rules),
         audit: c.rules.auditOn,
+        playbookGate: c.rules.jarvisOn && c.rules.jarvisGate,
+        playbookMin: c.rules.minSample,
+        playbookMargin: c.rules.learnEdgeMarginPct / 100,
         skills: c.skills,
       }),
     )

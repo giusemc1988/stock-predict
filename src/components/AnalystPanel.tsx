@@ -5,6 +5,8 @@ import { fmtPct, fmtPrice, fmtTime, tone } from '../lib/format'
 import { RobotIcon } from './RobotIcon'
 import { InfoTip } from './InfoTip'
 import { useLang, useT } from '../lib/i18n'
+import { jarvisSays } from '../lib/jarvis'
+import { JarvisAvatar } from './JarvisAvatar'
 
 interface Props {
   analysis: Analysis | null
@@ -14,11 +16,14 @@ interface Props {
   tfLabel: string
   onTrade: () => void
   onEditRules: () => void
+  /** Show Jarvis's plain-words line under the call. */
+  jarvis?: boolean
+  jarvisMotion?: boolean
 }
 
 const ICON = { bull: '▲', bear: '▼', neutral: '•' }
 
-export function AnalystPanel({ analysis: a, stats, lastSignal, symbol, tfLabel, onTrade, onEditRules }: Props) {
+export function AnalystPanel({ analysis: a, stats, lastSignal, symbol, tfLabel, onTrade, onEditRules, jarvis = false, jarvisMotion = true }: Props) {
   const t = useT()
   const lang = useLang()
   if (!a) {
@@ -54,6 +59,14 @@ export function AnalystPanel({ analysis: a, stats, lastSignal, symbol, tfLabel, 
       </div>
 
       <p className="headline">{a.headline}</p>
+      {jarvis && (
+        <div className="jarvis-says">
+          <JarvisAvatar size={26} mood={a.verdict === 'HOLD' ? 'idle' : 'speaking'} motion={jarvisMotion} />
+          <span>
+            <b>Jarvis:</b> {lang === 'vi' ? jarvisSays(a, symbol).vi : jarvisSays(a, symbol).en}
+          </span>
+        </div>
+      )}
 
       {a.tradeScore && (
         <details className={`tscore g-${a.tradeScore.grade === 'A+' ? 'a' : a.tradeScore.grade.toLowerCase()}`}>

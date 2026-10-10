@@ -152,6 +152,9 @@ export async function scanCycle(input: ScanInput): Promise<ScanResult> {
         maxDataAgeMin: rules.maxDataAgeMin,
         costs: costsFrom(rules),
         audit: rules.auditOn,
+        playbookGate: rules.jarvisOn && rules.jarvisGate,
+        playbookMin: rules.minSample,
+        playbookMargin: rules.learnEdgeMarginPct / 100,
         skills: input.skills,
       })
     }

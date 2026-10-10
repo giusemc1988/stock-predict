@@ -132,6 +132,19 @@ export const SKILLS: SkillInfo[] = [
     history: [{ version: 1, date: '2026-10-09', en: 'First version.', vi: 'Phiên bản đầu.' }],
     off: (r) => ({ ...r, practiceAutoPick: false, practiceMovers: false }),
   },
+  {
+    id: 'playbook',
+    category: 'Trading checklist (Jarvis)',
+    en: { name: 'Jarvis playbook', does: 'Checks each practice trade against 14 rules experienced traders use, and tracks which rules pay on paper trades.' },
+    vi: { name: 'Sổ tay Jarvis', does: 'Kiểm tra mỗi lệnh luyện tập theo 14 quy tắc của trader kinh nghiệm và theo dõi quy tắc nào hiệu quả trên lệnh thử.' },
+    source: 'Arc Analyst (built in), common trading rules',
+    inputs: ['practice trades', 'trade reviews'],
+    outputs: ['followed / broken per rule', 'proven | unproven | no edge | harmful'],
+    permissions: ['read practice trades'],
+    limits: 'Can only block a practice buy, and only with its gate on and a rule proven on paper trades.',
+    history: [{ version: 1, date: '2026-10-10', en: 'First version.', vi: 'Phiên bản đầu.' }],
+    off: (r) => ({ ...r, jarvisGate: false, jarvisStory: false }),
+  },
 ]
 
 export const skillVersion = (s: SkillInfo) => s.history[s.history.length - 1].version
