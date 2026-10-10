@@ -35,6 +35,10 @@ export interface AiRules {
   practiceServer: boolean // show the 24/7 server practice account (trades while the app is closed)
   practiceWatchlist: boolean // pin the markets practice is watching or trading at the top of the watchlist
   practiceFollow: boolean // the chart jumps to each new practice trade
+  practiceUnlimited: boolean // practice trades every BUY the rules allow, with no per-day trade cap
+  practiceDayLossOn: boolean // stop new practice buys for the day after a daily loss
+  practiceDayLossPct: number // daily loss limit, % of the practice account
+  practiceMaxOpen: number // open practice trades at most when unlimited (replaces the 8-position cap for practice)
   practiceInPanels: boolean // list practice positions and orders in the Positions, Open orders and History tabs
   dataGuardOn: boolean // block new AI entries on simulated or stale data
   maxDataAgeMin: number // oldest bar close allowed for a new entry (at least one bar)
@@ -83,6 +87,10 @@ export const DEFAULT_AI_RULES: AiRules = {
   practiceWatchlist: true,
   practiceFollow: false,
   practiceInPanels: true,
+  practiceUnlimited: true,
+  practiceDayLossOn: true,
+  practiceDayLossPct: 2,
+  practiceMaxOpen: 25,
   dataGuardOn: true,
   maxDataAgeMin: 30,
   hardLimitsOn: true,
@@ -123,6 +131,8 @@ export const RULE_FIELDS: RuleField[] = [
   { group: 'sizing', key: 'practiceDayTrades', en: 'Practice day trades per day', vi: 'Số lệnh luyện tập trong ngày mỗi ngày', min: 1, max: 20, step: 1 },
   { group: 'sizing', key: 'practiceLongTrades', en: 'Practice long-term trades per day', vi: 'Số lệnh luyện tập dài hạn mỗi ngày', min: 1, max: 5, step: 1 },
   { group: 'sizing', key: 'practiceHoldDays', en: 'Practice long-term trade: hold up to', vi: 'Lệnh luyện tập dài hạn: giữ tối đa', min: 1, max: 60, step: 1, unit: 'days' },
+  { group: 'sizing', key: 'practiceDayLossPct', en: 'Practice daily loss limit (stop new buys for the day)', vi: 'Giới hạn lỗ trong ngày khi luyện tập (dừng mua đến hết ngày)', min: 0.5, max: 20, step: 0.5, unit: '%' },
+  { group: 'sizing', key: 'practiceMaxOpen', en: 'Practice open trades at most (unlimited mode)', vi: 'Số lệnh luyện tập mở tối đa (chế độ không giới hạn)', min: 1, max: 50, step: 1 },
   { group: 'sizing', key: 'practiceSizePct', en: 'Practice mode trade size (of practice account)', vi: 'Khối lượng mỗi lệnh luyện tập (của tài khoản luyện tập)', min: 0.5, max: 10, step: 0.5, unit: '%' },
   { group: 'sizing', key: 'minSample', en: 'Trades needed for a full track record', vi: 'Số giao dịch cần cho lịch sử đầy đủ', min: 1, max: 500, step: 1 },
   { group: 'gates', key: 'maxDrawdownPct', en: 'Pause buys after account drop of', vi: 'Dừng mua khi tài khoản giảm', min: 1, max: 100, step: 1, unit: '%' },
@@ -147,6 +157,8 @@ export const RULE_FIELDS: RuleField[] = [
   { group: 'modules', key: 'practiceServer', en: 'Practice 24/7 on the server (keeps trading while the app is closed)', vi: 'Luyện tập 24/7 trên máy chủ (vẫn giao dịch khi đóng ứng dụng)' },
   { group: 'modules', key: 'practiceWatchlist', en: 'Show what practice is watching and trading at the top of the watchlist', vi: 'Hiện các mã luyện tập đang theo dõi và giao dịch ở đầu danh sách' },
   { group: 'modules', key: 'practiceFollow', en: 'Chart follows each new practice trade', vi: 'Biểu đồ tự chuyển theo mỗi lệnh luyện tập mới' },
+  { group: 'modules', key: 'practiceUnlimited', en: 'Practice unlimited trades (as many as the signals allow; long-term trades keep their daily number)', vi: 'Luyện tập không giới hạn lệnh (nhiều nhất tín hiệu cho phép; lệnh dài hạn giữ số lượng mỗi ngày)' },
+  { group: 'modules', key: 'practiceDayLossOn', en: 'Practice daily loss limit', vi: 'Giới hạn lỗ trong ngày khi luyện tập' },
   { group: 'modules', key: 'practiceInPanels', en: 'Show practice trades in Positions, Open orders and History', vi: 'Hiện lệnh luyện tập trong Vị thế, Lệnh chờ và Lịch sử' },
   { group: 'modules', key: 'practiceOnChart', en: 'Show practice orders on the chart (animated)', vi: 'Hiện lệnh luyện tập trên biểu đồ (có hiệu ứng)' },
   { group: 'modules', key: 'practiceFeed', en: 'Pop-up notices for practice orders', vi: 'Thông báo bật lên cho lệnh luyện tập' },
@@ -208,4 +220,13 @@ export function useAiRules(): AiRules {
     window.addEventListener(EVENT, cb)
     return () => window.removeEventListener(EVENT, cb)
   }, getAiRules)
+}
+
+/** Trade-count and loss limits for practice entries, from the rules (shared by the browser and the server). */
+export function practiceLimits(r: AiRules) {
+  return {
+    unlimited: r.practiceUnlimited,
+    dayLossLimitPct: r.practiceDayLossOn ? r.practiceDayLossPct : 0,
+    maxOpenPositions: r.practiceUnlimited ? r.practiceMaxOpen : r.maxOpenPositions,
+  }
 }

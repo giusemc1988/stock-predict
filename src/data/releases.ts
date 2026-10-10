@@ -2,7 +2,7 @@
  * Version and "What's new". Bump APP_VERSION and add an entry to the top of RELEASES
  * with each update. The banner shows once per version, then stays dismissed.
  */
-export const APP_VERSION = '1.5.2'
+export const APP_VERSION = '1.6.0'
 
 export interface Release {
   version: string
@@ -13,6 +13,22 @@ export interface Release {
 }
 
 export const RELEASES: Release[] = [
+  {
+    version: '1.6.0',
+    date: '2026-10-10',
+    changes: [
+      'Unlimited practice trades (on by default): the AI now makes a day trade on every BUY its rules allow, instead of stopping at 4 a day, so it learns faster. Long-term trades keep their daily number (1) because they are held for days. Turn it off in the Practice tab ("Unlimited trades") or Settings > AI rules to go back to the daily caps.',
+      'Daily loss limit (on by default, 2% of the practice account, about $200): once trades closed today lose that much, the AI stops new practice buys until the next trading day. Open trades still exit at their stop, target or market close. Change the % in Settings > AI rules.',
+      'In unlimited mode, practice can hold up to 25 trades at once (was 8), still inside the 60% exposure limit (25 trades x 2% = 50%). The 20% drawdown halt and the kill switch still apply. Your own paper account keeps the 8-position limit.',
+      'Works in the browser and on the 24/7 server. The server checks every 15 minutes, so that sets how often it can trade.',
+    ],
+    changesVi: [
+      'Luyện tập không giới hạn lệnh (mặc định bật): AI giờ vào lệnh trong ngày ở mọi tín hiệu MUA mà quy tắc cho phép, thay vì dừng ở 4 lệnh mỗi ngày, để học nhanh hơn. Lệnh dài hạn vẫn giữ số lượng mỗi ngày (1) vì giữ nhiều ngày. Tắt trong tab Luyện tập ("Không giới hạn lệnh") hoặc Cài đặt > Quy tắc AI để quay lại giới hạn mỗi ngày.',
+      'Giới hạn lỗ trong ngày (mặc định bật, 2% tài khoản luyện tập, khoảng $200): khi các lệnh đóng hôm nay lỗ đến mức đó, AI ngừng mua luyện tập đến ngày giao dịch tiếp theo. Lệnh đang mở vẫn thoát ở cắt lỗ, chốt lời hoặc giờ đóng cửa. Đổi % trong Cài đặt > Quy tắc AI.',
+      'Ở chế độ không giới hạn, luyện tập có thể giữ tối đa 25 lệnh cùng lúc (trước là 8), vẫn trong giới hạn 60% tổng tiền vào lệnh (25 lệnh x 2% = 50%). Dừng khi giảm 20% từ đỉnh và công tắc dừng khẩn cấp vẫn áp dụng. Tài khoản thử nghiệm của bạn giữ giới hạn 8 vị thế.',
+      'Áp dụng trên trình duyệt và máy chủ 24/7. Máy chủ kiểm tra mỗi 15 phút, nên đó là tần suất nó có thể giao dịch.',
+    ],
+  },
   {
     version: '1.5.2',
     date: '2026-10-10',

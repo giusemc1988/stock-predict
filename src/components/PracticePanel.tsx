@@ -94,7 +94,7 @@ export function PracticePanel({ state, rules, symbol, priceOf, onReset, scan, on
   const wins = shownTrades.filter((t) => t.pnl > 0)
   const fails = shownTrades.filter((t) => t.pnl <= 0)
 
-  const toggle = (key: 'practiceMode' | 'practiceOnChart' | 'practiceFeed' | 'practiceDayOn' | 'practiceLongOn' | 'practiceAutoPick' | 'practiceMovers' | 'practiceServer' | 'practiceWatchlist' | 'practiceFollow' | 'practiceInPanels', label: string) => (
+  const toggle = (key: 'practiceMode' | 'practiceOnChart' | 'practiceFeed' | 'practiceDayOn' | 'practiceLongOn' | 'practiceAutoPick' | 'practiceMovers' | 'practiceServer' | 'practiceWatchlist' | 'practiceFollow' | 'practiceInPanels' | 'practiceUnlimited' | 'practiceDayLossOn', label: string) => (
     <label className="al-toggle">
       <span>{label}</span>
       <span className="switch">
@@ -228,8 +228,8 @@ export function PracticePanel({ state, rules, symbol, priceOf, onReset, scan, on
               <p className="muted al-note">
                 {on
                   ? L(
-                      `${rules.practiceAutoPick || serverMode ? `Every ${serverMode ? 15 : 5} minutes it scans your watchlist${rules.practiceMovers ? " and today's top gainers and most-traded stocks" : ''} on 15-minute bars, ranks the AI's BUY calls by Trade Score, volume and today's gain, and trades the best ones.` : `Decides on each closed bar of the chart you have open (${symbol}).`} ${rules.practiceSizePct}% of the practice account per trade. Each day: the best AI BUY becomes the long-term trade (stop and target ${LONG_WIDTH}x wider, held up to ${rules.practiceHoldDays} days), the next best become up to ${rules.practiceDayTrades} day trades that exit at stop, target, a SELL call, after ${MAX_BARS} bars, or before market close. It only trades when the AI says BUY, so some days have fewer.`,
-                      `${rules.practiceAutoPick || serverMode ? `Mỗi ${serverMode ? 15 : 5} phút AI quét danh sách theo dõi${rules.practiceMovers ? ' và các mã tăng mạnh, giao dịch nhiều nhất hôm nay' : ''} trên nến 15 phút, xếp hạng lệnh MUA theo Điểm GD, khối lượng và mức tăng hôm nay, rồi giao dịch các mã tốt nhất.` : `Quyết định ở mỗi nến đóng trên biểu đồ đang mở (${symbol}).`} ${rules.practiceSizePct}% tài khoản luyện tập mỗi lệnh. Mỗi ngày: lệnh MUA tốt nhất của AI thành lệnh dài hạn (cắt lỗ và chốt lời rộng gấp ${LONG_WIDTH}, giữ tối đa ${rules.practiceHoldDays} ngày), các lệnh tốt tiếp theo thành tối đa ${rules.practiceDayTrades} lệnh trong ngày, thoát ở cắt lỗ, chốt lời, lệnh BÁN, sau ${MAX_BARS} nến hoặc trước giờ đóng cửa. AI chỉ giao dịch khi nói MUA, nên có ngày ít lệnh hơn.`,
+                      `${rules.practiceAutoPick || serverMode ? `Every ${serverMode ? 15 : 5} minutes it scans your watchlist${rules.practiceMovers ? " and today's top gainers and most-traded stocks" : ''} on 15-minute bars, ranks the AI's BUY calls by Trade Score, volume and today's gain, and trades the best ones.` : `Decides on each closed bar of the chart you have open (${symbol}).`} ${rules.practiceSizePct}% of the practice account per trade. Each day: the best AI BUY becomes the long-term trade (stop and target ${LONG_WIDTH}x wider, held up to ${rules.practiceHoldDays} days), the next best become ${rules.practiceUnlimited ? `day trades (no daily cap, up to ${rules.practiceMaxOpen} open at once)` : `up to ${rules.practiceDayTrades} day trades`} that exit at stop, target, a SELL call, after ${MAX_BARS} bars, or before market close. It only trades when the AI says BUY, so some days have fewer.${rules.practiceDayLossOn ? ` New buys stop for the day after a ${rules.practiceDayLossPct}% loss.` : ''}`,
+                      `${rules.practiceAutoPick || serverMode ? `Mỗi ${serverMode ? 15 : 5} phút AI quét danh sách theo dõi${rules.practiceMovers ? ' và các mã tăng mạnh, giao dịch nhiều nhất hôm nay' : ''} trên nến 15 phút, xếp hạng lệnh MUA theo Điểm GD, khối lượng và mức tăng hôm nay, rồi giao dịch các mã tốt nhất.` : `Quyết định ở mỗi nến đóng trên biểu đồ đang mở (${symbol}).`} ${rules.practiceSizePct}% tài khoản luyện tập mỗi lệnh. Mỗi ngày: lệnh MUA tốt nhất của AI thành lệnh dài hạn (cắt lỗ và chốt lời rộng gấp ${LONG_WIDTH}, giữ tối đa ${rules.practiceHoldDays} ngày), các lệnh tốt tiếp theo thành ${rules.practiceUnlimited ? `lệnh trong ngày (không giới hạn mỗi ngày, tối đa ${rules.practiceMaxOpen} lệnh mở cùng lúc)` : `tối đa ${rules.practiceDayTrades} lệnh trong ngày`}, thoát ở cắt lỗ, chốt lời, lệnh BÁN, sau ${MAX_BARS} nến hoặc trước giờ đóng cửa. AI chỉ giao dịch khi nói MUA, nên có ngày ít lệnh hơn.${rules.practiceDayLossOn ? ` Ngừng mua đến hết ngày khi lỗ ${rules.practiceDayLossPct}%.` : ''}`,
                     )
                   : L('Turn it on to let the AI place practice orders. Also in Settings > AI rules.', 'Bật lên để AI đặt lệnh luyện tập. Cũng có trong Cài đặt > Quy tắc AI.')}
               </p>
@@ -246,6 +246,8 @@ export function PracticePanel({ state, rules, symbol, priceOf, onReset, scan, on
             {toggle('practiceOnChart', L('Orders on chart', 'Lệnh trên biểu đồ'))}
             {toggle('practiceFeed', L('Order pop-ups', 'Thông báo lệnh'))}
             {toggle('practiceDayOn', L('Day trades', 'Lệnh trong ngày'))}
+            {toggle('practiceUnlimited', L('Unlimited trades', 'Không giới hạn lệnh'))}
+            {toggle('practiceDayLossOn', L(`Daily loss limit ${rules.practiceDayLossPct}%`, `Giới hạn lỗ ngày ${rules.practiceDayLossPct}%`))}
             {toggle('practiceLongOn', L('Long-term trade', 'Lệnh dài hạn'))}
             {toggle('practiceAutoPick', L('Picks its own stocks', 'Tự chọn mã'))}
             {rules.practiceAutoPick && toggle('practiceMovers', L("Today's movers", 'Mã biến động hôm nay'))}
@@ -320,7 +322,7 @@ export function PracticePanel({ state, rules, symbol, priceOf, onReset, scan, on
           <div className="al-tiles">
             <div>
               <span>{L('Day trades today', 'Lệnh trong ngày hôm nay')}</span>
-              <b>{rules.practiceDayOn ? `${usedToday('day')} / ${rules.practiceDayTrades}` : L('off', 'tắt')}</b>
+              <b>{rules.practiceDayOn ? (rules.practiceUnlimited ? `${usedToday('day')} / ∞` : `${usedToday('day')} / ${rules.practiceDayTrades}`) : L('off', 'tắt')}</b>
             </div>
             <div>
               <span>{L('Long-term today', 'Dài hạn hôm nay')}</span>
