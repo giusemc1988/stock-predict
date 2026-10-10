@@ -755,3 +755,50 @@ body {
 .skill-row { align-items: flex-start; gap: 8px; }
 .skill-row > span { flex: 1; line-height: 1.4; }
 .skill-row select { flex: none; }
+
+/* Jarvis, the Arc Brain */
+.jarvis-avatar { flex: none; overflow: visible; }
+.jarvis-avatar .j-halo { fill: rgba(79, 209, 255, 0.08); }
+.jarvis-avatar .j-core { fill: rgba(240, 185, 11, 0.18); stroke: var(--gold); stroke-width: 1.2; }
+.jarvis-avatar .j-eye { fill: var(--gold); }
+.jarvis-avatar .j-mouth { stroke: var(--gold); }
+.jarvis-avatar .j-ring, .jarvis-avatar .j-ring2 { transform-origin: 20px 20px; }
+.jarvis-avatar:not(.still) .j-ring { animation: j-spin 14s linear infinite; }
+.jarvis-avatar:not(.still) .j-ring2 { animation: j-spin 22s linear infinite reverse; }
+.jarvis-avatar.j-thinking:not(.still) .j-core { animation: j-pulse 1.2s ease-in-out infinite; transform-origin: 20px 20px; }
+.jarvis-avatar.j-speaking .j-halo { fill: rgba(79, 209, 255, 0.2); }
+.jarvis-avatar.j-warning .j-ring { stroke: var(--gold); }
+.jarvis-avatar.j-warning .j-halo { fill: rgba(240, 185, 11, 0.16); }
+@keyframes j-spin { to { transform: rotate(360deg); } }
+@keyframes j-pulse { 50% { transform: scale(1.12); } }
+@media (prefers-reduced-motion: reduce) { .jarvis-avatar .j-ring, .jarvis-avatar .j-ring2, .jarvis-avatar .j-core { animation: none !important; } }
+.right-tabs.has-brain { grid-template-columns: repeat(4, 1fr); }
+.right-tabs .brain-tab { color: var(--gold); }
+.brain-head { display: flex; gap: 10px; align-items: center; margin-bottom: 8px; }
+.brain-head h3 { margin: 0; font-size: 16px; background: linear-gradient(90deg, var(--robot), var(--gold)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.brain-head p { margin: 2px 0 0; }
+.brain-list { margin: 4px 0 0; padding-left: 16px; }
+.brain-list li { margin: 0 0 6px; line-height: 1.45; }
+.brain-lesson { border-left: 2px solid var(--line-2); padding: 2px 0 2px 8px; margin: 0 0 6px; }
+.brain-lesson.good { border-color: var(--up); }
+.brain-lesson.bad { border-color: var(--down); }
+.brain-lesson.info { border-color: var(--robot); }
+.brain-lesson em { display: block; font-style: normal; font-size: 10px; color: var(--muted); }
+.brain-rule { display: grid; grid-template-columns: 1fr auto; gap: 2px 8px; padding: 6px 0; border-bottom: 1px solid var(--line); }
+.brain-rule:last-child { border-bottom: 0; }
+.brain-rule b { font-weight: 600; }
+.brain-rule .st { font-size: 10px; text-transform: uppercase; letter-spacing: 0.04em; color: var(--muted); align-self: start; text-align: right; }
+.brain-rule .st.proven { color: var(--up); }
+.brain-rule .st.harmful { color: var(--down); }
+.brain-rule .st.noEdge { color: var(--gold); }
+.brain-rule span.muted { grid-column: 1 / -1; font-size: 11px; }
+.brain-ask { display: flex; flex-wrap: wrap; gap: 6px; margin: 4px 0 8px; }
+.brain-ask button { padding: 6px 9px; border: 1px solid var(--line-2); border-radius: 14px; font-size: 11px; color: var(--text); background: var(--panel); }
+.brain-ask button.on { border-color: var(--robot); color: var(--robot); background: rgba(79, 209, 255, 0.08); }
+.brain-answer { display: flex; gap: 8px; align-items: flex-start; }
+.brain-answer ul { margin: 0; padding-left: 14px; }
+.brain-answer li { margin-bottom: 4px; line-height: 1.45; }
+.jarvis-says { display: flex; gap: 8px; align-items: center; margin: 0 0 10px; padding: 8px 10px; border: 1px solid rgba(240, 185, 11, 0.35); border-radius: 8px; background: rgba(240, 185, 11, 0.06); font-size: 12px; line-height: 1.4; }
+.jarvis-says b { color: var(--gold); }
+.brain-tiles { grid-template-columns: repeat(4, 1fr); }
+@media (max-width: 520px) { .brain-tiles { grid-template-columns: repeat(2, 1fr); } }

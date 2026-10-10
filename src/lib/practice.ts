@@ -11,6 +11,7 @@ import { feeFor, fillPrice, type Costs } from './costs'
 import { maxAgeSec, staleReason, type DataStamp } from './dataGuard'
 import { reviewTrade, type TradeReview } from './review'
 import { buildDailyReport, type DailyReport } from './dailyReport'
+import { provenRuleBroken } from './playbook'
 
 export const PRACTICE_START = 10_000
 /** A day trade that has neither stopped out nor hit target is closed after this many bars. */
@@ -225,6 +226,11 @@ export interface EntryContext {
   /** Record the decision in the log (default on). */
   audit?: boolean
   skills?: string[]
+  /** Jarvis playbook gate: a buy that breaks a rule proven on past practice trades is skipped. */
+  playbookGate?: boolean
+  /** Trades that follow a rule needed before it can be proven, and the win-rate margin (0..1). */
+  playbookMin?: number
+  playbookMargin?: number
 }
 
 /** Called once per closed bar on the open chart: maybe enter, and age or signal-exit open trades. */
@@ -356,6 +362,11 @@ export function onBarClose(prev: PracticeState, ctx: EntryContext): PracticeStat
     key,
     signal: ctx.price,
     ...(ctx.costs ? { cost: ctx.costs, entryFee } : {}),
+  }
+  if (ctx.playbookGate) {
+    const rule = provenRuleBroken(pos, s.trades, { minFollowed: ctx.playbookMin ?? 30, margin: ctx.playbookMargin ?? 0.03 })
+    if (rule) return skip('Playbook', `breaks the proven playbook rule "${rule.en.name}"`, `vi phạm quy tắc sổ tay đã chứng minh "${rule.vi.name}"`)
+    pass('Playbook')
   }
   s.open.push(pos)
   log(true, `Bought ${+qty.toPrecision(4)} ${ctx.symbol} at ${fmt(fill)} (${kind === 'day' ? 'day trade' : 'long-term'})`, `Mua ${+qty.toPrecision(4)} ${ctx.symbol} giá ${fmt(fill)} (${kind === 'day' ? 'trong ngày' : 'dài hạn'})`)

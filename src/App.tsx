@@ -26,6 +26,8 @@ import { AutoLearnPanel } from './components/AutoLearnPanel'
 import { useAutoLearning } from './hooks/useAutoLearning'
 import { usePractice } from './hooks/usePractice'
 import { PracticePanel } from './components/PracticePanel'
+import { BrainPanel } from './components/BrainPanel'
+import { JarvisAvatar } from './components/JarvisAvatar'
 import { dayKey, kindOf, type PracticeEvent } from './lib/practice'
 import { practiceRows } from './lib/practiceRows'
 import type { AiActiveRow } from './components/Watchlist'
@@ -89,8 +91,10 @@ export default function App() {
   const aiRules = useMemo(() => effectiveRules(rawRules, skillStatuses, skillFails), [rawRules, skillStatuses, skillFails])
   const skillTags = useMemo(() => approvedTags(rawRules, skillStatuses, skillFails), [rawRules, skillStatuses, skillFails])
   const [page, setPage] = useState<'trade' | 'portfolio'>('trade')
-  const [rightTab, setRightTab] = useState<'ai' | 'flow' | 'trade' | 'learn' | 'picks' | 'practice'>('ai')
+  const [rightTab, setRightTab] = useState<'ai' | 'flow' | 'trade' | 'learn' | 'picks' | 'practice' | 'brain'>('ai')
   const lang = useLang()
+  // the Brain tab disappears when Jarvis is switched off
+  const shownTab = rightTab === 'brain' && !aiRules.jarvisOn ? 'ai' : rightTab
   const [toasts, setToasts] = useState<Toast[]>([])
   // Tickers added from the search box persist in this browser and join the built-in watchlist.
   const [added, setAdded] = useLocalStorage<Instrument[]>('bluechip.added', [])
@@ -337,7 +341,7 @@ export default function App() {
     return rows
   }, [practice.state, practice.scan.candidates, todayKey])
   // practice trades live in their own account: list them in the bottom panel too, tagged, so they aren't invisible there
-  const panelPractice = aiRules.practiceMode && aiRules.practiceInPanels ? practiceRows(practice.state, practice.priceOf) : null
+  const panelPractice = aiRules.practiceMode && aiRules.practiceInPanels ? practiceRows(practice.state, practice.priceOf, Date.now(), aiRules.jarvisOn && aiRules.jarvisStory) : null
   const aiKey = aiRules.practiceMode ? aiActive.map((r) => r.symbol).join(',') : ''
   useEffect(() => setAiSymbols(aiKey ? aiKey.split(',') : []), [aiKey])
   const kindTag = (x: { kind?: 'day' | 'long' }) => (kindOf(x) === 'day' ? (lang === 'vi' ? 'Ngày' : 'Day') : lang === 'vi' ? 'Dài' : 'Long')
@@ -438,36 +442,42 @@ export default function App() {
             />
           </main>
           <aside className="panel right">
-            <div className="right-tabs">
-              <button className={rightTab === 'ai' ? 'on' : ''} onClick={() => setRightTab('ai')}>
+            <div className={`right-tabs${aiRules.jarvisOn ? ' has-brain' : ''}`}>
+              {aiRules.jarvisOn && (
+                <button className={`brain-tab${shownTab === 'brain' ? ' on' : ''}`} onClick={() => setRightTab('brain')}>
+                  <JarvisAvatar size={14} motion={false} /> {lang === 'vi' ? 'Bộ não' : 'Brain'}
+                </button>
+              )}
+              <button className={shownTab === 'ai' ? 'on' : ''} onClick={() => setRightTab('ai')}>
                 {t('aiAnalyst')}
               </button>
-              <button className={rightTab === 'flow' ? 'on' : ''} onClick={() => setRightTab('flow')}>
+              <button className={shownTab === 'flow' ? 'on' : ''} onClick={() => setRightTab('flow')}>
                 {t('buyersSellers')}
               </button>
-              <button className={rightTab === 'trade' ? 'on' : ''} onClick={() => setRightTab('trade')}>
+              <button className={shownTab === 'trade' ? 'on' : ''} onClick={() => setRightTab('trade')}>
                 {t('trade')}
               </button>
-              <button className={rightTab === 'learn' ? 'on' : ''} onClick={() => setRightTab('learn')}>
+              <button className={shownTab === 'learn' ? 'on' : ''} onClick={() => setRightTab('learn')}>
                 {t('learning')}
               </button>
-              <button className={rightTab === 'picks' ? 'on' : ''} onClick={() => setRightTab('picks')}>
+              <button className={shownTab === 'picks' ? 'on' : ''} onClick={() => setRightTab('picks')}>
                 {t('aiPicks')}
               </button>
-              <button className={rightTab === 'practice' ? 'on' : ''} onClick={() => setRightTab('practice')}>
+              <button className={shownTab === 'practice' ? 'on' : ''} onClick={() => setRightTab('practice')}>
                 {lang === 'vi' ? 'Luyện tập' : 'Practice'}
                 {aiRules.practiceMode && <i className="live-dot" />}
               </button>
             </div>
             <div className="right-body">
-              {rightTab === 'ai' && <AnalystPanel analysis={analysis} stats={closed.stats} lastSignal={lastSignal} symbol={inst.symbol} tfLabel={tfLabel} onTrade={() => {
+              {shownTab === 'ai' && <AnalystPanel analysis={analysis} stats={closed.stats} lastSignal={lastSignal} symbol={inst.symbol} tfLabel={tfLabel} onTrade={() => {
                     setPlanNonce((n) => n + 1)
                     setRightTab('trade')
-                  }} onEditRules={() => setAiRulesOpen(true)} />}
-              {rightTab === 'practice' && <PracticePanel state={practice.state} rules={aiRules} symbol={inst.symbol} priceOf={practice.priceOf} onReset={practice.reset} scan={practice.scan} onRescan={practice.rescan} onOpen={(s) => select(s)} universe={chartUniverse.map((i) => i.symbol)} serverMode={practice.serverMode} serverLastRun={practice.serverLastRun} />}
-              {rightTab === 'flow' && <OrderFlowPanel flow={flow} last={lastClose} />}
-              {rightTab === 'learn' && <AutoLearnPanel al={autoLearn} rules={aiRules} symbol={inst.symbol} liveScore={live?.probUp ?? null} />}
-              {rightTab === 'picks' && (
+                  }} onEditRules={() => setAiRulesOpen(true)} jarvis={aiRules.jarvisOn && aiRules.jarvisVoice} jarvisMotion={aiRules.jarvisMotion} />}
+              {shownTab === 'practice' && <PracticePanel state={practice.state} rules={aiRules} symbol={inst.symbol} priceOf={practice.priceOf} onReset={practice.reset} scan={practice.scan} onRescan={practice.rescan} onOpen={(s) => select(s)} universe={chartUniverse.map((i) => i.symbol)} serverMode={practice.serverMode} serverLastRun={practice.serverLastRun} />}
+              {shownTab === 'brain' && <BrainPanel state={practice.state} rules={aiRules} journal={autoLearn.state.journal} learn={autoLearn.state} killSwitch={prefs.killSwitch} priceOf={practice.priceOf} onEditRules={() => setAiRulesOpen(true)} />}
+              {shownTab === 'flow' && <OrderFlowPanel flow={flow} last={lastClose} />}
+              {shownTab === 'learn' && <AutoLearnPanel al={autoLearn} rules={aiRules} symbol={inst.symbol} liveScore={live?.probUp ?? null} />}
+              {shownTab === 'picks' && (
                 <AIPicks
                   instruments={universe}
                   tf={prefs.tf}
@@ -479,7 +489,7 @@ export default function App() {
                   }}
                 />
               )}
-              {rightTab === 'trade' && (
+              {shownTab === 'trade' && (
                 <OrderTicket
                   inst={inst}
                   last={lastClose}

@@ -10,6 +10,7 @@ const GROUPS: { id: RuleField['group']; label: Key }[] = [
   { id: 'gates', label: 'rulesGates' },
   { id: 'costs', label: 'rulesCosts' },
   { id: 'modules', label: 'rulesModules' },
+  { id: 'jarvis', label: 'rulesJarvis' },
 ]
 
 /** Settings > AI rules: edit the analyst's thresholds, sizing limits, risk gates and modules. */

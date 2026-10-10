@@ -3,6 +3,7 @@ import type { AuditEntry } from './audit'
 import { DATA_LABEL } from './dataGuard'
 import { fmtPct, fmtPrice, fmtUsd } from './format'
 import { dayKey, exitReasonLabel, kindOf, type PracticePosition, type PracticeState, type PracticeTrade } from './practice'
+import { brokenRules } from './playbook'
 import { BUCKET_LABEL, REVIEW_FAIL } from './review'
 
 /** One line of a practice trade's story: Bought, Why, Exit plan, Result... */
@@ -48,7 +49,7 @@ function entryAudit(p: PracticePosition, audit: AuditEntry[]) {
   return audit.find((a) => a.accepted && a.side === 'buy' && a.symbol === p.symbol && Math.abs(a.time - p.openedAt) < 60_000)
 }
 
-function story(p: PracticePosition, audit: AuditEntry[], now: { last: number } | { trade: PracticeTrade }): DetailLine[] {
+function story(p: PracticePosition, audit: AuditEntry[], now: { last: number } | { trade: PracticeTrade }, playbook: PracticeTrade[] | null = null): DetailLine[] {
   const i = p.info
   const long = kindOf(p) === 'long'
   const lines: DetailLine[] = []
@@ -70,6 +71,10 @@ function story(p: PracticePosition, audit: AuditEntry[], now: { last: number } |
   lines.push({ k: 'Skills used', v: i.skills?.length ? i.skills.join(', ') : NOT_RECORDED })
   const a = entryAudit(p, audit)
   lines.push({ k: 'Checks passed', v: a?.passed?.length ? a.passed.join(', ') : NOT_RECORDED })
+  if (playbook) {
+    const pb = brokenRules(p, playbook)
+    lines.push({ k: 'Jarvis playbook', v: `followed ${pb.followed.length} of ${pb.checked} rules${pb.broken.length ? ` · broke: ${pb.broken.map((r) => r.en.name).join('; ')}` : ''}`, tone: pb.broken.length ? 'down' : 'up' })
+  }
   lines.push({ k: 'Data', v: i.data ? `${DATA_LABEL[i.data.label].en} · ${i.data.source} · bar ${held(i.data.ageSec * 1000)} old` : NOT_RECORDED })
   lines.push({ k: 'Sell if', v: `price reaches ${fmtPrice(p.target)} target (${fmtPct(pctFrom(p.entry, p.target))}) or ${fmtPrice(p.stop)} stop (${fmtPct(pctFrom(p.entry, p.stop))})` })
   if (p.closeBy) lines.push({ k: long ? 'Hold until' : 'Close by', v: `${when(p.closeBy)}${long ? ', then sold if still open' : ' (before market close)'}` })
@@ -94,13 +99,15 @@ function story(p: PracticePosition, audit: AuditEntry[], now: { last: number } |
  * target (they cancel each other, like a bracket); history is every fill and today's blocked buys,
  * newest first. Each row carries the trade's story for its detail view.
  */
-export function practiceRows(s: PracticeState, priceOf: (symbol: string) => number, now = Date.now()) {
+/** `playbook`: add Jarvis's playbook checks to each story. */
+export function practiceRows(s: PracticeState, priceOf: (symbol: string) => number, now = Date.now(), playbook = false) {
+  const pb = playbook ? s.trades : null
   const audit = s.audit ?? []
   const lastOf = (p: PracticePosition) => {
     const px = priceOf(p.symbol)
     return Number.isFinite(px) && px > 0 ? px : p.entry
   }
-  const openStory = new Map(s.open.map((p) => [p.id, story(p, audit, { last: lastOf(p) })]))
+  const openStory = new Map(s.open.map((p) => [p.id, story(p, audit, { last: lastOf(p) }, pb)]))
   const positions: PracticePositionRow[] = s.open.map((p) => {
     const last = lastOf(p)
     const cost = p.qty * p.entry
@@ -121,7 +128,7 @@ export function practiceRows(s: PracticeState, priceOf: (symbol: string) => numb
   const history: PracticeOrderRow[] = []
   for (const p of s.open) history.push({ ...base, id: `${p.id}-buy`, tag: tagOf(p), tif: tifOf(p), practiceStatus: 'open', detail: openStory.get(p.id)!, symbol: p.symbol, side: 'buy', qty: p.qty, filledQty: p.qty, status: 'filled', createdAt: p.openedAt, filledAt: p.openedAt, filledPrice: p.entry })
   for (const t of s.trades) {
-    const detail = story(t, audit, { trade: t })
+    const detail = story(t, audit, { trade: t }, pb)
     const row = { ...base, tag: tagOf(t), tif: tifOf(t), practiceStatus: 'closed' as const, detail, symbol: t.symbol, qty: t.qty, filledQty: t.qty, status: 'filled' as const }
     history.push({ ...row, id: `${t.id}-buy`, side: 'buy', createdAt: t.openedAt, filledAt: t.openedAt, filledPrice: t.entry })
     history.push({ ...row, id: `${t.id}-sell`, side: 'sell', createdAt: t.closedAt, filledAt: t.closedAt, filledPrice: t.exit, reason: `Closed: ${exitReasonLabel[t.exitReason].en}` })

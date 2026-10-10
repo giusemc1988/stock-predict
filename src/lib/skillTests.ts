@@ -7,6 +7,7 @@ import { INSTRUMENTS } from '../data/instruments'
 import { DEFAULT_AI_RULES } from './aiRules'
 import { analyze } from './analyst'
 import { decide } from './journal'
+import { checkTrade, PLAYBOOK, ruleEvidence } from './playbook'
 import { rankCandidates } from './practicePicks'
 import { runStrategy } from './strategy'
 import { volRegime } from './tradeScore'
@@ -51,5 +52,12 @@ export function runSkillTests(): SkillTest[] {
   t('risk-sizing', () => (DEFAULT_AI_RULES.riskPerTradePct > 0 && DEFAULT_AI_RULES.positionCapPct <= 100 ? null : 'limits out of range'))
   t('learner', () => (decide([], 0.6).signal === 'HOLD' ? null : 'traded with no record'))
   t('stock-picker', () => (rankCandidates([]).length === 0 ? null : 'ranked nothing into something'))
+  t('playbook', () => {
+    const pos = { id: 't', symbol: 'TEST', tf: '15m', qty: 1, entry: 100, stop: 98, target: 104, openedAt: Date.UTC(2026, 9, 9, 15), barTime: 0, bars: 0, info: { verdict: 'BUY' as const, score: 0.5, grade: 'B', tradeScore: 60, regime: 'normal', learner: 'BUY' as const, reason: '' } }
+    const res = checkTrade(pos, [])
+    if (PLAYBOOK.some((r) => !(r.id in res) || ![true, false, null].includes(res[r.id]))) return 'a rule gave no result'
+    if (res.rr !== true || res.tightStop !== true) return 'a 2:1 trade with a 2% stop failed its checks'
+    return ruleEvidence([], { minFollowed: 30, margin: 0.03 }).every((e) => e.status === 'unproven') ? null : 'judged a rule with no trades'
+  })
   return out
 }
