@@ -91,7 +91,7 @@ export function listenOnce(lang: 'en' | 'vi', onText: (text: string) => void, on
   const end = (error?: string) => {
     if (ended) return
     ended = true
-    if (latest && error !== 'aborted') {
+    if (latest && !error) {
       onText(latest)
       onDone()
     } else onDone(error ?? 'no-speech')
