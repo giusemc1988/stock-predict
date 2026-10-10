@@ -10,7 +10,7 @@ import { costsFrom } from './costs'
 import { stampData } from './dataGuard'
 import { baseRate, decide, type JournalEntry } from './journal'
 import { onBarClose, onBars, onPrice, type EntryContext, type PickRow, type PracticeState } from './practice'
-import { gainToday, pickWhy, rankCandidates, volumeVsAvg, type PickSource, type PracticeCandidate } from './practicePicks'
+import { dollarVolume, gainToday, pickWhy, rankCandidates, volumeVsAvg, type PickSource, type PracticeCandidate } from './practicePicks'
 import { runStrategy } from './strategy'
 
 export const PICK_TF = '15m' as const
@@ -93,6 +93,7 @@ export async function scanCycle(input: ScanInput): Promise<ScanResult> {
         barTime: last.time,
         gainPct: gainToday(all),
         volVsAvg: volumeVsAvg(bars),
+        dollarVol: dollarVolume(bars),
         tradeScore: a?.tradeScore?.score ?? null,
       })
     } catch {
@@ -145,6 +146,8 @@ export async function scanCycle(input: ScanInput): Promise<ScanResult> {
         now,
         hardLimitsOn: rules.hardLimitsOn,
         ...practiceLimits(rules),
+        pennyOn: rules.practicePenny,
+        dollarVol: x.dollarVol ?? null,
         maxExposurePct: rules.maxExposurePct,
         data: stampData(input.sourceFor(x), x.barTime, BAR_SEC, now),
         tfSec: BAR_SEC,

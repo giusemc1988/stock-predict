@@ -387,15 +387,15 @@ export interface MarketMover {
 }
 
 /** Today's top gainers and most-active US stocks from Alpaca's screener (paper data key).
- *  Skips warrants, units and other odd tickers, and gainers under $5. */
-export async function alpacaMovers(k: AlpacaDataKeys, top = 10): Promise<MarketMover[]> {
+ *  Skips warrants, units and other odd tickers, and gainers under `minPrice` ($5, or $1 with penny stocks on). */
+export async function alpacaMovers(k: AlpacaDataKeys, top = 10, minPrice = 5): Promise<MarketMover[]> {
   const plain = (s: string) => /^[A-Z]{1,5}$/.test(s)
   const [mv, act] = await Promise.all([
     alpacaData<{ gainers?: { symbol: string; percent_change: number; price: number }[] }>(k, `/v1beta1/screener/stocks/movers?top=${top * 3}`).catch(() => ({ gainers: [] })),
     alpacaData<{ most_actives?: { symbol: string; volume: number }[] }>(k, `/v1beta1/screener/stocks/most-actives?by=volume&top=${top * 2}`).catch(() => ({ most_actives: [] })),
   ])
   const gainers: MarketMover[] = (mv.gainers ?? [])
-    .filter((g) => plain(g.symbol) && g.price >= 5)
+    .filter((g) => plain(g.symbol) && g.price >= minPrice)
     .slice(0, top)
     .map((g) => ({ symbol: g.symbol, source: 'gainer', percentChange: g.percent_change, price: g.price }))
   const actives: MarketMover[] = (act.most_actives ?? [])

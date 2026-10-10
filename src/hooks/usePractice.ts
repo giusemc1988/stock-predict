@@ -4,8 +4,9 @@ import { practiceLimits, type AiRules } from '../lib/aiRules'
 import { costsFrom } from '../lib/costs'
 import { stampData } from '../lib/dataGuard'
 import { baseRate, decide, type JournalEntry } from '../lib/journal'
-import { emptyPractice, onBarClose, onPrice, parsePractice, type PickRow, type PracticeEvent, type PracticeState } from '../lib/practice'
+import { emptyPractice, onBarClose, PENNY_MIN_PRICE, PENNY_PRICE, onPrice, parsePractice, type PickRow, type PracticeEvent, type PracticeState } from '../lib/practice'
 import { PICK_TF, scanCycle, withOpenMarkets, type ScanMarket } from '../lib/practiceScan'
+import { dollarVolume } from '../lib/practicePicks'
 import { alpacaMovers, hasAlpacaData, type AlpacaDataKeys, type ApiKeys, type MarketMover } from '../data/providers'
 import { candlesFor } from '../data/series'
 
@@ -165,8 +166,8 @@ export function usePractice({ rules, symbol, asset, tf, candles, analysis, liveS
   }, [state.events, onEvent, serverMode])
 
   // decide once per closed bar on the open chart
-  const ctx = useRef({ analysis, liveScore, journal, rules, killSwitch, maxTradesPerDay, asset, serverMode, feedSource, skills })
-  ctx.current = { analysis, liveScore, journal, rules, killSwitch, maxTradesPerDay, asset, serverMode, feedSource, skills }
+  const ctx = useRef({ analysis, liveScore, journal, rules, killSwitch, maxTradesPerDay, asset, serverMode, feedSource, skills, candles })
+  ctx.current = { analysis, liveScore, journal, rules, killSwitch, maxTradesPerDay, asset, serverMode, feedSource, skills, candles }
   const n = candles.length
   const closed = n > 1 ? candles[n - 2] : null
   const seen = useRef('')
@@ -207,6 +208,8 @@ export function usePractice({ rules, symbol, asset, tf, candles, analysis, liveS
         now: Date.now(),
         hardLimitsOn: c.rules.hardLimitsOn,
         ...practiceLimits(c.rules),
+        pennyOn: c.rules.practicePenny,
+        dollarVol: dollarVolume(c.candles.slice(0, -1)),
         maxExposurePct: c.rules.maxExposurePct,
         data: stampData(c.feedSource, closed.time, tfSeconds(tf as Timeframe), Date.now()),
         tfSec: tfSeconds(tf as Timeframe),
@@ -235,7 +238,7 @@ export function usePractice({ rules, symbol, asset, tf, candles, analysis, liveS
     const stockData = hasAlpacaData(c.alpacaKeys) || !!c.keys.alphaVantage
     try {
       if (c.rules.practiceMovers && hasAlpacaData(c.alpacaKeys) && Date.now() - movers.current.at > MOVERS_MS)
-        movers.current = { at: Date.now(), list: await alpacaMovers(c.alpacaKeys).catch(() => movers.current.list) }
+        movers.current = { at: Date.now(), list: await alpacaMovers(c.alpacaKeys, 10, c.rules.practicePenny ? PENNY_MIN_PRICE : PENNY_PRICE).catch(() => movers.current.list) }
       const markets: ScanMarket[] = c.universe.filter((i) => i.assetClass === 'crypto' || stockData).map((i) => ({ symbol: i.symbol, asset: i.assetClass, source: 'watchlist' as const }))
       if (c.rules.practiceMovers) for (const m of movers.current.list) if (!markets.some((x) => x.symbol === m.symbol)) markets.push({ symbol: m.symbol, asset: 'stock', source: m.source })
       const instFor = (m: ScanMarket): Instrument => c.universe.find((i) => i.symbol === m.symbol) ?? { symbol: m.symbol, name: m.symbol, assetClass: m.asset, feedId: m.symbol, demoPrice: 100, demoVol: 0.4 }

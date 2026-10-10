@@ -94,7 +94,7 @@ export function PracticePanel({ state, rules, symbol, priceOf, onReset, scan, on
   const wins = shownTrades.filter((t) => t.pnl > 0)
   const fails = shownTrades.filter((t) => t.pnl <= 0)
 
-  const toggle = (key: 'practiceMode' | 'practiceOnChart' | 'practiceFeed' | 'practiceDayOn' | 'practiceLongOn' | 'practiceAutoPick' | 'practiceMovers' | 'practiceServer' | 'practiceWatchlist' | 'practiceFollow' | 'practiceInPanels' | 'practiceUnlimited' | 'practiceDayLossOn', label: string) => (
+  const toggle = (key: 'practiceMode' | 'practiceOnChart' | 'practiceFeed' | 'practiceDayOn' | 'practiceLongOn' | 'practiceAutoPick' | 'practiceMovers' | 'practiceServer' | 'practiceWatchlist' | 'practiceFollow' | 'practiceInPanels' | 'practiceUnlimited' | 'practiceDayLossOn' | 'practicePenny', label: string) => (
     <label className="al-toggle">
       <span>{label}</span>
       <span className="switch">
@@ -247,6 +247,7 @@ export function PracticePanel({ state, rules, symbol, priceOf, onReset, scan, on
             {toggle('practiceFeed', L('Order pop-ups', 'Thông báo lệnh'))}
             {toggle('practiceDayOn', L('Day trades', 'Lệnh trong ngày'))}
             {toggle('practiceUnlimited', L('Unlimited trades', 'Không giới hạn lệnh'))}
+            {toggle('practicePenny', L('Penny stocks', 'Cổ phiếu penny'))}
             {toggle('practiceDayLossOn', L(`Daily loss limit ${rules.practiceDayLossPct}%`, `Giới hạn lỗ ngày ${rules.practiceDayLossPct}%`))}
             {toggle('practiceLongOn', L('Long-term trade', 'Lệnh dài hạn'))}
             {toggle('practiceAutoPick', L('Picks its own stocks', 'Tự chọn mã'))}
@@ -480,6 +481,7 @@ export function PracticePanel({ state, rules, symbol, priceOf, onReset, scan, on
             </ul>
           </div>
           {only === 'all' && groupTable(L('DAY TRADES VS LONG-TERM', 'TRONG NGÀY SO VỚI DÀI HẠN'), r.byKind, (k) => kindName(k as PracticeKind))}
+          {r.byPenny.some((g) => g.key === 'penny') && groupTable(L('PENNY STOCKS VS REGULAR', 'CỔ PHIẾU PENNY SO VỚI THƯỜNG'), r.byPenny, (k) => (k === 'penny' ? L('penny (under $5)', 'penny (dưới $5)') : L('$5 and up', 'từ $5 trở lên')))}
           {groupTable(L('BY TRADE SCORE GRADE', 'THEO HẠNG ĐIỂM GIAO DỊCH'), r.byGrade)}
           {groupTable(L('BY HOW IT EXITED', 'THEO CÁCH THOÁT LỆNH'), r.byExit, (k) => {
             const lab = exitReasonLabel[k as keyof typeof exitReasonLabel]

@@ -119,4 +119,17 @@ assert.equal(stopped.open.length, 0)
 assert.equal(stopped.audit?.[0].blockedBy, 'Daily loss limit')
 assert.equal(onBarClose(lossDay, ctx({ symbol: 'ZZ', unlimited: true, dayLossLimitPct: 2, now: Date.UTC(2026, 9, 12, 15) })).open.length, 1, 'a new day trades again')
 assert.equal(onBarClose(lossDay, ctx({ symbol: 'ZZ', unlimited: true, dayLossLimitPct: 5 })).open.length, 1, 'under the limit')
+// penny stocks: off skips; on needs $1+, enough dollar volume, then half size and 5x spread/slippage
+const pennyBuy = { ...buy, exitPlan: { entry: 3, stop: 2.85, target: 3.3 } } as unknown as Analysis
+const pctx = (over: Partial<EntryContext> = {}) => ctx({ symbol: 'PNY', price: 3, analysis: pennyBuy, costs: { feeBps: 1, spreadBps: 4, slippageBps: 2 }, ...over })
+assert.equal(onBarClose(emptyPractice(), pctx()).audit?.[0].blockedBy, 'Penny stock', 'off by default in the context')
+assert.equal(onBarClose(emptyPractice(), pctx({ pennyOn: true, dollarVol: 50_000 })).open.length, 0, 'too thin')
+assert.equal(onBarClose(emptyPractice(), pctx({ pennyOn: true, dollarVol: 500_000, price: 0.8, analysis: { ...buy, exitPlan: { entry: 0.8, stop: 0.75, target: 0.9 } } as unknown as Analysis })).open.length, 0, 'under $1')
+const pen = onBarClose(emptyPractice(), pctx({ pennyOn: true, dollarVol: 500_000 })).open[0]
+assert.ok(pen.info.penny)
+assert.ok(Math.abs(pen.qty * 3 - 100) < 2, 'half of the 2% size')
+assert.equal(pen.cost?.spreadBps, 20)
+assert.equal(pen.cost?.slippageBps, 10)
+const reg = onBarClose(emptyPractice(), ctx({ costs: { feeBps: 1, spreadBps: 4, slippageBps: 2 } })).open[0]
+assert.ok(!reg.info.penny && reg.cost?.spreadBps === 4, 'regular stocks keep normal costs')
 console.log('practice tests passed')

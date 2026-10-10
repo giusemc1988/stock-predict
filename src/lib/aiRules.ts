@@ -39,6 +39,7 @@ export interface AiRules {
   practiceDayLossOn: boolean // stop new practice buys for the day after a daily loss
   practiceDayLossPct: number // daily loss limit, % of the practice account
   practiceMaxOpen: number // open practice trades at most when unlimited (replaces the 8-position cap for practice)
+  practicePenny: boolean // practice may trade stocks from $1 to $5 (liquid ones only; smaller size, higher costs)
   practiceInPanels: boolean // list practice positions and orders in the Positions, Open orders and History tabs
   dataGuardOn: boolean // block new AI entries on simulated or stale data
   maxDataAgeMin: number // oldest bar close allowed for a new entry (at least one bar)
@@ -87,6 +88,7 @@ export const DEFAULT_AI_RULES: AiRules = {
   practiceWatchlist: true,
   practiceFollow: false,
   practiceInPanels: true,
+  practicePenny: true,
   practiceUnlimited: true,
   practiceDayLossOn: true,
   practiceDayLossPct: 2,
@@ -158,6 +160,7 @@ export const RULE_FIELDS: RuleField[] = [
   { group: 'modules', key: 'practiceWatchlist', en: 'Show what practice is watching and trading at the top of the watchlist', vi: 'Hiện các mã luyện tập đang theo dõi và giao dịch ở đầu danh sách' },
   { group: 'modules', key: 'practiceFollow', en: 'Chart follows each new practice trade', vi: 'Biểu đồ tự chuyển theo mỗi lệnh luyện tập mới' },
   { group: 'modules', key: 'practiceUnlimited', en: 'Practice unlimited trades (as many as the signals allow; long-term trades keep their daily number)', vi: 'Luyện tập không giới hạn lệnh (nhiều nhất tín hiệu cho phép; lệnh dài hạn giữ số lượng mỗi ngày)' },
+  { group: 'modules', key: 'practicePenny', en: 'Practice penny stocks ($1 to $5, only liquid ones; half size, 5x spread and slippage)', vi: 'Luyện tập cổ phiếu penny ($1 đến $5, chỉ mã thanh khoản; nửa khối lượng, chênh lệch và trượt giá gấp 5)' },
   { group: 'modules', key: 'practiceDayLossOn', en: 'Practice daily loss limit', vi: 'Giới hạn lỗ trong ngày khi luyện tập' },
   { group: 'modules', key: 'practiceInPanels', en: 'Show practice trades in Positions, Open orders and History', vi: 'Hiện lệnh luyện tập trong Vị thế, Lệnh chờ và Lịch sử' },
   { group: 'modules', key: 'practiceOnChart', en: 'Show practice orders on the chart (animated)', vi: 'Hiện lệnh luyện tập trên biểu đồ (có hiệu ứng)' },
