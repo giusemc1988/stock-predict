@@ -7,7 +7,7 @@ import { PLAYBOOK, ruleEvidence, STATUS_LABEL } from '../lib/playbook'
 import { ask, ASK_QUESTIONS, briefing, evidenceLine, evidenceOpts, experience, tradeLessons, type AskId } from '../lib/jarvis'
 import { JarvisAvatar } from './JarvisAvatar'
 import { useLocalStorage } from '../hooks/useLocalStorage'
-import { canSpeak, DEFAULT_VOICE, sortVoices, speak, stopSpeaking, useVoices, type VoicePrefs } from '../lib/speech'
+import { canSpeak, DEFAULT_VOICE, isNatural, sortVoices, speak, stopSpeaking, useVoices, type VoicePrefs } from '../lib/speech'
 
 interface Props {
   state: PracticeState
@@ -131,11 +131,7 @@ export function BrainPanel({ state, rules, journal, learn, killSwitch, priceOf, 
               {answer && (
                 <div className="brain-answer">
                   <JarvisAvatar size={24} mood="speaking" motion={false} />
-                  <ul>
-                    {answer.map((a, i) => (
-                      <li key={i}>{pick(a)}</li>
-                    ))}
-                  </ul>
+                  <p>{answer.map(pick).join(' ')}</p>
                 </div>
               )}
               <p className="muted al-note">{L('Answers come from the app’s own records. No AI service or API key is used.', 'Câu trả lời lấy từ dữ liệu của chính ứng dụng. Không dùng dịch vụ AI hay khóa API.')}</p>
@@ -151,9 +147,10 @@ export function BrainPanel({ state, rules, journal, learn, killSwitch, priceOf, 
                   <label>
                     <span>{L('Voice', 'Giọng')}</span>
                     <select value={voice.voice} onChange={(e) => setVoice({ ...voice, voice: e.target.value })}>
-                      <option value="">{L('Default for the app language', 'Mặc định theo ngôn ngữ ứng dụng')}</option>
+                      <option value="">{L('Most natural voice for the app language', 'Giọng tự nhiên nhất theo ngôn ngữ ứng dụng')}</option>
                       {voices.map((v) => (
                         <option key={v.voiceURI} value={v.voiceURI}>
+                          {isNatural(v) ? '★ ' : ''}
                           {v.name} ({v.lang})
                         </option>
                       ))}
@@ -174,7 +171,7 @@ export function BrainPanel({ state, rules, journal, learn, killSwitch, priceOf, 
                   <button className="pr-rescan" onClick={() => say([{ en: "Hello, I'm Jarvis. This is how I sound.", vi: 'Xin chào, tôi là Jarvis. Đây là giọng của tôi.' }])}>
                     ▶ {L('Test voice', 'Nghe thử')}
                   </button>
-                  <p className="muted al-note">{L("Uses your device's built-in voices, free and with no key. Male, female and Vietnamese voices depend on what your device has installed.", 'Dùng giọng có sẵn trên thiết bị, miễn phí và không cần khóa. Giọng nam, nữ và tiếng Việt tùy vào thiết bị đã cài.')}</p>
+                  <p className="muted al-note">{L("Uses your device's built-in voices, free and with no key. ★ marks the natural-sounding ones; male, female and Vietnamese voices depend on what your device has installed.", 'Dùng giọng có sẵn trên thiết bị, miễn phí và không cần khóa. ★ là giọng tự nhiên; giọng nam, nữ và tiếng Việt tùy vào thiết bị đã cài.')}</p>
                 </div>
               )}
             </div>

@@ -22,7 +22,7 @@ export const RELEASES: Release[] = [
       'Honest learning: every rule starts as "Unproven". It is only called proven when our own paper trades show that following it wins clearly more often than breaking it, on enough trades. Experience is counted in practice trades, not years. Nothing here has beaten buying and holding yet, and Jarvis never promises profits.',
       'Lessons after each reviewed trade: a lucky win (broke rules but made money) says don\'t repeat it; a good trade that lost is the cost of trading.',
       'A short Jarvis line under the AI Analyst call, in plain words.',
-      'Jarvis can speak (off by default): turn on "Jarvis speaks" in AI rules, then pick a voice in the Brain tab, set speed and pitch, and tap Read aloud or ask a question. It uses your device\'s free built-in voices (male, female and Vietnamese depend on what your device has); no key.',
+      'Jarvis can speak (off by default): turn on "Jarvis speaks" in AI rules, then pick a voice in the Brain tab, set speed and pitch, and tap Read aloud or ask a question. It talks like a person: short, direct answers, read in the most natural-sounding voice your device has (marked ★). It uses your device\'s free built-in voices (male, female and Vietnamese depend on what your device has); no key.',
       'Every part has its own switch in Settings > AI rules > Jarvis. An optional gate (off by default) makes practice skip buys that break a rule already proven on paper trades. Paper trading only.',
     ],
     changesVi: [
@@ -31,7 +31,7 @@ export const RELEASES: Release[] = [
       'Học một cách trung thực: mọi quy tắc bắt đầu là "Chưa chứng minh". Chỉ khi chính lệnh thử của chúng ta cho thấy tuân theo thắng nhiều hơn rõ rệt so với vi phạm, trên đủ số lệnh, quy tắc mới được gọi là đã chứng minh. Kinh nghiệm được tính bằng số lệnh luyện tập, không phải số năm. Chưa có gì ở đây thắng được mua và giữ, và Jarvis không bao giờ hứa lợi nhuận.',
       'Bài học sau mỗi lệnh được đánh giá: thắng may mắn (vi phạm quy tắc nhưng có lãi) thì đừng lặp lại; lệnh làm đúng mà thua là chi phí giao dịch.',
       'Một dòng ngắn của Jarvis dưới nhận định AI, bằng lời dễ hiểu.',
-      'Jarvis có thể nói (mặc định tắt): bật "Jarvis nói" trong Quy tắc AI, rồi chọn giọng trong tab Bộ não, chỉnh tốc độ và cao độ, và bấm Đọc to hoặc đặt câu hỏi. Dùng giọng miễn phí có sẵn trên thiết bị (giọng nam, nữ và tiếng Việt tùy thiết bị); không cần khóa.',
+      'Jarvis có thể nói (mặc định tắt): bật "Jarvis nói" trong Quy tắc AI, rồi chọn giọng trong tab Bộ não, chỉnh tốc độ và cao độ, và bấm Đọc to hoặc đặt câu hỏi. Jarvis nói như người thật: trả lời ngắn, thẳng vào câu hỏi, bằng giọng tự nhiên nhất trên thiết bị (đánh dấu ★). Dùng giọng miễn phí có sẵn trên thiết bị (giọng nam, nữ và tiếng Việt tùy thiết bị); không cần khóa.',
       'Mỗi phần có công tắc riêng trong Cài đặt > Quy tắc AI > Jarvis. Một cổng tùy chọn (mặc định tắt) cho luyện tập bỏ qua lệnh mua vi phạm quy tắc đã chứng minh trên lệnh thử. Chỉ giao dịch thử nghiệm.',
     ],
   },

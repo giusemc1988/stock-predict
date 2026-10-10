@@ -807,3 +807,4 @@ body {
 .brain-voice select { background: var(--panel); color: var(--text); border: 1px solid var(--line-2); border-radius: 6px; padding: 6px; max-width: 100%; }
 .brain-voice input[type='range'] { width: 100%; accent-color: var(--robot); }
 .brain-voice button { justify-self: start; }
+.brain-answer p { margin: 0 0 6px; line-height: 1.5; }

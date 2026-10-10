@@ -27,17 +27,37 @@ export function useVoices(): SpeechSynthesisVoice[] {
   return voices
 }
 
-/** English and Vietnamese voices first, the rest after. */
+/** Voices that sound human (neural / natural / premium) rather than robotic. */
+export const isNatural = (v: SpeechSynthesisVoice) => /natural|neural|online|premium|enhanced|siri|google/i.test(v.name)
+
+/** English and Vietnamese voices first, natural-sounding voices first within each. */
 export function sortVoices(voices: SpeechSynthesisVoice[]) {
-  const rank = (v: SpeechSynthesisVoice) => (v.lang.startsWith('en') ? 0 : v.lang.startsWith('vi') ? 1 : 2)
+  const rank = (v: SpeechSynthesisVoice) => (v.lang.startsWith('en') ? 0 : v.lang.startsWith('vi') ? 2 : 4) + (isNatural(v) ? 0 : 1)
   return [...voices].sort((a, b) => rank(a) - rank(b) || a.lang.localeCompare(b.lang) || a.name.localeCompare(b.name))
+}
+
+/** The most human-sounding voice the device has for a language. */
+export function bestVoice(voices: SpeechSynthesisVoice[], lang: 'en' | 'vi') {
+  const mine = voices.filter((v) => v.lang.toLowerCase().startsWith(lang))
+  return mine.find(isNatural) ?? mine.find((v) => v.localService === false) ?? mine[0]
+}
+
+/** Spoken text: only the answer, with symbols turned into words so it reads like speech. */
+export function speakable(text: string, lang: 'en' | 'vi' = 'en') {
+  return text
+    .replace(/\([^)]*\)/g, '')
+    .replace(/[−-]\$(\d)/g, lang === 'vi' ? 'âm $$$1' : 'minus $$$1')
+    .replace(/\s*·\s*/g, '. ')
+    .replace(/["“”]/g, '')
+    .replace(/\s{2,}/g, ' ')
+    .trim()
 }
 
 export function speak(text: string, prefs: VoicePrefs, lang: 'en' | 'vi', voices: SpeechSynthesisVoice[]) {
   if (!canSpeak()) return
   speechSynthesis.cancel()
-  const u = new SpeechSynthesisUtterance(text)
-  const chosen = voices.find((v) => v.voiceURI === prefs.voice) ?? voices.find((v) => v.lang.toLowerCase().startsWith(lang))
+  const u = new SpeechSynthesisUtterance(speakable(text, lang))
+  const chosen = voices.find((v) => v.voiceURI === prefs.voice) ?? bestVoice(voices, lang)
   if (chosen) u.voice = chosen
   u.lang = chosen?.lang ?? (lang === 'vi' ? 'vi-VN' : 'en-US')
   u.rate = Math.min(2, Math.max(0.5, prefs.rate))

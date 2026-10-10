@@ -63,3 +63,9 @@ for (const l of lines) {
 }
 assert.match(tradeLessons(st)[0].en, /Lucky win/)
 console.log('playbook ok')
+
+// spoken text reads like speech: no parentheses, symbols as words
+import { speakable } from '../src/lib/speech'
+assert.equal(speakable('Lost −$4.61 (fees) · done'), 'Lost minus $4.61. done')
+assert.equal(speakable('Lỗ −$2', 'vi'), 'Lỗ âm $2')
+console.log('speech ok')

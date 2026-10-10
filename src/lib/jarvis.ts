@@ -9,7 +9,7 @@ import type { AiRules } from './aiRules'
 import type { AuditEntry } from './audit'
 import { baseRate, type JournalEntry } from './journal'
 import { dayKey, kindOf, PRACTICE_START, practiceEquity, type PracticeState, type PracticeTrade } from './practice'
-import { brokenRules, minBrokeFor, PLAYBOOK, ruleById, ruleEvidence, type RuleEvidence } from './playbook'
+import { brokenRules, PLAYBOOK, ruleById, ruleEvidence, type RuleEvidence } from './playbook'
 import { REVIEW_FAIL } from './review'
 
 export interface Bi {
@@ -179,74 +179,78 @@ export function ask(id: AskId, c: AskContext): Bi[] {
     const last = [...s.open, ...s.trades].sort((a, b) => b.openedAt - a.openedAt)[0]
     if (!last) return [{ en: "I haven't made a practice trade yet.", vi: 'Tôi chưa có lệnh luyện tập nào.' }]
     const i = last.info
-    const { broken, followed, checked } = brokenRules(last, s.trades)
+    const { broken } = brokenRules(last, s.trades)
+    const kind = kindOf(last) === 'day' ? { en: 'a quick day trade', vi: 'lệnh lướt trong ngày' } : { en: 'a longer hold', vi: 'lệnh giữ dài hơn' }
+    const strong = Math.abs(i.score) >= 0.5
+    const setup = i.tradeScore != null ? { en: ` and the setup scored ${i.tradeScore} out of 100`, vi: ` và thiết lập đạt ${i.tradeScore} trên 100 điểm` } : { en: '', vi: '' }
     const out: Bi[] = [
       {
-        en: `${last.symbol}, ${kindOf(last) === 'day' ? 'a day trade' : 'a long-term trade'}. The analyst said ${i.verdict} (${i.score >= 0 ? '+' : ''}${i.score.toFixed(2)})${i.tradeScore != null ? `, Trade Score ${i.tradeScore}${i.grade ? ` (${i.grade})` : ''}` : ''}${i.learner !== 'n/a' ? `, learner ${i.learner}` : ''}. ${i.reason}`,
-        vi: `${last.symbol}, ${kindOf(last) === 'day' ? 'lệnh trong ngày' : 'lệnh dài hạn'}. Phân tích nói ${i.verdict} (${i.score >= 0 ? '+' : ''}${i.score.toFixed(2)})${i.tradeScore != null ? `, Điểm GD ${i.tradeScore}${i.grade ? ` (${i.grade})` : ''}` : ''}${i.learner !== 'n/a' ? `, bộ học ${i.learner}` : ''}.`,
+        en: `I bought ${last.symbol} as ${kind.en} because the chart looked ${strong ? 'strong' : 'decent'}${setup.en}.`,
+        vi: `Tôi mua ${last.symbol} như ${kind.vi} vì biểu đồ trông ${strong ? 'mạnh' : 'khá ổn'}${setup.vi}.`,
       },
     ]
-    if (i.pick) out.push({ en: `Why this stock: ${i.pick.en}.`, vi: `Vì sao chọn mã này: ${i.pick.vi}.` })
-    out.push({
-      en: `Playbook: followed ${followed.length} of ${checked} rules${broken.length ? `; broke ${broken.map((b) => b.en.name).join(', ')}` : ''}.`,
-      vi: `Sổ tay: tuân theo ${followed.length} trên ${checked} quy tắc${broken.length ? `; vi phạm ${broken.map((b) => b.vi.name).join(', ')}` : ''}.`,
-    })
+    if (i.pick) {
+      const up = i.pick.gainPct != null ? { en: `, up ${i.pick.gainPct.toFixed(1)}% today`, vi: `, tăng ${i.pick.gainPct.toFixed(1)}% hôm nay` } : { en: '', vi: '' }
+      out.push({ en: `It was my number ${i.pick.place} pick of ${i.pick.of}${up.en}.`, vi: `Đó là mã thứ ${i.pick.place} trong ${i.pick.of} mã tôi chọn${up.vi}.` })
+    }
+    out.push(
+      broken.length
+        ? { en: `Honestly, it broke ${broken.length === 1 ? 'one of my rules' : `${broken.length} of my rules`}: ${broken.map((r) => r.en.name.toLowerCase()).join(', and ')}.`, vi: `Nói thật, lệnh này vi phạm ${broken.length} quy tắc: ${broken.map((r) => r.vi.name.toLowerCase()).join(', và ')}.` }
+        : { en: 'It passed every rule in my playbook.', vi: 'Lệnh này đạt mọi quy tắc trong sổ tay.' },
+    )
     return out
   }
   if (id === 'learned') {
     const today = dayKey(now)
     const ls = tradeLessons(s, 50).filter((l) => dayKey(l.time) === today)
-    return ls.length ? ls.slice(0, 5) : [{ en: 'No trades closed today, so no new lessons yet.', vi: 'Hôm nay chưa đóng lệnh nào nên chưa có bài học mới.' }]
+    return ls.length ? ls.slice(0, 3) : [{ en: "Nothing new yet. No trades have closed today.", vi: 'Chưa có gì mới. Hôm nay chưa có lệnh nào đóng.' }]
   }
   if (id === 'rules') {
     const proven = ev.filter((e) => e.status === 'proven')
     const harmful = ev.filter((e) => e.status === 'harmful')
     const out: Bi[] = []
-    if (!proven.length && !harmful.length) {
+    if (!proven.length && !harmful.length)
       out.push({
-        en: `None of my ${PLAYBOOK.length} rules is proven on our paper trades yet. A rule needs ${c.rules.minSample} trades that follow it and ${minBrokeFor(c.rules.minSample)} that break it, and following it must win at least ${c.rules.learnEdgeMarginPct} points more often. I have ${s.trades.length} closed trades.`,
-        vi: `Chưa quy tắc nào trong ${PLAYBOOK.length} quy tắc được chứng minh trên lệnh thử. Mỗi quy tắc cần ${c.rules.minSample} lệnh tuân theo và ${minBrokeFor(c.rules.minSample)} lệnh vi phạm, và tuân theo phải thắng nhiều hơn ít nhất ${c.rules.learnEdgeMarginPct} điểm. Tôi có ${s.trades.length} lệnh đã đóng.`,
+        en: `None yet, to be honest. I've only closed ${s.trades.length} practice trades, and I need about ${c.rules.minSample} per rule before I trust it.`,
+        vi: `Nói thật là chưa có. Tôi mới đóng ${s.trades.length} lệnh luyện tập, và cần khoảng ${c.rules.minSample} lệnh cho mỗi quy tắc trước khi tin nó.`,
       })
-    }
-    for (const e of proven) out.push({ en: `Works: ${ruleById(e.id)!.en.name}. ${evidenceLine(e).en}`, vi: `Hiệu quả: ${ruleById(e.id)!.vi.name}. ${evidenceLine(e).vi}` })
-    for (const e of harmful) out.push({ en: `Hurting: ${ruleById(e.id)!.en.name}. ${evidenceLine(e).en} I'll keep watching; it may be luck.`, vi: `Gây hại: ${ruleById(e.id)!.vi.name}. ${evidenceLine(e).vi} Tôi sẽ tiếp tục theo dõi; có thể do may rủi.` })
+    for (const e of proven) out.push({ en: `"${ruleById(e.id)!.en.name}" is working. When I follow it I win ${pct(e.followedRate ?? 0)} of the time, versus ${pct(e.brokeRate ?? 0)} when I don't.`, vi: `"${ruleById(e.id)!.vi.name}" đang hiệu quả. Khi tuân theo tôi thắng ${pct(e.followedRate ?? 0)}, so với ${pct(e.brokeRate ?? 0)} khi không.` })
+    for (const e of harmful) out.push({ en: `"${ruleById(e.id)!.en.name}" seems to hurt so far, but that could be luck. I'm watching it.`, vi: `"${ruleById(e.id)!.vi.name}" có vẻ gây hại, nhưng có thể do may rủi. Tôi đang theo dõi.` })
     return out
   }
   if (id === 'risk') {
     const eq = practiceEquity(s)
     const exposure = s.open.reduce((a, p) => a + p.qty * (c.priceOf(p.symbol) || p.entry), 0)
     const atRisk = s.open.reduce((a, p) => a + p.qty * Math.max(0, p.entry - p.stop), 0)
+    if (!s.open.length) return [{ en: "Nothing right now. I'm not holding any practice trades.", vi: 'Hiện không có gì. Tôi không giữ lệnh luyện tập nào.' }]
+    const share = eq ? Math.round((exposure / eq) * 100) : 0
     return [
       {
-        en: `${s.open.length} open practice trades (limit ${c.rules.maxOpenPositions}), $${exposure.toFixed(0)} invested = ${eq ? Math.round((exposure / eq) * 100) : 0}% of the account (limit ${c.rules.maxExposurePct}%).`,
-        vi: `${s.open.length} lệnh luyện tập đang mở (giới hạn ${c.rules.maxOpenPositions}), $${exposure.toFixed(0)} đã vào lệnh = ${eq ? Math.round((exposure / eq) * 100) : 0}% tài khoản (giới hạn ${c.rules.maxExposurePct}%).`,
+        en: `Pretty small. I'm in ${s.open.length} ${s.open.length === 1 ? 'trade' : 'trades'} with about ${share}% of the practice account, and if every stop gets hit we'd lose around $${atRisk.toFixed(0)}.`,
+        vi: `Khá nhỏ. Tôi đang có ${s.open.length} lệnh với khoảng ${share}% tài khoản luyện tập, và nếu mọi cắt lỗ đều bị chạm thì mất khoảng $${atRisk.toFixed(0)}.`,
       },
-      { en: `If every stop is hit: about −$${atRisk.toFixed(2)}.`, vi: `Nếu mọi cắt lỗ đều bị chạm: khoảng −$${atRisk.toFixed(2)}.` },
-      { en: `Kill switch ${c.killSwitch ? 'ON' : 'off'}. Paper money only.`, vi: `Công tắc dừng khẩn cấp ${c.killSwitch ? 'BẬT' : 'tắt'}. Chỉ tiền thử nghiệm.` },
+      ...(c.killSwitch ? [{ en: 'The kill switch is on, so I won\'t buy anything new.', vi: 'Công tắc dừng khẩn cấp đang bật nên tôi sẽ không mua thêm.' }] : []),
     ]
   }
   // idle
+  if (!c.rules.practiceMode) return [{ en: 'Practice mode is switched off, so I\'m sitting out.', vi: 'Chế độ luyện tập đang tắt nên tôi đứng ngoài.' }]
+  if (c.killSwitch) return [{ en: 'The kill switch is on, so I\'m not allowed to buy.', vi: 'Công tắc dừng khẩn cấp đang bật nên tôi không được mua.' }]
   const out: Bi[] = []
-  if (!c.rules.practiceMode) out.push({ en: 'Practice mode is off.', vi: 'Chế độ luyện tập đang tắt.' })
-  if (c.killSwitch) out.push({ en: 'The kill switch is on.', vi: 'Công tắc dừng khẩn cấp đang bật.' })
+  const m = marketState(now)
+  if (!/is open/.test(m.en)) out.push({ en: 'The stock market is closed right now, so I wait.', vi: 'Thị trường chứng khoán đang đóng cửa nên tôi chờ.' })
   const rejected = (s.audit ?? []).find((a: AuditEntry) => !a.accepted && a.side === 'buy')
-  if (rejected) out.push({ en: `Last blocked buy: ${rejected.en}.`, vi: `Lệnh mua bị chặn gần nhất: ${rejected.vi}.` })
-  const base = baseRate(c.journal)
-  if (base) out.push({ en: `I only trade when the analyst says BUY. The learner says my AI buys don't yet beat buying every bar (${pct(base.probability)}), so be skeptical of every trade.`, vi: `Tôi chỉ giao dịch khi phân tích nói MUA. Bộ học cho thấy lệnh MUA của AI chưa hơn việc mua mọi nến (${pct(base.probability)}), nên hãy hoài nghi mỗi lệnh.` })
-  out.push(marketState(now))
+  if (rejected?.blockedBy) out.push({ en: `The last time I wanted to buy, my ${rejected.blockedBy.toLowerCase()} check stopped me.`, vi: `Lần gần nhất tôi muốn mua, bước kiểm tra ${rejected.blockedBy} đã chặn lại.` })
+  out.push({ en: "Mostly, I only buy when I see a clear setup, and I'd rather wait than force a trade.", vi: 'Chủ yếu là tôi chỉ mua khi thấy thiết lập rõ ràng, và tôi thà chờ còn hơn ép lệnh.' })
   return out
 }
 
 /** Jarvis's one-line take on the analyst's call, in plain words. Wording only; the call is unchanged. */
 export function jarvisSays(a: Analysis, symbol: string): Bi {
-  const conf = a.confidenceLabel === 'High' ? 'fairly confident' : a.confidenceLabel === 'Medium' ? 'somewhat confident' : 'not confident'
-  const confVi = a.confidenceLabel === 'High' ? 'khá tự tin' : a.confidenceLabel === 'Medium' ? 'hơi tự tin' : 'không tự tin'
-  if (a.verdict === 'HOLD')
-    return { en: `No clear edge on ${symbol} right now. Waiting is a position too.`, vi: `Chưa có lợi thế rõ ở ${symbol} lúc này. Chờ đợi cũng là một vị thế.` }
-  const side = a.verdict === 'BUY' ? 'leans up' : 'leans down'
-  const sideVi = a.verdict === 'BUY' ? 'nghiêng lên' : 'nghiêng xuống'
+  if (a.verdict === 'HOLD') return { en: `Nothing clear on ${symbol} right now. I'd wait.`, vi: `${symbol} lúc này chưa rõ ràng. Tôi sẽ chờ.` }
+  const up = a.verdict === 'BUY'
+  const sure = a.confidenceLabel === 'High' ? { en: "and I like it", vi: 'và tôi khá thích' } : a.confidenceLabel === 'Medium' ? { en: "but I'm only half sure", vi: 'nhưng tôi chỉ chắc một nửa' } : { en: "but I wouldn't bet much on it", vi: 'nhưng tôi không dám đặt nhiều' }
   return {
-    en: `${symbol} ${side}, and I'm ${conf}. Size small, respect the stop, and remember nothing here is proven to beat buy-and-hold yet.`,
-    vi: `${symbol} ${sideVi}, và tôi ${confVi}. Vào nhỏ, tôn trọng cắt lỗ, và nhớ rằng chưa có gì ở đây được chứng minh tốt hơn mua và giữ.`,
+    en: `${symbol} looks like it wants to go ${up ? 'up' : 'down'}, ${sure.en}. Keep it small and stick to the stop.`,
+    vi: `${symbol} có vẻ muốn ${up ? 'đi lên' : 'đi xuống'}, ${sure.vi}. Vào nhỏ và giữ đúng cắt lỗ.`,
   }
 }
