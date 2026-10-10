@@ -2,7 +2,7 @@
  * Version and "What's new". Bump APP_VERSION and add an entry to the top of RELEASES
  * with each update. The banner shows once per version, then stays dismissed.
  */
-export const APP_VERSION = '1.6.0'
+export const APP_VERSION = '1.6.1'
 
 export interface Release {
   version: string
@@ -13,6 +13,20 @@ export interface Release {
 }
 
 export const RELEASES: Release[] = [
+  {
+    version: '1.6.1',
+    date: '2026-10-10',
+    changes: [
+      'Penny stocks (on by default): practice can now trade stocks from $1 to $5, and today\'s movers lists include them, because they move more and give the AI more to learn from.',
+      'Safeguards: never under $1; only stocks trading at least $100k per 15-minute bar on average (about $2.6M a day) so fills are realistic; half the usual trade size; and 5x the usual spread and slippage (20 bps spread, 10 bps slippage) so results aren\'t flattered.',
+      'Penny trades are tagged "penny" in Positions, Open orders and History, and the Practice report shows penny vs regular results separately. Turn it off in the Practice tab ("Penny stocks") or Settings > AI rules. Works in the browser and on the 24/7 server.',
+    ],
+    changesVi: [
+      'Cổ phiếu penny (mặc định bật): luyện tập giờ có thể giao dịch mã từ $1 đến $5, và danh sách mã biến động hôm nay có cả các mã này, vì chúng biến động nhiều hơn và cho AI nhiều cơ hội học hơn.',
+      'Bảo vệ: không bao giờ dưới $1; chỉ mã giao dịch trung bình ít nhất $100k mỗi nến 15 phút (khoảng $2,6 triệu mỗi ngày) để khớp lệnh thực tế; nửa khối lượng thường; và chênh lệch, trượt giá gấp 5 lần (chênh lệch 20 bps, trượt giá 10 bps) để kết quả không bị đẹp giả.',
+      'Lệnh penny gắn nhãn "penny" trong Vị thế, Lệnh chờ và Lịch sử, và báo cáo Luyện tập tách riêng kết quả penny và mã thường. Tắt trong tab Luyện tập ("Cổ phiếu penny") hoặc Cài đặt > Quy tắc AI. Áp dụng trên trình duyệt và máy chủ 24/7.',
+    ],
+  },
   {
     version: '1.6.0',
     date: '2026-10-10',

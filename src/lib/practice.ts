@@ -46,6 +46,8 @@ export interface PracticeEntryInfo {
   dataLimitSec?: number
   /** Approved skills that fed the decision. */
   skills?: string[]
+  /** A stock under PENNY_PRICE when bought: smaller size and higher costs, reported apart. */
+  penny?: boolean
 }
 
 export interface PracticePickInfo {
@@ -83,6 +85,17 @@ export interface PracticePosition {
   cost?: Costs
   entryFee?: number
 }
+
+/** Stocks under this price are penny stocks: wider spreads, thinner books, bigger swings. */
+export const PENNY_PRICE = 5
+/** Penny stocks under this price are never traded (too easy to halt, delist or gap). */
+export const PENNY_MIN_PRICE = 1
+/** Penny stocks need at least this average dollar volume per 15-minute bar (about $2.6M a day) so fills are realistic. */
+export const PENNY_MIN_DOLLAR_VOL = 100_000
+/** Penny stocks pay this many times the normal spread and slippage, and trade at this fraction of the normal size. */
+export const PENNY_COST_MULT = 5
+export const PENNY_SIZE_MULT = 0.5
+export const isPenny = (asset: AssetClass | undefined, price: number) => asset === 'stock' && price < PENNY_PRICE
 
 export const kindOf = (p: { kind?: PracticeKind }): PracticeKind => p.kind ?? 'day'
 
@@ -227,6 +240,10 @@ export interface EntryContext {
   costs?: Costs | null
   /** Record the decision in the log (default on). */
   audit?: boolean
+  /** Allow stocks under PENNY_PRICE (from $1 up, with enough dollar volume). */
+  pennyOn?: boolean
+  /** Average dollar volume per bar over recent bars, for the penny-stock liquidity check. */
+  dollarVol?: number | null
   /** Lift the per-day trade caps (day trades, and the orders-per-day gate): trade every BUY the rules allow. */
   unlimited?: boolean
   /** Stop new buys for the rest of the day once today's closed trades lost this % of the account (0/missing = off). */
@@ -294,6 +311,14 @@ export function onBarClose(prev: PracticeState, ctx: EntryContext): PracticeStat
   // the kill switch and the hard limits apply whatever the other gates say; the AI can't change them
   if (ctx.killSwitch) return skip('Kill switch', 'kill switch is on', 'công tắc dừng khẩn cấp đang bật')
   pass('Kill switch')
+  const penny = isPenny(ctx.asset, ctx.price)
+  if (penny) {
+    if (!ctx.pennyOn) return skip('Penny stock', `${fmt(ctx.price)} is under $${PENNY_PRICE} and penny stocks are off`, `${fmt(ctx.price)} dưới $${PENNY_PRICE} và cổ phiếu penny đang tắt`)
+    if (ctx.price < PENNY_MIN_PRICE) return skip('Penny stock', `under $${PENNY_MIN_PRICE}: too risky even for practice`, `dưới $${PENNY_MIN_PRICE}: quá rủi ro kể cả khi luyện tập`)
+    if (!(ctx.dollarVol != null && ctx.dollarVol >= PENNY_MIN_DOLLAR_VOL))
+      return skip('Penny stock', `too thinly traded (${ctx.dollarVol == null ? 'no volume data' : `$${Math.round(ctx.dollarVol / 1000)}k`} per bar, need $${PENNY_MIN_DOLLAR_VOL / 1000}k)`, `giao dịch quá ít (${ctx.dollarVol == null ? 'không có dữ liệu khối lượng' : `$${Math.round(ctx.dollarVol / 1000)}k`} mỗi nến, cần $${PENNY_MIN_DOLLAR_VOL / 1000}k)`)
+    pass('Penny stock')
+  }
   if (ctx.dataGuardOn && ctx.data) {
     const stale = staleReason(ctx.data, ctx.tfSec ?? 0, ctx.maxDataAgeMin ?? 30)
     if (stale) return skip('Data', stale.en, stale.vi)
@@ -328,7 +353,8 @@ export function onBarClose(prev: PracticeState, ctx: EntryContext): PracticeStat
   pass('Exit plan')
 
   // small, fixed practice size; halved in high volatility
-  const pct = (ctx.sizePct / 100) * (regime === 'high' ? 0.5 : 1)
+  const pct = (ctx.sizePct / 100) * (regime === 'high' ? 0.5 : 1) * (penny ? PENNY_SIZE_MULT : 1)
+  const costs = penny && ctx.costs ? { ...ctx.costs, spreadBps: ctx.costs.spreadBps * PENNY_COST_MULT, slippageBps: ctx.costs.slippageBps * PENNY_COST_MULT } : ctx.costs
   const qty = (eq * pct) / ctx.price
   if (!(qty > 0)) return s
   if (hard && ctx.maxExposurePct != null) {
@@ -337,8 +363,8 @@ export function onBarClose(prev: PracticeState, ctx: EntryContext): PracticeStat
       return skip('Exposure', `open trades would hold ${Math.round((exposure / eq) * 100)}% of the account (limit ${ctx.maxExposurePct}%)`, `các lệnh mở sẽ chiếm ${Math.round((exposure / eq) * 100)}% tài khoản (giới hạn ${ctx.maxExposurePct}%)`)
     pass('Exposure')
   }
-  const fill = fillPrice(ctx.price, 'buy', ctx.costs)
-  const entryFee = feeFor(fill * qty, ctx.costs)
+  const fill = fillPrice(ctx.price, 'buy', costs)
+  const entryFee = feeFor(fill * qty, costs)
   const info: PracticeEntryInfo = {
     verdict: a.verdict,
     score: +a.score.toFixed(3),
@@ -350,6 +376,7 @@ export function onBarClose(prev: PracticeState, ctx: EntryContext): PracticeStat
     ...(ctx.pick ? { pick: ctx.pick } : {}),
     ...(ctx.data ? { data: ctx.data, dataLimitSec: maxAgeSec(ctx.tfSec ?? 0, ctx.maxDataAgeMin ?? 30) } : {}),
     ...(ctx.skills ? { skills: ctx.skills } : {}),
+    ...(penny ? { penny: true } : {}),
   }
   const closeBy = kind === 'day' ? dayEnd : ctx.now + ctx.holdDays * 86_400_000
   const pos: PracticePosition = {
@@ -369,7 +396,7 @@ export function onBarClose(prev: PracticeState, ctx: EntryContext): PracticeStat
     closeBy,
     key,
     signal: ctx.price,
-    ...(ctx.costs ? { cost: ctx.costs, entryFee } : {}),
+    ...(costs ? { cost: costs, entryFee } : {}),
   }
   s.open.push(pos)
   log(true, `Bought ${+qty.toPrecision(4)} ${ctx.symbol} at ${fmt(fill)} (${kind === 'day' ? 'day trade' : 'long-term'})`, `Mua ${+qty.toPrecision(4)} ${ctx.symbol} giá ${fmt(fill)} (${kind === 'day' ? 'trong ngày' : 'dài hạn'})`)
@@ -515,6 +542,7 @@ export function practiceReport(s: PracticeState, kind?: PracticeKind) {
     profitFactor: losses.length && sum(losses) !== 0 ? sum(wins) / Math.abs(sum(losses)) : null,
     byGrade: groupBy(tr, (t) => t.info.grade ?? 'n/a'),
     byKind: groupBy(tr, (t) => kindOf(t)),
+    byPenny: groupBy(tr, (t) => (t.info.penny ? 'penny' : 'regular')),
     bySource: groupBy(tr, (t) => t.info.pick?.source ?? 'chart'),
     byExit: groupBy(tr, (t) => t.exitReason),
     byRegime: groupBy(tr, (t) => t.info.regime ?? 'n/a'),
