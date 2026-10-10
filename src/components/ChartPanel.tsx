@@ -24,6 +24,7 @@ import { sma, stdev } from '../lib/indicators'
 import { loadChartConfig, saveChartConfig, type ChartConfig } from '../lib/chartConfig'
 import { useT } from '../lib/i18n'
 import type { PracticeEvent } from '../lib/practice'
+import { JarvisAvatar } from './JarvisAvatar'
 
 /** Practice-mode trades drawn on the chart: entry/exit markers, open-trade lines, and a flash on each new order. */
 export interface PracticeOverlay {
@@ -31,6 +32,25 @@ export interface PracticeOverlay {
   lines: { price: number; color: string; title: string }[]
   flash: PracticeEvent | null
   flashText: string
+}
+
+/** Jarvis "Show me": one step of a guided tour drawn on the chart, with a callout. */
+export interface ChartTour {
+  key: string
+  title: string
+  text: string
+  index: number
+  total: number
+  lines: { price: number; color: string; title: string }[]
+  focus?: { time: number; price: number }
+  marker?: { time: number; side: 'buy' | 'sell'; text: string }
+  backLabel: string
+  nextLabel: string
+  doneLabel: string
+  motion: boolean
+  onBack: () => void
+  onNext: () => void
+  onClose: () => void
 }
 
 const COLORS = {
@@ -58,9 +78,27 @@ interface Props {
   showForecast: boolean
   showRobots: boolean
   practice?: PracticeOverlay | null
+  tour?: ChartTour | null
 }
 
 const ts = (t: number) => t as UTCTimestamp
+
+/** Caption revealed word by word like a HUD readout. Pure CSS opacity (no layout per frame); instant when motion is off. */
+function TypedText({ text, motion }: { text: string; motion: boolean }) {
+  if (!motion) return <>{text}</>
+  const words = text.split(' ')
+  const gap = Math.min(45, 900 / Math.max(1, words.length))
+  return (
+    <>
+      {words.map((w, i) => (
+        <span key={i} className="hud-word" style={{ animationDelay: `${Math.round(i * gap)}ms` }}>
+          {w}
+          {i < words.length - 1 ? ' ' : ''}
+        </span>
+      ))}
+    </>
+  )
+}
 
 /** Number input that keeps what the user is typing apart from the saved value.
  *  Only a finite value inside the range is committed; an empty or bad entry is ignored until blur. */
@@ -89,7 +127,7 @@ function NumField({ label, value, min, max, step, onCommit }: { label: string; v
 
 export function ChartPanel(props: Props) {
   const t = useT()
-  const { symbol, tf, candles, signals, prediction, emaFast, emaSlow, showEmas, showForecast, showRobots, practice } = props
+  const { symbol, tf, candles, signals, prediction, emaFast, emaSlow, showEmas, showForecast, showRobots, practice, tour } = props
   const host = useRef<HTMLDivElement>(null)
   const overlay = useRef<HTMLDivElement>(null)
   const chart = useRef<IChartApi | null>(null)
@@ -252,7 +290,7 @@ export function ChartPanel(props: Props) {
   }, [candles, symbol, tf])
 
   // overlays: EMAs, forecast cone, arrow markers (practice markers compared by value, not identity)
-  const marksKey = JSON.stringify(practice?.markers ?? [])
+  const marksKey = JSON.stringify([...(practice?.markers ?? []), ...(tour?.marker ? [{ ...tour.marker, tour: true }] : [])])
   useEffect(() => {
     const s = series.current
     if (!s) return
@@ -265,15 +303,15 @@ export function ChartPanel(props: Props) {
     s.fHi.setData(fc.map((f) => ({ time: ts(f.time), value: f.upper })))
     s.fLo.setData(fc.map((f) => ({ time: ts(f.time), value: f.lower })))
     const barTimes = new Set(candles.map((c) => c.time))
-    const practiceMarks = (JSON.parse(marksKey) as PracticeOverlay['markers'])
+    const practiceMarks = (JSON.parse(marksKey) as (PracticeOverlay['markers'][number] & { tour?: boolean })[])
       .filter((m) => barTimes.has(m.time))
       .map((m) => ({
         time: ts(m.time),
         position: m.side === 'buy' ? ('belowBar' as const) : ('aboveBar' as const),
         shape: m.side === 'buy' ? ('arrowUp' as const) : ('arrowDown' as const),
-        color: COLORS.practice,
+        color: m.tour ? COLORS.forecast : COLORS.practice,
         text: m.text,
-        size: 1,
+        size: m.tour ? 2 : 1,
       }))
     s.markers.setMarkers(
       [
@@ -300,6 +338,66 @@ export function ChartPanel(props: Props) {
       s.candle.createPriceLine({ price: l.price, color: l.color, lineWidth: 1, lineStyle: LineStyle.Dashed, axisLabelVisible: true, title: l.title }),
     )
   }, [linesKey, symbol, tf])
+
+  // Jarvis "Show me": bold lines for this step, the chart scrolled to the bar, and a pulsing pointer on the spot
+  const tourLines = useRef<IPriceLine[]>([])
+  const tourLinesKey = JSON.stringify(tour?.lines ?? [])
+  useEffect(() => {
+    const s = series.current
+    if (!s) return
+    for (const l of tourLines.current) s.candle.removePriceLine(l)
+    tourLines.current = (JSON.parse(tourLinesKey) as ChartTour['lines']).map((l) =>
+      s.candle.createPriceLine({ price: l.price, color: l.color, lineWidth: 2, lineStyle: LineStyle.Solid, axisLabelVisible: true, title: `Jarvis · ${l.title}` }),
+    )
+  }, [tourLinesKey, symbol, tf])
+  // the reticle and guide lines are moved with transforms written straight to the DOM (no React render per frame)
+  const hud = useRef<HTMLDivElement>(null)
+  const tourKey = tour?.key ?? ''
+  const fTime = tour?.focus?.time ?? null
+  const fPrice = tour?.focus?.price ?? null
+  useEffect(() => {
+    const c = chart.current
+    const s = series.current
+    const f = fTime != null && fPrice != null ? [fTime, fPrice] : null
+    const layer = hud.current
+    if (!layer) return
+    if (!c || !s || !f || !candlesRef.current.length) {
+      layer.dataset.on = ''
+      return
+    }
+    const bars = candlesRef.current
+    const i = bars.findIndex((b) => b.time >= f[0])
+    const idx = i < 0 ? bars.length - 1 : i
+    const range = c.timeScale().getVisibleLogicalRange()
+    const width = range ? Math.max(40, range.to - range.from) : 120
+    if (!range || idx < range.from + 5 || idx > range.to - 5) c.timeScale().setVisibleLogicalRange({ from: idx - width * 0.6, to: idx + width * 0.4 })
+    let raf = 0
+    const place = () => {
+      raf = 0
+      const x = c.timeScale().timeToCoordinate(ts(bars[idx].time))
+      const y = s.candle.priceToCoordinate(f[1])
+      if (x == null || y == null) {
+        layer.dataset.on = ''
+        return
+      }
+      layer.dataset.on = '1'
+      layer.style.setProperty('--hx', `${x}px`)
+      layer.style.setProperty('--hy', `${y}px`)
+    }
+    // glide to the new point on a step change; follow the chart instantly while it scrolls
+    layer.classList.add('sweep')
+    const glide = setTimeout(() => layer.classList.remove('sweep'), 500)
+    raf = requestAnimationFrame(place)
+    const onRange = () => {
+      if (!raf) raf = requestAnimationFrame(place)
+    }
+    c.timeScale().subscribeVisibleLogicalRangeChange(onRange)
+    return () => {
+      cancelAnimationFrame(raf)
+      clearTimeout(glide)
+      c.timeScale().unsubscribeVisibleLogicalRangeChange(onRange)
+    }
+  }, [tourKey, fTime, fPrice, candles.length, symbol, tf])
 
   // SMA and Bollinger bands from the chart's own candles; volume bars can be hidden
   useEffect(() => {
@@ -345,6 +443,51 @@ export function ChartPanel(props: Props) {
           <b>🎯 {practice.flash.kind === 'buy' ? 'BUY' : 'SELL'} {practice.flash.symbol}</b>
           <span>{practice.flashText}</span>
         </div>
+      )}
+      {tour && (
+        <>
+          <div ref={hud} className={`hud-layer${tour.motion ? '' : ' still'}`} aria-hidden>
+            <i className="hud-hline" />
+            <i className="hud-vline" />
+            <div className="hud-reticle">
+              <svg key={tour.key} width="56" height="56" viewBox="-28 -28 56 56">
+                <circle r="20" className="r-spin" />
+                <circle r="9" className="r-core" />
+                <path d="M-26 -14 V-26 H-14 M14 -26 H26 V-14 M26 14 V26 H14 M-14 26 H-26 V14" className="r-brackets" />
+                <path d="M-6 0 H-2 M2 0 H6 M0 -6 V-2 M0 2 V6" className="r-cross" />
+              </svg>
+            </div>
+          </div>
+          <div key={tour.key} className={`tour-callout hud${tour.motion ? '' : ' still'}`} role="dialog" aria-label={tour.title}>
+            <i className="hud-scan" aria-hidden />
+            <div className="tour-head">
+              <JarvisAvatar size={22} mood="speaking" motion={tour.motion} />
+              <b className="mono">JARVIS // {tour.title.toUpperCase()}</b>
+              <span className="mono">
+                {String(tour.index + 1).padStart(2, '0')}/{String(tour.total).padStart(2, '0')}
+              </span>
+              <button className="tour-x" onClick={tour.onClose} aria-label={tour.doneLabel}>
+                ×
+              </button>
+            </div>
+            <p>
+              <TypedText text={tour.text} motion={tour.motion} />
+            </p>
+            <div className="hud-steps" aria-hidden>
+              {Array.from({ length: tour.total }, (_, i) => (
+                <i key={i} className={i <= tour.index ? 'on' : ''} />
+              ))}
+            </div>
+            <div className="tour-nav">
+              <button onClick={tour.onBack} disabled={tour.index === 0}>
+                {tour.backLabel}
+              </button>
+              <button className="primary" onClick={tour.index + 1 < tour.total ? tour.onNext : tour.onClose}>
+                {tour.index + 1 < tour.total ? tour.nextLabel : tour.doneLabel}
+              </button>
+            </div>
+          </div>
+        </>
       )}
       <div ref={overlay} className="robot-layer">
         {robots.map(({ sig, anchor }) => (

@@ -2,7 +2,7 @@
  * Version and "What's new". Bump APP_VERSION and add an entry to the top of RELEASES
  * with each update. The banner shows once per version, then stays dismissed.
  */
-export const APP_VERSION = '1.6.2'
+export const APP_VERSION = '1.6.6'
 
 export interface Release {
   version: string
@@ -13,6 +13,76 @@ export interface Release {
 }
 
 export const RELEASES: Release[] = [
+  {
+    version: '1.6.6',
+    date: '2026-10-10',
+    changes: [
+      'Jarvis\'s voice is more reliable: it works around Chrome dropping speech, reads long answers in short pieces so they don\'t cut off, and starts right from your tap so iPhones allow it.',
+      'If Jarvis can\'t make a sound, the voice card now says why (blocked by the browser, voice not installed, phone on silent or muted tab) instead of staying quiet. When the voice is off, the Brain tab shows a "Turn on Jarvis\'s voice" button.',
+    ],
+    changesVi: [
+      'Giọng Jarvis ổn định hơn: khắc phục lỗi Chrome làm mất tiếng, đọc câu trả lời dài theo từng đoạn ngắn để không bị ngắt, và bắt đầu ngay khi bạn chạm nên iPhone cho phép phát.',
+      'Nếu Jarvis không phát ra tiếng, thẻ giọng nói giờ cho biết lý do (trình duyệt chặn, chưa cài giọng, điện thoại để im lặng hoặc tab bị tắt tiếng) thay vì im lặng. Khi giọng đang tắt, tab Bộ não có nút "Bật giọng Jarvis".',
+    ],
+  },
+  {
+    version: '1.6.5',
+    date: '2026-10-10',
+    changes: [
+      'Jarvis can act, under your control: ask it to "pause practice", "turn the kill switch on", "add PLTR to my watchlist" or "turn off trade alerts", typed or spoken. Jarvis shows exactly what it will change and does it only when you tap Do it. Every action, done or cancelled, is listed in "My actions" in the Brain tab.',
+      'Jarvis can read everything in the app, but it can only change those few settings. It never places, sizes or closes a trade for you and never touches real money. Switch: "Jarvis can act" in AI rules > Jarvis; the master Jarvis switch turns it all off.',
+    ],
+    changesVi: [
+      'Jarvis có thể hành động, dưới sự kiểm soát của bạn: bảo nó "tạm dừng luyện tập", "bật dừng khẩn cấp", "thêm PLTR vào danh sách" hoặc "tắt thông báo lệnh", bằng chữ hoặc giọng nói. Jarvis cho thấy chính xác điều sẽ thay đổi và chỉ làm khi bạn bấm Làm đi. Mọi hành động, đã làm hay đã hủy, đều có trong "Hành động của tôi" ở tab Bộ não.',
+      'Jarvis đọc được mọi thứ trong ứng dụng nhưng chỉ đổi được vài cài đặt đó. Nó không bao giờ đặt, định cỡ hay đóng lệnh thay bạn và không đụng tới tiền thật. Công tắc: "Jarvis có thể hành động" trong Quy tắc AI > Jarvis; công tắc Jarvis chính tắt toàn bộ.',
+    ],
+  },
+  {
+    version: '1.6.4',
+    date: '2026-10-10',
+    changes: [
+      'Jarvis greets you: the Brain tab opens with Jarvis powering up and saying good morning (or afternoon, or evening) by name, with a one-line summary of the market, open trades and the practice account. With speech on, it says it out loud once a day. Tap "Change what I call you" to set your name. Switch: "Greeting" in AI rules > Jarvis.',
+      'Ask Jarvis anything: type or say a question. Name a stock ("why AAPL?", "what about Tesla?") and Jarvis opens that chart and walks you through it in the HUD: its take, the strongest reasons for and against, its own history with that stock, then the entry, stop and target. Switch: "Ask about any stock".',
+      'What I\'m linked to: Jarvis now answers about everything it uses: who it is, its memory of lessons, the skills it runs, the playbook, the decision log, trade reviews and the 24/7 learner. Tap a tile or just ask. Switch: "What I\'m linked to".',
+      'Answers still come from the app\'s own records, with no AI service or key. The app is ready to plug in free AI providers later; they will only reword the facts, never trade.',
+    ],
+    changesVi: [
+      'Jarvis chào bạn: tab Bộ não mở ra với Jarvis khởi động và chào buổi sáng (chiều, tối) bằng tên bạn, kèm một dòng tóm tắt thị trường, lệnh đang mở và tài khoản luyện tập. Khi bật giọng nói, Jarvis nói lời chào một lần mỗi ngày. Chạm "Đổi tên tôi gọi bạn" để đặt tên. Công tắc: "Lời chào" trong Quy tắc AI > Jarvis.',
+      'Hỏi Jarvis bất cứ điều gì: gõ hoặc nói câu hỏi. Nêu một mã ("vì sao AAPL?", "còn Tesla thì sao?") và Jarvis mở biểu đồ mã đó, giải thích trong giao diện HUD: nhận định, lý do ủng hộ và phản đối mạnh nhất, lịch sử giao dịch của nó với mã này, rồi điểm vào, cắt lỗ và mục tiêu. Công tắc: "Hỏi về bất kỳ mã nào".',
+      'Tôi kết nối với: Jarvis giờ trả lời về mọi thứ nó dùng: nó là ai, bộ nhớ bài học, các kỹ năng, sổ tay, nhật ký quyết định, đánh giá lệnh và bộ học 24/7. Chạm một ô hoặc cứ hỏi. Công tắc: "Kết nối của tôi".',
+      'Câu trả lời vẫn lấy từ dữ liệu của chính ứng dụng, không dùng dịch vụ AI hay khóa. Ứng dụng đã sẵn sàng để gắn các AI miễn phí sau này; chúng chỉ diễn đạt lại sự thật, không bao giờ giao dịch.',
+    ],
+  },
+  {
+    version: '1.6.3',
+    date: '2026-10-10',
+    changes: [
+      'Meet Jarvis, the Arc Brain: a practice trading mentor with its own Brain tab. It gives a morning briefing (market hours, today\'s plan, the practice account, what the learner says, and the rule to focus on), and an "Ask Jarvis" box that answers questions such as "Why did you buy your last trade?" or "What is my risk right now?" from the app\'s own records. No AI service or API key is used.',
+      'Jarvis\'s playbook: 14 rules experienced traders use (reward at least 1.5x the risk, stop within 3%, no buys in the first 15 minutes, don\'t chase a stock up 8%+, pause after 3 losses in a row, no revenge trades, and more). Every practice trade is checked against them, and the trade story in Positions and History now shows which rules it followed and broke.',
+      'Honest learning: every rule starts as "Unproven". It is only called proven when our own paper trades show that following it wins clearly more often than breaking it, on enough trades. Experience is counted in practice trades, not years. Nothing here has beaten buying and holding yet, and Jarvis never promises profits.',
+      'Lessons after each reviewed trade: a lucky win (broke rules but made money) says don\'t repeat it; a good trade that lost is the cost of trading.',
+      'A short Jarvis line under the AI Analyst call, in plain words.',
+      'Show me: when you ask Jarvis why it bought, tap Show me on a lesson, or tap Show me on the AI Analyst call, Jarvis opens that stock\'s chart and walks you through it step by step in a futuristic HUD: a targeting reticle that sweeps to the exact bar, bold buy, stop and target lines, and a pop-up explaining each point (Back, Next, Done; Esc closes). With speech on, it reads each step aloud. Switch: "Show me" in AI rules > Jarvis.',
+      'Replay the day: one tap in the Brain tab and Jarvis walks through every practice trade of the day on the chart, switching stocks as it goes: where it bought, the stop and target, where it sold, and how the day went.',
+      'Jarvis alerts: when a practice trade opens or closes, Jarvis pops up in the corner ("I just bought NVDA as a day trade. Want to see why?") with a Show me button. It replaces the plain pop-up; switch it off in AI rules > Jarvis.',
+      'Ask by voice (off by default): turn on "Ask Jarvis by voice", tap 🎙 and say things like "why did you buy", "what\'s my risk" or "replay today". Uses the browser\'s built-in speech recognition (Chrome, Edge or Safari); no key.',
+      'Jarvis can speak (off by default): turn on "Jarvis speaks" in AI rules, then pick a voice in the Brain tab, set speed and pitch, and tap Read aloud or ask a question. It talks like a person: short, direct answers, read in the most natural-sounding voice your device has (marked ★). It uses your device\'s free built-in voices (male, female and Vietnamese depend on what your device has); no key.',
+      'Every part has its own switch in Settings > AI rules > Jarvis. An optional gate (off by default) makes practice skip buys that break a rule already proven on paper trades. Paper trading only.',
+    ],
+    changesVi: [
+      'Làm quen với Jarvis, Bộ não Arc: người hướng dẫn luyện tập giao dịch với tab Bộ não riêng. Jarvis có bản tin buổi sáng (giờ thị trường, kế hoạch hôm nay, tài khoản luyện tập, nhận định của bộ học và quy tắc cần tập trung), và ô "Hỏi Jarvis" trả lời các câu như "Vì sao bạn mua lệnh gần nhất?" hay "Rủi ro của tôi lúc này là gì?" từ dữ liệu của chính ứng dụng. Không dùng dịch vụ AI hay khóa API.',
+      'Sổ tay của Jarvis: 14 quy tắc của trader kinh nghiệm (lợi nhuận ít nhất 1,5 lần rủi ro, cắt lỗ trong 3%, không mua trong 15 phút đầu phiên, không đuổi theo mã đã tăng 8%+, tạm dừng sau 3 lần thua liên tiếp, không giao dịch trả thù, và nhiều hơn). Mỗi lệnh luyện tập được kiểm tra theo các quy tắc này, và câu chuyện lệnh trong Vị thế và Lịch sử giờ hiện quy tắc nào được tuân theo và bị vi phạm.',
+      'Học một cách trung thực: mọi quy tắc bắt đầu là "Chưa chứng minh". Chỉ khi chính lệnh thử của chúng ta cho thấy tuân theo thắng nhiều hơn rõ rệt so với vi phạm, trên đủ số lệnh, quy tắc mới được gọi là đã chứng minh. Kinh nghiệm được tính bằng số lệnh luyện tập, không phải số năm. Chưa có gì ở đây thắng được mua và giữ, và Jarvis không bao giờ hứa lợi nhuận.',
+      'Bài học sau mỗi lệnh được đánh giá: thắng may mắn (vi phạm quy tắc nhưng có lãi) thì đừng lặp lại; lệnh làm đúng mà thua là chi phí giao dịch.',
+      'Một dòng ngắn của Jarvis dưới nhận định AI, bằng lời dễ hiểu.',
+      'Chỉ cho tôi: khi bạn hỏi Jarvis vì sao mua, bấm Chỉ cho tôi ở một bài học, hoặc bấm Chỉ trên biểu đồ ở nhận định AI, Jarvis mở biểu đồ mã đó và hướng dẫn từng bước với giao diện HUD tương lai: tâm ngắm lướt tới đúng cây nến, đường mua, cắt lỗ và mục tiêu đậm, và khung bật lên giải thích từng điểm (Lùi, Tiếp, Xong; Esc để đóng). Khi bật giọng nói, Jarvis đọc to từng bước. Công tắc: "Chỉ cho tôi" trong Quy tắc AI > Jarvis.',
+      'Xem lại ngày: một chạm trong tab Bộ não, Jarvis dẫn xem mọi lệnh luyện tập trong ngày trên biểu đồ, chuyển mã khi cần: mua ở đâu, cắt lỗ và mục tiêu, bán ở đâu, và cả ngày ra sao.',
+      'Jarvis báo lệnh: khi lệnh luyện tập mở hoặc đóng, Jarvis hiện ở góc màn hình ("Tôi vừa mua NVDA, lệnh trong ngày. Muốn xem vì sao không?") kèm nút Chỉ cho tôi. Thay cho thông báo thường; tắt trong Quy tắc AI > Jarvis.',
+      'Hỏi bằng giọng nói (mặc định tắt): bật "Hỏi Jarvis bằng giọng nói", bấm 🎙 và nói như "vì sao mua", "rủi ro" hoặc "xem lại hôm nay". Dùng nhận dạng giọng nói có sẵn của trình duyệt (Chrome, Edge hoặc Safari); không cần khóa.',
+      'Jarvis có thể nói (mặc định tắt): bật "Jarvis nói" trong Quy tắc AI, rồi chọn giọng trong tab Bộ não, chỉnh tốc độ và cao độ, và bấm Đọc to hoặc đặt câu hỏi. Jarvis nói như người thật: trả lời ngắn, thẳng vào câu hỏi, bằng giọng tự nhiên nhất trên thiết bị (đánh dấu ★). Dùng giọng miễn phí có sẵn trên thiết bị (giọng nam, nữ và tiếng Việt tùy thiết bị); không cần khóa.',
+      'Mỗi phần có công tắc riêng trong Cài đặt > Quy tắc AI > Jarvis. Một cổng tùy chọn (mặc định tắt) cho luyện tập bỏ qua lệnh mua vi phạm quy tắc đã chứng minh trên lệnh thử. Chỉ giao dịch thử nghiệm.',
+    ],
+  },
   {
     version: '1.6.2',
     date: '2026-10-10',

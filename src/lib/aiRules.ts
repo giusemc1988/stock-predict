@@ -54,6 +54,23 @@ export interface AiRules {
   reviewOn: boolean // grade closed trades on process vs. luck
   dailyReportOn: boolean // end-of-day practice report
   skillRegistryOn: boolean // only approved skills feed signals
+  jarvisOn: boolean // Jarvis, the Arc Brain: the Brain tab and every Jarvis surface
+  jarvisBriefing: boolean // morning briefing in the Brain tab
+  jarvisLessons: boolean // lessons after each reviewed trade, and playbook evidence
+  jarvisAsk: boolean // Ask Jarvis: fixed questions answered from the app's own data
+  jarvisVoice: boolean // Jarvis's plain-words line under the AI Analyst call
+  jarvisStory: boolean // playbook checks in each practice trade's story
+  jarvisGate: boolean // practice buys must pass every playbook rule proven on paper trades
+  jarvisMotion: boolean // animated Jarvis avatar
+  jarvisSpeech: boolean // Jarvis reads briefings and answers aloud (browser's built-in speech)
+  jarvisShowMe: boolean // Show me: Jarvis opens the stock and points at what it explains on the chart
+  jarvisReplay: boolean // Replay the day: Jarvis narrates each practice trade on the chart
+  jarvisAlerts: boolean // Jarvis pops up when a practice trade opens or closes, with Show me
+  jarvisListen: boolean // ask Jarvis by voice (microphone, browser speech recognition)
+  jarvisGreeting: boolean // a human greeting with your name at the top of the Brain tab
+  jarvisLinks: boolean // "What I'm linked to": memory, skills, playbook, decision log, reviews, learner
+  jarvisActions: boolean // Jarvis may propose setting changes (practice, kill switch, watchlist, AI rules); each needs your tap
+  jarvisAnyStock: boolean // ask about any stock ("why AAPL?"): Jarvis opens it and explains on the chart
 }
 
 export const DEFAULT_AI_RULES: AiRules = {
@@ -106,13 +123,30 @@ export const DEFAULT_AI_RULES: AiRules = {
   reviewOn: true,
   dailyReportOn: true,
   skillRegistryOn: true,
+  jarvisOn: true,
+  jarvisBriefing: true,
+  jarvisLessons: true,
+  jarvisAsk: true,
+  jarvisVoice: true,
+  jarvisStory: true,
+  jarvisGate: false,
+  jarvisMotion: true,
+  jarvisSpeech: false,
+  jarvisShowMe: true,
+  jarvisReplay: true,
+  jarvisAlerts: true,
+  jarvisListen: false,
+  jarvisGreeting: true,
+  jarvisLinks: true,
+  jarvisAnyStock: true,
+  jarvisActions: true,
 }
 
 type NumKey = { [K in keyof AiRules]: AiRules[K] extends number ? K : never }[keyof AiRules]
 type BoolKey = { [K in keyof AiRules]: AiRules[K] extends boolean ? K : never }[keyof AiRules]
 
 export interface RuleField {
-  group: 'call' | 'sizing' | 'gates' | 'costs' | 'modules'
+  group: 'call' | 'sizing' | 'gates' | 'costs' | 'modules' | 'jarvis'
   key: keyof AiRules
   en: string
   vi: string
@@ -173,6 +207,23 @@ export const RULE_FIELDS: RuleField[] = [
   { group: 'modules', key: 'reviewOn', en: 'Trade review: good process vs. luck', vi: 'Đánh giá lệnh: quy trình tốt hay may mắn' },
   { group: 'modules', key: 'dailyReportOn', en: 'Daily practice report', vi: 'Báo cáo luyện tập hằng ngày' },
   { group: 'modules', key: 'skillRegistryOn', en: 'Skill registry (only approved skills feed signals)', vi: 'Danh sách kỹ năng (chỉ kỹ năng được duyệt mới tạo tín hiệu)' },
+  { group: 'jarvis', key: 'jarvisOn', en: 'Jarvis, the Arc Brain (Brain tab and everything below)', vi: 'Jarvis, Bộ não Arc (tab Bộ não và mọi mục bên dưới)' },
+  { group: 'jarvis', key: 'jarvisBriefing', en: 'Morning briefing', vi: 'Bản tin buổi sáng' },
+  { group: 'jarvis', key: 'jarvisLessons', en: 'Lessons and playbook evidence', vi: 'Bài học và bằng chứng sổ tay' },
+  { group: 'jarvis', key: 'jarvisAsk', en: 'Ask Jarvis', vi: 'Hỏi Jarvis' },
+  { group: 'jarvis', key: 'jarvisVoice', en: "Jarvis's line under the AI Analyst call", vi: 'Lời Jarvis dưới nhận định AI' },
+  { group: 'jarvis', key: 'jarvisStory', en: 'Playbook checks in practice trade stories', vi: 'Kiểm tra sổ tay trong câu chuyện lệnh luyện tập' },
+  { group: 'jarvis', key: 'jarvisGate', en: 'Practice buys must pass every playbook rule proven on paper trades', vi: 'Lệnh mua luyện tập phải đạt mọi quy tắc sổ tay đã chứng minh trên lệnh thử' },
+  { group: 'jarvis', key: 'jarvisMotion', en: 'Animated Jarvis avatar', vi: 'Hình đại diện Jarvis chuyển động' },
+  { group: 'jarvis', key: 'jarvisShowMe', en: 'Show me: Jarvis opens the stock and points at what it is explaining on the chart', vi: 'Chỉ cho tôi: Jarvis mở mã và chỉ vào điều đang giải thích trên biểu đồ' },
+  { group: 'jarvis', key: 'jarvisReplay', en: 'Replay the day: Jarvis walks through each practice trade on the chart', vi: 'Xem lại ngày: Jarvis dẫn xem từng lệnh luyện tập trên biểu đồ' },
+  { group: 'jarvis', key: 'jarvisAlerts', en: 'Jarvis alerts when a practice trade opens or closes (replaces the plain pop-up)', vi: 'Jarvis báo khi lệnh luyện tập mở hoặc đóng (thay thông báo thường)' },
+  { group: 'jarvis', key: 'jarvisGreeting', en: 'Greeting: Jarvis says hello by name and sums up the day', vi: 'Lời chào: Jarvis chào bạn bằng tên và tóm tắt ngày' },
+  { group: 'jarvis', key: 'jarvisLinks', en: "What I'm linked to: ask Jarvis about its memory, skills, playbook, decision log, reviews and learner", vi: 'Kết nối của tôi: hỏi Jarvis về bộ nhớ, kỹ năng, sổ tay, nhật ký quyết định, đánh giá và bộ học' },
+  { group: 'jarvis', key: 'jarvisAnyStock', en: 'Ask about any stock ("why AAPL?"): Jarvis opens it and explains on the chart', vi: 'Hỏi về bất kỳ mã nào ("vì sao AAPL?"): Jarvis mở mã đó và giải thích trên biểu đồ' },
+  { group: 'jarvis', key: 'jarvisActions', en: 'Jarvis can act: it proposes changes (pause practice, kill switch, watchlist, these switches) and does them only after you tap "Do it"; every one is logged', vi: 'Jarvis có thể hành động: đề xuất thay đổi (tạm dừng luyện tập, dừng khẩn cấp, danh sách theo dõi, các công tắc này) và chỉ làm khi bạn bấm "Làm đi"; mọi việc đều được ghi lại' },
+  { group: 'jarvis', key: 'jarvisListen', en: 'Ask Jarvis by voice (microphone; Chrome, Edge or Safari)', vi: 'Hỏi Jarvis bằng giọng nói (micro; Chrome, Edge hoặc Safari)' },
+  { group: 'jarvis', key: 'jarvisSpeech', en: "Jarvis speaks (reads briefings and answers aloud with your device's voices; pick the voice in the Brain tab)", vi: 'Jarvis nói (đọc to bản tin và câu trả lời bằng giọng có sẵn trên thiết bị; chọn giọng trong tab Bộ não)' },
 ]
 
 const KEY = 'arc.aiRules.v1'
