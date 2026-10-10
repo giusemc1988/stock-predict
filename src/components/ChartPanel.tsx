@@ -24,6 +24,7 @@ import { sma, stdev } from '../lib/indicators'
 import { loadChartConfig, saveChartConfig, type ChartConfig } from '../lib/chartConfig'
 import { useT } from '../lib/i18n'
 import type { PracticeEvent } from '../lib/practice'
+import { JarvisAvatar } from './JarvisAvatar'
 
 /** Practice-mode trades drawn on the chart: entry/exit markers, open-trade lines, and a flash on each new order. */
 export interface PracticeOverlay {
@@ -81,6 +82,25 @@ interface Props {
 }
 
 const ts = (t: number) => t as UTCTimestamp
+
+/** Caption typed out like a HUD readout; instant when motion is off or reduced. */
+function TypedText({ text, motion }: { text: string; motion: boolean }) {
+  const reduced = typeof window !== 'undefined' && window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
+  const [n, setN] = useState(motion && !reduced ? 0 : text.length)
+  useEffect(() => {
+    if (!motion || reduced) return setN(text.length)
+    setN(0)
+    const step = Math.max(1, Math.round(text.length / 60))
+    const id = setInterval(() => setN((x) => (x + step >= text.length ? (clearInterval(id), text.length) : x + step)), 16)
+    return () => clearInterval(id)
+  }, [text, motion, reduced])
+  return (
+    <>
+      {text.slice(0, n)}
+      {n < text.length && <i className="hud-caret" />}
+    </>
+  )
+}
 
 /** Number input that keeps what the user is typing apart from the saved value.
  *  Only a finite value inside the range is committed; an empty or bad entry is ignored until blur. */
@@ -410,18 +430,40 @@ export function ChartPanel(props: Props) {
       )}
       {tour && (
         <>
-          {pointer && <div className={`tour-pointer${tour.motion ? '' : ' still'}`} style={{ left: pointer.x, top: pointer.y }} aria-hidden />}
-          <div key={tour.key} className={`tour-callout${tour.motion ? '' : ' still'}`} role="dialog" aria-label={tour.title}>
+          <div className={`hud-layer${tour.motion ? '' : ' still'}`} aria-hidden>
+            {pointer && (
+              <>
+                <i className="hud-hline" style={{ top: pointer.y }} />
+                <i className="hud-vline" style={{ left: pointer.x }} />
+                <svg className="hud-reticle" style={{ left: pointer.x, top: pointer.y }} width="56" height="56" viewBox="-28 -28 56 56">
+                  <circle r="20" className="r-spin" />
+                  <circle r="9" className="r-core" />
+                  <path d="M-26 -14 V-26 H-14 M14 -26 H26 V-14 M26 14 V26 H14 M-14 26 H-26 V14" className="r-brackets" />
+                  <path d="M-6 0 H-2 M2 0 H6 M0 -6 V-2 M0 2 V6" className="r-cross" />
+                </svg>
+              </>
+            )}
+          </div>
+          <div key={tour.key} className={`tour-callout hud${tour.motion ? '' : ' still'}`} role="dialog" aria-label={tour.title}>
+            <i className="hud-scan" aria-hidden />
             <div className="tour-head">
-              <b>Jarvis · {tour.title}</b>
+              <JarvisAvatar size={22} mood="speaking" motion={tour.motion} />
+              <b className="mono">JARVIS // {tour.title.toUpperCase()}</b>
               <span className="mono">
-                {tour.index + 1}/{tour.total}
+                {String(tour.index + 1).padStart(2, '0')}/{String(tour.total).padStart(2, '0')}
               </span>
               <button className="tour-x" onClick={tour.onClose} aria-label={tour.doneLabel}>
                 ×
               </button>
             </div>
-            <p>{tour.text}</p>
+            <p>
+              <TypedText text={tour.text} motion={tour.motion} />
+            </p>
+            <div className="hud-steps" aria-hidden>
+              {Array.from({ length: tour.total }, (_, i) => (
+                <i key={i} className={i <= tour.index ? 'on' : ''} />
+              ))}
+            </div>
             <div className="tour-nav">
               <button onClick={tour.onBack} disabled={tour.index === 0}>
                 {tour.backLabel}
