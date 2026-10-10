@@ -41,7 +41,8 @@ import { AIPicks } from './components/AIPicks'
 import { WhatsNew } from './components/WhatsNew'
 import { SettingsModal } from './components/SettingsModal'
 import { AiRulesModal } from './components/AiRulesModal'
-import { useAiRules } from './lib/aiRules'
+import { setAiRules, useAiRules } from './lib/aiRules'
+import type { JarvisAction } from './lib/jarvisActions'
 import { approvedTags, effectiveRules, useSkillStatuses } from './lib/skills'
 import { runSkillTests } from './lib/skillTests'
 import { logRobot } from './lib/audit'
@@ -474,6 +475,14 @@ export default function App() {
     setAskedStock(null)
     startTour(stockTour(analysis, askedStock, candles[candles.length - 1].time, practice.state))
   }, [askedStock, inst.symbol, analysisSym, analysis, candles, startTour, practice.state])
+  // Jarvis actions run only from the confirm card in the Brain tab (you tapped "Do it")
+  const jarvisAct = aiRules.jarvisActions
+    ? (a: JarvisAction) => {
+        if (a.kind === 'rule') setAiRules({ ...rawRules, [a.key]: a.value })
+        else if (a.kind === 'killSwitch') setPrefs((p) => ({ ...p, killSwitch: a.value }))
+        else addInstrument(chartUniverse.find((i) => i.symbol === a.symbol) ?? { symbol: a.symbol, name: a.symbol, assetClass: a.symbol.includes('/') ? 'crypto' : 'stock', feedId: a.symbol.replace('/', ''), demoPrice: 100, demoVol: 0.4 })
+      }
+    : undefined
   const showAnalysis = showMeOn && analysis && candles.length ? () => startTour(analysisTour(analysis, inst.symbol, candles[candles.length - 1].time)) : undefined
 
   return (
@@ -601,7 +610,7 @@ export default function App() {
                     setRightTab('trade')
                   }} onEditRules={() => setAiRulesOpen(true)} jarvis={aiRules.jarvisOn && aiRules.jarvisVoice} jarvisMotion={aiRules.jarvisMotion} onShowMe={showAnalysis} />}
               {shownTab === 'practice' && <PracticePanel state={practice.state} rules={aiRules} symbol={inst.symbol} priceOf={practice.priceOf} onReset={practice.reset} scan={practice.scan} onRescan={practice.rescan} onOpen={(s) => select(s)} universe={chartUniverse.map((i) => i.symbol)} serverMode={practice.serverMode} serverLastRun={practice.serverLastRun} />}
-              {shownTab === 'brain' && <BrainPanel state={practice.state} rules={aiRules} journal={autoLearn.state.journal} learn={autoLearn.state} killSwitch={prefs.killSwitch} priceOf={practice.priceOf} onEditRules={() => setAiRulesOpen(true)} onShowTrade={showTrade} onReplay={showReplay} known={chartUniverse} onAskStock={askStock} />}
+              {shownTab === 'brain' && <BrainPanel state={practice.state} rules={aiRules} journal={autoLearn.state.journal} learn={autoLearn.state} killSwitch={prefs.killSwitch} priceOf={practice.priceOf} onEditRules={() => setAiRulesOpen(true)} onShowTrade={showTrade} onReplay={showReplay} known={chartUniverse} onAskStock={askStock} onAction={jarvisAct} watchlist={universe.map((i) => i.symbol)} />}
               {shownTab === 'flow' && <OrderFlowPanel flow={flow} last={lastClose} />}
               {shownTab === 'learn' && <AutoLearnPanel al={autoLearn} rules={aiRules} symbol={inst.symbol} liveScore={live?.probUp ?? null} />}
               {shownTab === 'picks' && (

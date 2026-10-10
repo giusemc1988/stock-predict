@@ -69,6 +69,7 @@ export interface AiRules {
   jarvisListen: boolean // ask Jarvis by voice (microphone, browser speech recognition)
   jarvisGreeting: boolean // a human greeting with your name at the top of the Brain tab
   jarvisLinks: boolean // "What I'm linked to": memory, skills, playbook, decision log, reviews, learner
+  jarvisActions: boolean // Jarvis may propose setting changes (practice, kill switch, watchlist, AI rules); each needs your tap
   jarvisAnyStock: boolean // ask about any stock ("why AAPL?"): Jarvis opens it and explains on the chart
 }
 
@@ -138,6 +139,7 @@ export const DEFAULT_AI_RULES: AiRules = {
   jarvisGreeting: true,
   jarvisLinks: true,
   jarvisAnyStock: true,
+  jarvisActions: true,
 }
 
 type NumKey = { [K in keyof AiRules]: AiRules[K] extends number ? K : never }[keyof AiRules]
@@ -219,6 +221,7 @@ export const RULE_FIELDS: RuleField[] = [
   { group: 'jarvis', key: 'jarvisGreeting', en: 'Greeting: Jarvis says hello by name and sums up the day', vi: 'Lời chào: Jarvis chào bạn bằng tên và tóm tắt ngày' },
   { group: 'jarvis', key: 'jarvisLinks', en: "What I'm linked to: ask Jarvis about its memory, skills, playbook, decision log, reviews and learner", vi: 'Kết nối của tôi: hỏi Jarvis về bộ nhớ, kỹ năng, sổ tay, nhật ký quyết định, đánh giá và bộ học' },
   { group: 'jarvis', key: 'jarvisAnyStock', en: 'Ask about any stock ("why AAPL?"): Jarvis opens it and explains on the chart', vi: 'Hỏi về bất kỳ mã nào ("vì sao AAPL?"): Jarvis mở mã đó và giải thích trên biểu đồ' },
+  { group: 'jarvis', key: 'jarvisActions', en: 'Jarvis can act: it proposes changes (pause practice, kill switch, watchlist, these switches) and does them only after you tap "Do it"; every one is logged', vi: 'Jarvis có thể hành động: đề xuất thay đổi (tạm dừng luyện tập, dừng khẩn cấp, danh sách theo dõi, các công tắc này) và chỉ làm khi bạn bấm "Làm đi"; mọi việc đều được ghi lại' },
   { group: 'jarvis', key: 'jarvisListen', en: 'Ask Jarvis by voice (microphone; Chrome, Edge or Safari)', vi: 'Hỏi Jarvis bằng giọng nói (micro; Chrome, Edge hoặc Safari)' },
   { group: 'jarvis', key: 'jarvisSpeech', en: "Jarvis speaks (reads briefings and answers aloud with your device's voices; pick the voice in the Brain tab)", vi: 'Jarvis nói (đọc to bản tin và câu trả lời bằng giọng có sẵn trên thiết bị; chọn giọng trong tab Bộ não)' },
 ]

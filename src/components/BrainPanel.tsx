@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { canListen, listenOnce, understand } from '../lib/listen'
 import { explain } from '../lib/brainRouter'
+import { alreadySo, describeAction, loadActionLog, logAction, parseCommand, type ActionLogEntry, type JarvisAction } from '../lib/jarvisActions'
 import { SKILLS, statusOf, useSkillStatuses } from '../lib/skills'
 import type { AiRules } from '../lib/aiRules'
 import { useLang } from '../lib/i18n'
@@ -28,12 +29,16 @@ interface Props {
   known?: { symbol: string; name: string }[]
   /** "Why AAPL?": open that stock and explain it on the chart. */
   onAskStock?: (symbol: string) => void
+  /** Carry out an action you confirmed. */
+  onAction?: (a: JarvisAction) => void
+  /** Your watchlist symbols, so Jarvis doesn't propose adding one twice. */
+  watchlist?: string[]
 }
 
 type Tab = 'today' | 'lessons' | 'playbook'
 
 /** Jarvis, the Arc Brain: briefing, Ask Jarvis, lessons and the playbook with its evidence. */
-export function BrainPanel({ state, rules, journal, learn, killSwitch, priceOf, onEditRules, onShowTrade, onReplay, known = [], onAskStock }: Props) {
+export function BrainPanel({ state, rules, journal, learn, killSwitch, priceOf, onEditRules, onShowTrade, onReplay, known = [], onAskStock, onAction, watchlist = [] }: Props) {
   const lang = useLang()
   const L = (en: string, vi: string) => (lang === 'vi' ? vi : en)
   const pick = (b: { en: string; vi: string }) => (lang === 'vi' ? b.vi : b.en)
@@ -84,9 +89,32 @@ export function BrainPanel({ state, rules, journal, learn, killSwitch, priceOf, 
   const [typed, setTyped] = useState('')
   const [free, setFree] = useState<{ text: string; symbol?: string } | null>(null)
   const linked: AskId[] = ['who', 'skills', 'log', 'reviews', 'learning']
+  // actions: Jarvis proposes, you confirm; both outcomes are logged
+  const [pending, setPending] = useState<JarvisAction | null>(null)
+  const [actionLog, setActionLog] = useState<ActionLogEntry[]>(loadActionLog)
+  const settle = (done: boolean) => {
+    if (!pending) return
+    if (done) onAction?.(pending)
+    setActionLog(logAction({ time: Date.now(), label: describeAction(pending), result: done ? 'done' : 'cancelled' }))
+    setFree({ text: done ? L('Done. It’s in my action log below.', 'Xong. Đã ghi vào nhật ký hành động bên dưới.') : L('Okay, I left it as it is.', 'Được, tôi giữ nguyên.') })
+    setPending(null)
+  }
   const handle = (text: string) => {
-    const u = understand(text, known)
     setFree(null)
+    setPending(null)
+    const cmd = rules.jarvisActions && onAction ? parseCommand(text, known) : null
+    if (cmd) {
+      setQ(null)
+      const d = describeAction(cmd)
+      if (alreadySo(cmd, rules, killSwitch, watchlist)) {
+        setFree({ text: L(`No need: "${d.en}" is already the case.`, `Không cần: "${d.vi}" đã như vậy rồi.`) })
+        return true
+      }
+      setPending(cmd)
+      if (speech) say([{ en: `I can ${d.en.charAt(0).toLowerCase()}${d.en.slice(1)}. Tap Do it to confirm.`, vi: `Tôi có thể: ${d.vi}. Bấm Làm đi để xác nhận.` }])
+      return true
+    }
+    const u = understand(text, known)
     if (u?.kind === 'stock' && rules.jarvisAnyStock) {
       setQ(null)
       const facts = [...stockMemory(u.symbol, state), onAskStock ? { en: `Opening ${u.symbol} now; I'll walk you through it on the chart.`, vi: `Đang mở ${u.symbol}; tôi sẽ giải thích trên biểu đồ.` } : { en: 'Turn on Show me in AI rules and I can walk you through the chart.', vi: 'Bật Chỉ cho tôi trong Quy tắc AI để tôi giải thích trên biểu đồ.' }]
@@ -248,6 +276,24 @@ export function BrainPanel({ state, rules, journal, learn, killSwitch, priceOf, 
                   {L('Ask', 'Hỏi')}
                 </button>
               </form>
+              {pending && (
+                <div className="brain-confirm" role="alertdialog" aria-label={L('Confirm Jarvis action', 'Xác nhận hành động của Jarvis')}>
+                  <JarvisAvatar size={24} mood="thinking" motion={rules.jarvisMotion} />
+                  <div>
+                    <p>
+                      {L("Here's what I'd do:", 'Tôi sẽ làm:')} <b>{pick(describeAction(pending))}</b>. {L('Want me to go ahead?', 'Bạn muốn tôi làm không?')}
+                    </p>
+                    <div className="brain-confirm-btns">
+                      <button className="al-save" onClick={() => settle(true)}>
+                        {L('Do it', 'Làm đi')}
+                      </button>
+                      <button className="pr-rescan" onClick={() => settle(false)}>
+                        {L('Cancel', 'Hủy')}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
               {free && (
                 <div className="brain-answer">
                   <JarvisAvatar size={24} mood="speaking" motion={false} />
@@ -305,6 +351,23 @@ export function BrainPanel({ state, rules, journal, learn, killSwitch, priceOf, 
                   <JarvisAvatar size={24} mood="speaking" motion={false} />
                   <p>{answer.map(pick).join(' ')}</p>
                 </div>
+              )}
+            </div>
+          )}
+          {rules.jarvisActions && onAction && (
+            <div className="al-card">
+              <div className="al-kicker">{L('MY ACTIONS · YOU CONFIRM EACH ONE', 'HÀNH ĐỘNG CỦA TÔI · BẠN XÁC NHẬN TỪNG VIỆC')}</div>
+              <p className="muted al-note">{L('I can read everything in the app. I can only change a few settings, like pausing practice, the kill switch, your watchlist or these AI rules, and only after you tap Do it. I never place trades for you or touch real money. Try: "pause practice", "add PLTR to my watchlist", "turn off trade alerts".', 'Tôi đọc được mọi thứ trong ứng dụng. Tôi chỉ có thể đổi vài cài đặt như tạm dừng luyện tập, dừng khẩn cấp, danh sách theo dõi hay các quy tắc AI này, và chỉ sau khi bạn bấm Làm đi. Tôi không bao giờ đặt lệnh thay bạn hay đụng tới tiền thật. Thử: "tạm dừng luyện tập", "thêm PLTR vào danh sách", "tắt thông báo lệnh".')}</p>
+              {actionLog.length ? (
+                <ul className="brain-list brain-actlog">
+                  {[...actionLog].reverse().slice(0, 8).map((e, i) => (
+                    <li key={i} className={e.result}>
+                      <em>{when(e.time)}</em> {pick(e.label)} · {e.result === 'done' ? L('done', 'đã làm') : L('cancelled', 'đã hủy')}
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <p className="muted al-note">{L('No actions yet.', 'Chưa có hành động nào.')}</p>
               )}
             </div>
           )}

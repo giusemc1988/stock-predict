@@ -2,7 +2,7 @@
  * Version and "What's new". Bump APP_VERSION and add an entry to the top of RELEASES
  * with each update. The banner shows once per version, then stays dismissed.
  */
-export const APP_VERSION = '1.6.4'
+export const APP_VERSION = '1.6.5'
 
 export interface Release {
   version: string
@@ -13,6 +13,18 @@ export interface Release {
 }
 
 export const RELEASES: Release[] = [
+  {
+    version: '1.6.5',
+    date: '2026-10-10',
+    changes: [
+      'Jarvis can act, under your control: ask it to "pause practice", "turn the kill switch on", "add PLTR to my watchlist" or "turn off trade alerts", typed or spoken. Jarvis shows exactly what it will change and does it only when you tap Do it. Every action, done or cancelled, is listed in "My actions" in the Brain tab.',
+      'Jarvis can read everything in the app, but it can only change those few settings. It never places, sizes or closes a trade for you and never touches real money. Switch: "Jarvis can act" in AI rules > Jarvis; the master Jarvis switch turns it all off.',
+    ],
+    changesVi: [
+      'Jarvis có thể hành động, dưới sự kiểm soát của bạn: bảo nó "tạm dừng luyện tập", "bật dừng khẩn cấp", "thêm PLTR vào danh sách" hoặc "tắt thông báo lệnh", bằng chữ hoặc giọng nói. Jarvis cho thấy chính xác điều sẽ thay đổi và chỉ làm khi bạn bấm Làm đi. Mọi hành động, đã làm hay đã hủy, đều có trong "Hành động của tôi" ở tab Bộ não.',
+      'Jarvis đọc được mọi thứ trong ứng dụng nhưng chỉ đổi được vài cài đặt đó. Nó không bao giờ đặt, định cỡ hay đóng lệnh thay bạn và không đụng tới tiền thật. Công tắc: "Jarvis có thể hành động" trong Quy tắc AI > Jarvis; công tắc Jarvis chính tắt toàn bộ.',
+    ],
+  },
   {
     version: '1.6.4',
     date: '2026-10-10',
