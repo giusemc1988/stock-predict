@@ -1,3 +1,4 @@
+import { DATA_LABEL, labelForSource } from '../lib/dataGuard'
 import type { Analysis, FeedStatus, Instrument, Quote, Timeframe } from '../types'
 import { TIMEFRAMES } from '../types'
 import { fmtCompact, fmtPct, fmtPrice, fmtSigned, fmtUsd, tone } from '../lib/format'
@@ -113,6 +114,7 @@ export function TopBar({ inst, quote, lastPrice, tf, onTf, status, source, error
         <i />
         <span>{STATUS_LABEL[status]}</span>
         <em>{source}</em>
+        {source && <em className={`data-label ${labelForSource(source)}`}>{DATA_LABEL[labelForSource(source)].en}</em>}
       </div>
       <button className="icon-btn" onClick={onSettings} title="Data sources & API keys" aria-label="Settings">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">

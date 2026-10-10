@@ -35,6 +35,10 @@ import { WhatsNew } from './components/WhatsNew'
 import { SettingsModal } from './components/SettingsModal'
 import { AiRulesModal } from './components/AiRulesModal'
 import { useAiRules } from './lib/aiRules'
+import { approvedTags, effectiveRules, useSkillStatuses } from './lib/skills'
+import { runSkillTests } from './lib/skillTests'
+import { logRobot } from './lib/audit'
+import { stampData, staleReason } from './lib/dataGuard'
 import { Toasts, type Toast } from './components/Toasts'
 
 const NO_CANDLES: Candle[] = []
@@ -77,7 +81,12 @@ export default function App() {
   const [settingsOpen, setSettingsOpen] = useState(false)
   const [aiRulesOpen, setAiRulesOpen] = useState(false)
   const [planNonce, setPlanNonce] = useState(0)
-  const aiRules = useAiRules()
+  const rawRules = useAiRules()
+  // only approved skills feed signals: a quarantined or revoked skill is switched off in the rules the AI uses
+  const skillStatuses = useSkillStatuses()
+  const skillFails = useMemo(() => new Set(runSkillTests().filter((t) => !t.ok).map((t) => t.id)), [])
+  const aiRules = useMemo(() => effectiveRules(rawRules, skillStatuses, skillFails), [rawRules, skillStatuses, skillFails])
+  const skillTags = useMemo(() => approvedTags(rawRules, skillStatuses, skillFails), [rawRules, skillStatuses, skillFails])
   const [page, setPage] = useState<'trade' | 'portfolio'>('trade')
   const [rightTab, setRightTab] = useState<'ai' | 'flow' | 'trade' | 'learn' | 'picks' | 'practice'>('ai')
   const lang = useLang()
@@ -159,8 +168,8 @@ export default function App() {
   const seen = useRef<{ key: string; time: number }>({ key: '', time: 0 })
   const positionsRef = useRef(broker.positions)
   positionsRef.current = broker.positions
-  const gateRef = useRef({ broker, analysis, prefs })
-  gateRef.current = { broker, analysis, prefs }
+  const gateRef = useRef({ broker, analysis, prefs, aiRules, feed: market.source, skillTags })
+  gateRef.current = { broker, analysis, prefs, aiRules, feed: market.source, skillTags }
   useEffect(() => {
     const k = `${inst.symbol}|${prefs.tf}`
     if (!candles.length) return
@@ -181,13 +190,38 @@ export default function App() {
       const side = lastSignal.side
       const price = lastClose
       const g = gateRef.current
-      const req: OrderRequest = { symbol: inst.symbol, side, type: 'market', qty, tif: 'day', source: 'robot' }
-      const blocked = blocking(riskGates(req, price, g.broker, g.analysis, g.prefs))
+      // one client id per signal: a retry can't place the same order twice
+      const req: OrderRequest = { symbol: inst.symbol, side, type: 'market', qty, tif: 'day', source: 'robot', clientOrderId: `robot-${inst.symbol.replace('/', '')}-${side}-${lastSignal.time}` }
+      const tfSec = TIMEFRAMES.find((t) => t.id === prefs.tf)!.seconds
+      const data = stampData(g.feed, lastSignal.time, tfSec, Date.now())
+      const checks = riskGates(req, price, g.broker, g.analysis, g.prefs, g.aiRules)
+      const stale = side === 'buy' && g.aiRules.dataGuardOn ? staleReason(data, tfSec, g.aiRules.maxDataAgeMin) : null
+      const blocked = stale ? [{ name: 'Data', level: 'block' as const, message: stale.en }] : blocking(checks)
+      const audit = (accepted: boolean, en: string, vi: string, blockedBy?: string) =>
+        g.aiRules.auditOn &&
+        logRobot({
+          time: Date.now(),
+          symbol: inst.symbol,
+          side,
+          accepted,
+          en,
+          vi,
+          price,
+          barTime: lastSignal.time,
+          data,
+          verdict: g.analysis?.verdict,
+          tradeScore: g.analysis?.tradeScore?.score ?? null,
+          passed: checks.filter((c) => c.level !== 'block').map((c) => c.name),
+          ...(blockedBy ? { blockedBy } : {}),
+          skills: g.skillTags,
+        })
       if (blocked.length) {
+        audit(false, `Robot skipped a ${side.toUpperCase()}: ${blocked[0].message}`, `Robot bỏ qua lệnh ${side === 'buy' ? 'MUA' : 'BÁN'}: ${blocked[0].message}`, blocked[0].name)
         toast({ tone: 'info', title: `Robot skipped a ${side.toUpperCase()} on ${inst.symbol}`, body: `${blocked[0].name}: ${blocked[0].message}` })
         return
       }
       submit(req).then((r) => {
+        audit(r.ok, r.ok ? `Robot ${side === 'buy' ? 'bought' : 'sold'} ${qty} at about ${fmtPrice(price)}` : `Robot order rejected: ${r.message}`, r.ok ? `Robot ${side === 'buy' ? 'mua' : 'bán'} ${qty} giá khoảng ${fmtPrice(price)}` : `Lệnh robot bị từ chối: ${r.message}`, r.ok ? undefined : 'Broker')
         if (r.ok) toast({ tone: 'info', title: `🤖 Robot ${side === 'buy' ? 'bought' : 'sold'} ${qty} ${inst.symbol}`, body: `Paper order at about ${fmtPrice(price)}` })
       })
     }
@@ -275,6 +309,8 @@ export default function App() {
     keys,
     alpacaKeys,
     onAway: onPracticeAway,
+    feedSource: market.source,
+    skills: skillTags,
   })
   // practice trades may be on a different timeframe than the chart: mark the chart bar they fall in
   const snapToBar = (t: number) => {

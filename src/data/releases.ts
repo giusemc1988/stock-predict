@@ -2,7 +2,7 @@
  * Version and "What's new". Bump APP_VERSION and add an entry to the top of RELEASES
  * with each update. The banner shows once per version, then stays dismissed.
  */
-export const APP_VERSION = '1.4.0'
+export const APP_VERSION = '1.5.0'
 
 export interface Release {
   version: string
@@ -13,6 +13,32 @@ export interface Release {
 }
 
 export const RELEASES: Release[] = [
+  {
+    version: '1.5.0',
+    date: '2026-10-10',
+    changes: [
+      'Safety upgrade for the AI, based on the Master Prompt v3.0 spec. Every new part has its own switch in Settings > AI rules, all on by default.',
+      'Data check: every price is labeled Real-time, Delayed, Historical or Mock (shown next to the feed at the top). The AI no longer buys on simulated prices or on a bar older than 30 minutes (or one bar). Exits always work.',
+      'Hard risk limits the AI cannot change: at most 8 open positions, at most 60% of the account in open trades, and buys halt after a 20% drop from the peak. They hold even with the other risk gates off. Robot orders get a fixed order id, so a retry can never buy twice.',
+      'Realistic fills: fees (1 bps), half the bid-ask spread (4 bps) and slippage (2 bps) on market and stop fills, in practice and in the paper simulator. Targets fill at their price. Trades show what costs took.',
+      'Decision log (Practice > Decision log): every AI buy and sell, accepted or rejected, with the data source, how old the bar was, the checks it passed and what stopped it. Includes the robot on your paper account.',
+      'Trade review: each closed trade is graded on process (reward at least 1.5x risk, Trade Score 40+, fresh real data, learner not saying HOLD) separately from the result, so you can see wins that were just luck.',
+      'Daily report (Practice > Daily report): trades, wins, net P&L, costs, buys taken and rejected, and lessons for each day. The 24/7 server saves the last 30 days.',
+      "Skill registry (Settings > AI rules > Skills): the AI's 7 skills with version, source, permissions and a self-test. Set each to Approved, Quarantine or Revoked; only approved skills feed signals, and a skill that fails its self-test is quarantined. No code is downloaded from GitHub or written by an AI.",
+      'Not financial advice. Paper trading only; nothing here places a real order.',
+    ],
+    changesVi: [
+      'Nâng cấp an toàn cho AI theo bản đặc tả Master Prompt v3.0. Mỗi phần mới có công tắc riêng trong Cài đặt > Quy tắc AI, mặc định đều bật.',
+      'Kiểm tra dữ liệu: mọi giá được gắn nhãn Thời gian thực, Trễ, Lịch sử hoặc Giả lập (hiện cạnh nguồn dữ liệu ở trên cùng). AI không còn mua trên giá giả lập hoặc trên nến cũ hơn 30 phút (hoặc một nến). Lệnh thoát luôn hoạt động.',
+      'Giới hạn rủi ro cứng mà AI không thể thay đổi: tối đa 8 vị thế mở, tối đa 60% tài khoản trong các lệnh mở, và dừng mua khi giảm 20% từ đỉnh. Vẫn áp dụng kể cả khi tắt các cổng rủi ro khác. Lệnh robot có mã lệnh cố định nên thử lại không bao giờ mua hai lần.',
+      'Khớp lệnh thực tế: phí (1 bps), nửa chênh lệch mua-bán (4 bps) và trượt giá (2 bps) khi khớp lệnh thị trường và cắt lỗ, trong luyện tập và trình mô phỏng. Chốt lời khớp đúng giá. Mỗi lệnh hiện chi phí đã trả.',
+      'Nhật ký quyết định (Luyện tập > Nhật ký quyết định): mọi lệnh mua bán của AI, được chấp nhận hay bị từ chối, kèm nguồn dữ liệu, độ cũ của nến, các bước kiểm tra đã đạt và lý do bị chặn. Gồm cả robot trên tài khoản thử nghiệm của bạn.',
+      'Đánh giá lệnh: mỗi lệnh đã đóng được chấm theo quy trình (lợi nhuận ít nhất 1,5 lần rủi ro, Điểm GD từ 40, dữ liệu thật và mới, bộ học không nói GIỮ) tách khỏi kết quả, để thấy lệnh nào thắng chỉ nhờ may mắn.',
+      'Báo cáo ngày (Luyện tập > Báo cáo ngày): số lệnh, lệnh thắng, lãi/lỗ ròng, chi phí, lệnh mua đã vào và bị từ chối, cùng bài học mỗi ngày. Máy chủ 24/7 lưu 30 ngày gần nhất.',
+      'Danh sách kỹ năng (Cài đặt > Quy tắc AI > Kỹ năng): 7 kỹ năng của AI kèm phiên bản, nguồn, quyền và tự kiểm thử. Đặt mỗi kỹ năng là Đã duyệt, Cách ly hoặc Thu hồi; chỉ kỹ năng được duyệt mới tạo tín hiệu, và kỹ năng không đạt kiểm thử sẽ bị cách ly. Không tải mã từ GitHub hay chạy mã do AI viết.',
+      'Không phải lời khuyên đầu tư. Chỉ giao dịch thử nghiệm; không có lệnh thật nào được đặt.',
+    ],
+  },
   {
     version: '1.4.0',
     date: '2026-10-09',

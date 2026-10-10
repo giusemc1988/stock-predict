@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { setAiRules, type AiRules } from '../lib/aiRules'
+import { getAiRules, setAiRules, type AiRules } from '../lib/aiRules'
 import { useLang } from '../lib/i18n'
 import { decide } from '../lib/journal'
 import type { AutoLearning } from '../hooks/useAutoLearning'
@@ -27,7 +27,7 @@ export function AutoLearnPanel({ al, rules, symbol, liveScore }: Props) {
   const [tab, setTab] = useState<Tab>('live')
   const st = al.state
   const on = rules.autoLearn
-  const setOn = (v: boolean) => setAiRules({ ...rules, autoLearn: v })
+  const setOn = (v: boolean) => setAiRules({ ...getAiRules(), autoLearn: v })
 
   const tabs: { id: Tab; en: string; vi: string }[] = [
     { id: 'live', en: '24/7 learning', vi: 'Tự học 24/7' },

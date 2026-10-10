@@ -35,6 +35,19 @@ export interface AiRules {
   practiceServer: boolean // show the 24/7 server practice account (trades while the app is closed)
   practiceWatchlist: boolean // pin the markets practice is watching or trading at the top of the watchlist
   practiceFollow: boolean // the chart jumps to each new practice trade
+  dataGuardOn: boolean // block new AI entries on simulated or stale data
+  maxDataAgeMin: number // oldest bar close allowed for a new entry (at least one bar)
+  hardLimitsOn: boolean // hard limits for AI orders: drawdown halt, open positions, total exposure
+  maxOpenPositions: number
+  maxExposurePct: number // % of the account in open positions, all together
+  costsOn: boolean // fees, spread and slippage on paper fills
+  feeBps: number
+  spreadBps: number
+  slippageBps: number
+  auditOn: boolean // decision log of every accepted and rejected AI decision
+  reviewOn: boolean // grade closed trades on process vs. luck
+  dailyReportOn: boolean // end-of-day practice report
+  skillRegistryOn: boolean // only approved skills feed signals
 }
 
 export const DEFAULT_AI_RULES: AiRules = {
@@ -68,13 +81,26 @@ export const DEFAULT_AI_RULES: AiRules = {
   practiceServer: true,
   practiceWatchlist: true,
   practiceFollow: false,
+  dataGuardOn: true,
+  maxDataAgeMin: 30,
+  hardLimitsOn: true,
+  maxOpenPositions: 8,
+  maxExposurePct: 60,
+  costsOn: true,
+  feeBps: 1,
+  spreadBps: 4,
+  slippageBps: 2,
+  auditOn: true,
+  reviewOn: true,
+  dailyReportOn: true,
+  skillRegistryOn: true,
 }
 
 type NumKey = { [K in keyof AiRules]: AiRules[K] extends number ? K : never }[keyof AiRules]
 type BoolKey = { [K in keyof AiRules]: AiRules[K] extends boolean ? K : never }[keyof AiRules]
 
 export interface RuleField {
-  group: 'call' | 'sizing' | 'gates' | 'modules'
+  group: 'call' | 'sizing' | 'gates' | 'costs' | 'modules'
   key: keyof AiRules
   en: string
   vi: string
@@ -100,6 +126,12 @@ export const RULE_FIELDS: RuleField[] = [
   { group: 'gates', key: 'maxDrawdownPct', en: 'Pause buys after account drop of', vi: 'Dừng mua khi tài khoản giảm', min: 1, max: 100, step: 1, unit: '%' },
   { group: 'gates', key: 'maxPositionPct', en: 'Max share of account in one symbol', vi: 'Tỷ trọng tối đa của một mã', min: 1, max: 100, step: 1, unit: '%' },
   { group: 'gates', key: 'maxTradesPerDay', en: 'Max orders per day', vi: 'Số lệnh tối đa mỗi ngày', min: 1, max: 1000, step: 1 },
+  { group: 'gates', key: 'maxOpenPositions', en: 'Hard limit: AI open positions at most', vi: 'Giới hạn cứng: số vị thế AI mở tối đa', min: 1, max: 50, step: 1 },
+  { group: 'gates', key: 'maxExposurePct', en: 'Hard limit: AI money in open positions at most', vi: 'Giới hạn cứng: tiền AI trong vị thế mở tối đa', min: 5, max: 100, step: 5, unit: '%' },
+  { group: 'gates', key: 'maxDataAgeMin', en: 'Block AI buys when price data is older than', vi: 'Chặn AI mua khi dữ liệu giá cũ hơn', min: 5, max: 1440, step: 5, unit: 'min' },
+  { group: 'costs', key: 'feeBps', en: 'Fees per fill', vi: 'Phí mỗi lần khớp', min: 0, max: 50, step: 0.5, unit: 'bps' },
+  { group: 'costs', key: 'spreadBps', en: 'Bid-ask spread (half paid per market fill)', vi: 'Chênh lệch mua-bán (trả một nửa mỗi lần khớp thị trường)', min: 0, max: 100, step: 0.5, unit: 'bps' },
+  { group: 'costs', key: 'slippageBps', en: 'Slippage on market and stop fills', vi: 'Trượt giá khi khớp lệnh thị trường và cắt lỗ', min: 0, max: 100, step: 0.5, unit: 'bps' },
   { group: 'gates', key: 'minScoreWarn', en: 'Warn when Trade Score is below', vi: 'Cảnh báo khi Điểm Giao dịch dưới', min: 0, max: 100, step: 1 },
   { group: 'modules', key: 'tradeScoreOn', en: 'Trade Score (0-100)', vi: 'Điểm Giao dịch (0-100)' },
   { group: 'modules', key: 'riskScoreSizing', en: 'Size by risk score', vi: 'Khối lượng theo điểm rủi ro' },
@@ -116,6 +148,13 @@ export const RULE_FIELDS: RuleField[] = [
   { group: 'modules', key: 'practiceOnChart', en: 'Show practice orders on the chart (animated)', vi: 'Hiện lệnh luyện tập trên biểu đồ (có hiệu ứng)' },
   { group: 'modules', key: 'practiceFeed', en: 'Pop-up notices for practice orders', vi: 'Thông báo bật lên cho lệnh luyện tập' },
   { group: 'modules', key: 'gatesOn', en: 'Risk gates (kill switch always works)', vi: 'Cổng rủi ro (công tắc dừng khẩn cấp luôn hoạt động)' },
+  { group: 'modules', key: 'hardLimitsOn', en: 'Hard risk limits for AI orders (drawdown halt, open positions, total exposure; the AI cannot change them)', vi: 'Giới hạn rủi ro cứng cho lệnh AI (dừng khi sụt giảm, số vị thế, tổng tiền vào lệnh; AI không thể thay đổi)' },
+  { group: 'modules', key: 'dataGuardOn', en: 'Block AI buys on simulated or stale price data', vi: 'Chặn AI mua khi dữ liệu giá là giả lập hoặc đã cũ' },
+  { group: 'modules', key: 'costsOn', en: 'Realistic fills (fees, spread and slippage)', vi: 'Khớp lệnh thực tế (phí, chênh lệch và trượt giá)' },
+  { group: 'modules', key: 'auditOn', en: 'Decision log (every accepted and rejected AI decision, with its data)', vi: 'Nhật ký quyết định (mọi quyết định AI được chấp nhận và bị từ chối, kèm dữ liệu)' },
+  { group: 'modules', key: 'reviewOn', en: 'Trade review: good process vs. luck', vi: 'Đánh giá lệnh: quy trình tốt hay may mắn' },
+  { group: 'modules', key: 'dailyReportOn', en: 'Daily practice report', vi: 'Báo cáo luyện tập hằng ngày' },
+  { group: 'modules', key: 'skillRegistryOn', en: 'Skill registry (only approved skills feed signals)', vi: 'Danh sách kỹ năng (chỉ kỹ năng được duyệt mới tạo tín hiệu)' },
 ]
 
 const KEY = 'arc.aiRules.v1'

@@ -6,6 +6,11 @@
  * Paper only: nothing here reaches a broker.
  */
 import type { Analysis, AssetClass, Candle } from '../types'
+import { pushAudit, type AuditEntry } from './audit'
+import { feeFor, fillPrice, type Costs } from './costs'
+import { maxAgeSec, staleReason, type DataStamp } from './dataGuard'
+import { reviewTrade, type TradeReview } from './review'
+import { buildDailyReport, type DailyReport } from './dailyReport'
 
 export const PRACTICE_START = 10_000
 /** A day trade that has neither stopped out nor hit target is closed after this many bars. */
@@ -17,6 +22,8 @@ const CLOSE_BUFFER_MS = 5 * 60_000
 const LAST_ENTRY_MS = 15 * 60_000
 const MAX_TRADES = 500
 const MAX_EVENTS = 200
+/** Daily reports kept in the practice file. */
+export const REPORT_DAYS = 30
 
 export type ExitReason = 'target' | 'stop' | 'signal' | 'time' | 'close' | 'hold'
 /** Day trades are in and out the same day; long-term trades are held for days. */
@@ -33,6 +40,12 @@ export interface PracticeEntryInfo {
   reason: string
   /** Why the stock picker chose this market (missing when it traded the open chart). */
   pick?: PracticePickInfo
+  /** The price data behind the decision: feed, real-time/delayed/mock, and age. */
+  data?: DataStamp
+  /** Oldest data allowed at entry, seconds (for the trade review). */
+  dataLimitSec?: number
+  /** Approved skills that fed the decision. */
+  skills?: string[]
 }
 
 export interface PracticePickInfo {
@@ -62,6 +75,13 @@ export interface PracticePosition {
   asset?: AssetClass
   /** Day trades: closed at this time (just before market close). Long-term: closed at this time if still open. */
   closeBy?: number
+  /** One entry per market, timeframe and bar: a retried cycle can't buy twice. */
+  key?: string
+  /** Price when the AI decided; `entry` is the fill after spread and slippage. */
+  signal?: number
+  /** Costs in force when it opened, and the fee already paid. */
+  cost?: Costs
+  entryFee?: number
 }
 
 export const kindOf = (p: { kind?: PracticeKind }): PracticeKind => p.kind ?? 'day'
@@ -94,6 +114,10 @@ export interface PracticeTrade extends PracticePosition {
   exitReason: ExitReason
   pnl: number
   retPct: number
+  /** P&L before fees, spread and slippage, and what those cost. */
+  gross?: number
+  costPaid?: number
+  review?: TradeReview
 }
 
 export interface PracticeEvent {
@@ -118,6 +142,10 @@ export interface PracticeState {
   curve: { t: number; equity: number }[]
   /** Set by the server job (scripts/practice-cycle.ts): when it ran, what it picked, and bars it has seen. */
   server?: PracticeServerInfo
+  /** Decision log, newest first. */
+  audit?: AuditEntry[]
+  /** End-of-day reports by trading day (YYYY-MM-DD), the last REPORT_DAYS kept. */
+  reports?: Record<string, DailyReport>
 }
 
 /** One row of a stock-picker scan, small enough to save. */
@@ -183,6 +211,20 @@ export interface EntryContext {
   maxTradesPerDay: number
   killSwitch: boolean
   now: number
+  /** Hard limits (independent of gatesOn): drawdown halt, open positions, total exposure. Default on. */
+  hardLimitsOn?: boolean
+  maxOpenPositions?: number
+  maxExposurePct?: number
+  /** Data behind the decision; with dataGuardOn, simulated or stale data blocks the entry. */
+  data?: DataStamp
+  tfSec?: number
+  dataGuardOn?: boolean
+  maxDataAgeMin?: number
+  /** Fees, spread and slippage, or null/missing for none. */
+  costs?: Costs | null
+  /** Record the decision in the log (default on). */
+  audit?: boolean
+  skills?: string[]
 }
 
 /** Called once per closed bar on the open chart: maybe enter, and age or signal-exit open trades. */
@@ -197,6 +239,31 @@ export function onBarClose(prev: PracticeState, ctx: EntryContext): PracticeStat
     else if (p.bars >= MAX_BARS) close(s, p, ctx.price, 'time', ctx.barTime, ctx.now)
   }
   if (!a || a.verdict !== 'BUY') return s
+  // a retried cycle sees the same bar again: never a second entry for it
+  const key = `${ctx.symbol}|${ctx.tf}|${ctx.barTime}`
+  if (s.open.some((p) => p.key === key) || s.trades.some((t) => t.key === key)) return s
+  const passed: string[] = []
+  const log = (accepted: boolean, en: string, vi: string, blockedBy?: string) => {
+    if (ctx.audit === false) return
+    s.audit ??= []
+    pushAudit(s.audit, {
+      time: ctx.now,
+      symbol: ctx.symbol,
+      side: 'buy',
+      account: 'practice',
+      accepted,
+      en,
+      vi,
+      price: ctx.price,
+      barTime: ctx.barTime,
+      ...(ctx.data ? { data: ctx.data } : {}),
+      verdict: a.verdict,
+      tradeScore: a.tradeScore?.score ?? null,
+      passed: [...passed],
+      ...(blockedBy ? { blockedBy } : {}),
+      ...(ctx.skills ? { skills: ctx.skills } : {}),
+    })
+  }
 
   // which slot this BUY fills: the day's long-term trade first, then the quick day trades
   const today = dayKey(ctx.now)
@@ -206,30 +273,58 @@ export function onBarClose(prev: PracticeState, ctx: EntryContext): PracticeStat
   let kind: PracticeKind
   if (ctx.longOn && openedToday('long') < ctx.longTrades && !holding('long')) kind = 'long'
   else if (ctx.dayOn && openedToday('day') < ctx.dayTrades && !holding('day') && ctx.now < dayEnd - LAST_ENTRY_MS) kind = 'day'
-  else return s
-
-  const skip = (why: string, whyVi: string) => {
-    pushEvent(s, { time: ctx.now, kind: 'skip', symbol: ctx.symbol, en: `Skipped a BUY on ${ctx.symbol}: ${why}`, vi: `Bỏ qua lệnh MUA ${ctx.symbol}: ${whyVi}` })
+  else {
+    log(false, `No BUY on ${ctx.symbol}: today's trade slots are used or it is already held`, `Không MUA ${ctx.symbol}: đã dùng hết lượt hôm nay hoặc đang giữ mã này`, 'Slots')
     return s
   }
-  // risk gates for the practice account (the kill switch always applies)
-  if (ctx.killSwitch) return skip('kill switch is on', 'công tắc dừng khẩn cấp đang bật')
+
+  const skip = (check: string, why: string, whyVi: string) => {
+    pushEvent(s, { time: ctx.now, kind: 'skip', symbol: ctx.symbol, en: `Skipped a BUY on ${ctx.symbol}: ${why}`, vi: `Bỏ qua lệnh MUA ${ctx.symbol}: ${whyVi}` })
+    log(false, `Rejected a BUY on ${ctx.symbol}: ${why}`, `Từ chối lệnh MUA ${ctx.symbol}: ${whyVi}`, check)
+    return s
+  }
+  const pass = (check: string) => passed.push(check)
+  // the kill switch and the hard limits apply whatever the other gates say; the AI can't change them
+  if (ctx.killSwitch) return skip('Kill switch', 'kill switch is on', 'công tắc dừng khẩn cấp đang bật')
+  pass('Kill switch')
+  if (ctx.dataGuardOn && ctx.data) {
+    const stale = staleReason(ctx.data, ctx.tfSec ?? 0, ctx.maxDataAgeMin ?? 30)
+    if (stale) return skip('Data', stale.en, stale.vi)
+    pass('Data')
+  }
   const eq = practiceEquity(s)
-  if (ctx.gatesOn && eq < s.peak * (1 - ctx.maxDrawdownPct / 100)) return skip(`practice account is down ${ctx.maxDrawdownPct}%+ from its peak`, `tài khoản luyện tập giảm hơn ${ctx.maxDrawdownPct}% từ đỉnh`)
+  const hard = ctx.hardLimitsOn ?? true
+  if (hard) {
+    if (eq < s.peak * (1 - ctx.maxDrawdownPct / 100)) return skip('Drawdown', `practice account is down ${ctx.maxDrawdownPct}%+ from its peak`, `tài khoản luyện tập giảm hơn ${ctx.maxDrawdownPct}% từ đỉnh`)
+    pass('Drawdown')
+    if (ctx.maxOpenPositions != null && s.open.length >= ctx.maxOpenPositions)
+      return skip('Open positions', `${s.open.length} trades are open (limit ${ctx.maxOpenPositions})`, `đang mở ${s.open.length} lệnh (giới hạn ${ctx.maxOpenPositions})`)
+    pass('Open positions')
+  }
   const todays = s.trades.filter((t) => dayKey(t.openedAt) === today).length + s.open.length
-  if (ctx.gatesOn && todays >= ctx.maxTradesPerDay) return skip(`${ctx.maxTradesPerDay} trades today already`, `đã đủ ${ctx.maxTradesPerDay} lệnh hôm nay`)
+  if (ctx.gatesOn && todays >= ctx.maxTradesPerDay) return skip('Trades today', `${ctx.maxTradesPerDay} trades today already`, `đã đủ ${ctx.maxTradesPerDay} lệnh hôm nay`)
   const regime = a.tradeScore?.regime ?? null
-  if (ctx.gatesOn && regime === 'extreme') return skip('price swings are extreme', 'giá dao động quá mạnh')
+  if (ctx.gatesOn && regime === 'extreme') return skip('Volatility', 'price swings are extreme', 'giá dao động quá mạnh')
+  if (ctx.gatesOn) pass('Risk gates')
   const dayPlan = a.exitPlan ?? (a.plan ? { stop: a.plan.stop, target: a.plan.target } : null)
-  if (!dayPlan || !(dayPlan.stop < ctx.price) || !(dayPlan.target > ctx.price)) return skip('no valid stop and target', 'không có cắt lỗ và chốt lời hợp lệ')
+  if (!dayPlan || !(dayPlan.stop < ctx.price) || !(dayPlan.target > ctx.price)) return skip('Exit plan', 'no valid stop and target', 'không có cắt lỗ và chốt lời hợp lệ')
   const w = kind === 'long' ? LONG_WIDTH : 1
   const plan = { stop: ctx.price - (ctx.price - dayPlan.stop) * w, target: ctx.price + (dayPlan.target - ctx.price) * w }
-  if (!(plan.stop > 0)) return skip('no valid stop and target', 'không có cắt lỗ và chốt lời hợp lệ')
+  if (!(plan.stop > 0)) return skip('Exit plan', 'no valid stop and target', 'không có cắt lỗ và chốt lời hợp lệ')
+  pass('Exit plan')
 
   // small, fixed practice size; halved in high volatility
   const pct = (ctx.sizePct / 100) * (regime === 'high' ? 0.5 : 1)
   const qty = (eq * pct) / ctx.price
   if (!(qty > 0)) return s
+  if (hard && ctx.maxExposurePct != null) {
+    const exposure = s.open.reduce((x, p) => x + p.qty * p.entry, 0) + qty * ctx.price
+    if (exposure > eq * (ctx.maxExposurePct / 100))
+      return skip('Exposure', `open trades would hold ${Math.round((exposure / eq) * 100)}% of the account (limit ${ctx.maxExposurePct}%)`, `các lệnh mở sẽ chiếm ${Math.round((exposure / eq) * 100)}% tài khoản (giới hạn ${ctx.maxExposurePct}%)`)
+    pass('Exposure')
+  }
+  const fill = fillPrice(ctx.price, 'buy', ctx.costs)
+  const entryFee = feeFor(fill * qty, ctx.costs)
   const info: PracticeEntryInfo = {
     verdict: a.verdict,
     score: +a.score.toFixed(3),
@@ -239,10 +334,31 @@ export function onBarClose(prev: PracticeState, ctx: EntryContext): PracticeStat
     learner: ctx.learner,
     reason: a.headline,
     ...(ctx.pick ? { pick: ctx.pick } : {}),
+    ...(ctx.data ? { data: ctx.data, dataLimitSec: maxAgeSec(ctx.tfSec ?? 0, ctx.maxDataAgeMin ?? 30) } : {}),
+    ...(ctx.skills ? { skills: ctx.skills } : {}),
   }
   const closeBy = kind === 'day' ? dayEnd : ctx.now + ctx.holdDays * 86_400_000
-  const pos: PracticePosition = { id: newId(ctx.now), symbol: ctx.symbol, tf: ctx.tf, qty, entry: ctx.price, stop: plan.stop, target: plan.target, openedAt: ctx.now, barTime: ctx.barTime, bars: 0, info, kind, asset: ctx.asset, closeBy }
+  const pos: PracticePosition = {
+    id: newId(ctx.now),
+    symbol: ctx.symbol,
+    tf: ctx.tf,
+    qty,
+    entry: fill,
+    stop: plan.stop,
+    target: plan.target,
+    openedAt: ctx.now,
+    barTime: ctx.barTime,
+    bars: 0,
+    info,
+    kind,
+    asset: ctx.asset,
+    closeBy,
+    key,
+    signal: ctx.price,
+    ...(ctx.costs ? { cost: ctx.costs, entryFee } : {}),
+  }
   s.open.push(pos)
+  log(true, `Bought ${+qty.toPrecision(4)} ${ctx.symbol} at ${fmt(fill)} (${kind === 'day' ? 'day trade' : 'long-term'})`, `Mua ${+qty.toPrecision(4)} ${ctx.symbol} giá ${fmt(fill)} (${kind === 'day' ? 'trong ngày' : 'dài hạn'})`)
   const g = info.grade ? `, Trade Score ${info.grade}` : ''
   const label = kind === 'day' ? { en: 'Day trade', vi: 'Lệnh trong ngày' } : { en: `Long-term trade (up to ${ctx.holdDays} days)`, vi: `Lệnh dài hạn (tối đa ${ctx.holdDays} ngày)` }
   pushEvent(s, {
@@ -250,8 +366,8 @@ export function onBarClose(prev: PracticeState, ctx: EntryContext): PracticeStat
     kind: 'buy',
     symbol: ctx.symbol,
     trade: kind,
-    en: `${label.en}: bought ${+qty.toPrecision(4)} ${ctx.symbol} at ${fmt(ctx.price)} ($${(qty * ctx.price).toFixed(0)}). AI BUY${g}. Stop ${fmt(plan.stop)}, target ${fmt(plan.target)}.${ctx.pick ? ` Picked: ${ctx.pick.en}.` : ''}`,
-    vi: `${label.vi}: mua ${+qty.toPrecision(4)} ${ctx.symbol} giá ${fmt(ctx.price)} ($${(qty * ctx.price).toFixed(0)}). AI MUA${g}. Cắt lỗ ${fmt(plan.stop)}, chốt lời ${fmt(plan.target)}.${ctx.pick ? ` Lý do chọn: ${ctx.pick.vi}.` : ''}`,
+    en: `${label.en}: bought ${+qty.toPrecision(4)} ${ctx.symbol} at ${fmt(fill)} ($${(qty * ctx.price).toFixed(0)}). AI BUY${g}. Stop ${fmt(plan.stop)}, target ${fmt(plan.target)}.${ctx.pick ? ` Picked: ${ctx.pick.en}.` : ''}`,
+    vi: `${label.vi}: mua ${+qty.toPrecision(4)} ${ctx.symbol} giá ${fmt(fill)} ($${(qty * ctx.price).toFixed(0)}). AI MUA${g}. Cắt lỗ ${fmt(plan.stop)}, chốt lời ${fmt(plan.target)}.${ctx.pick ? ` Lý do chọn: ${ctx.pick.vi}.` : ''}`,
   })
   return s
 }
@@ -301,16 +417,46 @@ const REASON: Record<ExitReason, { en: string; vi: string }> = {
   hold: { en: 'holding period ended', vi: 'hết thời gian giữ' },
 }
 
-function close(s: PracticeState, p: PracticePosition, price: number, why: ExitReason, barTime: number, now: number) {
+function close(s: PracticeState, p: PracticePosition, mark: number, why: ExitReason, barTime: number, now: number) {
   s.open = s.open.filter((x) => x.id !== p.id)
-  const pnl = (price - p.entry) * p.qty
-  const t: PracticeTrade = { ...p, exit: price, closedAt: now, exitBarTime: barTime, exitReason: why, pnl: +pnl.toFixed(2), retPct: (price / p.entry - 1) * 100 }
+  // a target is a resting limit order: it fills at its price and pays only the fee
+  const price = fillPrice(mark, 'sell', p.cost, why === 'target')
+  const fees = (p.entryFee ?? 0) + feeFor(price * p.qty, p.cost)
+  const pnl = (price - p.entry) * p.qty - fees
+  const gross = (mark - (p.signal ?? p.entry)) * p.qty
+  const t: PracticeTrade = {
+    ...p,
+    exit: price,
+    closedAt: now,
+    exitBarTime: barTime,
+    exitReason: why,
+    pnl: +pnl.toFixed(2),
+    retPct: (pnl / (p.entry * p.qty)) * 100,
+    ...(p.cost ? { gross: +gross.toFixed(2), costPaid: +(gross - pnl).toFixed(2) } : {}),
+  }
+  t.review = reviewTrade({ signal: p.signal ?? p.entry, stop: p.stop, target: p.target, tradeScore: p.info.tradeScore, learner: p.info.learner, data: p.info.data, dataLimitSec: p.info.dataLimitSec, pnl: t.pnl })
   s.trades.push(t)
   if (s.trades.length > MAX_TRADES) s.trades.shift()
   s.realized += pnl
   s.peak = Math.max(s.peak, practiceEquity(s))
   s.curve.push({ t: now, equity: +practiceEquity(s).toFixed(2) })
   if (s.curve.length > MAX_TRADES) s.curve.shift()
+  if (s.audit)
+    pushAudit(s.audit, {
+      time: now,
+      symbol: p.symbol,
+      side: 'sell',
+      account: 'practice',
+      accepted: true,
+      en: `Sold ${p.symbol} at ${fmt(price)}: ${REASON[why].en}, ${money(pnl)}`,
+      vi: `Bán ${p.symbol} giá ${fmt(price)}: ${REASON[why].vi}, ${money(pnl)}`,
+      price,
+      barTime,
+    })
+  const day = dayKey(now)
+  s.reports = { ...s.reports, [day]: buildDailyReport(s, day) }
+  const days = Object.keys(s.reports).sort()
+  for (const d of days.slice(0, -REPORT_DAYS)) delete s.reports[d]
   pushEvent(s, {
     time: now,
     kind: 'sell',

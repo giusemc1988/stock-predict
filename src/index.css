@@ -731,3 +731,17 @@ body {
 .ai-badge.trade { color: var(--gold); background: rgba(240, 185, 11, 0.14); }
 .ai-badge.watching { color: var(--robot); background: rgba(79, 209, 255, 0.1); }
 .ai-pnl { text-align: right; font-size: 12px; }
+
+/* v1.5: data labels, process review, decision log, skills */
+.feed .data-label { font-style: normal; font-size: 10px; padding: 0 4px; border-radius: 3px; border: 1px solid var(--line); }
+.feed .data-label.mock { color: var(--down); border-color: var(--down); }
+.feed .data-label.delayed, .feed .data-label.historical { color: var(--warn, #d4a017); }
+.pr-rv.skill, .pr-rv.unlucky { color: var(--up); }
+.pr-rv.lucky, .pr-rv.mistake { color: var(--down); }
+.pr-log li { padding: 6px 0; border-bottom: 1px solid var(--line); }
+.pr-log li:last-child { border-bottom: 0; }
+.pr-log .al-tag.up { color: var(--up); }
+.pr-log .al-tag.down { color: var(--down); }
+.skill-row { align-items: flex-start; gap: 8px; }
+.skill-row > span { flex: 1; line-height: 1.4; }
+.skill-row select { flex: none; }

@@ -6,6 +6,8 @@
 import type { AssetClass, Candle, OrderFlow } from '../types'
 import type { AiRules } from './aiRules'
 import { analyze } from './analyst'
+import { costsFrom } from './costs'
+import { stampData } from './dataGuard'
 import { baseRate, decide, type JournalEntry } from './journal'
 import { onBarClose, onBars, onPrice, type EntryContext, type PickRow, type PracticeState } from './practice'
 import { gainToday, pickWhy, rankCandidates, volumeVsAvg, type PickSource, type PracticeCandidate } from './practicePicks'
@@ -34,6 +36,10 @@ export interface ScanInput {
   now: number
   /** Close every day trade with the stock market (the server is not running overnight to close crypto at midnight). */
   dayEnd?: number
+  /** Feed name for a market's bars, e.g. "Binance" or "Yahoo Finance"; labels the data real-time, delayed or mock. */
+  sourceFor: (m: ScanMarket) => string
+  /** Approved skills, recorded on each decision. */
+  skills?: string[]
 }
 
 export interface ScanResult {
@@ -137,6 +143,16 @@ export async function scanCycle(input: ScanInput): Promise<ScanResult> {
         maxTradesPerDay: input.maxTradesPerDay,
         killSwitch: input.killSwitch,
         now,
+        hardLimitsOn: rules.hardLimitsOn,
+        maxOpenPositions: rules.maxOpenPositions,
+        maxExposurePct: rules.maxExposurePct,
+        data: stampData(input.sourceFor(x), x.barTime, BAR_SEC, now),
+        tfSec: BAR_SEC,
+        dataGuardOn: rules.dataGuardOn,
+        maxDataAgeMin: rules.maxDataAgeMin,
+        costs: costsFrom(rules),
+        audit: rules.auditOn,
+        skills: input.skills,
       })
     }
     return s
