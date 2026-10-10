@@ -259,6 +259,8 @@ export function jarvisSays(a: Analysis, symbol: string): Bi {
 // ---------- Show me: a guided tour on the chart ----------
 
 export interface TourStep extends Bi {
+  /** Market for this step, when a tour moves between stocks (the day replay); else the tour's own. */
+  symbol?: string
   /** Price levels drawn for this step. */
   lines: { price: number; color: string; title: string }[]
   /** Bar and price the pointer sits on, when the step is about one spot. */
@@ -351,4 +353,62 @@ export function analysisTour(a: Analysis, symbol: string, barTime: number): Tour
     )
   }
   return { id: `${symbol}-${barTime}-${Date.now()}`, symbol, title: { en: `${symbol} right now`, vi: `${symbol} lúc này` }, steps }
+}
+
+/** Every market a tour visits. */
+export const tourSymbols = (t: Tour) => [...new Set([t.symbol, ...t.steps.map((s) => s.symbol ?? t.symbol)])]
+
+/** Replay of a trading day: Jarvis walks through each practice trade in order, switching stocks as it goes. */
+export function dayReplayTour(s: PracticeState, now = Date.now()): Tour | null {
+  const days = [...new Set([...s.trades.map((t) => dayKey(t.closedAt)), ...s.open.map((p) => dayKey(p.openedAt))])].sort()
+  const today = dayKey(now)
+  const day = days.includes(today) ? today : days.filter((d) => d < today).pop()
+  if (!day) return null
+  const trades = [...s.trades.filter((t) => dayKey(t.closedAt) === day || dayKey(t.openedAt) === day), ...s.open.filter((p) => dayKey(p.openedAt) === day)].sort((a, b) => a.openedAt - b.openedAt)
+  if (!trades.length) return null
+  const closed = trades.filter((t): t is PracticeTrade => 'exit' in t)
+  const pnl = closed.reduce((a, t) => a + t.pnl, 0)
+  const wins = closed.filter((t) => t.pnl > 0).length
+  const label = day === today ? { en: 'today', vi: 'hôm nay' } : { en: `on ${day}`, vi: `ngày ${day}` }
+  const steps: TourStep[] = [
+    {
+      symbol: trades[0].symbol,
+      en: `Here's my practice day ${label.en}: ${trades.length} ${trades.length === 1 ? 'trade' : 'trades'}${closed.length ? `, ${wins} of ${closed.length} closed ones won, ${money(pnl)} overall` : ''}. Let me walk you through them.`,
+      vi: `Đây là ngày luyện tập ${label.vi}: ${trades.length} lệnh${closed.length ? `, thắng ${wins} trên ${closed.length} lệnh đã đóng, tổng ${money(pnl)}` : ''}. Để tôi dẫn bạn xem từng lệnh.`,
+      lines: [],
+    },
+  ]
+  trades.forEach((t, n) => {
+    const entry = { price: t.entry, color: C.entry, title: 'Buy' }
+    const stop = { price: t.stop, color: C.stop, title: 'Stop' }
+    const target = { price: t.target, color: C.target, title: 'Target' }
+    const { broken } = brokenRules(t, s.trades)
+    steps.push({
+      symbol: t.symbol,
+      en: `Trade ${n + 1}: ${t.symbol}. I bought here at ${px(t.entry)}, stop ${px(t.stop)}, target ${px(t.target)}.${broken.length ? ` It broke ${broken.length} of my rules.` : ' It followed my rules.'}`,
+      vi: `Lệnh ${n + 1}: ${t.symbol}. Tôi mua ở đây giá ${px(t.entry)}, cắt lỗ ${px(t.stop)}, mục tiêu ${px(t.target)}.${broken.length ? ` Lệnh vi phạm ${broken.length} quy tắc.` : ' Lệnh tuân theo quy tắc.'}`,
+      lines: [entry, stop, target],
+      focus: { time: t.barTime, price: t.entry },
+      marker: { time: t.barTime, side: 'buy', text: 'Jarvis buy' },
+    })
+    if ('exit' in t) {
+      const x = t as PracticeTrade
+      steps.push({
+        symbol: t.symbol,
+        en: `${x.pnl >= 0 ? 'It worked' : "It didn't work"}: sold here at ${px(x.exit)}, ${signed(x.retPct)}.`,
+        vi: `${x.pnl >= 0 ? 'Thành công' : 'Không thành công'}: bán ở đây giá ${px(x.exit)}, ${signed(x.retPct)}.`,
+        lines: [entry, stop, target, { price: x.exit, color: C.price, title: 'Sold' }],
+        focus: { time: x.exitBarTime, price: x.exit },
+        marker: { time: x.exitBarTime, side: 'sell', text: 'Jarvis sell' },
+      })
+    }
+  })
+  const last = trades[trades.length - 1]
+  steps.push({
+    symbol: last.symbol,
+    en: closed.length ? `That's the day. ${pnl >= 0 ? "A small gain, but one day proves nothing." : 'A losing day. What matters is whether I followed the rules.'}` : "That's the day so far. These trades are still open.",
+    vi: closed.length ? `Hết ngày rồi. ${pnl >= 0 ? 'Lãi nhỏ, nhưng một ngày chưa chứng minh gì.' : 'Một ngày thua. Điều quan trọng là tôi có tuân theo quy tắc không.'}` : 'Đến giờ là vậy. Các lệnh này vẫn đang mở.',
+    lines: [],
+  })
+  return { id: `replay-${day}-${Date.now()}`, symbol: trades[0].symbol, title: { en: `Replay ${day === today ? 'today' : day}`, vi: `Xem lại ${day === today ? 'hôm nay' : day}` }, steps }
 }

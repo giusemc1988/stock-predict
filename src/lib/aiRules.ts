@@ -59,6 +59,9 @@ export interface AiRules {
   jarvisMotion: boolean // animated Jarvis avatar
   jarvisSpeech: boolean // Jarvis reads briefings and answers aloud (browser's built-in speech)
   jarvisShowMe: boolean // Show me: Jarvis opens the stock and points at what it explains on the chart
+  jarvisReplay: boolean // Replay the day: Jarvis narrates each practice trade on the chart
+  jarvisAlerts: boolean // Jarvis pops up when a practice trade opens or closes, with Show me
+  jarvisListen: boolean // ask Jarvis by voice (microphone, browser speech recognition)
 }
 
 export const DEFAULT_AI_RULES: AiRules = {
@@ -116,6 +119,9 @@ export const DEFAULT_AI_RULES: AiRules = {
   jarvisMotion: true,
   jarvisSpeech: false,
   jarvisShowMe: true,
+  jarvisReplay: true,
+  jarvisAlerts: true,
+  jarvisListen: false,
 }
 
 type NumKey = { [K in keyof AiRules]: AiRules[K] extends number ? K : never }[keyof AiRules]
@@ -187,6 +193,9 @@ export const RULE_FIELDS: RuleField[] = [
   { group: 'jarvis', key: 'jarvisGate', en: 'Practice buys must pass every playbook rule proven on paper trades', vi: 'Lệnh mua luyện tập phải đạt mọi quy tắc sổ tay đã chứng minh trên lệnh thử' },
   { group: 'jarvis', key: 'jarvisMotion', en: 'Animated Jarvis avatar', vi: 'Hình đại diện Jarvis chuyển động' },
   { group: 'jarvis', key: 'jarvisShowMe', en: 'Show me: Jarvis opens the stock and points at what it is explaining on the chart', vi: 'Chỉ cho tôi: Jarvis mở mã và chỉ vào điều đang giải thích trên biểu đồ' },
+  { group: 'jarvis', key: 'jarvisReplay', en: 'Replay the day: Jarvis walks through each practice trade on the chart', vi: 'Xem lại ngày: Jarvis dẫn xem từng lệnh luyện tập trên biểu đồ' },
+  { group: 'jarvis', key: 'jarvisAlerts', en: 'Jarvis alerts when a practice trade opens or closes (replaces the plain pop-up)', vi: 'Jarvis báo khi lệnh luyện tập mở hoặc đóng (thay thông báo thường)' },
+  { group: 'jarvis', key: 'jarvisListen', en: 'Ask Jarvis by voice (microphone; Chrome, Edge or Safari)', vi: 'Hỏi Jarvis bằng giọng nói (micro; Chrome, Edge hoặc Safari)' },
   { group: 'jarvis', key: 'jarvisSpeech', en: "Jarvis speaks (reads briefings and answers aloud with your device's voices; pick the voice in the Brain tab)", vi: 'Jarvis nói (đọc to bản tin và câu trả lời bằng giọng có sẵn trên thiết bị; chọn giọng trong tab Bộ não)' },
 ]
 

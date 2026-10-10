@@ -80,3 +80,21 @@ assert.equal(tour.steps[3].marker?.side, 'sell')
 assert.deepEqual(tour.steps[2].lines.map((l) => l.title), ['Buy', 'Stop', 'Target'])
 assert.ok(tour.steps.every((s) => s.en && s.vi))
 console.log('tour ok')
+
+// day replay walks every trade of the day in order, switching stocks per step
+import { dayReplayTour, tourSymbols } from '../src/lib/jarvis'
+import { matchQuestion } from '../src/lib/listen'
+const dayState = { ...emptyPractice(), trades: [trade(1, { exitBarTime: 5 }), trade(2, { exitBarTime: 6, pnl: -1, retPct: -1 })] }
+const replay = dayReplayTour(dayState, T0 + 5 * 3_600_000)!
+assert.equal(replay.steps.length, 1 + 2 * 2 + 1, 'intro, buy+sell per trade, wrap-up')
+assert.deepEqual(tourSymbols(replay), ['S1', 'S2'])
+assert.equal(replay.steps[3].symbol, 'S2')
+assert.equal(dayReplayTour(emptyPractice()), null)
+// voice questions map to Jarvis's questions in English and Vietnamese
+assert.equal(matchQuestion('Why did you buy that?'), 'whyBuy')
+assert.equal(matchQuestion("what's my risk right now"), 'risk')
+assert.equal(matchQuestion('replay today'), 'replay')
+assert.equal(matchQuestion('vì sao bạn mua'), 'whyBuy')
+assert.equal(matchQuestion('hôm nay học được gì'), 'learned')
+assert.equal(matchQuestion('hello there'), null)
+console.log('replay + voice ok')

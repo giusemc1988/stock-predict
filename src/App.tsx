@@ -28,8 +28,9 @@ import { usePractice } from './hooks/usePractice'
 import { PracticePanel } from './components/PracticePanel'
 import { BrainPanel } from './components/BrainPanel'
 import { JarvisAvatar } from './components/JarvisAvatar'
+import { JarvisAlert, type JarvisAlertData } from './components/JarvisAlert'
 import type { ChartTour } from './components/ChartPanel'
-import { analysisTour, tradeTour, type Tour } from './lib/jarvis'
+import { analysisTour, dayReplayTour, tourSymbols, tradeTour, type Tour } from './lib/jarvis'
 import { canSpeak, loadVoicePrefs, speak, stopSpeaking } from './lib/speech'
 import { dayKey, kindOf, type PracticeEvent } from './lib/practice'
 import { practiceRows } from './lib/practiceRows'
@@ -106,15 +107,15 @@ export default function App() {
   const [aiSymbols, setAiSymbols] = useState<string[]>([])
   // Jarvis "Show me": a guided tour on the chart (its market joins the chart list while it runs)
   const [tour, setTour] = useState<{ t: Tour; i: number } | null>(null)
-  const tourSymbol = tour?.t.symbol ?? ''
+  const tourSyms = tour ? tourSymbols(tour.t).join(',') : ''
   const chartUniverse = useMemo(
     () => [
       ...universe,
-      ...[...aiSymbols, ...(tourSymbol && !aiSymbols.includes(tourSymbol) ? [tourSymbol] : [])]
+      ...[...aiSymbols, ...(tourSyms ? tourSyms.split(',') : []).filter((s) => !aiSymbols.includes(s))]
         .filter((s) => !universe.some((i) => i.symbol === s))
         .map((s): Instrument => ({ symbol: s, name: 'AI practice pick', assetClass: s.includes('/') ? 'crypto' : 'stock', feedId: s.includes('/') ? s.replace('/', '') : s, demoPrice: 100, demoVol: 0.4 })),
     ],
-    [universe, aiSymbols, tourSymbol],
+    [universe, aiSymbols, tourSyms],
   )
   const inst = useMemo(() => chartUniverse.find((i) => i.symbol === prefs.symbol) ?? INSTRUMENTS[0], [chartUniverse, prefs.symbol])
   const market = useMarketData(inst, prefs.tf, keys, alpacaKeys)
@@ -277,6 +278,8 @@ export default function App() {
 
   // Practice mode: the AI paper-trades small on live data in its own practice account
   const [flash, setFlash] = useState<PracticeEvent | null>(null)
+  const [jAlert, setJAlert] = useState<JarvisAlertData | null>(null)
+  const closeAlert = useCallback(() => setJAlert(null), [])
   const practiceRules = useRef(aiRules)
   practiceRules.current = aiRules
   const langRef = useRef(lang)
@@ -287,6 +290,21 @@ export default function App() {
       if (r.practiceOnChart) setFlash(e)
       // follow the AI: open the chart of the market it just traded
       if (r.practiceFollow && e.kind !== 'skip') setPrefs((p) => (p.symbol === e.symbol ? p : { ...p, symbol: e.symbol }))
+      // Jarvis speaks up about the trade instead of the plain pop-up
+      if (r.jarvisOn && r.jarvisAlerts && e.kind !== 'skip') {
+        const vi = langRef.current === 'vi'
+        const kind = e.trade === 'long' ? (vi ? 'lệnh dài hạn' : 'a longer hold') : vi ? 'lệnh trong ngày' : 'a day trade'
+        const amt = e.pnl != null ? `${e.pnl >= 0 ? '+' : '−'}$${Math.abs(e.pnl).toFixed(2)}` : ''
+        const text =
+          e.kind === 'buy'
+            ? vi ? `Tôi vừa mua ${e.symbol}, ${kind}. Muốn xem vì sao không?` : `I just bought ${e.symbol} as ${kind}. Want to see why?`
+            : (e.pnl ?? 0) >= 0
+              ? vi ? `Tôi vừa đóng ${e.symbol}, lãi ${amt}.` : `I just closed ${e.symbol} for a win, ${amt}.`
+              : vi ? `Tôi vừa đóng ${e.symbol}, lỗ ${amt}. Để xem có phải lỗi quy trình không.` : `I just closed ${e.symbol} for a loss, ${amt}. Let's see if it was the process or just luck.`
+        setJAlert({ id: e.id, symbol: e.symbol, text, tone: e.kind === 'buy' ? 'buy' : (e.pnl ?? 0) >= 0 ? 'win' : 'loss' })
+        if (r.jarvisSpeech && canSpeak()) speak(text, loadVoicePrefs(), langRef.current, speechSynthesis.getVoices())
+        return
+      }
       if (r.practiceFeed) toast({ tone: e.kind === 'buy' ? 'info' : (e.pnl ?? 0) >= 0 ? 'ok' : 'bad', title: `🎯 ${langRef.current === 'vi' ? 'Luyện tập' : 'Practice'}: ${e.kind === 'buy' ? (langRef.current === 'vi' ? 'MUA' : 'BUY') : langRef.current === 'vi' ? 'BÁN' : 'SELL'} ${e.symbol}`, body: langRef.current === 'vi' ? e.vi : e.en })
     },
     [toast],
@@ -398,6 +416,11 @@ export default function App() {
     return () => window.removeEventListener('keydown', onKey)
   }, [tour, endTour])
   const tourStep = tour && showMeOn ? tour.t.steps[tour.i] : null
+  // a tour can move between stocks (the day replay): open each step's chart
+  const stepSymbol = tour && tourStep ? (tourStep.symbol ?? tour.t.symbol) : ''
+  useEffect(() => {
+    if (stepSymbol) setPrefs((p) => (p.symbol === stepSymbol ? p : { ...p, symbol: stepSymbol }))
+  }, [stepSymbol, setPrefs])
   // each step is read aloud when Jarvis speaks
   const spokenKey = tourStep && aiRules.jarvisSpeech ? `${tour!.t.id}|${tour!.i}|${lang}` : ''
   useEffect(() => {
@@ -406,7 +429,7 @@ export default function App() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [spokenKey])
   const chartTour: ChartTour | null =
-    tour && tourStep && inst.symbol === tour.t.symbol
+    tour && tourStep && inst.symbol === stepSymbol
       ? {
           key: `${tour.t.id}-${tour.i}`,
           title: lang === 'vi' ? tour.t.title.vi : tour.t.title.en,
@@ -429,11 +452,30 @@ export default function App() {
     const t = [...practice.state.open, ...practice.state.trades].find((x) => x.id === id)
     if (t) startTour(tradeTour(t, practice.state.trades))
   } : undefined
+  const showReplay = showMeOn && aiRules.jarvisReplay ? () => startTour(dayReplayTour(practice.state)) : undefined
   const showAnalysis = showMeOn && analysis && candles.length ? () => startTour(analysisTour(analysis, inst.symbol, candles[candles.length - 1].time)) : undefined
 
   return (
     <div className={`app page-${page}`}>
       <WhatsNew />
+      {jAlert && aiRules.jarvisOn && aiRules.jarvisAlerts && (
+        <JarvisAlert
+          alert={jAlert}
+          motion={aiRules.jarvisMotion}
+          showLabel={lang === 'vi' ? 'Chỉ cho tôi' : 'Show me'}
+          onShow={
+            showTrade
+              ? () => {
+                  const st = practice.state
+                  const t = [...st.open, ...st.trades].filter((x) => x.symbol === jAlert.symbol).sort((a, b) => b.openedAt - a.openedAt)[0]
+                  if (t) showTrade(t.id)
+                  closeAlert()
+                }
+              : undefined
+          }
+          onClose={closeAlert}
+        />
+      )}
       <TopBar
         inst={inst}
         quote={quotes[inst.symbol]}
@@ -538,7 +580,7 @@ export default function App() {
                     setRightTab('trade')
                   }} onEditRules={() => setAiRulesOpen(true)} jarvis={aiRules.jarvisOn && aiRules.jarvisVoice} jarvisMotion={aiRules.jarvisMotion} onShowMe={showAnalysis} />}
               {shownTab === 'practice' && <PracticePanel state={practice.state} rules={aiRules} symbol={inst.symbol} priceOf={practice.priceOf} onReset={practice.reset} scan={practice.scan} onRescan={practice.rescan} onOpen={(s) => select(s)} universe={chartUniverse.map((i) => i.symbol)} serverMode={practice.serverMode} serverLastRun={practice.serverLastRun} />}
-              {shownTab === 'brain' && <BrainPanel state={practice.state} rules={aiRules} journal={autoLearn.state.journal} learn={autoLearn.state} killSwitch={prefs.killSwitch} priceOf={practice.priceOf} onEditRules={() => setAiRulesOpen(true)} onShowTrade={showTrade} />}
+              {shownTab === 'brain' && <BrainPanel state={practice.state} rules={aiRules} journal={autoLearn.state.journal} learn={autoLearn.state} killSwitch={prefs.killSwitch} priceOf={practice.priceOf} onEditRules={() => setAiRulesOpen(true)} onShowTrade={showTrade} onReplay={showReplay} />}
               {shownTab === 'flow' && <OrderFlowPanel flow={flow} last={lastClose} />}
               {shownTab === 'learn' && <AutoLearnPanel al={autoLearn} rules={aiRules} symbol={inst.symbol} liveScore={live?.probUp ?? null} />}
               {shownTab === 'picks' && (

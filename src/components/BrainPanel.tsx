@@ -1,4 +1,5 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
+import { canListen, listenOnce, matchQuestion } from '../lib/listen'
 import type { AiRules } from '../lib/aiRules'
 import { useLang } from '../lib/i18n'
 import type { JournalEntry } from '../lib/journal'
@@ -19,12 +20,14 @@ interface Props {
   onEditRules: () => void
   /** Show me: walk through a practice trade on the chart. */
   onShowTrade?: (id: string) => void
+  /** Replay the day's practice trades on the chart. */
+  onReplay?: () => void
 }
 
 type Tab = 'today' | 'lessons' | 'playbook'
 
 /** Jarvis, the Arc Brain: briefing, Ask Jarvis, lessons and the playbook with its evidence. */
-export function BrainPanel({ state, rules, journal, learn, killSwitch, priceOf, onEditRules, onShowTrade }: Props) {
+export function BrainPanel({ state, rules, journal, learn, killSwitch, priceOf, onEditRules, onShowTrade, onReplay }: Props) {
   const lang = useLang()
   const L = (en: string, vi: string) => (lang === 'vi' ? vi : en)
   const pick = (b: { en: string; vi: string }) => (lang === 'vi' ? b.vi : b.en)
@@ -49,6 +52,29 @@ export function BrainPanel({ state, rules, journal, learn, killSwitch, priceOf, 
     if (!speech) return
     if (next) say(ask(next, { state, rules, journal, killSwitch, priceOf }))
     else stopSpeaking()
+  }
+  // ask by voice: one sentence, matched to a question
+  const [listening, setListening] = useState(false)
+  const [heard, setHeard] = useState('')
+  const stopListen = useRef<(() => void) | null>(null)
+  useEffect(() => () => stopListen.current?.(), [])
+  const mic = () => {
+    if (listening) return stopListen.current?.()
+    setHeard('')
+    setListening(true)
+    stopListen.current = listenOnce(
+      lang,
+      (text) => {
+        setHeard(text)
+        const m = matchQuestion(text)
+        if (m === 'replay') onReplay?.()
+        else if (m) askAndSay(m)
+      },
+      (err) => {
+        setListening(false)
+        if (err && err !== 'no-speech' && err !== 'aborted') setHeard(L(`Couldn't hear you (${err}).`, `Không nghe được (${err}).`))
+      },
+    )
   }
   const when = (ms: number) => new Date(ms).toLocaleString(lang === 'vi' ? 'vi-VN' : 'en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })
 
@@ -106,6 +132,11 @@ export function BrainPanel({ state, rules, journal, learn, killSwitch, priceOf, 
 
       {shown === 'today' && (
         <>
+          {onReplay && (
+            <button className="al-save brain-replay" onClick={onReplay}>
+              ▶ {L("Replay today's trades with Jarvis", 'Xem lại các lệnh hôm nay cùng Jarvis')}
+            </button>
+          )}
           {rules.jarvisBriefing && (
             <div className="al-card">
               <div className="al-report-head">
@@ -125,7 +156,15 @@ export function BrainPanel({ state, rules, journal, learn, killSwitch, priceOf, 
           )}
           {rules.jarvisAsk && (
             <div className="al-card">
-              <div className="al-kicker">{L('ASK JARVIS', 'HỎI JARVIS')}</div>
+              <div className="al-report-head">
+                <div className="al-kicker">{L('ASK JARVIS', 'HỎI JARVIS')}</div>
+                {rules.jarvisListen && canListen() && (
+                  <button className={`brain-mic${listening ? ' on' : ''}`} onClick={mic} aria-label={L('Ask by voice', 'Hỏi bằng giọng nói')}>
+                    🎙 {listening ? L('Listening…', 'Đang nghe…') : L('Ask by voice', 'Hỏi bằng giọng nói')}
+                  </button>
+                )}
+              </div>
+              {heard && <p className="muted al-note">“{heard}”{matchQuestion(heard) ? '' : L(" — I didn't catch a question I know. Try: why did you buy, what's my risk, replay today.", ' — tôi chưa hiểu câu hỏi. Thử: vì sao mua, rủi ro, xem lại hôm nay.')}</p>}
               <div className="brain-ask">
                 {(Object.keys(ASK_QUESTIONS) as AskId[]).map((id) => (
                   <button key={id} className={q === id ? 'on' : ''} onClick={() => askAndSay(id)}>

@@ -855,3 +855,19 @@ body {
 @media (prefers-reduced-motion: reduce) { .tour-callout, .tour-callout::before, .tour-callout::after, .hud-scan, .hud-reticle, .hud-reticle *, .hud-word { animation: none !important; } .hud-hline, .hud-vline, .hud-reticle { transition: none !important; } }
 .jarvis-show { margin-left: auto; flex: none; }
 .tour-link { display: inline-block; margin-left: 6px; color: var(--robot); font-size: 11px; font-weight: 600; }
+.brain-replay { margin: 0 0 8px; }
+.brain-mic { padding: 4px 9px; font-size: 11px; border: 1px solid var(--robot); border-radius: 12px; color: var(--robot); background: rgba(79, 209, 255, 0.08); }
+.brain-mic.on { color: var(--gold); border-color: var(--gold); animation: hud-word 0.8s ease-in-out infinite alternate; }
+@media (prefers-reduced-motion: reduce) { .brain-mic.on { animation: none; } }
+/* Jarvis trade alert (HUD) */
+.jarvis-alert { position: fixed; right: 16px; bottom: 16px; z-index: 60; display: flex; align-items: center; gap: 10px; width: min(380px, calc(100vw - 32px)); padding: 10px 12px; border: 1px solid rgba(79, 209, 255, 0.45); border-radius: 2px; background: rgba(6, 12, 22, 0.96); box-shadow: 0 12px 32px rgba(0, 0, 0, 0.5); overflow: hidden; clip-path: polygon(0 0, calc(100% - 12px) 0, 100% 12px, 100% 100%, 12px 100%, 0 calc(100% - 12px)); animation: ja-in 0.32s cubic-bezier(0.2, 0.8, 0.2, 1); will-change: transform, opacity; }
+.jarvis-alert.still { animation: none; }
+.jarvis-alert:not(.still) .hud-scan { animation: hud-scan 0.9s ease-out 0.1s; }
+.jarvis-alert.win { border-color: rgba(14, 203, 129, 0.6); }
+.jarvis-alert.loss { border-color: rgba(246, 70, 93, 0.6); }
+.ja-body { flex: 1; min-width: 0; display: grid; gap: 2px; font-size: 12.5px; line-height: 1.4; }
+.ja-body b { color: var(--robot); font-size: 10.5px; letter-spacing: 0.12em; }
+.ja-show { flex: none; padding: 5px 10px; border: 1px solid var(--robot); border-radius: 2px; color: var(--robot); background: rgba(79, 209, 255, 0.08); font: 600 11px var(--mono); letter-spacing: 0.06em; text-transform: uppercase; }
+@keyframes ja-in { from { opacity: 0; transform: translate3d(0, 12px, 0); } to { opacity: 1; transform: none; } }
+@media (max-width: 640px) { .jarvis-alert { right: 16px; left: 16px; width: auto; bottom: 12px; } }
+@media (prefers-reduced-motion: reduce) { .jarvis-alert, .jarvis-alert .hud-scan { animation: none !important; } }
