@@ -802,3 +802,8 @@ body {
 .jarvis-says b { color: var(--gold); }
 .brain-tiles { grid-template-columns: repeat(4, 1fr); }
 @media (max-width: 520px) { .brain-tiles { grid-template-columns: repeat(2, 1fr); } }
+.brain-voice { display: grid; gap: 8px; }
+.brain-voice label { display: grid; gap: 4px; font-size: 11px; color: var(--muted); }
+.brain-voice select { background: var(--panel); color: var(--text); border: 1px solid var(--line-2); border-radius: 6px; padding: 6px; max-width: 100%; }
+.brain-voice input[type='range'] { width: 100%; accent-color: var(--robot); }
+.brain-voice button { justify-self: start; }

@@ -6,6 +6,8 @@ import type { PracticeState } from '../lib/practice'
 import { PLAYBOOK, ruleEvidence, STATUS_LABEL } from '../lib/playbook'
 import { ask, ASK_QUESTIONS, briefing, evidenceLine, evidenceOpts, experience, tradeLessons, type AskId } from '../lib/jarvis'
 import { JarvisAvatar } from './JarvisAvatar'
+import { useLocalStorage } from '../hooks/useLocalStorage'
+import { canSpeak, DEFAULT_VOICE, sortVoices, speak, stopSpeaking, useVoices, type VoicePrefs } from '../lib/speech'
 
 interface Props {
   state: PracticeState
@@ -32,6 +34,17 @@ export function BrainPanel({ state, rules, journal, learn, killSwitch, priceOf, 
   const lessons = rules.jarvisLessons ? tradeLessons(state) : []
   const answer = q && rules.jarvisAsk ? ask(q, { state, rules, journal, killSwitch, priceOf }) : null
   const mood = killSwitch ? 'warning' : q ? 'speaking' : 'idle'
+  const [voice, setVoice] = useLocalStorage<VoicePrefs>('arc.jarvisVoice.v1', DEFAULT_VOICE)
+  const voices = sortVoices(useVoices())
+  const speech = rules.jarvisSpeech && canSpeak()
+  const say = (lines: { en: string; vi: string }[]) => speak(lines.map(pick).join(' '), voice, lang, voices)
+  const askAndSay = (id: AskId) => {
+    const next = q === id ? null : id
+    setQ(next)
+    if (!speech) return
+    if (next) say(ask(next, { state, rules, journal, killSwitch, priceOf }))
+    else stopSpeaking()
+  }
   const when = (ms: number) => new Date(ms).toLocaleString(lang === 'vi' ? 'vi-VN' : 'en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })
 
   const tabs: [Tab, string, string][] = [
@@ -90,7 +103,14 @@ export function BrainPanel({ state, rules, journal, learn, killSwitch, priceOf, 
         <>
           {rules.jarvisBriefing && (
             <div className="al-card">
-              <div className="al-kicker">{L('MORNING BRIEFING', 'BẢN TIN BUỔI SÁNG')}</div>
+              <div className="al-report-head">
+                <div className="al-kicker">{L('MORNING BRIEFING', 'BẢN TIN BUỔI SÁNG')}</div>
+                {speech && (
+                  <button className="pr-rescan" onClick={() => say(brief)}>
+                    🔊 {L('Read aloud', 'Đọc to')}
+                  </button>
+                )}
+              </div>
               <ul className="brain-list">
                 {brief.map((b, i) => (
                   <li key={i}>{pick(b)}</li>
@@ -103,7 +123,7 @@ export function BrainPanel({ state, rules, journal, learn, killSwitch, priceOf, 
               <div className="al-kicker">{L('ASK JARVIS', 'HỎI JARVIS')}</div>
               <div className="brain-ask">
                 {(Object.keys(ASK_QUESTIONS) as AskId[]).map((id) => (
-                  <button key={id} className={q === id ? 'on' : ''} onClick={() => setQ(q === id ? null : id)}>
+                  <button key={id} className={q === id ? 'on' : ''} onClick={() => askAndSay(id)}>
                     {pick(ASK_QUESTIONS[id])}
                   </button>
                 ))}
@@ -119,6 +139,44 @@ export function BrainPanel({ state, rules, journal, learn, killSwitch, priceOf, 
                 </div>
               )}
               <p className="muted al-note">{L('Answers come from the app’s own records. No AI service or API key is used.', 'Câu trả lời lấy từ dữ liệu của chính ứng dụng. Không dùng dịch vụ AI hay khóa API.')}</p>
+            </div>
+          )}
+          {rules.jarvisSpeech && (
+            <div className="al-card">
+              <div className="al-kicker">{L("JARVIS'S VOICE", 'GIỌNG JARVIS')}</div>
+              {!canSpeak() ? (
+                <p className="muted al-note">{L("This browser can't speak. Try Chrome, Edge or Safari.", 'Trình duyệt này không đọc được. Hãy thử Chrome, Edge hoặc Safari.')}</p>
+              ) : (
+                <div className="brain-voice">
+                  <label>
+                    <span>{L('Voice', 'Giọng')}</span>
+                    <select value={voice.voice} onChange={(e) => setVoice({ ...voice, voice: e.target.value })}>
+                      <option value="">{L('Default for the app language', 'Mặc định theo ngôn ngữ ứng dụng')}</option>
+                      {voices.map((v) => (
+                        <option key={v.voiceURI} value={v.voiceURI}>
+                          {v.name} ({v.lang})
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                  <label>
+                    <span>
+                      {L('Speed', 'Tốc độ')} {voice.rate.toFixed(1)}x
+                    </span>
+                    <input type="range" min={0.5} max={2} step={0.1} value={voice.rate} onChange={(e) => setVoice({ ...voice, rate: +e.target.value })} />
+                  </label>
+                  <label>
+                    <span>
+                      {L('Pitch', 'Cao độ')} {voice.pitch.toFixed(1)}
+                    </span>
+                    <input type="range" min={0} max={2} step={0.1} value={voice.pitch} onChange={(e) => setVoice({ ...voice, pitch: +e.target.value })} />
+                  </label>
+                  <button className="pr-rescan" onClick={() => say([{ en: "Hello, I'm Jarvis. This is how I sound.", vi: 'Xin chào, tôi là Jarvis. Đây là giọng của tôi.' }])}>
+                    ▶ {L('Test voice', 'Nghe thử')}
+                  </button>
+                  <p className="muted al-note">{L("Uses your device's built-in voices, free and with no key. Male, female and Vietnamese voices depend on what your device has installed.", 'Dùng giọng có sẵn trên thiết bị, miễn phí và không cần khóa. Giọng nam, nữ và tiếng Việt tùy vào thiết bị đã cài.')}</p>
+                </div>
+              )}
             </div>
           )}
           {!rules.jarvisBriefing && !rules.jarvisAsk && <p className="muted">{L('Briefing and Ask Jarvis are off in AI rules.', 'Bản tin và Hỏi Jarvis đang tắt trong Quy tắc AI.')}</p>}
