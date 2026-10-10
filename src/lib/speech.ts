@@ -57,6 +57,8 @@ export type SpeakResult = 'ok' | 'unsupported' | 'silent' | `error:${string}`
 
 // Chrome drops an utterance that is garbage-collected mid-sentence, so keep the live ones here.
 let live: SpeechSynthesisUtterance[] = []
+// who started the current speech, so a panel only stops what it started
+let owner = ''
 
 /** Long text split into sentences: Chrome stops speaking a single utterance after about 15 seconds. */
 function chunks(text: string) {
@@ -73,8 +75,9 @@ function chunks(text: string) {
  * Speak an answer. Resolves 'ok' once sound starts, 'silent' if the browser accepted it but never
  * started (muted tab, no voice installed, blocked autoplay), or the browser's error code.
  */
-export function speak(text: string, prefs: VoicePrefs, lang: 'en' | 'vi', voices: SpeechSynthesisVoice[]): Promise<SpeakResult> {
+export function speak(text: string, prefs: VoicePrefs, lang: 'en' | 'vi', voices: SpeechSynthesisVoice[], by = ''): Promise<SpeakResult> {
   if (!canSpeak()) return Promise.resolve('unsupported')
+  owner = by
   const list = voices.length ? voices : speechSynthesis.getVoices()
   const chosen = list.find((v) => v.voiceURI === prefs.voice) ?? bestVoice(list, lang)
   const utterances = chunks(speakable(text, lang)).map((t) => {
@@ -141,4 +144,7 @@ export function loadVoicePrefs(): VoicePrefs {
   }
 }
 
-export const stopSpeaking = () => canSpeak() && speechSynthesis.cancel()
+/** Stop speaking; with `by`, only when that caller started the current speech. */
+export const stopSpeaking = (by?: string) => {
+  if (canSpeak() && (by == null || by === owner)) speechSynthesis.cancel()
+}

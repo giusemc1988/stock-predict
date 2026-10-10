@@ -7,7 +7,7 @@ import type { AiRules } from '../lib/aiRules'
 import { useLang } from '../lib/i18n'
 import type { JournalEntry } from '../lib/journal'
 import type { PracticeState } from '../lib/practice'
-import { PLAYBOOK, ruleEvidence, STATUS_LABEL } from '../lib/playbook'
+import { minBrokeFor, PLAYBOOK, ruleEvidence, STATUS_LABEL } from '../lib/playbook'
 import { ask, ASK_QUESTIONS, briefing, evidenceLine, evidenceOpts, experience, greeting, QUICK_ASK, stockMemory, tradeLessons, type AskId, type Bi } from '../lib/jarvis'
 import { JarvisAvatar } from './JarvisAvatar'
 import { useLocalStorage } from '../hooks/useLocalStorage'
@@ -62,9 +62,14 @@ export function BrainPanel({ state, rules, journal, learn, killSwitch, priceOf, 
   const [voiceMsg, setVoiceMsg] = useState<string | null>(null)
   const say = (lines: { en: string; vi: string }[]) => {
     setVoiceMsg(null)
-    void speak(lines.map(pick).join(' '), voice, lang, voices).then((r) => setVoiceMsg(speakProblem(r, lang)))
+    void speak(lines.map(pick).join(' '), voice, lang, voices, 'brain').then((r) => setVoiceMsg(speakProblem(r, lang)))
   }
   const testLine = { en: "Hello, I'm Jarvis. This is how I sound.", vi: 'Xin chào, tôi là Jarvis. Đây là giọng của tôi.' }
+  // the Brain tab owns what it starts reading: stop when it closes or the voice is switched off
+  useEffect(() => {
+    if (!speech) stopSpeaking('brain')
+  }, [speech])
+  useEffect(() => () => stopSpeaking('brain'), [])
   const lastTrade = [...state.open, ...state.trades].sort((a, b) => b.openedAt - a.openedAt)[0]
   const askAndSay = (id: AskId) => {
     const next = q === id ? null : id
@@ -248,9 +253,14 @@ export function BrainPanel({ state, rules, journal, learn, killSwitch, priceOf, 
               <div className="al-report-head">
                 <div className="al-kicker">{L('MORNING BRIEFING', 'BẢN TIN BUỔI SÁNG')}</div>
                 {speech && (
-                  <button className="pr-rescan" onClick={() => say(brief)}>
-                    🔊 {L('Read aloud', 'Đọc to')}
-                  </button>
+                  <span className="brain-confirm-btns">
+                    <button className="pr-rescan" onClick={() => say(brief)}>
+                      🔊 {L('Read aloud', 'Đọc to')}
+                    </button>
+                    <button className="pr-rescan" onClick={() => stopSpeaking()} aria-label={L('Stop reading', 'Dừng đọc')}>
+                      ■
+                    </button>
+                  </span>
                 )}
               </div>
               <ul className="brain-list">
@@ -425,9 +435,14 @@ export function BrainPanel({ state, rules, journal, learn, killSwitch, priceOf, 
                     </span>
                     <input type="range" min={0} max={2} step={0.1} value={voice.pitch} onChange={(e) => setVoice({ ...voice, pitch: +e.target.value })} />
                   </label>
-                  <button className="pr-rescan" onClick={() => say([testLine])}>
-                    ▶ {L('Test voice', 'Nghe thử')}
-                  </button>
+                  <div className="brain-confirm-btns">
+                    <button className="pr-rescan" onClick={() => say([testLine])}>
+                      ▶ {L('Test voice', 'Nghe thử')}
+                    </button>
+                    <button className="pr-rescan" onClick={() => stopSpeaking()}>
+                      ■ {L('Stop', 'Dừng')}
+                    </button>
+                  </div>
                   {voiceMsg && <p className="brain-voice-msg">{voiceMsg}</p>}
                   {!voices.length && <p className="brain-voice-msg">{L("I can't find any voices on this device yet. Wait a few seconds and try again; on Android, install a voice under Settings > Text-to-speech.", 'Chưa tìm thấy giọng nào trên thiết bị. Đợi vài giây rồi thử lại; trên Android, cài giọng trong Cài đặt > Chuyển văn bản thành giọng nói.')}</p>}
                   <p className="muted al-note">{L("Uses your device's built-in voices, free and with no key. ★ marks the natural-sounding ones; male, female and Vietnamese voices depend on what your device has installed.", 'Dùng giọng có sẵn trên thiết bị, miễn phí và không cần khóa. ★ là giọng tự nhiên; giọng nam, nữ và tiếng Việt tùy vào thiết bị đã cài.')}</p>
@@ -465,8 +480,8 @@ export function BrainPanel({ state, rules, journal, learn, killSwitch, priceOf, 
           <div className="al-kicker">{L('PLAYBOOK · RULES FROM EXPERIENCED TRADERS', 'SỔ TAY · QUY TẮC CỦA TRADER KINH NGHIỆM')}</div>
           <p className="muted al-note">
             {L(
-              `A rule is judged after ${rules.minSample} trades that follow it and ${Math.max(5, Math.round(rules.minSample / 3))} that break it. Proven means following it won at least ${rules.learnEdgeMarginPct} points more often and made money on average.${rules.jarvisGate ? ' The gate is on: practice skips buys that break a proven rule.' : ''}`,
-              `Một quy tắc được đánh giá sau ${rules.minSample} lệnh tuân theo và ${Math.max(5, Math.round(rules.minSample / 3))} lệnh vi phạm. Đã chứng minh nghĩa là tuân theo thắng nhiều hơn ít nhất ${rules.learnEdgeMarginPct} điểm và có lãi trung bình.${rules.jarvisGate ? ' Cổng đang bật: luyện tập bỏ qua lệnh mua vi phạm quy tắc đã chứng minh.' : ''}`,
+              `A rule is judged after ${rules.minSample} trades that follow it and ${minBrokeFor(rules.minSample)} that break it. Proven means following it won at least ${rules.learnEdgeMarginPct} points more often and made money on average.${rules.jarvisGate ? ' The gate is on: practice skips buys that break a proven rule.' : ''}`,
+              `Một quy tắc được đánh giá sau ${rules.minSample} lệnh tuân theo và ${minBrokeFor(rules.minSample)} lệnh vi phạm. Đã chứng minh nghĩa là tuân theo thắng nhiều hơn ít nhất ${rules.learnEdgeMarginPct} điểm và có lãi trung bình.${rules.jarvisGate ? ' Cổng đang bật: luyện tập bỏ qua lệnh mua vi phạm quy tắc đã chứng minh.' : ''}`,
             )}
           </p>
           {PLAYBOOK.map((r) => {
