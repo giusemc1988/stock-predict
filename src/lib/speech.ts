@@ -53,16 +53,83 @@ export function speakable(text: string, lang: 'en' | 'vi' = 'en') {
     .trim()
 }
 
-export function speak(text: string, prefs: VoicePrefs, lang: 'en' | 'vi', voices: SpeechSynthesisVoice[]) {
-  if (!canSpeak()) return
-  speechSynthesis.cancel()
-  const u = new SpeechSynthesisUtterance(speakable(text, lang))
-  const chosen = voices.find((v) => v.voiceURI === prefs.voice) ?? bestVoice(voices, lang)
-  if (chosen) u.voice = chosen
-  u.lang = chosen?.lang ?? (lang === 'vi' ? 'vi-VN' : 'en-US')
-  u.rate = Math.min(2, Math.max(0.5, prefs.rate))
-  u.pitch = Math.min(2, Math.max(0, prefs.pitch))
-  speechSynthesis.speak(u)
+export type SpeakResult = 'ok' | 'unsupported' | 'silent' | `error:${string}`
+
+// Chrome drops an utterance that is garbage-collected mid-sentence, so keep the live ones here.
+let live: SpeechSynthesisUtterance[] = []
+
+/** Long text split into sentences: Chrome stops speaking a single utterance after about 15 seconds. */
+function chunks(text: string) {
+  const parts = text.match(/[^.!?。]+[.!?。]*/g) ?? [text]
+  const out: string[] = []
+  for (const p of parts.map((x) => x.trim()).filter(Boolean)) {
+    if (out.length && (out[out.length - 1] + ' ' + p).length < 180) out[out.length - 1] += ' ' + p
+    else out.push(p)
+  }
+  return out
+}
+
+/**
+ * Speak an answer. Resolves 'ok' once sound starts, 'silent' if the browser accepted it but never
+ * started (muted tab, no voice installed, blocked autoplay), or the browser's error code.
+ */
+export function speak(text: string, prefs: VoicePrefs, lang: 'en' | 'vi', voices: SpeechSynthesisVoice[]): Promise<SpeakResult> {
+  if (!canSpeak()) return Promise.resolve('unsupported')
+  const list = voices.length ? voices : speechSynthesis.getVoices()
+  const chosen = list.find((v) => v.voiceURI === prefs.voice) ?? bestVoice(list, lang)
+  const utterances = chunks(speakable(text, lang)).map((t) => {
+    const u = new SpeechSynthesisUtterance(t)
+    if (chosen) u.voice = chosen
+    u.lang = chosen?.lang ?? (lang === 'vi' ? 'vi-VN' : 'en-US')
+    u.rate = Math.min(2, Math.max(0.5, prefs.rate))
+    u.pitch = Math.min(2, Math.max(0, prefs.pitch))
+    u.volume = 1
+    return u
+  })
+  if (!utterances.length) return Promise.resolve('ok')
+  return new Promise((resolve) => {
+    let settled = false
+    const done = (r: SpeakResult) => {
+      if (!settled) {
+        settled = true
+        resolve(r)
+      }
+    }
+    const first = utterances[0]
+    first.onstart = () => done('ok')
+    for (const u of utterances) {
+      u.onerror = (e) => {
+        if (e.error !== 'interrupted' && e.error !== 'canceled') done(`error:${e.error}`)
+      }
+      u.onend = () => {
+        live = live.filter((x) => x !== u)
+      }
+    }
+    const go = () => {
+      live = utterances
+      speechSynthesis.resume() // Chrome can be stuck paused
+      for (const u of utterances) speechSynthesis.speak(u)
+      setTimeout(() => done(speechSynthesis.speaking ? 'ok' : 'silent'), 3000)
+    }
+    // Chrome may swallow a speak() that comes right after cancel(), so wait a moment when something
+    // is playing; otherwise speak at once, inside the tap (iPhone needs that).
+    if (speechSynthesis.speaking || speechSynthesis.pending) {
+      speechSynthesis.cancel()
+      setTimeout(go, 120)
+    } else go()
+  })
+}
+
+/** Plain-words help when speaking fails. */
+export function speakProblem(r: SpeakResult, lang: 'en' | 'vi'): string | null {
+  if (r === 'ok') return null
+  const vi = lang === 'vi'
+  if (r === 'unsupported') return vi ? 'Trình duyệt này không đọc được. Hãy thử Chrome, Edge hoặc Safari.' : "This browser can't speak. Try Chrome, Edge or Safari."
+  if (r === 'error:not-allowed') return vi ? 'Trình duyệt chặn âm thanh. Chạm vào trang một lần rồi bấm Nghe thử lại.' : 'The browser blocked the sound. Tap the page once, then press Test voice again.'
+  if (r === 'error:voice-unavailable' || r === 'error:language-unavailable') return vi ? 'Giọng này chưa được cài trên thiết bị. Chọn "Giọng tự nhiên nhất" hoặc giọng khác.' : 'That voice isn’t installed on this device. Pick "Most natural voice" or another voice.'
+  return vi
+    ? 'Tôi không phát ra tiếng được. Kiểm tra: âm lượng đã bật, iPhone không ở chế độ im lặng, tab trình duyệt không bị tắt tiếng, rồi thử giọng khác.'
+    : "I couldn't make a sound. Check that the volume is up, your iPhone isn't on silent, and the browser tab isn't muted, then try another voice."
 }
 
 /** Saved voice settings (set in the Brain tab), for speaking outside it. */

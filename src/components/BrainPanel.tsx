@@ -11,7 +11,8 @@ import { PLAYBOOK, ruleEvidence, STATUS_LABEL } from '../lib/playbook'
 import { ask, ASK_QUESTIONS, briefing, evidenceLine, evidenceOpts, experience, greeting, QUICK_ASK, stockMemory, tradeLessons, type AskId, type Bi } from '../lib/jarvis'
 import { JarvisAvatar } from './JarvisAvatar'
 import { useLocalStorage } from '../hooks/useLocalStorage'
-import { canSpeak, DEFAULT_VOICE, isNatural, sortVoices, speak, stopSpeaking, useVoices, type VoicePrefs } from '../lib/speech'
+import { canSpeak, DEFAULT_VOICE, isNatural, sortVoices, speak, speakProblem, stopSpeaking, useVoices, type VoicePrefs } from '../lib/speech'
+import { getAiRules, setAiRules } from '../lib/aiRules'
 
 interface Props {
   state: PracticeState
@@ -57,7 +58,13 @@ export function BrainPanel({ state, rules, journal, learn, killSwitch, priceOf, 
   const [voice, setVoice] = useLocalStorage<VoicePrefs>('arc.jarvisVoice.v1', DEFAULT_VOICE)
   const voices = sortVoices(useVoices())
   const speech = rules.jarvisSpeech && canSpeak()
-  const say = (lines: { en: string; vi: string }[]) => speak(lines.map(pick).join(' '), voice, lang, voices)
+  // when speaking fails, say why in the voice card instead of staying silent
+  const [voiceMsg, setVoiceMsg] = useState<string | null>(null)
+  const say = (lines: { en: string; vi: string }[]) => {
+    setVoiceMsg(null)
+    void speak(lines.map(pick).join(' '), voice, lang, voices).then((r) => setVoiceMsg(speakProblem(r, lang)))
+  }
+  const testLine = { en: "Hello, I'm Jarvis. This is how I sound.", vi: 'Xin chào, tôi là Jarvis. Đây là giọng của tôi.' }
   const lastTrade = [...state.open, ...state.trades].sort((a, b) => b.openedAt - a.openedAt)[0]
   const askAndSay = (id: AskId) => {
     const next = q === id ? null : id
@@ -371,6 +378,22 @@ export function BrainPanel({ state, rules, journal, learn, killSwitch, priceOf, 
               )}
             </div>
           )}
+          {!rules.jarvisSpeech && (
+            <div className="al-card">
+              <div className="al-kicker">{L("JARVIS'S VOICE", 'GIỌNG JARVIS')}</div>
+              <p className="muted al-note">{L("My voice is off, so I won't read anything aloud.", 'Giọng của tôi đang tắt nên tôi sẽ không đọc to.')}</p>
+              <button
+                className="pr-rescan"
+                onClick={() => {
+                  setAiRules({ ...getAiRules(), jarvisSpeech: true })
+                  say([testLine])
+                }}
+              >
+                🔊 {L("Turn on Jarvis's voice", 'Bật giọng Jarvis')}
+              </button>
+              {voiceMsg && <p className="brain-voice-msg">{voiceMsg}</p>}
+            </div>
+          )}
           {rules.jarvisSpeech && (
             <div className="al-card">
               <div className="al-kicker">{L("JARVIS'S VOICE", 'GIỌNG JARVIS')}</div>
@@ -402,9 +425,11 @@ export function BrainPanel({ state, rules, journal, learn, killSwitch, priceOf, 
                     </span>
                     <input type="range" min={0} max={2} step={0.1} value={voice.pitch} onChange={(e) => setVoice({ ...voice, pitch: +e.target.value })} />
                   </label>
-                  <button className="pr-rescan" onClick={() => say([{ en: "Hello, I'm Jarvis. This is how I sound.", vi: 'Xin chào, tôi là Jarvis. Đây là giọng của tôi.' }])}>
+                  <button className="pr-rescan" onClick={() => say([testLine])}>
                     ▶ {L('Test voice', 'Nghe thử')}
                   </button>
+                  {voiceMsg && <p className="brain-voice-msg">{voiceMsg}</p>}
+                  {!voices.length && <p className="brain-voice-msg">{L("I can't find any voices on this device yet. Wait a few seconds and try again; on Android, install a voice under Settings > Text-to-speech.", 'Chưa tìm thấy giọng nào trên thiết bị. Đợi vài giây rồi thử lại; trên Android, cài giọng trong Cài đặt > Chuyển văn bản thành giọng nói.')}</p>}
                   <p className="muted al-note">{L("Uses your device's built-in voices, free and with no key. ★ marks the natural-sounding ones; male, female and Vietnamese voices depend on what your device has installed.", 'Dùng giọng có sẵn trên thiết bị, miễn phí và không cần khóa. ★ là giọng tự nhiên; giọng nam, nữ và tiếng Việt tùy vào thiết bị đã cài.')}</p>
                 </div>
               )}

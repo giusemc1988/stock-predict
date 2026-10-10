@@ -2,7 +2,7 @@
  * Version and "What's new". Bump APP_VERSION and add an entry to the top of RELEASES
  * with each update. The banner shows once per version, then stays dismissed.
  */
-export const APP_VERSION = '1.6.5'
+export const APP_VERSION = '1.6.6'
 
 export interface Release {
   version: string
@@ -13,6 +13,18 @@ export interface Release {
 }
 
 export const RELEASES: Release[] = [
+  {
+    version: '1.6.6',
+    date: '2026-10-10',
+    changes: [
+      'Jarvis\'s voice is more reliable: it works around Chrome dropping speech, reads long answers in short pieces so they don\'t cut off, and starts right from your tap so iPhones allow it.',
+      'If Jarvis can\'t make a sound, the voice card now says why (blocked by the browser, voice not installed, phone on silent or muted tab) instead of staying quiet. When the voice is off, the Brain tab shows a "Turn on Jarvis\'s voice" button.',
+    ],
+    changesVi: [
+      'Giọng Jarvis ổn định hơn: khắc phục lỗi Chrome làm mất tiếng, đọc câu trả lời dài theo từng đoạn ngắn để không bị ngắt, và bắt đầu ngay khi bạn chạm nên iPhone cho phép phát.',
+      'Nếu Jarvis không phát ra tiếng, thẻ giọng nói giờ cho biết lý do (trình duyệt chặn, chưa cài giọng, điện thoại để im lặng hoặc tab bị tắt tiếng) thay vì im lặng. Khi giọng đang tắt, tab Bộ não có nút "Bật giọng Jarvis".',
+    ],
+  },
   {
     version: '1.6.5',
     date: '2026-10-10',
