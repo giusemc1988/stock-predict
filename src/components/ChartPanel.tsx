@@ -83,21 +83,19 @@ interface Props {
 
 const ts = (t: number) => t as UTCTimestamp
 
-/** Caption typed out like a HUD readout; instant when motion is off or reduced. */
+/** Caption revealed word by word like a HUD readout. Pure CSS opacity (no layout per frame); instant when motion is off. */
 function TypedText({ text, motion }: { text: string; motion: boolean }) {
-  const reduced = typeof window !== 'undefined' && window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
-  const [n, setN] = useState(motion && !reduced ? 0 : text.length)
-  useEffect(() => {
-    if (!motion || reduced) return setN(text.length)
-    setN(0)
-    const step = Math.max(1, Math.round(text.length / 60))
-    const id = setInterval(() => setN((x) => (x + step >= text.length ? (clearInterval(id), text.length) : x + step)), 16)
-    return () => clearInterval(id)
-  }, [text, motion, reduced])
+  if (!motion) return <>{text}</>
+  const words = text.split(' ')
+  const gap = Math.min(45, 900 / Math.max(1, words.length))
   return (
     <>
-      {text.slice(0, n)}
-      {n < text.length && <i className="hud-caret" />}
+      {words.map((w, i) => (
+        <span key={i} className="hud-word" style={{ animationDelay: `${Math.round(i * gap)}ms` }}>
+          {w}
+          {i < words.length - 1 ? ' ' : ''}
+        </span>
+      ))}
     </>
   )
 }
@@ -352,7 +350,8 @@ export function ChartPanel(props: Props) {
       s.candle.createPriceLine({ price: l.price, color: l.color, lineWidth: 2, lineStyle: LineStyle.Solid, axisLabelVisible: true, title: `Jarvis · ${l.title}` }),
     )
   }, [tourLinesKey, symbol, tf])
-  const [pointer, setPointer] = useState<{ x: number; y: number } | null>(null)
+  // the reticle and guide lines are moved with transforms written straight to the DOM (no React render per frame)
+  const hud = useRef<HTMLDivElement>(null)
   const tourKey = tour?.key ?? ''
   const fTime = tour?.focus?.time ?? null
   const fPrice = tour?.focus?.price ?? null
@@ -360,8 +359,10 @@ export function ChartPanel(props: Props) {
     const c = chart.current
     const s = series.current
     const f = fTime != null && fPrice != null ? [fTime, fPrice] : null
+    const layer = hud.current
+    if (!layer) return
     if (!c || !s || !f || !candlesRef.current.length) {
-      setPointer(null)
+      layer.dataset.on = ''
       return
     }
     const bars = candlesRef.current
@@ -370,16 +371,31 @@ export function ChartPanel(props: Props) {
     const range = c.timeScale().getVisibleLogicalRange()
     const width = range ? Math.max(40, range.to - range.from) : 120
     if (!range || idx < range.from + 5 || idx > range.to - 5) c.timeScale().setVisibleLogicalRange({ from: idx - width * 0.6, to: idx + width * 0.4 })
+    let raf = 0
     const place = () => {
+      raf = 0
       const x = c.timeScale().timeToCoordinate(ts(bars[idx].time))
       const y = s.candle.priceToCoordinate(f[1])
-      setPointer(x != null && y != null ? { x, y } : null)
+      if (x == null || y == null) {
+        layer.dataset.on = ''
+        return
+      }
+      layer.dataset.on = '1'
+      layer.style.setProperty('--hx', `${x}px`)
+      layer.style.setProperty('--hy', `${y}px`)
     }
-    const raf = requestAnimationFrame(place)
-    c.timeScale().subscribeVisibleLogicalRangeChange(place)
+    // glide to the new point on a step change; follow the chart instantly while it scrolls
+    layer.classList.add('sweep')
+    const glide = setTimeout(() => layer.classList.remove('sweep'), 500)
+    raf = requestAnimationFrame(place)
+    const onRange = () => {
+      if (!raf) raf = requestAnimationFrame(place)
+    }
+    c.timeScale().subscribeVisibleLogicalRangeChange(onRange)
     return () => {
       cancelAnimationFrame(raf)
-      c.timeScale().unsubscribeVisibleLogicalRangeChange(place)
+      clearTimeout(glide)
+      c.timeScale().unsubscribeVisibleLogicalRangeChange(onRange)
     }
   }, [tourKey, fTime, fPrice, candles.length, symbol, tf])
 
@@ -430,19 +446,17 @@ export function ChartPanel(props: Props) {
       )}
       {tour && (
         <>
-          <div className={`hud-layer${tour.motion ? '' : ' still'}`} aria-hidden>
-            {pointer && (
-              <>
-                <i className="hud-hline" style={{ top: pointer.y }} />
-                <i className="hud-vline" style={{ left: pointer.x }} />
-                <svg className="hud-reticle" style={{ left: pointer.x, top: pointer.y }} width="56" height="56" viewBox="-28 -28 56 56">
-                  <circle r="20" className="r-spin" />
-                  <circle r="9" className="r-core" />
-                  <path d="M-26 -14 V-26 H-14 M14 -26 H26 V-14 M26 14 V26 H14 M-14 26 H-26 V14" className="r-brackets" />
-                  <path d="M-6 0 H-2 M2 0 H6 M0 -6 V-2 M0 2 V6" className="r-cross" />
-                </svg>
-              </>
-            )}
+          <div ref={hud} className={`hud-layer${tour.motion ? '' : ' still'}`} aria-hidden>
+            <i className="hud-hline" />
+            <i className="hud-vline" />
+            <div className="hud-reticle">
+              <svg key={tour.key} width="56" height="56" viewBox="-28 -28 56 56">
+                <circle r="20" className="r-spin" />
+                <circle r="9" className="r-core" />
+                <path d="M-26 -14 V-26 H-14 M14 -26 H26 V-14 M26 14 V26 H14 M-14 26 H-26 V14" className="r-brackets" />
+                <path d="M-6 0 H-2 M2 0 H6 M0 -6 V-2 M0 2 V6" className="r-cross" />
+              </svg>
+            </div>
           </div>
           <div key={tour.key} className={`tour-callout hud${tour.motion ? '' : ' still'}`} role="dialog" aria-label={tour.title}>
             <i className="hud-scan" aria-hidden />
