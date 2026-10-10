@@ -105,4 +105,31 @@ const blockedRows = practiceRows(blockedState, () => 0, Date.UTC(2026, 9, 9, 15)
 assert.equal(blockedRows.length, 1)
 assert.equal(blockedRows[0].practiceStatus, 'blocked')
 assert.equal(practiceRows(blockedState, () => 0, Date.UTC(2026, 9, 12, 15)).history.length, 0, 'only today')
+// unlimited: day trades aren't capped per day (the 4-trade setting and the orders-per-day gate are lifted)
+let u = emptyPractice()
+for (const sym of ['A1', 'A2', 'A3', 'A4', 'A5', 'A6', 'A7']) u = onBarClose(u, ctx({ symbol: sym, unlimited: true }))
+assert.equal(u.open.length, 7)
+let capped = emptyPractice()
+for (const sym of ['A1', 'A2', 'A3', 'A4', 'A5', 'A6', 'A7']) capped = onBarClose(capped, ctx({ symbol: sym }))
+assert.equal(capped.open.length, 4, 'off: the daily cap still applies')
+// daily loss limit: once today's closed trades lost 2% of the account, no new buys today
+const lossDay = { ...emptyPractice(), realized: -250, trades: [{ ...won.trades[0], pnl: -250, closedAt: Date.UTC(2026, 9, 9, 14) }] }
+const stopped = onBarClose(lossDay, ctx({ symbol: 'ZZ', unlimited: true, dayLossLimitPct: 2 }))
+assert.equal(stopped.open.length, 0)
+assert.equal(stopped.audit?.[0].blockedBy, 'Daily loss limit')
+assert.equal(onBarClose(lossDay, ctx({ symbol: 'ZZ', unlimited: true, dayLossLimitPct: 2, now: Date.UTC(2026, 9, 12, 15) })).open.length, 1, 'a new day trades again')
+assert.equal(onBarClose(lossDay, ctx({ symbol: 'ZZ', unlimited: true, dayLossLimitPct: 5 })).open.length, 1, 'under the limit')
+// penny stocks: off skips; on needs $1+, enough dollar volume, then half size and 5x spread/slippage
+const pennyBuy = { ...buy, exitPlan: { entry: 3, stop: 2.85, target: 3.3 } } as unknown as Analysis
+const pctx = (over: Partial<EntryContext> = {}) => ctx({ symbol: 'PNY', price: 3, analysis: pennyBuy, costs: { feeBps: 1, spreadBps: 4, slippageBps: 2 }, ...over })
+assert.equal(onBarClose(emptyPractice(), pctx()).audit?.[0].blockedBy, 'Penny stock', 'off by default in the context')
+assert.equal(onBarClose(emptyPractice(), pctx({ pennyOn: true, dollarVol: 50_000 })).open.length, 0, 'too thin')
+assert.equal(onBarClose(emptyPractice(), pctx({ pennyOn: true, dollarVol: 500_000, price: 0.8, analysis: { ...buy, exitPlan: { entry: 0.8, stop: 0.75, target: 0.9 } } as unknown as Analysis })).open.length, 0, 'under $1')
+const pen = onBarClose(emptyPractice(), pctx({ pennyOn: true, dollarVol: 500_000 })).open[0]
+assert.ok(pen.info.penny)
+assert.ok(Math.abs(pen.qty * 3 - 100) < 2, 'half of the 2% size')
+assert.equal(pen.cost?.spreadBps, 20)
+assert.equal(pen.cost?.slippageBps, 10)
+const reg = onBarClose(emptyPractice(), ctx({ costs: { feeBps: 1, spreadBps: 4, slippageBps: 2 } })).open[0]
+assert.ok(!reg.info.penny && reg.cost?.spreadBps === 4, 'regular stocks keep normal costs')
 console.log('practice tests passed')

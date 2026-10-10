@@ -24,7 +24,7 @@ export type PracticeOrderRow = BrokerOrder & { tag: string; practiceStatus: Prac
 export const MAX_BLOCKED = 20
 
 const tifOf = (p: { kind?: 'day' | 'long' }) => (kindOf(p) === 'long' ? ('gtc' as const) : ('day' as const))
-const tagOf = (p: { kind?: 'day' | 'long' }) => (kindOf(p) === 'long' ? 'Practice · long' : 'Practice · day')
+const tagOf = (p: { kind?: 'day' | 'long'; info?: { penny?: boolean } }) => `${kindOf(p) === 'long' ? 'Practice · long' : 'Practice · day'}${p.info?.penny ? ' · penny' : ''}`
 const when = (ms: number) => new Date(ms).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit', hour12: false })
 const pctFrom = (from: number, to: number) => (from ? ((to - from) / from) * 100 : 0)
 const held = (ms: number) => {
@@ -64,6 +64,7 @@ function story(p: PracticePosition, audit: AuditEntry[], now: { last: number } |
   const score = [i.verdict, i.tradeScore != null ? `Trade Score ${i.tradeScore}${i.grade ? ` (${i.grade})` : ''}` : null, `analyst ${i.score >= 0 ? '+' : ''}${i.score.toFixed(2)}`, i.regime ? `${i.regime} market` : null, i.learner !== 'n/a' ? `learner ${i.learner}` : null]
   lines.push({ k: 'Why', v: `${i.reason}${i.reason ? ' · ' : ''}${score.filter(Boolean).join(' · ')}` })
   if (i.pick) lines.push({ k: 'Picked', v: i.pick.en })
+  if (i.penny) lines.push({ k: 'Penny stock', v: 'under $5: bought at half the usual size, with 5x the usual spread and slippage' })
   lines.push({
     k: 'How it decided',
     v: `analyst signal (trend, buyers vs sellers, momentum, AI model) gave ${i.verdict}; Trade Score ${i.tradeScore ?? 'n/a'} rates the setup; the learner, which grades past AI buys, said ${i.learner === 'n/a' ? 'nothing yet' : i.learner}`,

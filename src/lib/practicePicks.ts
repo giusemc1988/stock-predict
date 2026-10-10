@@ -22,6 +22,8 @@ export interface PracticeCandidate {
   gainPct: number | null
   /** Volume over the last 4 closed bars vs the 20-bar average (1 = normal). */
   volVsAvg: number | null
+  /** Average dollar volume per bar over the last 20 closed bars (penny-stock liquidity check). */
+  dollarVol?: number | null
   tradeScore: number | null
   /** 0..1, higher is better. Only BUY calls are ranked. */
   rank: number
@@ -37,6 +39,12 @@ export function gainToday(candles: Candle[]): number | null {
   const today = dayKey(candles[n - 1].time * 1000)
   for (let i = n - 2; i >= 0; i--) if (dayKey(candles[i].time * 1000) !== today) return (candles[n - 1].close / candles[i].close - 1) * 100
   return null
+}
+
+export function dollarVolume(closedBars: Candle[], n = 20): number | null {
+  const xs = closedBars.slice(-n)
+  if (!xs.length) return null
+  return xs.reduce((a, b) => a + b.close * b.volume, 0) / xs.length
 }
 
 export function volumeVsAvg(closedBars: Candle[]): number | null {

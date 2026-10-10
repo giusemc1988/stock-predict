@@ -2,7 +2,7 @@
  * Version and "What's new". Bump APP_VERSION and add an entry to the top of RELEASES
  * with each update. The banner shows once per version, then stays dismissed.
  */
-export const APP_VERSION = '1.6.0'
+export const APP_VERSION = '1.6.3'
 
 export interface Release {
   version: string
@@ -14,7 +14,7 @@ export interface Release {
 
 export const RELEASES: Release[] = [
   {
-    version: '1.6.0',
+    version: '1.6.3',
     date: '2026-10-10',
     changes: [
       'Meet Jarvis, the Arc Brain: a practice trading mentor with its own Brain tab. It gives a morning briefing (market hours, today\'s plan, the practice account, what the learner says, and the rule to focus on), and an "Ask Jarvis" box that answers questions such as "Why did you buy your last trade?" or "What is my risk right now?" from the app\'s own records. No AI service or API key is used.',
@@ -41,6 +41,36 @@ export const RELEASES: Release[] = [
       'Hỏi bằng giọng nói (mặc định tắt): bật "Hỏi Jarvis bằng giọng nói", bấm 🎙 và nói như "vì sao mua", "rủi ro" hoặc "xem lại hôm nay". Dùng nhận dạng giọng nói có sẵn của trình duyệt (Chrome, Edge hoặc Safari); không cần khóa.',
       'Jarvis có thể nói (mặc định tắt): bật "Jarvis nói" trong Quy tắc AI, rồi chọn giọng trong tab Bộ não, chỉnh tốc độ và cao độ, và bấm Đọc to hoặc đặt câu hỏi. Jarvis nói như người thật: trả lời ngắn, thẳng vào câu hỏi, bằng giọng tự nhiên nhất trên thiết bị (đánh dấu ★). Dùng giọng miễn phí có sẵn trên thiết bị (giọng nam, nữ và tiếng Việt tùy thiết bị); không cần khóa.',
       'Mỗi phần có công tắc riêng trong Cài đặt > Quy tắc AI > Jarvis. Một cổng tùy chọn (mặc định tắt) cho luyện tập bỏ qua lệnh mua vi phạm quy tắc đã chứng minh trên lệnh thử. Chỉ giao dịch thử nghiệm.',
+    ],
+  },
+  {
+    version: '1.6.2',
+    date: '2026-10-10',
+    changes: [
+      'Penny stocks (on by default): practice can now trade stocks from $1 to $5, and today\'s movers lists include them, because they move more and give the AI more to learn from.',
+      'Safeguards: never under $1; only stocks trading at least $100k per 15-minute bar on average (about $2.6M a day) so fills are realistic; half the usual trade size; and 5x the usual spread and slippage (20 bps spread, 10 bps slippage) so results aren\'t flattered.',
+      'Penny trades are tagged "penny" in Positions, Open orders and History, and the Practice report shows penny vs regular results separately. Turn it off in the Practice tab ("Penny stocks") or Settings > AI rules. Works in the browser and on the 24/7 server.',
+    ],
+    changesVi: [
+      'Cổ phiếu penny (mặc định bật): luyện tập giờ có thể giao dịch mã từ $1 đến $5, và danh sách mã biến động hôm nay có cả các mã này, vì chúng biến động nhiều hơn và cho AI nhiều cơ hội học hơn.',
+      'Bảo vệ: không bao giờ dưới $1; chỉ mã giao dịch trung bình ít nhất $100k mỗi nến 15 phút (khoảng $2,6 triệu mỗi ngày) để khớp lệnh thực tế; nửa khối lượng thường; và chênh lệch, trượt giá gấp 5 lần (chênh lệch 20 bps, trượt giá 10 bps) để kết quả không bị đẹp giả.',
+      'Lệnh penny gắn nhãn "penny" trong Vị thế, Lệnh chờ và Lịch sử, và báo cáo Luyện tập tách riêng kết quả penny và mã thường. Tắt trong tab Luyện tập ("Cổ phiếu penny") hoặc Cài đặt > Quy tắc AI. Áp dụng trên trình duyệt và máy chủ 24/7.',
+    ],
+  },
+  {
+    version: '1.6.0',
+    date: '2026-10-10',
+    changes: [
+      'Unlimited practice trades (on by default): the AI now makes a day trade on every BUY its rules allow, instead of stopping at 4 a day, so it learns faster. Long-term trades keep their daily number (1) because they are held for days. Turn it off in the Practice tab ("Unlimited trades") or Settings > AI rules to go back to the daily caps.',
+      'Daily loss limit (on by default, 2% of the practice account, about $200): once trades closed today lose that much, the AI stops new practice buys until the next trading day. Open trades still exit at their stop, target or market close. Change the % in Settings > AI rules.',
+      'In unlimited mode, practice can hold up to 25 trades at once (was 8), still inside the 60% exposure limit (25 trades x 2% = 50%). The 20% drawdown halt and the kill switch still apply. Your own paper account keeps the 8-position limit.',
+      'Works in the browser and on the 24/7 server. The server checks every 15 minutes, so that sets how often it can trade.',
+    ],
+    changesVi: [
+      'Luyện tập không giới hạn lệnh (mặc định bật): AI giờ vào lệnh trong ngày ở mọi tín hiệu MUA mà quy tắc cho phép, thay vì dừng ở 4 lệnh mỗi ngày, để học nhanh hơn. Lệnh dài hạn vẫn giữ số lượng mỗi ngày (1) vì giữ nhiều ngày. Tắt trong tab Luyện tập ("Không giới hạn lệnh") hoặc Cài đặt > Quy tắc AI để quay lại giới hạn mỗi ngày.',
+      'Giới hạn lỗ trong ngày (mặc định bật, 2% tài khoản luyện tập, khoảng $200): khi các lệnh đóng hôm nay lỗ đến mức đó, AI ngừng mua luyện tập đến ngày giao dịch tiếp theo. Lệnh đang mở vẫn thoát ở cắt lỗ, chốt lời hoặc giờ đóng cửa. Đổi % trong Cài đặt > Quy tắc AI.',
+      'Ở chế độ không giới hạn, luyện tập có thể giữ tối đa 25 lệnh cùng lúc (trước là 8), vẫn trong giới hạn 60% tổng tiền vào lệnh (25 lệnh x 2% = 50%). Dừng khi giảm 20% từ đỉnh và công tắc dừng khẩn cấp vẫn áp dụng. Tài khoản thử nghiệm của bạn giữ giới hạn 8 vị thế.',
+      'Áp dụng trên trình duyệt và máy chủ 24/7. Máy chủ kiểm tra mỗi 15 phút, nên đó là tần suất nó có thể giao dịch.',
     ],
   },
   {

@@ -17,7 +17,7 @@ import { DEFAULT_AI_RULES } from '../src/lib/aiRules'
 import { SKILLS, skillTag } from '../src/lib/skills'
 import { parseState } from '../src/lib/autoLearn'
 import type { JournalEntry } from '../src/lib/journal'
-import { emptyPractice, parsePractice, sessionEnd, type PracticeState } from '../src/lib/practice'
+import { emptyPractice, parsePractice, PENNY_MIN_PRICE, PENNY_PRICE, sessionEnd, type PracticeState } from '../src/lib/practice'
 import { scanCycle, withOpenMarkets, type ScanMarket } from '../src/lib/practiceScan'
 
 const args = process.argv.slice(2)
@@ -49,8 +49,8 @@ async function yahoo15m(symbol: string): Promise<Candle[]> {
   return out
 }
 
-/** Today's top gainers (over $5) and most-traded US stocks from Yahoo's public screeners. */
-async function yahooMovers(top = 10): Promise<ScanMarket[]> {
+/** Today's top gainers (over $5, or $1 with penny stocks on) and most-traded US stocks from Yahoo's public screeners. */
+async function yahooMovers(top = 10, minPrice = 5): Promise<ScanMarket[]> {
   const plain = (s: string) => /^[A-Z]{1,5}$/.test(s)
   const screen = async (id: string) => {
     const res = await fetch(`https://query1.finance.yahoo.com/v1/finance/screener/predefined/saved?scrIds=${id}&count=${top * 3}`, { headers: UA })
@@ -60,7 +60,7 @@ async function yahooMovers(top = 10): Promise<ScanMarket[]> {
   }
   const [gainers, actives] = await Promise.all([screen('day_gainers').catch(() => []), screen('most_actives').catch(() => [])])
   const out: ScanMarket[] = []
-  for (const q of gainers.filter((g) => (g.regularMarketPrice ?? 0) >= 5).slice(0, top)) out.push({ symbol: q.symbol, asset: 'stock', source: 'gainer' })
+  for (const q of gainers.filter((g) => (g.regularMarketPrice ?? 0) >= minPrice).slice(0, top)) out.push({ symbol: q.symbol, asset: 'stock', source: 'gainer' })
   for (const q of actives.slice(0, top)) if (!out.some((m) => m.symbol === q.symbol)) out.push({ symbol: q.symbol, asset: 'stock', source: 'active' })
   return out
 }
@@ -81,7 +81,7 @@ try {
 const rules = DEFAULT_AI_RULES
 const now = Date.now()
 const markets: ScanMarket[] = INSTRUMENTS.map((i) => ({ symbol: i.symbol, asset: i.assetClass, source: 'watchlist' as const }))
-if (rules.practiceMovers) for (const m of await yahooMovers()) if (!markets.some((x) => x.symbol === m.symbol)) markets.push(m)
+if (rules.practiceMovers) for (const m of await yahooMovers(10, rules.practicePenny ? PENNY_MIN_PRICE : PENNY_PRICE)) if (!markets.some((x) => x.symbol === m.symbol)) markets.push(m)
 
 const r = await scanCycle({
   markets: withOpenMarkets(markets, prev),
