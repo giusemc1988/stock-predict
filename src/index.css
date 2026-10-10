@@ -328,6 +328,16 @@ tr.leg td:first-child { padding-left: 24px; }
 tr.leg td { color: #aab2c0; }
 .leg-tag { font-size: 10px; color: var(--muted); border: 1px solid var(--line-2); border-radius: 3px; padding: 0 4px; margin-left: 6px; }
 .reason { display: block; font-size: 10px; color: var(--down); white-space: normal; max-width: 220px; }
+.pst-open { color: var(--accent); background: var(--line-2); }
+.pst-closed { color: var(--up); background: var(--up-bg); }
+.pst-blocked { color: var(--down); background: var(--down-bg); }
+.pr-more { font-size: 10px; color: var(--muted); margin-left: 6px; white-space: nowrap; }
+tr.pr-detail td { padding: 6px 10px 10px; background: var(--line-2); white-space: normal; }
+/* sticky so the story stays on screen when the table scrolls sideways on a phone */
+tr.pr-detail dl { position: sticky; left: 10px; max-width: min(760px, calc(100vw - 40px)); margin: 0; display: grid; grid-template-columns: max-content 1fr; gap: 3px 12px; font-size: 12px; line-height: 1.4; }
+tr.pr-detail dt { color: var(--muted); }
+tr.pr-detail dd { margin: 0; overflow-wrap: anywhere; }
+@media (max-width: 480px) { tr.pr-detail dl { grid-template-columns: 1fr; gap: 0; } tr.pr-detail dd { margin-bottom: 4px; } }
 .btn-mini { font-size: 11px; padding: 2px 8px; border: 1px solid var(--line-2); border-radius: 4px; color: var(--muted); }
 .btn-mini:hover { color: var(--text); border-color: var(--muted); }
 .btn-mini:disabled { opacity: 0.5; cursor: default; }

@@ -88,4 +88,21 @@ assert.deepEqual(rows.working.map((o) => o.legLabel), ['Take profit', 'Stop loss
 assert.equal(rows.history.filter((o) => o.side === 'sell').length, 1, 'the closed trade is a sell fill')
 assert.equal(rows.history.filter((o) => o.side === 'buy').length, 2, 'a buy fill for the closed and the open trade')
 assert.equal(practiceRows(fresh, () => 0).positions[0].last, fresh.open[0].entry, 'no price yet: last falls back to the entry')
+// each row tells the trade's story: status, buy, why, exit plan, and the result once closed
+const keys = (d: { k: string }[]) => d.map((l) => l.k)
+assert.ok(['Status', 'Bought', 'Why', 'Sell if', 'Now'].every((k) => keys(rows.positions[0].detail).includes(k)))
+const closedRow = rows.history.find((o) => o.side === 'sell')!
+assert.equal(closedRow.practiceStatus, 'closed')
+assert.ok(['Sold', 'Why sold', 'Result', 'How it decided', 'Skills used'].every((k) => keys(closedRow.detail).includes(k)))
+// an old trade saved without the newer fields says so instead of guessing
+const old = { ...won.trades[0], info: { ...won.trades[0].info, data: undefined, skills: undefined }, review: undefined }
+const oldRow = practiceRows({ ...won, trades: [old], audit: [] }, () => 0).history[0]
+for (const k of ['Data', 'Skills used', 'Checks passed', 'Review']) assert.match(oldRow.detail.find((l) => l.k === k)!.v, /not recorded/)
+assert.ok(rows.positions[0].detail.find((l) => l.k === 'Checks passed'), 'checks passed come from the decision log')
+// today's blocked buys show in History as Blocked; "slots used" notes don't
+const blockedState = onBarClose(emptyPractice(), ctx({ killSwitch: true }))
+const blockedRows = practiceRows(blockedState, () => 0, Date.UTC(2026, 9, 9, 15)).history
+assert.equal(blockedRows.length, 1)
+assert.equal(blockedRows[0].practiceStatus, 'blocked')
+assert.equal(practiceRows(blockedState, () => 0, Date.UTC(2026, 9, 12, 15)).history.length, 0, 'only today')
 console.log('practice tests passed')
