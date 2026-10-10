@@ -31,6 +31,18 @@ const held = (ms: number) => {
   return m < 60 ? `${m} min` : m < 1440 ? `${Math.floor(m / 60)} h ${m % 60} min` : `${Math.floor(m / 1440)} d ${Math.floor((m % 1440) / 60)} h`
 }
 
+const NOT_RECORDED = 'not recorded for this trade (it was made before this was saved)'
+
+/** Why a trade was sold, in plain words. */
+const WHY_SOLD: Record<PracticeTrade['exitReason'], string> = {
+  target: 'the price reached the profit target set when it bought',
+  stop: 'the price fell to the stop-loss set when it bought, so it cut the loss',
+  signal: "the AI's call turned SELL, so it got out early",
+  time: 'the price did not move for too long, so it freed the money for a better setup',
+  close: 'day trades are always sold before the market closes',
+  hold: 'the long-term trade reached the end of its holding period',
+}
+
 /** The accepted buy in the decision log that opened this trade (same market, within a minute). */
 function entryAudit(p: PracticePosition, audit: AuditEntry[]) {
   return audit.find((a) => a.accepted && a.side === 'buy' && a.symbol === p.symbol && Math.abs(a.time - p.openedAt) < 60_000)
@@ -51,20 +63,24 @@ function story(p: PracticePosition, audit: AuditEntry[], now: { last: number } |
   const score = [i.verdict, i.tradeScore != null ? `Trade Score ${i.tradeScore}${i.grade ? ` (${i.grade})` : ''}` : null, `analyst ${i.score >= 0 ? '+' : ''}${i.score.toFixed(2)}`, i.regime ? `${i.regime} market` : null, i.learner !== 'n/a' ? `learner ${i.learner}` : null]
   lines.push({ k: 'Why', v: `${i.reason}${i.reason ? ' · ' : ''}${score.filter(Boolean).join(' · ')}` })
   if (i.pick) lines.push({ k: 'Picked', v: i.pick.en })
+  lines.push({
+    k: 'How it decided',
+    v: `analyst signal (trend, buyers vs sellers, momentum, AI model) gave ${i.verdict}; Trade Score ${i.tradeScore ?? 'n/a'} rates the setup; the learner, which grades past AI buys, said ${i.learner === 'n/a' ? 'nothing yet' : i.learner}`,
+  })
+  lines.push({ k: 'Skills used', v: i.skills?.length ? i.skills.join(', ') : NOT_RECORDED })
   const a = entryAudit(p, audit)
-  if (a?.passed?.length) lines.push({ k: 'Checks passed', v: a.passed.join(', ') })
-  if (i.data) lines.push({ k: 'Data', v: `${DATA_LABEL[i.data.label].en} · ${i.data.source} · bar ${held(i.data.ageSec * 1000)} old` })
+  lines.push({ k: 'Checks passed', v: a?.passed?.length ? a.passed.join(', ') : NOT_RECORDED })
+  lines.push({ k: 'Data', v: i.data ? `${DATA_LABEL[i.data.label].en} · ${i.data.source} · bar ${held(i.data.ageSec * 1000)} old` : NOT_RECORDED })
   lines.push({ k: 'Sell if', v: `price reaches ${fmtPrice(p.target)} target (${fmtPct(pctFrom(p.entry, p.target))}) or ${fmtPrice(p.stop)} stop (${fmtPct(pctFrom(p.entry, p.stop))})` })
   if (p.closeBy) lines.push({ k: long ? 'Hold until' : 'Close by', v: `${when(p.closeBy)}${long ? ', then sold if still open' : ' (before market close)'}` })
   if ('trade' in now) {
     const t = now.trade
     lines.push({ k: 'Sold', v: `${when(t.closedAt)} @ ${fmtPrice(t.exit)} · ${exitReasonLabel[t.exitReason].en} · held ${held(t.closedAt - t.openedAt)}` })
+    lines.push({ k: 'Why sold', v: WHY_SOLD[t.exitReason] })
     const costs = t.costPaid ? ` · costs ${fmtUsd(t.costPaid)}` : ''
     lines.push({ k: 'Result', v: `${fmtUsd(t.pnl)} (${fmtPct(t.retPct)})${costs}`, tone: t.pnl >= 0 ? 'up' : 'down' })
-    if (t.review) {
-      const fails = t.review.fails.map((f) => REVIEW_FAIL[f].en).join(', ')
-      lines.push({ k: 'Review', v: `${BUCKET_LABEL[t.review.bucket].en}${fails ? `: ${fails}` : ''}` })
-    }
+    const fails = t.review?.fails.map((f) => REVIEW_FAIL[f].en).join(', ')
+    lines.push({ k: 'Review', v: t.review ? `${BUCKET_LABEL[t.review.bucket].en}${fails ? `: ${fails}` : ''}` : NOT_RECORDED })
   } else {
     const u = p.qty * (now.last - p.entry)
     lines.push({ k: 'Now', v: `${fmtPrice(now.last)} · ${fmtUsd(u)} (${fmtPct(pctFrom(p.entry, now.last))}) so far`, tone: u >= 0 ? 'up' : 'down' })

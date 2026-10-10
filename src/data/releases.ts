@@ -19,11 +19,13 @@ export const RELEASES: Release[] = [
     changes: [
       'Practice trades now tell their whole story. Tap any 🎯 Practice row in Positions, Open orders or History (▸ details) to see: when it bought and at what price, why (the AI call, Trade Score, why the picker chose it, and the checks it passed), the data it used, when it will sell (target, stop, and the market-close or long-term hold deadline), and once closed, when and why it sold, the profit or loss, costs and the process review.',
       'Each practice row shows a clear status: Open, Closed or Blocked. History also lists today\'s blocked buys and the rule that stopped each one (up to 20).',
+      'Works on old trades too. Every trade explains why it bought (how the analyst signal, Trade Score and learner decided, and the skills used) and why it sold, in plain words. Where an older trade was saved before some of this was recorded, it says "not recorded" instead of guessing.',
       'The details fit a phone screen and follow the same "In Positions & History" switch.',
     ],
     changesVi: [
       'Lệnh luyện tập giờ kể đầy đủ câu chuyện. Chạm vào dòng 🎯 Practice trong Vị thế, Lệnh chờ hoặc Lịch sử (▸ details) để xem: mua lúc nào, giá bao nhiêu, vì sao (nhận định AI, Điểm GD, lý do bộ chọn mã chọn nó và các bước kiểm tra đã đạt), dữ liệu đã dùng, khi nào sẽ bán (chốt lời, cắt lỗ, và hạn đóng cửa hoặc hạn giữ dài hạn), và khi đã đóng thì bán lúc nào, vì sao, lãi/lỗ, chi phí và đánh giá quy trình.',
       'Mỗi dòng luyện tập hiện rõ trạng thái: Đang mở, Đã đóng hoặc Bị chặn. Lịch sử cũng liệt kê các lệnh mua bị chặn hôm nay và quy tắc đã chặn (tối đa 20).',
+      'Áp dụng cả cho lệnh cũ. Mỗi lệnh giải thích vì sao mua (tín hiệu phân tích, Điểm GD và bộ học quyết định thế nào, cùng các kỹ năng đã dùng) và vì sao bán, bằng lời dễ hiểu. Lệnh cũ được lưu trước khi có một số thông tin này sẽ ghi "not recorded" thay vì đoán.',
       'Phần chi tiết hiển thị gọn trên điện thoại và theo cùng công tắc "Trong Vị thế & Lịch sử".',
     ],
   },

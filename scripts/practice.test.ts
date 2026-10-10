@@ -93,7 +93,11 @@ const keys = (d: { k: string }[]) => d.map((l) => l.k)
 assert.ok(['Status', 'Bought', 'Why', 'Sell if', 'Now'].every((k) => keys(rows.positions[0].detail).includes(k)))
 const closedRow = rows.history.find((o) => o.side === 'sell')!
 assert.equal(closedRow.practiceStatus, 'closed')
-assert.ok(['Sold', 'Result'].every((k) => keys(closedRow.detail).includes(k)))
+assert.ok(['Sold', 'Why sold', 'Result', 'How it decided', 'Skills used'].every((k) => keys(closedRow.detail).includes(k)))
+// an old trade saved without the newer fields says so instead of guessing
+const old = { ...won.trades[0], info: { ...won.trades[0].info, data: undefined, skills: undefined }, review: undefined }
+const oldRow = practiceRows({ ...won, trades: [old], audit: [] }, () => 0).history[0]
+for (const k of ['Data', 'Skills used', 'Checks passed', 'Review']) assert.match(oldRow.detail.find((l) => l.k === k)!.v, /not recorded/)
 assert.ok(rows.positions[0].detail.find((l) => l.k === 'Checks passed'), 'checks passed come from the decision log')
 // today's blocked buys show in History as Blocked; "slots used" notes don't
 const blockedState = onBarClose(emptyPractice(), ctx({ killSwitch: true }))
