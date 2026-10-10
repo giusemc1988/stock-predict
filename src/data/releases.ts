@@ -2,7 +2,7 @@
  * Version and "What's new". Bump APP_VERSION and add an entry to the top of RELEASES
  * with each update. The banner shows once per version, then stays dismissed.
  */
-export const APP_VERSION = '1.5.1'
+export const APP_VERSION = '1.5.2'
 
 export interface Release {
   version: string
@@ -13,6 +13,20 @@ export interface Release {
 }
 
 export const RELEASES: Release[] = [
+  {
+    version: '1.5.2',
+    date: '2026-10-10',
+    changes: [
+      'Practice trades now tell their whole story. Tap any 🎯 Practice row in Positions, Open orders or History (▸ details) to see: when it bought and at what price, why (the AI call, Trade Score, why the picker chose it, and the checks it passed), the data it used, when it will sell (target, stop, and the market-close or long-term hold deadline), and once closed, when and why it sold, the profit or loss, costs and the process review.',
+      'Each practice row shows a clear status: Open, Closed or Blocked. History also lists today\'s blocked buys and the rule that stopped each one (up to 20).',
+      'The details fit a phone screen and follow the same "In Positions & History" switch.',
+    ],
+    changesVi: [
+      'Lệnh luyện tập giờ kể đầy đủ câu chuyện. Chạm vào dòng 🎯 Practice trong Vị thế, Lệnh chờ hoặc Lịch sử (▸ details) để xem: mua lúc nào, giá bao nhiêu, vì sao (nhận định AI, Điểm GD, lý do bộ chọn mã chọn nó và các bước kiểm tra đã đạt), dữ liệu đã dùng, khi nào sẽ bán (chốt lời, cắt lỗ, và hạn đóng cửa hoặc hạn giữ dài hạn), và khi đã đóng thì bán lúc nào, vì sao, lãi/lỗ, chi phí và đánh giá quy trình.',
+      'Mỗi dòng luyện tập hiện rõ trạng thái: Đang mở, Đã đóng hoặc Bị chặn. Lịch sử cũng liệt kê các lệnh mua bị chặn hôm nay và quy tắc đã chặn (tối đa 20).',
+      'Phần chi tiết hiển thị gọn trên điện thoại và theo cùng công tắc "Trong Vị thế & Lịch sử".',
+    ],
+  },
   {
     version: '1.5.1',
     date: '2026-10-10',

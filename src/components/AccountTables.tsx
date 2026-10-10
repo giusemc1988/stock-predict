@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { Fragment, useState } from 'react'
 import type { BrokerOrder, BrokerPosition } from '../broker/types'
 import { OPEN_STATUSES } from '../broker/types'
 import { fmtPct, fmtPrice, fmtUsd, tone } from '../lib/format'
@@ -34,6 +34,40 @@ function usePending() {
   return [pending, run] as const
 }
 
+type Detail = { k: string; v: string; tone?: 'up' | 'down' }[]
+
+/** Rows that carry a story (practice trades) open and close a detail line under them on click. */
+function useExpanded() {
+  const [open, setOpen] = useState<Set<string>>(() => new Set())
+  const toggle = (id: string) =>
+    setOpen((s) => {
+      const n = new Set(s)
+      if (n.has(id)) n.delete(id)
+      else n.add(id)
+      return n
+    })
+  return [open, toggle] as const
+}
+
+function DetailRow({ detail, cols }: { detail: Detail; cols: number }) {
+  return (
+    <tr className="pr-detail">
+      <td colSpan={cols}>
+        <dl>
+          {detail.map((d) => (
+            <Fragment key={d.k}>
+              <dt>{d.k}</dt>
+              <dd className={d.tone ?? ''}>{d.v}</dd>
+            </Fragment>
+          ))}
+        </dl>
+      </td>
+    </tr>
+  )
+}
+
+const PRACTICE_STATUS = { open: 'Open', closed: 'Closed', blocked: 'Blocked' } as const
+
 const qtyFmt = (q: number) => (+q.toFixed(6)).toLocaleString('en-US', { maximumFractionDigits: 6 })
 
 export function PositionsTable({
@@ -42,12 +76,13 @@ export function PositionsTable({
   onClose,
   empty = 'No positions yet. Place a paper order to get started.',
 }: {
-  positions: (BrokerPosition & { id?: string; tag?: string })[]
+  positions: (BrokerPosition & { id?: string; tag?: string; detail?: Detail })[]
   onSelect?: (s: string) => void
   onClose?: (p: BrokerPosition) => unknown
   empty?: string
 }) {
   const [pending, run] = usePending()
+  const [expanded, toggle] = useExpanded()
   return (
     <table>
       <thead>
@@ -70,10 +105,18 @@ export function PositionsTable({
           </tr>
         )}
         {positions.map((p) => (
-          <tr key={p.id ?? p.symbol} className={onSelect ? 'click' : ''} onClick={() => onSelect?.(p.symbol)}>
+          <Fragment key={p.id ?? p.symbol}>
+          <tr
+            className={onSelect || p.detail ? 'click' : ''}
+            onClick={() => {
+              onSelect?.(p.symbol)
+              if (p.detail && p.id) toggle(p.id)
+            }}
+          >
             <td>
               <b>{p.symbol}</b>
               {p.tag && <span className="leg-tag">🎯 {p.tag}</span>}
+              {p.detail && <span className="pr-more">{p.id && expanded.has(p.id) ? '▾' : '▸'} details</span>}
             </td>
             <td className="mono r">{qtyFmt(p.qty)}</td>
             <td className="mono r">{fmtPrice(p.avgCost)}</td>
@@ -99,14 +142,18 @@ export function PositionsTable({
               </td>
             )}
           </tr>
+          {p.detail && p.id && expanded.has(p.id) && <DetailRow detail={p.detail} cols={onClose ? 7 : 6} />}
+          </Fragment>
         ))}
       </tbody>
     </table>
   )
 }
 
-export function OrdersTable({ orders, onCancel, empty = 'No orders yet.' }: { orders: (BrokerOrder & { tag?: string })[]; onCancel?: (id: string) => unknown; empty?: string }) {
+export function OrdersTable({ orders, onCancel, empty = 'No orders yet.' }: { orders: (BrokerOrder & { tag?: string; detail?: Detail; practiceStatus?: keyof typeof PRACTICE_STATUS })[]; onCancel?: (id: string) => unknown; empty?: string }) {
   const [pending, run] = usePending()
+  const [expanded, toggle] = useExpanded()
+  const cols = onCancel ? 9 : 8
   return (
     <table>
       <thead>
@@ -133,7 +180,8 @@ export function OrdersTable({ orders, onCancel, empty = 'No orders yet.' }: { or
         {orders.map((o) => {
           const px = o.type === 'stop_limit' ? `${fmtPrice(o.stopPrice)} → ${fmtPrice(o.limitPrice)}` : o.type === 'stop' ? fmtPrice(o.stopPrice) : o.type === 'limit' ? fmtPrice(o.limitPrice) : 'Market'
           return (
-            <tr key={o.id} className={o.parentId ? 'leg' : ''}>
+            <Fragment key={o.id}>
+            <tr className={`${o.parentId ? 'leg' : ''}${o.detail ? ' click' : ''}`} onClick={o.detail ? () => toggle(o.id) : undefined}>
               <td className="mono">
                 {new Date(o.createdAt).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit', hour12: false })}
               </td>
@@ -141,18 +189,25 @@ export function OrdersTable({ orders, onCancel, empty = 'No orders yet.' }: { or
                 <b>{o.symbol}</b> {o.source === 'robot' && <RobotIcon size={13} side={o.side} title="Placed by the robot" />}
                 {o.legLabel && <span className="leg-tag">{o.legLabel}</span>}
                 {o.tag && <span className="leg-tag">🎯 {o.tag}</span>}
+                {o.detail && <span className="pr-more">{expanded.has(o.id) ? '▾' : '▸'} details</span>}
               </td>
               <td className={o.side === 'buy' ? 'up' : 'down'}>{o.side === 'buy' ? 'Buy' : 'Sell'}</td>
               <td>
                 {TYPE_LABEL[o.type]} <span className="sub">{o.tif.toUpperCase()}</span>
               </td>
-              <td className="mono r">{o.filledQty && o.filledQty !== o.qty ? `${qtyFmt(o.filledQty)}/${qtyFmt(o.qty)}` : qtyFmt(o.qty)}</td>
+              <td className="mono r">{o.practiceStatus === 'blocked' ? '—' : o.filledQty && o.filledQty !== o.qty ? `${qtyFmt(o.filledQty)}/${qtyFmt(o.qty)}` : qtyFmt(o.qty)}</td>
               <td className="mono r">{px}</td>
               <td className="mono r">{o.filledPrice ? fmtPrice(o.filledPrice) : '—'}</td>
               <td>
-                <span className={`status st-${o.status}`} title={o.reason}>
-                  {STATUS_LABEL[o.status]}
-                </span>
+                {o.practiceStatus && !o.parentId ? (
+                  <span className={`status pst-${o.practiceStatus}`} title={o.reason}>
+                    {PRACTICE_STATUS[o.practiceStatus]}
+                  </span>
+                ) : (
+                  <span className={`status st-${o.status}`} title={o.reason}>
+                    {STATUS_LABEL[o.status]}
+                  </span>
+                )}
                 {o.reason && o.status === 'rejected' && <span className="reason">{o.reason}</span>}
               </td>
               {onCancel && (
@@ -165,6 +220,8 @@ export function OrdersTable({ orders, onCancel, empty = 'No orders yet.' }: { or
                 </td>
               )}
             </tr>
+            {o.detail && expanded.has(o.id) && <DetailRow detail={o.detail} cols={cols} />}
+            </Fragment>
           )
         })}
       </tbody>
