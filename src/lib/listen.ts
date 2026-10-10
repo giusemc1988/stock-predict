@@ -10,7 +10,8 @@ interface Recognition {
   lang: string
   interimResults: boolean
   maxAlternatives: number
-  onresult: ((e: { results: ArrayLike<ArrayLike<{ transcript: string }>> }) => void) | null
+  continuous?: boolean
+  onresult: ((e: { results: ArrayLike<ArrayLike<{ transcript: string }> & { isFinal?: boolean }> }) => void) | null
   onerror: ((e: { error: string }) => void) | null
   onend: (() => void) | null
   start: () => void
@@ -34,7 +35,9 @@ export function matchQuestion(text: string): Heard {
   if (/decision|decide|\blog\b|nhật ký|quyết định/.test(t)) return 'log'
   if (/review|grade|graded|chấm|đánh giá/.test(t)) return 'reviews'
   if (/learner|bộ học/.test(t)) return 'learning'
-  if (/why.*(buy|bought|purchase)|vì sao.*mua|tại sao.*mua/.test(t)) return 'whyBuy'
+  if (/too high|(buy|bought) (it )?(at the )?(high|top)|chas(e|ed|ing)|giá cao|mua cao|đu đỉnh|đuổi giá|mua đắt|expensive/.test(t)) return 'boughtHigh'
+  if (/why.*(buy|bought|purchase)|vì sao.*mua|tại sao.*mua|sao.*mua/.test(t)) return 'whyBuy'
+  if (/this (stock|one|trade)|\b(it|this)\b.*(doing|now|going)|mã này|cổ phiếu này|lệnh này|(^|\s)nó(\s|$|[?.!,])/.test(t)) return 'thisStock'
   if (/risk|rủi ro/.test(t)) return 'risk'
   if (/rule|playbook|quy tắc|sổ tay/.test(t)) return 'rules'
   if (/learn|lesson|học|bài học/.test(t)) return 'learned'
@@ -68,8 +71,11 @@ export function understand(text: string, known: { symbol: string; name: string }
   return null
 }
 
-/** Listen for one sentence; calls back with what was heard. Returns a stop function. */
-export function listenOnce(lang: 'en' | 'vi', onText: (text: string) => void, onDone: (error?: string) => void): () => void {
+/**
+ * Listen for one sentence; calls back with what was heard. `onWords` gets the words live while
+ * you speak, so the screen can show them. Returns a stop function.
+ */
+export function listenOnce(lang: 'en' | 'vi', onText: (text: string) => void, onDone: (error?: string) => void, onWords?: (text: string) => void): () => void {
   const C = ctor()
   if (!C) {
     onDone('unsupported')
@@ -77,11 +83,30 @@ export function listenOnce(lang: 'en' | 'vi', onText: (text: string) => void, on
   }
   const r = new C()
   r.lang = lang === 'vi' ? 'vi-VN' : 'en-US'
-  r.interimResults = false
+  r.interimResults = !!onWords
   r.maxAlternatives = 1
-  r.onresult = (e) => onText(e.results[0]?.[0]?.transcript ?? '')
-  r.onerror = (e) => onDone(e.error)
-  r.onend = () => onDone()
-  r.start()
+  let sent = false
+  let ended = false
+  const end = (error?: string) => {
+    if (!ended) {
+      ended = true
+      onDone(error)
+    }
+  }
+  r.onresult = (e) => {
+    const parts = Array.from(e.results)
+    const text = parts.map((x) => x[0]?.transcript ?? '').join(' ').trim()
+    if (parts.every((x) => x.isFinal !== false)) {
+      if (!sent && text) onText(text)
+      sent = true
+    } else onWords?.(text)
+  }
+  r.onerror = (e) => end(e.error)
+  r.onend = () => end(sent ? undefined : 'no-speech')
+  try {
+    r.start()
+  } catch {
+    end('busy')
+  }
   return () => r.stop()
 }

@@ -153,7 +153,7 @@ export function evidenceLine(e: RuleEvidence): Bi {
 
 // ---------- Ask Jarvis: fixed questions answered from the app's own data ----------
 
-export type AskId = 'whyBuy' | 'learned' | 'rules' | 'risk' | 'idle' | 'who' | 'skills' | 'log' | 'reviews' | 'learning'
+export type AskId = 'whyBuy' | 'learned' | 'rules' | 'risk' | 'idle' | 'who' | 'skills' | 'log' | 'reviews' | 'learning' | 'boughtHigh' | 'thisStock'
 
 export const ASK_QUESTIONS: Record<AskId, Bi> = {
   whyBuy: { en: 'Why did you buy your last trade?', vi: 'Vì sao bạn mua lệnh gần nhất?' },
@@ -166,6 +166,8 @@ export const ASK_QUESTIONS: Record<AskId, Bi> = {
   log: { en: 'What did you decide lately?', vi: 'Gần đây bạn quyết định gì?' },
   reviews: { en: 'How were my trades graded?', vi: 'Các lệnh được chấm thế nào?' },
   learning: { en: 'What has the learner found?', vi: 'Bộ học tìm ra điều gì?' },
+  boughtHigh: { en: 'Did you buy it too high?', vi: 'Bạn có mua giá cao không?' },
+  thisStock: { en: 'What about the stock on screen?', vi: 'Còn mã đang xem thì sao?' },
 }
 
 /** The questions shown as quick chips; the rest are reached from "What I'm linked to" or by asking. */
@@ -182,6 +184,8 @@ export interface AskContext {
   skills?: { en: string; vi: string; on: boolean }[]
   /** The 24/7 learner's own summary, for "what has the learner found". */
   learn?: { cycles: number; oldTests: number; newBars: number; latest: Bi | null } | null
+  /** The stock on the chart right now, for "it" and "this stock". */
+  symbol?: string
 }
 
 export function ask(id: AskId, c: AskContext): Bi[] {
@@ -211,6 +215,39 @@ export function ask(id: AskId, c: AskContext): Bi[] {
         ? { en: `Honestly, it broke ${broken.length === 1 ? 'one of my rules' : `${broken.length} of my rules`}: ${broken.map((r) => r.en.name.toLowerCase()).join(', and ')}.`, vi: `Nói thật, lệnh này vi phạm ${broken.length} quy tắc: ${broken.map((r) => r.vi.name.toLowerCase()).join(', và ')}.` }
         : { en: 'It passed every rule in my playbook.', vi: 'Lệnh này đạt mọi quy tắc trong sổ tay.' },
     )
+    return out
+  }
+  if (id === 'boughtHigh' || id === 'thisStock') {
+    const sym = c.symbol ?? ''
+    const held = s.open.find((p) => p.symbol === sym)
+    const pos = held ?? (id === 'boughtHigh' ? [...s.open, ...s.trades].sort((a, b) => b.openedAt - a.openedAt).find((t) => !sym || t.symbol === sym) ?? [...s.open].sort((a, b) => b.openedAt - a.openedAt)[0] : undefined)
+    if (!pos) return sym ? stockMemory(sym, s) : [{ en: "I haven't made a practice trade yet.", vi: 'Tôi chưa có lệnh luyện tập nào.' }]
+    const isOpen = s.open.includes(pos as PracticePosition)
+    const now = isOpen ? c.priceOf(pos.symbol) || pos.entry : (pos as PracticeTrade).exit
+    const move = ((now - pos.entry) / pos.entry) * 100
+    const risk = pos.entry - pos.stop
+    const reward = pos.target - pos.entry
+    const rr = risk > 0 ? reward / risk : 0
+    const up = pos.info.pick?.gainPct
+    const out: Bi[] = [
+      isOpen
+        ? { en: `I bought ${pos.symbol} at ${px(pos.entry)}. It's ${px(now)} now, ${signed(move)}.`, vi: `Tôi mua ${pos.symbol} giá ${px(pos.entry)}. Giờ là ${px(now)}, ${signed(move)}.` }
+        : { en: `I bought ${pos.symbol} at ${px(pos.entry)} and sold at ${px(now)}, ${signed(move)}.`, vi: `Tôi mua ${pos.symbol} giá ${px(pos.entry)} và bán ở ${px(now)}, ${signed(move)}.` },
+    ]
+    if (id === 'boughtHigh' || up != null)
+      out.push(
+        up == null
+          ? { en: "I didn't record how far it had already run that day, so I can't say if I chased it.", vi: 'Tôi không ghi lại mã đã tăng bao nhiêu hôm đó, nên không thể nói tôi có đuổi giá không.' }
+          : up >= 8
+            ? { en: `Yes, honestly: it was already up ${up.toFixed(1)}% that day when I bought, which breaks my "don't chase" rule (8%).`, vi: `Nói thật là có: mã đã tăng ${up.toFixed(1)}% hôm đó khi tôi mua, vi phạm quy tắc "không đuổi giá" (8%).` }
+            : { en: `It was up ${up.toFixed(1)}% that day when I bought, under my 8% "don't chase" limit, so by my rules it wasn't a chase.`, vi: `Khi tôi mua, mã đã tăng ${up.toFixed(1)}% hôm đó, dưới mức 8% của quy tắc "không đuổi giá", nên theo quy tắc thì không phải đuổi giá.` },
+      )
+    if (rr > 0)
+      out.push({
+        en: `What matters more is the plan: stop ${px(pos.stop)}, target ${px(pos.target)}, so I risk ${px(risk)} to make ${px(reward)}, ${rr.toFixed(1)} times the risk.${rr < 2 ? ' That is below the 2 to 1 I want.' : ''}`,
+        vi: `Quan trọng hơn là kế hoạch: cắt lỗ ${px(pos.stop)}, mục tiêu ${px(pos.target)}, tức rủi ro ${px(risk)} để kiếm ${px(reward)}, gấp ${rr.toFixed(1)} lần rủi ro.${rr < 2 ? ' Thấp hơn mức 2 ăn 1 tôi muốn.' : ''}`,
+      })
+    if (isOpen) out.push({ en: `If the stop is hit, this practice trade loses about $${(pos.qty * Math.max(0, risk)).toFixed(2)}.`, vi: `Nếu chạm cắt lỗ, lệnh luyện tập này mất khoảng $${(pos.qty * Math.max(0, risk)).toFixed(2)}.` })
     return out
   }
   if (id === 'learned') {

@@ -900,3 +900,45 @@ body {
 .brain-actlog li.cancelled { color: var(--muted); }
 @media (prefers-reduced-motion: reduce) { .brain-confirm { animation: none; } }
 .brain-voice-msg { margin: 6px 0 0; padding: 6px 8px; border-left: 2px solid var(--gold); background: rgba(240, 185, 11, 0.06); font-size: 11px; line-height: 1.45; }
+
+/* Floating brain: talk or type to Jarvis from any screen */
+.jfab { position: fixed; right: 16px; bottom: 16px; z-index: 55; width: 56px; height: 56px; border-radius: 50%; display: grid; place-items: center; color: var(--robot); background: radial-gradient(circle at 50% 40%, rgba(79, 209, 255, 0.22), rgba(6, 12, 22, 0.96) 70%); border: 1px solid rgba(79, 209, 255, 0.55); box-shadow: 0 0 0 0 rgba(79, 209, 255, 0.35), 0 10px 26px rgba(0, 0, 0, 0.5); transition: transform 0.25s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.25s; animation: jfab-breathe 3.2s ease-in-out infinite; }
+.jfab:hover { transform: scale(1.06); }
+.jfab:active { transform: scale(0.95); }
+.jfab.open { transform: rotate(-8deg); }
+.jfab.busy { animation: jfab-pulse 1.1s ease-out infinite; }
+.jfab.still, .jfab.still.busy { animation: none; }
+.jfab-brain { fill: none; stroke: currentColor; stroke-width: 2.2; stroke-linejoin: round; stroke-linecap: round; }
+.jfab-synapse { fill: none; stroke: var(--gold); stroke-width: 1.6; stroke-linecap: round; opacity: 0.85; }
+@keyframes jfab-breathe { 50% { box-shadow: 0 0 0 6px rgba(79, 209, 255, 0.08), 0 10px 26px rgba(0, 0, 0, 0.5); } }
+@keyframes jfab-pulse { 0% { box-shadow: 0 0 0 0 rgba(79, 209, 255, 0.5), 0 10px 26px rgba(0, 0, 0, 0.5); } 100% { box-shadow: 0 0 0 16px rgba(79, 209, 255, 0), 0 10px 26px rgba(0, 0, 0, 0.5); } }
+body:has(.jfab) .toasts, body:has(.jfab) .jarvis-alert { bottom: 84px; }
+
+.jfab-panel { position: fixed; right: 16px; bottom: 84px; z-index: 55; width: min(380px, calc(100vw - 32px)); height: min(520px, calc(100dvh - 120px)); display: flex; flex-direction: column; border: 1px solid rgba(79, 209, 255, 0.45); border-radius: 2px; background: repeating-linear-gradient(0deg, rgba(79, 209, 255, 0.03) 0 1px, transparent 1px 3px), #060c16; box-shadow: 0 14px 40px rgba(0, 0, 0, 0.55); clip-path: polygon(0 0, calc(100% - 14px) 0, 100% 14px, 100% 100%, 14px 100%, 0 calc(100% - 14px)); }
+.jfab-panel.anim { animation: jfab-in 0.3s cubic-bezier(0.2, 0.8, 0.2, 1) both; transform-origin: bottom right; }
+@keyframes jfab-in { from { opacity: 0; transform: translateY(12px) scale(0.96); } to { opacity: 1; transform: none; } }
+.jfab-head { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-bottom: 1px solid rgba(79, 209, 255, 0.2); }
+.jfab-title { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+.jfab-title b { font-size: 13px; letter-spacing: 0.06em; color: var(--robot); }
+.jfab-status { font-size: 11px; color: var(--muted); }
+.jfab-status.listening { color: var(--up, #0ecb81); font-weight: 600; }
+.jfab-status.thinking, .jfab-status.speaking { color: var(--gold); }
+.jfab-x { padding: 4px 8px; font-size: 11px; color: var(--muted); border: 1px solid var(--line-2); border-radius: 6px; }
+.jfab-x:hover { color: var(--text); border-color: var(--robot); }
+.jfab-list { flex: 1; overflow-y: auto; padding: 10px 12px; display: flex; flex-direction: column; gap: 8px; overscroll-behavior: contain; }
+.jfab-empty { margin: auto 0; color: var(--muted); font-size: 12px; line-height: 1.5; text-align: center; }
+.jfab-msg { max-width: 86%; padding: 8px 10px; border-radius: 10px; font-size: 13px; line-height: 1.45; animation: toast-in 0.22s ease-out both; }
+.jfab-msg p { margin: 0; white-space: pre-wrap; }
+.jfab-msg time, .jfab-msg em { display: block; margin-top: 3px; font-size: 10px; color: var(--muted); font-style: normal; }
+.jfab-msg.me { align-self: flex-end; background: rgba(240, 185, 11, 0.12); border: 1px solid rgba(240, 185, 11, 0.3); border-bottom-right-radius: 2px; }
+.jfab-msg.jarvis { align-self: flex-start; background: rgba(79, 209, 255, 0.07); border: 1px solid rgba(79, 209, 255, 0.25); border-bottom-left-radius: 2px; }
+.jfab-msg.live { opacity: 0.75; border-style: dashed; }
+.jfab-msg .brain-confirm-btns { margin-top: 8px; }
+.jfab-input { display: flex; gap: 6px; align-items: center; padding: 10px 12px; border-top: 1px solid rgba(79, 209, 255, 0.2); }
+.jfab-input input { flex: 1; min-width: 0; padding: 9px 10px; border: 1px solid var(--line-2); border-radius: 8px; background: var(--panel); color: var(--text); font-size: 16px; }
+.jfab-input input:focus { outline: none; border-color: var(--robot); }
+.jfab-input .al-save { margin: 0; width: auto; padding: 8px 12px; }
+.jfab-mic { flex: none; width: 42px; height: 42px; border-radius: 50%; display: grid; place-items: center; color: var(--robot); border: 1px solid rgba(79, 209, 255, 0.55); background: rgba(79, 209, 255, 0.08); transition: background 0.2s, color 0.2s; }
+.jfab-mic.on { color: #06101c; background: var(--robot); animation: jfab-pulse 1.1s ease-out infinite; }
+@media (max-width: 600px) { .jfab-panel { right: 8px; left: 8px; width: auto; bottom: 80px; } }
+@media (prefers-reduced-motion: reduce) { .jfab, .jfab.busy, .jfab-mic.on, .jfab-panel.anim, .jfab-msg { animation: none !important; } .jfab { transition: none; } }

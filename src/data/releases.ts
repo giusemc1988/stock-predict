@@ -2,7 +2,7 @@
  * Version and "What's new". Bump APP_VERSION and add an entry to the top of RELEASES
  * with each update. The banner shows once per version, then stays dismissed.
  */
-export const APP_VERSION = '1.6.6'
+export const APP_VERSION = '1.7.0'
 
 export interface Release {
   version: string
@@ -13,6 +13,24 @@ export interface Release {
 }
 
 export const RELEASES: Release[] = [
+  {
+    version: '1.7.0',
+    date: '2026-10-10',
+    changes: [
+      'New floating brain button in the bottom-right corner of every screen. Tap it to talk or type to Jarvis. The whole conversation is written out, your words and his, and your words appear live while you speak. A clear "Listening… speak now" shows when to talk.',
+      'Jarvis answers more questions in plain words, like "did you buy it too high?". If he isn\'t sure what you mean, he tells you about the stock on screen instead of giving up.',
+      'Jarvis now speaks with a male voice by default. Pick Male, Female or Any in the Brain tab; the card shows which voice is actually speaking. A picked voice now really changes.',
+      'When the microphone fails, Jarvis says why in the chat (blocked, nothing heard, no internet) and how to fix it.',
+      'Switch it off in Settings > AI rules: "Floating brain button", and "The floating brain answers out loud".',
+    ],
+    changesVi: [
+      'Nút bộ não nổi mới ở góc dưới bên phải mọi màn hình. Bấm để nói hoặc gõ với Jarvis. Toàn bộ cuộc trò chuyện được ghi ra, lời của bạn và của Jarvis, và lời bạn hiện ngay khi đang nói. Chữ "Đang nghe… hãy nói" cho biết lúc nào nói.',
+      'Jarvis trả lời được nhiều câu hỏi hơn bằng lời dễ hiểu, như "bạn có mua giá cao không?". Nếu chưa chắc bạn hỏi gì, Jarvis nói về mã đang xem thay vì bỏ cuộc.',
+      'Jarvis giờ nói bằng giọng nam theo mặc định. Chọn Nam, Nữ hoặc Bất kỳ trong tab Bộ não; thẻ cho biết giọng nào đang nói. Giọng đã chọn giờ thật sự thay đổi.',
+      'Khi micro lỗi, Jarvis nói lý do trong cuộc trò chuyện (bị chặn, không nghe thấy, mất mạng) và cách sửa.',
+      'Tắt trong Cài đặt > Quy tắc AI: "Nút bộ não nổi" và "Bộ não nổi trả lời thành tiếng".',
+    ],
+  },
   {
     version: '1.6.6',
     date: '2026-10-10',

@@ -143,3 +143,26 @@ assert.equal(parseCommand('buy 100 shares of AAPL', known), null)
 assert.equal(alreadySo({ kind: 'rule', key: 'practiceMode', value: true }, DEFAULT_AI_RULES, false, []), true)
 for (const a of [{ kind: 'killSwitch', value: true }, { kind: 'watch', symbol: 'X' }, { kind: 'rule', key: 'jarvisAlerts', value: false }] as const) assert.ok(describeAction(a).en && describeAction(a).vi)
 console.log('actions ok')
+
+// Floating brain chat: free questions get an answer, and the voice defaults to a man's voice
+import { chatReply, listenProblem } from '../src/lib/jarvisChat'
+import { bestVoice, voiceGender } from '../src/lib/speech'
+const held = { ...emptyPractice(), open: [{ ...trade(7, { symbol: 'HIMS', entry: 31.4, stop: 30.48, target: 33.23 }), info: { ...trade(7).info, pick: { place: 1, of: 5, gainPct: 9.2 } } }] } as unknown as typeof st
+const chatCtx = { state: held, rules: DEFAULT_AI_RULES, journal: [], killSwitch: false, priceOf: () => 30.92, now: T0, symbol: 'HIMS' }
+const deps = { ctx: chatCtx, name: 'Chanh', known, watchlist: [], canAct: true, canStock: true, canReplay: true, canShow: true }
+assert.deepEqual(understand('Bạn có biết là bạn mua nó ở giá cao không', known), { kind: 'ask', id: 'boughtHigh' })
+const high = chatReply('Bạn có biết là bạn mua nó ở giá cao không', deps).text.map((x) => x.vi).join(' ')
+assert.match(high, /HIMS giá 31\.400/)
+assert.match(high, /9\.2%.*không đuổi giá/)
+assert.match(chatReply('did you buy it too high?', deps).text.map((x) => x.en).join(' '), /2\.0 times the risk/)
+assert.match(chatReply('blah blah', deps).text[0].en, /stock on screen/)
+assert.match(chatReply('hi jarvis', deps).text[0].en, /Chanh/)
+assert.ok(chatReply('pause practice', deps).action)
+assert.equal(chatReply('why TSLA?', deps).stock, 'TSLA')
+assert.ok(listenProblem('not-allowed')?.en.includes('microphone'))
+const fakeVoice = (name: string, lang = 'en-US') => ({ name, lang, voiceURI: name, localService: true, default: false }) as SpeechSynthesisVoice
+const vs = [fakeVoice('Samantha'), fakeVoice('Daniel', 'en-GB'), fakeVoice('Google UK English Female', 'en-GB'), fakeVoice('Google UK English Male', 'en-GB')]
+assert.equal(voiceGender(vs[2]), 'female')
+assert.equal(bestVoice(vs, 'en', 'male')?.name, 'Google UK English Male')
+assert.equal(bestVoice(vs, 'en', 'female')?.name, 'Google UK English Female')
+console.log('chat + male voice ok')
