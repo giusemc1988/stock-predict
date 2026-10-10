@@ -226,7 +226,7 @@ export interface EntryContext {
   /** Record the decision in the log (default on). */
   audit?: boolean
   skills?: string[]
-  /** Jarvis playbook gate: a buy that breaks a rule proven on past practice trades is skipped. */
+  /** Trader Brain playbook gate: a buy that breaks a rule proven on past practice trades is skipped. */
   playbookGate?: boolean
   /** Trades that follow a rule needed before it can be proven, and the win-rate margin (0..1). */
   playbookMin?: number

@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict'
 import { emptyPractice, onBarClose, type EntryContext, type PracticeTrade } from '../src/lib/practice'
 import { brokenRules, checkTrade, provenRuleBroken, ruleEvidence } from '../src/lib/playbook'
-import { ask, briefing, tradeLessons } from '../src/lib/jarvis'
+import { ask, briefing, tradeLessons } from '../src/lib/brain'
 import { DEFAULT_AI_RULES } from '../src/lib/aiRules'
 import type { Analysis } from '../src/types'
 
@@ -53,7 +53,7 @@ const gated = onBarClose(hist, ctx({ playbookGate: true, playbookMin: 30, playbo
 assert.equal(gated.open.length, 0, 'gate on: a 1:5 trade breaks proven rr')
 assert.equal(gated.audit?.[0].blockedBy, 'Playbook')
 
-// Jarvis text is built from the data, in both languages, and never promises profits
+// Trader Brain text is built from the data, in both languages, and never promises profits
 const st = { ...emptyPractice(), trades: [trade(1, { review: { good: false, bucket: 'lucky', fails: ['rr'] }, target: 101 })] }
 const lines = [...briefing(st, DEFAULT_AI_RULES, [], false, T0), ...tradeLessons(st), ...(['whyBuy', 'learned', 'rules', 'risk', 'idle'] as const).flatMap((q) => ask(q, { state: st, rules: DEFAULT_AI_RULES, journal: [], killSwitch: false, priceOf: () => 100, now: T0 }))]
 assert.ok(lines.length > 5)

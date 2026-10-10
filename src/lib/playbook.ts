@@ -1,8 +1,8 @@
 /**
- * Jarvis's playbook: rules experienced traders use, written down as checks on each practice
+ * Trader Brain's playbook: rules experienced traders use, written down as checks on each practice
  * trade. This is "encoded experience". Every closed paper trade is then scored against every
  * rule, and a rule is only called proven when trades that followed it beat trades that broke
- * it by the learner's margin, on enough trades. Until then Jarvis says "unproven".
+ * it by the learner's margin, on enough trades. Until then Trader Brain says "unproven".
  *
  * Rules are built in; nothing is downloaded or written by an AI at run time. Paper only.
  */

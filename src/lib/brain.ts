@@ -1,8 +1,8 @@
 /**
- * Jarvis, the Arc Brain: one voice for what the app's AI knows. Everything here is built
+ * Trader Brain: one voice for what the app's AI knows. Everything here is built
  * from the app's own data (practice account, decision log, trade reviews, playbook evidence,
  * the learner). No AI model and no API key: the rules and the learner make every decision,
- * Jarvis only explains them. Never promises profits. Paper only.
+ * Trader Brain only explains them. Never promises profits. Paper only.
  */
 import type { Analysis } from '../types'
 import type { AiRules } from './aiRules'
@@ -111,7 +111,7 @@ export interface Lesson extends Bi {
   tone: 'good' | 'bad' | 'info'
 }
 
-/** Lessons Jarvis writes after each reviewed trade, newest first, plus what the evidence says per rule. */
+/** Lessons Trader Brain writes after each reviewed trade, newest first, plus what the evidence says per rule. */
 export function tradeLessons(s: PracticeState, max = 12): Lesson[] {
   const out: Lesson[] = []
   for (const t of [...s.trades].reverse()) {
@@ -150,7 +150,7 @@ export function evidenceLine(e: RuleEvidence): Bi {
   }
 }
 
-// ---------- Ask Jarvis: fixed questions answered from the app's own data ----------
+// ---------- Ask Trader Brain: fixed questions answered from the app's own data ----------
 
 export type AskId = 'whyBuy' | 'learned' | 'rules' | 'risk' | 'idle'
 
@@ -237,8 +237,8 @@ export function ask(id: AskId, c: AskContext): Bi[] {
   return out
 }
 
-/** Jarvis's one-line take on the analyst's call, in plain words. Wording only; the call is unchanged. */
-export function jarvisSays(a: Analysis, symbol: string): Bi {
+/** Trader Brain's one-line take on the analyst's call, in plain words. Wording only; the call is unchanged. */
+export function brainSays(a: Analysis, symbol: string): Bi {
   const conf = a.confidenceLabel === 'High' ? 'fairly confident' : a.confidenceLabel === 'Medium' ? 'somewhat confident' : 'not confident'
   const confVi = a.confidenceLabel === 'High' ? 'khá tự tin' : a.confidenceLabel === 'Medium' ? 'hơi tự tin' : 'không tự tin'
   if (a.verdict === 'HOLD')

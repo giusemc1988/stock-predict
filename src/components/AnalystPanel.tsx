@@ -5,8 +5,8 @@ import { fmtPct, fmtPrice, fmtTime, tone } from '../lib/format'
 import { RobotIcon } from './RobotIcon'
 import { InfoTip } from './InfoTip'
 import { useLang, useT } from '../lib/i18n'
-import { jarvisSays } from '../lib/jarvis'
-import { JarvisAvatar } from './JarvisAvatar'
+import { brainSays } from '../lib/brain'
+import { BrainAvatar } from './BrainAvatar'
 
 interface Props {
   analysis: Analysis | null
@@ -16,14 +16,14 @@ interface Props {
   tfLabel: string
   onTrade: () => void
   onEditRules: () => void
-  /** Show Jarvis's plain-words line under the call. */
-  jarvis?: boolean
-  jarvisMotion?: boolean
+  /** Show Trader Brain's plain-words line under the call. */
+  brain?: boolean
+  brainMotion?: boolean
 }
 
 const ICON = { bull: '▲', bear: '▼', neutral: '•' }
 
-export function AnalystPanel({ analysis: a, stats, lastSignal, symbol, tfLabel, onTrade, onEditRules, jarvis = false, jarvisMotion = true }: Props) {
+export function AnalystPanel({ analysis: a, stats, lastSignal, symbol, tfLabel, onTrade, onEditRules, brain = false, brainMotion = true }: Props) {
   const t = useT()
   const lang = useLang()
   if (!a) {
@@ -59,11 +59,11 @@ export function AnalystPanel({ analysis: a, stats, lastSignal, symbol, tfLabel, 
       </div>
 
       <p className="headline">{a.headline}</p>
-      {jarvis && (
-        <div className="jarvis-says">
-          <JarvisAvatar size={26} mood={a.verdict === 'HOLD' ? 'idle' : 'speaking'} motion={jarvisMotion} />
+      {brain && (
+        <div className="brain-says">
+          <BrainAvatar size={26} mood={a.verdict === 'HOLD' ? 'idle' : 'speaking'} motion={brainMotion} />
           <span>
-            <b>Jarvis:</b> {lang === 'vi' ? jarvisSays(a, symbol).vi : jarvisSays(a, symbol).en}
+            <b>Trader Brain:</b> {lang === 'vi' ? brainSays(a, symbol).vi : brainSays(a, symbol).en}
           </span>
         </div>
       )}

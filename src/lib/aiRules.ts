@@ -49,14 +49,14 @@ export interface AiRules {
   reviewOn: boolean // grade closed trades on process vs. luck
   dailyReportOn: boolean // end-of-day practice report
   skillRegistryOn: boolean // only approved skills feed signals
-  jarvisOn: boolean // Jarvis, the Arc Brain: the Brain tab and every Jarvis surface
-  jarvisBriefing: boolean // morning briefing in the Brain tab
-  jarvisLessons: boolean // lessons after each reviewed trade, and playbook evidence
-  jarvisAsk: boolean // Ask Jarvis: fixed questions answered from the app's own data
-  jarvisVoice: boolean // Jarvis's plain-words line under the AI Analyst call
-  jarvisStory: boolean // playbook checks in each practice trade's story
-  jarvisGate: boolean // practice buys must pass every playbook rule proven on paper trades
-  jarvisMotion: boolean // animated Jarvis avatar
+  brainOn: boolean // Trader Brain: its tab and everything it shows
+  brainBriefing: boolean // morning briefing in its tab
+  brainLessons: boolean // lessons after each reviewed trade, and playbook evidence
+  brainAsk: boolean // Ask Trader Brain: fixed questions answered from the app's own data
+  brainVoice: boolean // Trader Brain's plain-words line under the AI Analyst call
+  brainStory: boolean // playbook checks in each practice trade's story
+  brainGate: boolean // practice buys must pass every playbook rule proven on paper trades
+  brainMotion: boolean // animated Trader Brain avatar
 }
 
 export const DEFAULT_AI_RULES: AiRules = {
@@ -104,21 +104,21 @@ export const DEFAULT_AI_RULES: AiRules = {
   reviewOn: true,
   dailyReportOn: true,
   skillRegistryOn: true,
-  jarvisOn: true,
-  jarvisBriefing: true,
-  jarvisLessons: true,
-  jarvisAsk: true,
-  jarvisVoice: true,
-  jarvisStory: true,
-  jarvisGate: false,
-  jarvisMotion: true,
+  brainOn: true,
+  brainBriefing: true,
+  brainLessons: true,
+  brainAsk: true,
+  brainVoice: true,
+  brainStory: true,
+  brainGate: false,
+  brainMotion: true,
 }
 
 type NumKey = { [K in keyof AiRules]: AiRules[K] extends number ? K : never }[keyof AiRules]
 type BoolKey = { [K in keyof AiRules]: AiRules[K] extends boolean ? K : never }[keyof AiRules]
 
 export interface RuleField {
-  group: 'call' | 'sizing' | 'gates' | 'costs' | 'modules' | 'jarvis'
+  group: 'call' | 'sizing' | 'gates' | 'costs' | 'modules' | 'brain'
   key: keyof AiRules
   en: string
   vi: string
@@ -174,14 +174,14 @@ export const RULE_FIELDS: RuleField[] = [
   { group: 'modules', key: 'reviewOn', en: 'Trade review: good process vs. luck', vi: 'Đánh giá lệnh: quy trình tốt hay may mắn' },
   { group: 'modules', key: 'dailyReportOn', en: 'Daily practice report', vi: 'Báo cáo luyện tập hằng ngày' },
   { group: 'modules', key: 'skillRegistryOn', en: 'Skill registry (only approved skills feed signals)', vi: 'Danh sách kỹ năng (chỉ kỹ năng được duyệt mới tạo tín hiệu)' },
-  { group: 'jarvis', key: 'jarvisOn', en: 'Jarvis, the Arc Brain (Brain tab and everything below)', vi: 'Jarvis, Bộ não Arc (tab Bộ não và mọi mục bên dưới)' },
-  { group: 'jarvis', key: 'jarvisBriefing', en: 'Morning briefing', vi: 'Bản tin buổi sáng' },
-  { group: 'jarvis', key: 'jarvisLessons', en: 'Lessons and playbook evidence', vi: 'Bài học và bằng chứng sổ tay' },
-  { group: 'jarvis', key: 'jarvisAsk', en: 'Ask Jarvis', vi: 'Hỏi Jarvis' },
-  { group: 'jarvis', key: 'jarvisVoice', en: "Jarvis's line under the AI Analyst call", vi: 'Lời Jarvis dưới nhận định AI' },
-  { group: 'jarvis', key: 'jarvisStory', en: 'Playbook checks in practice trade stories', vi: 'Kiểm tra sổ tay trong câu chuyện lệnh luyện tập' },
-  { group: 'jarvis', key: 'jarvisGate', en: 'Practice buys must pass every playbook rule proven on paper trades', vi: 'Lệnh mua luyện tập phải đạt mọi quy tắc sổ tay đã chứng minh trên lệnh thử' },
-  { group: 'jarvis', key: 'jarvisMotion', en: 'Animated Jarvis avatar', vi: 'Hình đại diện Jarvis chuyển động' },
+  { group: 'brain', key: 'brainOn', en: 'Trader Brain (its tab and everything below)', vi: 'Trader Brain (tab riêng và mọi mục bên dưới)' },
+  { group: 'brain', key: 'brainBriefing', en: 'Morning briefing', vi: 'Bản tin buổi sáng' },
+  { group: 'brain', key: 'brainLessons', en: 'Lessons and playbook evidence', vi: 'Bài học và bằng chứng sổ tay' },
+  { group: 'brain', key: 'brainAsk', en: 'Ask Trader Brain', vi: 'Hỏi Trader Brain' },
+  { group: 'brain', key: 'brainVoice', en: "Trader Brain's line under the AI Analyst call", vi: 'Lời Trader Brain dưới nhận định AI' },
+  { group: 'brain', key: 'brainStory', en: 'Playbook checks in practice trade stories', vi: 'Kiểm tra sổ tay trong câu chuyện lệnh luyện tập' },
+  { group: 'brain', key: 'brainGate', en: 'Practice buys must pass every playbook rule proven on paper trades', vi: 'Lệnh mua luyện tập phải đạt mọi quy tắc sổ tay đã chứng minh trên lệnh thử' },
+  { group: 'brain', key: 'brainMotion', en: 'Animated Trader Brain avatar', vi: 'Hình đại diện Trader Brain chuyển động' },
 ]
 
 const KEY = 'arc.aiRules.v1'
