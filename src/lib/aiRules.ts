@@ -67,6 +67,9 @@ export interface AiRules {
   jarvisReplay: boolean // Replay the day: Jarvis narrates each practice trade on the chart
   jarvisAlerts: boolean // Jarvis pops up when a practice trade opens or closes, with Show me
   jarvisListen: boolean // ask Jarvis by voice (microphone, browser speech recognition)
+  jarvisGreeting: boolean // a human greeting with your name at the top of the Brain tab
+  jarvisLinks: boolean // "What I'm linked to": memory, skills, playbook, decision log, reviews, learner
+  jarvisAnyStock: boolean // ask about any stock ("why AAPL?"): Jarvis opens it and explains on the chart
 }
 
 export const DEFAULT_AI_RULES: AiRules = {
@@ -132,6 +135,9 @@ export const DEFAULT_AI_RULES: AiRules = {
   jarvisReplay: true,
   jarvisAlerts: true,
   jarvisListen: false,
+  jarvisGreeting: true,
+  jarvisLinks: true,
+  jarvisAnyStock: true,
 }
 
 type NumKey = { [K in keyof AiRules]: AiRules[K] extends number ? K : never }[keyof AiRules]
@@ -210,6 +216,9 @@ export const RULE_FIELDS: RuleField[] = [
   { group: 'jarvis', key: 'jarvisShowMe', en: 'Show me: Jarvis opens the stock and points at what it is explaining on the chart', vi: 'Chỉ cho tôi: Jarvis mở mã và chỉ vào điều đang giải thích trên biểu đồ' },
   { group: 'jarvis', key: 'jarvisReplay', en: 'Replay the day: Jarvis walks through each practice trade on the chart', vi: 'Xem lại ngày: Jarvis dẫn xem từng lệnh luyện tập trên biểu đồ' },
   { group: 'jarvis', key: 'jarvisAlerts', en: 'Jarvis alerts when a practice trade opens or closes (replaces the plain pop-up)', vi: 'Jarvis báo khi lệnh luyện tập mở hoặc đóng (thay thông báo thường)' },
+  { group: 'jarvis', key: 'jarvisGreeting', en: 'Greeting: Jarvis says hello by name and sums up the day', vi: 'Lời chào: Jarvis chào bạn bằng tên và tóm tắt ngày' },
+  { group: 'jarvis', key: 'jarvisLinks', en: "What I'm linked to: ask Jarvis about its memory, skills, playbook, decision log, reviews and learner", vi: 'Kết nối của tôi: hỏi Jarvis về bộ nhớ, kỹ năng, sổ tay, nhật ký quyết định, đánh giá và bộ học' },
+  { group: 'jarvis', key: 'jarvisAnyStock', en: 'Ask about any stock ("why AAPL?"): Jarvis opens it and explains on the chart', vi: 'Hỏi về bất kỳ mã nào ("vì sao AAPL?"): Jarvis mở mã đó và giải thích trên biểu đồ' },
   { group: 'jarvis', key: 'jarvisListen', en: 'Ask Jarvis by voice (microphone; Chrome, Edge or Safari)', vi: 'Hỏi Jarvis bằng giọng nói (micro; Chrome, Edge hoặc Safari)' },
   { group: 'jarvis', key: 'jarvisSpeech', en: "Jarvis speaks (reads briefings and answers aloud with your device's voices; pick the voice in the Brain tab)", vi: 'Jarvis nói (đọc to bản tin và câu trả lời bằng giọng có sẵn trên thiết bị; chọn giọng trong tab Bộ não)' },
 ]

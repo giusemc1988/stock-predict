@@ -1,11 +1,13 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { canListen, listenOnce, matchQuestion } from '../lib/listen'
+import { canListen, listenOnce, understand } from '../lib/listen'
+import { explain } from '../lib/brainRouter'
+import { SKILLS, statusOf, useSkillStatuses } from '../lib/skills'
 import type { AiRules } from '../lib/aiRules'
 import { useLang } from '../lib/i18n'
 import type { JournalEntry } from '../lib/journal'
 import type { PracticeState } from '../lib/practice'
 import { PLAYBOOK, ruleEvidence, STATUS_LABEL } from '../lib/playbook'
-import { ask, ASK_QUESTIONS, briefing, evidenceLine, evidenceOpts, experience, tradeLessons, type AskId } from '../lib/jarvis'
+import { ask, ASK_QUESTIONS, briefing, evidenceLine, evidenceOpts, experience, greeting, QUICK_ASK, stockMemory, tradeLessons, type AskId, type Bi } from '../lib/jarvis'
 import { JarvisAvatar } from './JarvisAvatar'
 import { useLocalStorage } from '../hooks/useLocalStorage'
 import { canSpeak, DEFAULT_VOICE, isNatural, sortVoices, speak, stopSpeaking, useVoices, type VoicePrefs } from '../lib/speech'
@@ -14,7 +16,7 @@ interface Props {
   state: PracticeState
   rules: AiRules
   journal: JournalEntry[]
-  learn: { oldTests: number; newBars: number; journal: JournalEntry[] } | null
+  learn: { oldTests: number; newBars: number; journal: JournalEntry[]; cycles?: number; latest?: Bi | null } | null
   killSwitch: boolean
   priceOf: (symbol: string) => number
   onEditRules: () => void
@@ -22,12 +24,16 @@ interface Props {
   onShowTrade?: (id: string) => void
   /** Replay the day's practice trades on the chart. */
   onReplay?: () => void
+  /** Markets Jarvis can recognise by ticker or name in a question. */
+  known?: { symbol: string; name: string }[]
+  /** "Why AAPL?": open that stock and explain it on the chart. */
+  onAskStock?: (symbol: string) => void
 }
 
 type Tab = 'today' | 'lessons' | 'playbook'
 
 /** Jarvis, the Arc Brain: briefing, Ask Jarvis, lessons and the playbook with its evidence. */
-export function BrainPanel({ state, rules, journal, learn, killSwitch, priceOf, onEditRules, onShowTrade, onReplay }: Props) {
+export function BrainPanel({ state, rules, journal, learn, killSwitch, priceOf, onEditRules, onShowTrade, onReplay, known = [], onAskStock }: Props) {
   const lang = useLang()
   const L = (en: string, vi: string) => (lang === 'vi' ? vi : en)
   const pick = (b: { en: string; vi: string }) => (lang === 'vi' ? b.vi : b.en)
@@ -37,7 +43,11 @@ export function BrainPanel({ state, rules, journal, learn, killSwitch, priceOf, 
   const xp = experience(state, ev, learn)
   const brief = rules.jarvisBriefing ? briefing(state, rules, journal, killSwitch) : []
   const lessons = rules.jarvisLessons ? tradeLessons(state) : []
-  const answer = q && rules.jarvisAsk ? ask(q, { state, rules, journal, killSwitch, priceOf }) : null
+  const statuses = useSkillStatuses()
+  const skills = SKILLS.map((k) => ({ en: k.en.name, vi: k.vi.name, on: statusOf(k.id, statuses) === 'approved' }))
+  const learnInfo = learn ? { cycles: learn.cycles ?? 0, oldTests: learn.oldTests, newBars: learn.newBars, latest: learn.latest ?? null } : null
+  const ctx = { state, rules, journal, killSwitch, priceOf, skills, learn: learnInfo }
+  const answer = q && rules.jarvisAsk ? ask(q, ctx) : null
   const mood = killSwitch ? 'warning' : q ? 'speaking' : 'idle'
   const [voice, setVoice] = useLocalStorage<VoicePrefs>('arc.jarvisVoice.v1', DEFAULT_VOICE)
   const voices = sortVoices(useVoices())
@@ -47,13 +57,52 @@ export function BrainPanel({ state, rules, journal, learn, killSwitch, priceOf, 
   const askAndSay = (id: AskId) => {
     const next = q === id ? null : id
     setQ(next)
+    setFree(null)
     // "why did you buy" opens the stock and walks through the trade on the chart (the tour speaks each step)
     if (next === 'whyBuy' && onShowTrade && lastTrade) return onShowTrade(lastTrade.id)
     if (!speech) return
-    if (next) say(ask(next, { state, rules, journal, killSwitch, priceOf }))
+    if (next) say(ask(next, ctx))
     else stopSpeaking()
   }
-  // ask by voice: one sentence, matched to a question
+  // greeting: your name, the time of day and a one-line summary; read aloud once a day when Jarvis speaks
+  const [name, setName] = useLocalStorage('arc.jarvisName.v1', 'Chanh')
+  const [editName, setEditName] = useState(false)
+  const hello = rules.jarvisGreeting ? greeting(name, state, killSwitch) : null
+  useEffect(() => {
+    if (!hello || !speech) return
+    const today = new Date().toDateString()
+    try {
+      if (localStorage.getItem('arc.jarvisGreeted.v1') === today) return
+      localStorage.setItem('arc.jarvisGreeted.v1', today)
+    } catch {
+      return
+    }
+    say([hello])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [!!hello, speech])
+  // ask anything: typed or spoken, understood as a stock, one of Jarvis's questions, or "replay"
+  const [typed, setTyped] = useState('')
+  const [free, setFree] = useState<{ text: string; symbol?: string } | null>(null)
+  const linked: AskId[] = ['who', 'skills', 'log', 'reviews', 'learning']
+  const handle = (text: string) => {
+    const u = understand(text, known)
+    setFree(null)
+    if (u?.kind === 'stock' && rules.jarvisAnyStock) {
+      setQ(null)
+      const facts = [...stockMemory(u.symbol, state), onAskStock ? { en: `Opening ${u.symbol} now; I'll walk you through it on the chart.`, vi: `Đang mở ${u.symbol}; tôi sẽ giải thích trên biểu đồ.` } : { en: 'Turn on Show me in AI rules and I can walk you through the chart.', vi: 'Bật Chỉ cho tôi trong Quy tắc AI để tôi giải thích trên biểu đồ.' }]
+      void explain({ text, lang, facts }).then((r) => {
+        setFree({ text: r.text, symbol: u.symbol })
+        if (speech && !onAskStock) say(facts)
+      })
+      onAskStock?.(u.symbol)
+      return true
+    }
+    if (u?.kind === 'replay' && onReplay) return onReplay(), true
+    if (u?.kind === 'ask' && (rules.jarvisLinks || !linked.includes(u.id))) return askAndSay(u.id), true
+    setFree({ text: L("I didn't catch that. Try a stock (\"why AAPL?\"), \"what's my risk\", \"what skills do you use\" or \"replay today\".", 'Tôi chưa hiểu. Thử hỏi một mã ("vì sao AAPL?"), "rủi ro", "kỹ năng" hoặc "xem lại hôm nay".') })
+    return false
+  }
+  // ask by voice: one sentence, understood the same way as typing
   const [listening, setListening] = useState(false)
   const [heard, setHeard] = useState('')
   const stopListen = useRef<(() => void) | null>(null)
@@ -66,9 +115,7 @@ export function BrainPanel({ state, rules, journal, learn, killSwitch, priceOf, 
       lang,
       (text) => {
         setHeard(text)
-        const m = matchQuestion(text)
-        if (m === 'replay') onReplay?.()
-        else if (m) askAndSay(m)
+        handle(text)
       },
       (err) => {
         setListening(false)
@@ -100,6 +147,30 @@ export function BrainPanel({ state, rules, journal, learn, killSwitch, priceOf, 
           'Tôi học từ mỗi lệnh thử và kiểm tra từng lệnh theo các quy tắc của trader kinh nghiệm. Tôi tính kinh nghiệm bằng số lệnh luyện tập, không phải số năm, và chỉ gọi một quy tắc là đã chứng minh khi chính lệnh thử của chúng ta xác nhận. Chưa có gì ở đây thắng được mua và giữ. Chỉ thử nghiệm, không phải lời khuyên đầu tư.',
         )}
       </p>
+
+      {hello && (
+        <div className={`brain-hello${rules.jarvisMotion ? ' anim' : ''}`}>
+          <JarvisAvatar size={56} mood={killSwitch ? 'warning' : 'speaking'} motion={rules.jarvisMotion} />
+          <div>
+            <p className="brain-hello-text">
+              {pick(hello)
+                .split(' ')
+                .map((w, i) => (
+                  <span key={i} style={{ animationDelay: `${Math.min(1400, 250 + i * 40)}ms` }}>
+                    {w}{' '}
+                  </span>
+                ))}
+            </p>
+            {editName ? (
+              <input className="brain-name" autoFocus value={name} maxLength={30} placeholder={L('Your name', 'Tên bạn')} onChange={(e) => setName(e.target.value)} onBlur={() => setEditName(false)} onKeyDown={(e) => e.key === 'Enter' && setEditName(false)} />
+            ) : (
+              <button className="tour-link" onClick={() => setEditName(true)}>
+                {L('Change what I call you', 'Đổi tên tôi gọi bạn')} ›
+              </button>
+            )}
+          </div>
+        </div>
+      )}
 
       <div className="al-tiles brain-tiles">
         <div>
@@ -164,15 +235,33 @@ export function BrainPanel({ state, rules, journal, learn, killSwitch, priceOf, 
                   </button>
                 )}
               </div>
-              {heard && <p className="muted al-note">“{heard}”{matchQuestion(heard) ? '' : L(" — I didn't catch a question I know. Try: why did you buy, what's my risk, replay today.", ' — tôi chưa hiểu câu hỏi. Thử: vì sao mua, rủi ro, xem lại hôm nay.')}</p>}
+              {heard && <p className="muted al-note">“{heard}”</p>}
+              <form
+                className="brain-type"
+                onSubmit={(e) => {
+                  e.preventDefault()
+                  if (typed.trim() && handle(typed.trim())) setTyped('')
+                }}
+              >
+                <input value={typed} onChange={(e) => setTyped(e.target.value)} placeholder={rules.jarvisAnyStock ? L('Ask me anything, like "why AAPL?"', 'Hỏi gì cũng được, ví dụ "vì sao AAPL?"') : L('Ask me a question', 'Hỏi tôi một câu')} aria-label={L('Ask Jarvis', 'Hỏi Jarvis')} />
+                <button type="submit" className="pr-rescan">
+                  {L('Ask', 'Hỏi')}
+                </button>
+              </form>
+              {free && (
+                <div className="brain-answer">
+                  <JarvisAvatar size={24} mood="speaking" motion={false} />
+                  <p>{free.text}</p>
+                </div>
+              )}
               <div className="brain-ask">
-                {(Object.keys(ASK_QUESTIONS) as AskId[]).map((id) => (
+                {QUICK_ASK.map((id) => (
                   <button key={id} className={q === id ? 'on' : ''} onClick={() => askAndSay(id)}>
                     {pick(ASK_QUESTIONS[id])}
                   </button>
                 ))}
               </div>
-              {answer && (
+              {answer && q && QUICK_ASK.includes(q) && (
                 <div className="brain-answer">
                   <JarvisAvatar size={24} mood="speaking" motion={false} />
                   <div>
@@ -186,6 +275,37 @@ export function BrainPanel({ state, rules, journal, learn, killSwitch, priceOf, 
                 </div>
               )}
               <p className="muted al-note">{L('Answers come from the app’s own records. No AI service or API key is used.', 'Câu trả lời lấy từ dữ liệu của chính ứng dụng. Không dùng dịch vụ AI hay khóa API.')}</p>
+            </div>
+          )}
+          {rules.jarvisAsk && rules.jarvisLinks && (
+            <div className="al-card">
+              <div className="al-kicker">{L("WHAT I'M LINKED TO", 'TÔI KẾT NỐI VỚI')}</div>
+              <p className="muted al-note">{L('Everything I know lives in the app. Tap one and I’ll explain it.', 'Mọi điều tôi biết đều nằm trong ứng dụng. Chạm vào một mục để tôi giải thích.')}</p>
+              <div className="brain-links">
+                {(
+                  [
+                    ['who', '◎', L('Who I am', 'Tôi là ai'), L('traits', 'tính cách')],
+                    ['learned', '✦', L('Memory', 'Bộ nhớ'), `${state.trades.filter((t) => t.review).length} ${L('lessons', 'bài học')}`],
+                    ['skills', '⚙', L('Skills', 'Kỹ năng'), `${skills.filter((k) => k.on).length}/${skills.length} ${L('on', 'bật')}`],
+                    ['rules', '☰', L('Playbook', 'Sổ tay'), `${xp.proven}/${xp.rules} ${L('proven', 'đã chứng minh')}`],
+                    ['log', '⧗', L('Decision log', 'Nhật ký quyết định'), `${(state.audit ?? []).length} ${L('entries', 'mục')}`],
+                    ['reviews', '✓', L('Trade reviews', 'Đánh giá lệnh'), `${xp.reviewed} ${L('graded', 'đã chấm')}`],
+                    ['learning', '∞', L('Learner', 'Bộ học'), `${learnInfo?.cycles ?? 0} ${L('cycles', 'vòng')}`],
+                  ] as [AskId, string, string, string][]
+                ).map(([id, icon, label, count]) => (
+                  <button key={id} className={q === id ? 'on' : ''} onClick={() => askAndSay(id)}>
+                    <i>{icon}</i>
+                    <b>{label}</b>
+                    <span>{count}</span>
+                  </button>
+                ))}
+              </div>
+              {answer && q && !QUICK_ASK.includes(q) && (
+                <div className="brain-answer">
+                  <JarvisAvatar size={24} mood="speaking" motion={false} />
+                  <p>{answer.map(pick).join(' ')}</p>
+                </div>
+              )}
             </div>
           )}
           {rules.jarvisSpeech && (

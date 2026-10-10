@@ -98,3 +98,31 @@ assert.equal(matchQuestion('vì sao bạn mua'), 'whyBuy')
 assert.equal(matchQuestion('hôm nay học được gì'), 'learned')
 assert.equal(matchQuestion('hello there'), null)
 console.log('replay + voice ok')
+
+// greeting, linked questions, "ask about any stock"
+import { greeting, stockMemory, stockTour } from '../src/lib/jarvis'
+import { understand } from '../src/lib/listen'
+const hello = greeting('Chanh', st, false, T0)
+assert.match(hello.en, /^Good (morning|afternoon|evening), Chanh\.|^Working late, Chanh\./)
+assert.ok(hello.vi.includes('Chanh'))
+const jctx = { state: st, rules: DEFAULT_AI_RULES, journal: [], killSwitch: false, priceOf: () => 100, now: T0, skills: [{ en: 'Analyst', vi: 'Phân tích', on: true }], learn: { cycles: 3, oldTests: 10, newBars: 5, latest: { en: 'x', vi: 'y' } } }
+for (const q of ['who', 'skills', 'log', 'reviews', 'learning'] as const) for (const l of ask(q, jctx)) assert.ok(l.en && l.vi, q)
+assert.match(ask('reviews', jctx)[0].en, /1 lucky/)
+const known = [{ symbol: 'AAPL', name: 'Apple Inc.' }, { symbol: 'TSLA', name: 'Tesla Inc.' }, { symbol: 'BTC/USDT', name: 'Bitcoin' }]
+assert.deepEqual(understand('why AAPL?', known), { kind: 'stock', symbol: 'AAPL' })
+assert.deepEqual(understand('what about tesla', known), { kind: 'stock', symbol: 'TSLA' })
+assert.deepEqual(understand('how is btc doing', known), { kind: 'stock', symbol: 'BTC/USDT' })
+assert.deepEqual(understand('vì sao mua AAPL', known), { kind: 'stock', symbol: 'AAPL' })
+assert.deepEqual(understand('why PLTR?', known), { kind: 'stock', symbol: 'PLTR' })
+assert.deepEqual(understand('what skills do you use', known), { kind: 'ask', id: 'skills' })
+assert.deepEqual(understand('Why did you buy?', known), { kind: 'ask', id: 'whyBuy' })
+assert.deepEqual(understand('replay today', known), { kind: 'replay' })
+assert.equal(understand('hello there', known), null)
+assert.match(stockMemory('S1', st)[0].en, /traded S1 1 time/)
+assert.match(stockMemory('ZZZ', st)[0].en, /haven't traded ZZZ/)
+const a = { verdict: 'BUY', score: 0.6, confidence: 0.6, confidenceLabel: 'High', headline: '', checks: [{ label: 'Uptrend', detail: '', stance: 'bull' }, { label: 'Overbought', detail: '', stance: 'bear' }], plan: { entry: 100, stop: 98, target: 104, riskReward: 2 }, sizing: null, tradeScore: null, exitPlan: null, trackRecord: '' } as unknown as Analysis
+const why = stockTour(a, 'AAPL', 1000, st)!
+assert.equal(why.symbol, 'AAPL')
+assert.equal(why.steps.length, 6)
+assert.match(why.steps[1].en, /For it: uptrend\. Against it: overbought\./)
+console.log('greeting + any stock ok')

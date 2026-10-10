@@ -30,7 +30,7 @@ import { BrainPanel } from './components/BrainPanel'
 import { JarvisAvatar } from './components/JarvisAvatar'
 import { JarvisAlert, type JarvisAlertData } from './components/JarvisAlert'
 import type { ChartTour } from './components/ChartPanel'
-import { analysisTour, dayReplayTour, tourSymbols, tradeTour, type Tour } from './lib/jarvis'
+import { analysisTour, dayReplayTour, stockTour, tourSymbols, tradeTour, type Tour } from './lib/jarvis'
 import { canSpeak, loadVoicePrefs, speak, stopSpeaking } from './lib/speech'
 import { dayKey, kindOf, type PracticeEvent } from './lib/practice'
 import { practiceRows } from './lib/practiceRows'
@@ -107,7 +107,9 @@ export default function App() {
   const [aiSymbols, setAiSymbols] = useState<string[]>([])
   // Jarvis "Show me": a guided tour on the chart (its market joins the chart list while it runs)
   const [tour, setTour] = useState<{ t: Tour; i: number } | null>(null)
-  const tourSyms = tour ? tourSymbols(tour.t).join(',') : ''
+  // "why AAPL?": the stock asked about opens, and its tour starts once its analysis is ready
+  const [askedStock, setAskedStock] = useState<string | null>(null)
+  const tourSyms = [...(tour ? tourSymbols(tour.t) : []), ...(askedStock ? [askedStock] : [])].join(',')
   const chartUniverse = useMemo(
     () => [
       ...universe,
@@ -151,8 +153,13 @@ export default function App() {
   const liveRef = useRef(live)
   liveRef.current = live
   const [analysis, setAnalysis] = useState<ReturnType<typeof analyze>>(null)
+  // which market the current analysis is for (Jarvis's "why AAPL?" waits for the right one)
+  const [analysisSym, setAnalysisSym] = useState('')
   useEffect(() => {
-    const run = () => setAnalysis(analyze(candlesRef.current, closed, liveRef.current, flowRef.current, aiRules))
+    const run = () => {
+      setAnalysis(analyze(candlesRef.current, closed, liveRef.current, flowRef.current, aiRules))
+      setAnalysisSym(candlesRef.current.length ? inst.symbol : '')
+    }
     run()
     const id = setInterval(run, 1000)
     return () => clearInterval(id)
@@ -453,6 +460,20 @@ export default function App() {
     if (t) startTour(tradeTour(t, practice.state.trades))
   } : undefined
   const showReplay = showMeOn && aiRules.jarvisReplay ? () => startTour(dayReplayTour(practice.state)) : undefined
+  const askStock = aiRules.jarvisAnyStock
+    ? (symbol: string) => {
+        setPrefs((p) => ({ ...p, symbol }))
+        if (showMeOn) {
+          setTour(null)
+          setAskedStock(symbol)
+        }
+      }
+    : undefined
+  useEffect(() => {
+    if (!askedStock || inst.symbol !== askedStock || analysisSym !== askedStock || !analysis || candles.length < 60) return
+    setAskedStock(null)
+    startTour(stockTour(analysis, askedStock, candles[candles.length - 1].time, practice.state))
+  }, [askedStock, inst.symbol, analysisSym, analysis, candles, startTour, practice.state])
   const showAnalysis = showMeOn && analysis && candles.length ? () => startTour(analysisTour(analysis, inst.symbol, candles[candles.length - 1].time)) : undefined
 
   return (
@@ -580,7 +601,7 @@ export default function App() {
                     setRightTab('trade')
                   }} onEditRules={() => setAiRulesOpen(true)} jarvis={aiRules.jarvisOn && aiRules.jarvisVoice} jarvisMotion={aiRules.jarvisMotion} onShowMe={showAnalysis} />}
               {shownTab === 'practice' && <PracticePanel state={practice.state} rules={aiRules} symbol={inst.symbol} priceOf={practice.priceOf} onReset={practice.reset} scan={practice.scan} onRescan={practice.rescan} onOpen={(s) => select(s)} universe={chartUniverse.map((i) => i.symbol)} serverMode={practice.serverMode} serverLastRun={practice.serverLastRun} />}
-              {shownTab === 'brain' && <BrainPanel state={practice.state} rules={aiRules} journal={autoLearn.state.journal} learn={autoLearn.state} killSwitch={prefs.killSwitch} priceOf={practice.priceOf} onEditRules={() => setAiRulesOpen(true)} onShowTrade={showTrade} onReplay={showReplay} />}
+              {shownTab === 'brain' && <BrainPanel state={practice.state} rules={aiRules} journal={autoLearn.state.journal} learn={autoLearn.state} killSwitch={prefs.killSwitch} priceOf={practice.priceOf} onEditRules={() => setAiRulesOpen(true)} onShowTrade={showTrade} onReplay={showReplay} known={chartUniverse} onAskStock={askStock} />}
               {shownTab === 'flow' && <OrderFlowPanel flow={flow} last={lastClose} />}
               {shownTab === 'learn' && <AutoLearnPanel al={autoLearn} rules={aiRules} symbol={inst.symbol} liveScore={live?.probUp ?? null} />}
               {shownTab === 'picks' && (

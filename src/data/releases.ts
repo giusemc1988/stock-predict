@@ -2,7 +2,7 @@
  * Version and "What's new". Bump APP_VERSION and add an entry to the top of RELEASES
  * with each update. The banner shows once per version, then stays dismissed.
  */
-export const APP_VERSION = '1.6.3'
+export const APP_VERSION = '1.6.4'
 
 export interface Release {
   version: string
@@ -13,6 +13,22 @@ export interface Release {
 }
 
 export const RELEASES: Release[] = [
+  {
+    version: '1.6.4',
+    date: '2026-10-10',
+    changes: [
+      'Jarvis greets you: the Brain tab opens with Jarvis powering up and saying good morning (or afternoon, or evening) by name, with a one-line summary of the market, open trades and the practice account. With speech on, it says it out loud once a day. Tap "Change what I call you" to set your name. Switch: "Greeting" in AI rules > Jarvis.',
+      'Ask Jarvis anything: type or say a question. Name a stock ("why AAPL?", "what about Tesla?") and Jarvis opens that chart and walks you through it in the HUD: its take, the strongest reasons for and against, its own history with that stock, then the entry, stop and target. Switch: "Ask about any stock".',
+      'What I\'m linked to: Jarvis now answers about everything it uses: who it is, its memory of lessons, the skills it runs, the playbook, the decision log, trade reviews and the 24/7 learner. Tap a tile or just ask. Switch: "What I\'m linked to".',
+      'Answers still come from the app\'s own records, with no AI service or key. The app is ready to plug in free AI providers later; they will only reword the facts, never trade.',
+    ],
+    changesVi: [
+      'Jarvis chào bạn: tab Bộ não mở ra với Jarvis khởi động và chào buổi sáng (chiều, tối) bằng tên bạn, kèm một dòng tóm tắt thị trường, lệnh đang mở và tài khoản luyện tập. Khi bật giọng nói, Jarvis nói lời chào một lần mỗi ngày. Chạm "Đổi tên tôi gọi bạn" để đặt tên. Công tắc: "Lời chào" trong Quy tắc AI > Jarvis.',
+      'Hỏi Jarvis bất cứ điều gì: gõ hoặc nói câu hỏi. Nêu một mã ("vì sao AAPL?", "còn Tesla thì sao?") và Jarvis mở biểu đồ mã đó, giải thích trong giao diện HUD: nhận định, lý do ủng hộ và phản đối mạnh nhất, lịch sử giao dịch của nó với mã này, rồi điểm vào, cắt lỗ và mục tiêu. Công tắc: "Hỏi về bất kỳ mã nào".',
+      'Tôi kết nối với: Jarvis giờ trả lời về mọi thứ nó dùng: nó là ai, bộ nhớ bài học, các kỹ năng, sổ tay, nhật ký quyết định, đánh giá lệnh và bộ học 24/7. Chạm một ô hoặc cứ hỏi. Công tắc: "Kết nối của tôi".',
+      'Câu trả lời vẫn lấy từ dữ liệu của chính ứng dụng, không dùng dịch vụ AI hay khóa. Ứng dụng đã sẵn sàng để gắn các AI miễn phí sau này; chúng chỉ diễn đạt lại sự thật, không bao giờ giao dịch.',
+    ],
+  },
   {
     version: '1.6.3',
     date: '2026-10-10',

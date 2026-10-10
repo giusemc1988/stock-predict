@@ -153,7 +153,7 @@ export function evidenceLine(e: RuleEvidence): Bi {
 
 // ---------- Ask Jarvis: fixed questions answered from the app's own data ----------
 
-export type AskId = 'whyBuy' | 'learned' | 'rules' | 'risk' | 'idle'
+export type AskId = 'whyBuy' | 'learned' | 'rules' | 'risk' | 'idle' | 'who' | 'skills' | 'log' | 'reviews' | 'learning'
 
 export const ASK_QUESTIONS: Record<AskId, Bi> = {
   whyBuy: { en: 'Why did you buy your last trade?', vi: 'Vì sao bạn mua lệnh gần nhất?' },
@@ -161,7 +161,15 @@ export const ASK_QUESTIONS: Record<AskId, Bi> = {
   rules: { en: 'Which rules work so far?', vi: 'Quy tắc nào hiệu quả đến giờ?' },
   risk: { en: 'What is my risk right now?', vi: 'Rủi ro của tôi lúc này là gì?' },
   idle: { en: "Why aren't you trading?", vi: 'Vì sao bạn không giao dịch?' },
+  who: { en: 'Who are you?', vi: 'Bạn là ai?' },
+  skills: { en: 'What skills do you use?', vi: 'Bạn dùng những kỹ năng nào?' },
+  log: { en: 'What did you decide lately?', vi: 'Gần đây bạn quyết định gì?' },
+  reviews: { en: 'How were my trades graded?', vi: 'Các lệnh được chấm thế nào?' },
+  learning: { en: 'What has the learner found?', vi: 'Bộ học tìm ra điều gì?' },
 }
+
+/** The questions shown as quick chips; the rest are reached from "What I'm linked to" or by asking. */
+export const QUICK_ASK: AskId[] = ['whyBuy', 'learned', 'rules', 'risk', 'idle']
 
 export interface AskContext {
   state: PracticeState
@@ -170,6 +178,10 @@ export interface AskContext {
   killSwitch: boolean
   priceOf: (symbol: string) => number
   now?: number
+  /** Skill registry with each skill's current state, for "what skills do you use". */
+  skills?: { en: string; vi: string; on: boolean }[]
+  /** The 24/7 learner's own summary, for "what has the learner found". */
+  learn?: { cycles: number; oldTests: number; newBars: number; latest: Bi | null } | null
 }
 
 export function ask(id: AskId, c: AskContext): Bi[] {
@@ -232,6 +244,49 @@ export function ask(id: AskId, c: AskContext): Bi[] {
       },
       ...(c.killSwitch ? [{ en: 'The kill switch is on, so I won\'t buy anything new.', vi: 'Công tắc dừng khẩn cấp đang bật nên tôi sẽ không mua thêm.' }] : []),
     ]
+  }
+  if (id === 'who')
+    return [
+      { en: "I'm Jarvis, the Arc Brain. I run the practice account and explain every call the app makes.", vi: 'Tôi là Jarvis, Bộ não Arc. Tôi điều hành tài khoản luyện tập và giải thích mọi nhận định của ứng dụng.' },
+      { en: "I'm patient, I follow my playbook, and I'll tell you when I'm wrong. I only trade paper money, and nothing I've done has beaten buying and holding yet, so I never promise profits.", vi: 'Tôi kiên nhẫn, làm theo sổ tay, và sẽ nói khi tôi sai. Tôi chỉ giao dịch tiền thử, và chưa có gì tôi làm thắng được mua và giữ, nên tôi không bao giờ hứa lợi nhuận.' },
+      { en: `What I know comes from ${s.trades.length} practice trades, ${PLAYBOOK.length} playbook rules, the decision log, trade reviews and the 24/7 learner.`, vi: `Điều tôi biết đến từ ${s.trades.length} lệnh luyện tập, ${PLAYBOOK.length} quy tắc sổ tay, nhật ký quyết định, đánh giá lệnh và bộ học 24/7.` },
+    ]
+  if (id === 'skills') {
+    const sk = c.skills ?? []
+    if (!sk.length) return [{ en: "My skill list isn't loaded yet.", vi: 'Danh sách kỹ năng chưa tải xong.' }]
+    const on = sk.filter((k) => k.on)
+    const off = sk.filter((k) => !k.on)
+    return [
+      { en: `I'm using ${on.length} skills right now: ${on.map((k) => k.en).join(', ')}.`, vi: `Tôi đang dùng ${on.length} kỹ năng: ${on.map((k) => k.vi).join(', ')}.` },
+      ...(off.length ? [{ en: `Switched off or on hold: ${off.map((k) => k.en).join(', ')}.`, vi: `Đang tắt hoặc tạm dừng: ${off.map((k) => k.vi).join(', ')}.` }] : []),
+      { en: 'You can see and switch each one in the Skills page.', vi: 'Bạn có thể xem và bật tắt từng kỹ năng ở trang Kỹ năng.' },
+    ]
+  }
+  if (id === 'log') {
+    const recent = (s.audit ?? []).slice(-4).reverse()
+    if (!recent.length) return [{ en: "I haven't logged a decision yet.", vi: 'Tôi chưa ghi quyết định nào.' }]
+    return recent.map((a) => ({
+      en: `${a.symbol}: ${a.accepted ? (a.side === 'buy' ? 'bought' : 'sold') : `skipped a ${a.side}${a.blockedBy ? ` (${a.blockedBy.toLowerCase()} said no)` : ''}`} at ${px(a.price)}.`,
+      vi: `${a.symbol}: ${a.accepted ? (a.side === 'buy' ? 'đã mua' : 'đã bán') : `bỏ qua lệnh ${a.side === 'buy' ? 'mua' : 'bán'}${a.blockedBy ? ` (${a.blockedBy} chặn)` : ''}`} giá ${px(a.price)}.`,
+    }))
+  }
+  if (id === 'reviews') {
+    const rv = s.trades.filter((t) => t.review)
+    if (!rv.length) return [{ en: 'No trades have been graded yet. Each one is graded when it closes.', vi: 'Chưa có lệnh nào được chấm. Mỗi lệnh được chấm khi đóng.' }]
+    const n = (b: string) => rv.filter((t) => t.review!.bucket === b).length
+    return [
+      { en: `I've graded ${rv.length} trades on process, not just profit: ${n('skill')} good and won, ${n('unlucky')} good but lost, ${n('lucky')} lucky wins, ${n('mistake')} avoidable losses.`, vi: `Tôi đã chấm ${rv.length} lệnh theo quy trình, không chỉ lãi lỗ: ${n('skill')} tốt và thắng, ${n('unlucky')} tốt nhưng thua, ${n('lucky')} thắng may mắn, ${n('mistake')} thua có thể tránh.` },
+      { en: n('lucky') + n('mistake') > n('skill') + n('unlucky') ? 'Most trades broke a rule, so discipline is the thing to fix first.' : 'Most trades followed the process, which is what I want.', vi: n('lucky') + n('mistake') > n('skill') + n('unlucky') ? 'Phần lớn lệnh vi phạm quy tắc, nên kỷ luật là điều cần sửa trước.' : 'Phần lớn lệnh đúng quy trình, đó là điều tôi muốn.' },
+    ]
+  }
+  if (id === 'learning') {
+    const l = c.learn
+    const base = baseRate(c.journal)
+    const out: Bi[] = []
+    if (l && l.cycles) out.push({ en: `The learner has run ${l.cycles} cycles and checked ${(l.oldTests + l.newBars).toLocaleString('en-US')} bars.`, vi: `Bộ học đã chạy ${l.cycles} vòng và kiểm tra ${(l.oldTests + l.newBars).toLocaleString('en-US')} nến.` })
+    if (l?.latest) out.push(l.latest)
+    out.push(base ? { en: `Buying every bar wins ${pct(base.probability)} of the time, so a signal has to beat that to count.`, vi: `Mua mọi nến thắng ${pct(base.probability)}, nên một tín hiệu phải hơn mức đó mới tính.` } : { en: 'Not enough graded calls yet to say anything for sure.', vi: 'Chưa đủ lệnh đã chấm để kết luận.' })
+    return out
   }
   // idle
   if (!c.rules.practiceMode) return [{ en: 'Practice mode is switched off, so I\'m sitting out.', vi: 'Chế độ luyện tập đang tắt nên tôi đứng ngoài.' }]
@@ -411,4 +466,60 @@ export function dayReplayTour(s: PracticeState, now = Date.now()): Tour | null {
     lines: [],
   })
   return { id: `replay-${day}-${Date.now()}`, symbol: trades[0].symbol, title: { en: `Replay ${day === today ? 'today' : day}`, vi: `Xem lại ${day === today ? 'hôm nay' : day}` }, steps }
+}
+
+// ---------- greeting and "ask about any stock" ----------
+
+/** A human greeting for the top of the Brain tab: time of day, your name, and a one-line summary. */
+export function greeting(name: string, s: PracticeState, killSwitch: boolean, now = Date.now()): Bi {
+  const h = new Date(now).getHours()
+  const part = h < 5 ? { en: 'Working late', vi: 'Thức khuya thế' } : h < 12 ? { en: 'Good morning', vi: 'Chào buổi sáng' } : h < 18 ? { en: 'Good afternoon', vi: 'Chào buổi chiều' } : { en: 'Good evening', vi: 'Chào buổi tối' }
+  const who = name.trim() ? `, ${name.trim()}` : ''
+  const eq = practiceEquity(s)
+  const m = marketState(now)
+  const open = s.open.length
+  const holding = open ? { en: `I'm holding ${open} practice ${open === 1 ? 'trade' : 'trades'}`, vi: `Tôi đang giữ ${open} lệnh luyện tập` } : { en: "I'm not holding anything", vi: 'Tôi không giữ lệnh nào' }
+  return {
+    en: `${part.en}${who}. ${m.en.split(' (')[0].replace(/\.$/, '')}. ${holding.en}, and the practice account is ${money(eq - PRACTICE_START)} since the start.${killSwitch ? ' The kill switch is on, so I won\'t buy.' : ''} Here's your briefing.`,
+    vi: `${part.vi}${who}. ${m.vi.split(' (')[0].replace(/\.$/, '')}. ${holding.vi}, và tài khoản luyện tập ${money(eq - PRACTICE_START)} từ đầu.${killSwitch ? ' Công tắc dừng khẩn cấp đang bật nên tôi không mua.' : ''} Đây là bản tin của bạn.`,
+  }
+}
+
+/** What Jarvis knows about one stock from its own records (practice trades, decisions), before the chart opens. */
+export function stockMemory(symbol: string, s: PracticeState): Bi[] {
+  const ts = s.trades.filter((t) => t.symbol === symbol)
+  const open = s.open.find((p) => p.symbol === symbol)
+  const out: Bi[] = []
+  if (ts.length) {
+    const wins = ts.filter((t) => t.pnl > 0).length
+    const pnl = ts.reduce((a, t) => a + t.pnl, 0)
+    const last = ts[ts.length - 1]
+    out.push({
+      en: `I've traded ${symbol} ${ts.length} ${ts.length === 1 ? 'time' : 'times'}: ${wins} won, ${money(pnl)} overall. Last time I sold at ${px(last.exit)}, ${signed(last.retPct)}.`,
+      vi: `Tôi đã giao dịch ${symbol} ${ts.length} lần: thắng ${wins}, tổng ${money(pnl)}. Lần gần nhất tôi bán giá ${px(last.exit)}, ${signed(last.retPct)}.`,
+    })
+  }
+  if (open) out.push({ en: `I'm holding it now, bought at ${px(open.entry)} with a stop at ${px(open.stop)}.`, vi: `Tôi đang giữ mã này, mua giá ${px(open.entry)}, cắt lỗ ${px(open.stop)}.` })
+  const skipped = (s.audit ?? []).filter((a) => a.symbol === symbol && !a.accepted && a.blockedBy).slice(-1)[0]
+  if (skipped) out.push({ en: `The last time I passed on it, my ${skipped.blockedBy!.toLowerCase()} check said no.`, vi: `Lần gần nhất tôi bỏ qua mã này, bước kiểm tra ${skipped.blockedBy} đã chặn.` })
+  if (!out.length) out.push({ en: `I haven't traded ${symbol} yet, so this is a fresh read.`, vi: `Tôi chưa giao dịch ${symbol}, nên đây là nhận định mới.` })
+  return out
+}
+
+/** Answer "why AAPL?" on the chart: Jarvis's take, the strongest reasons for and against, its own history with the stock, then the plan. */
+export function stockTour(a: Analysis, symbol: string, barTime: number, s: PracticeState): Tour | null {
+  const base = analysisTour(a, symbol, barTime)
+  if (!base) return null
+  const bull = a.checks.filter((c) => c.stance === 'bull')
+  const bear = a.checks.filter((c) => c.stance === 'bear')
+  const lower = (x: string) => x.charAt(0).toLowerCase() + x.slice(1)
+  const reasons: TourStep = {
+    en: `Here's why. ${bull.length ? `For it: ${bull.slice(0, 2).map((c) => lower(c.label)).join(' and ')}.` : 'Nothing strong in its favor.'} ${bear.length ? `Against it: ${bear.slice(0, 2).map((c) => lower(c.label)).join(' and ')}.` : 'Nothing strong against it.'}${a.tradeScore ? ` The setup scores ${a.tradeScore.score} out of 100, grade ${a.tradeScore.grade}.` : ''}`,
+    vi: `Lý do: ${bull.length} tín hiệu ủng hộ và ${bear.length} tín hiệu ngược lại.${a.tradeScore ? ` Thiết lập đạt ${a.tradeScore.score} trên 100 điểm, hạng ${a.tradeScore.grade}.` : ''}`,
+    lines: [],
+    focus: base.steps[0].focus,
+  }
+  const mem = stockMemory(symbol, s)
+  const memory: TourStep = { en: mem.map((m) => m.en).join(' '), vi: mem.map((m) => m.vi).join(' '), lines: [], focus: base.steps[0].focus }
+  return { ...base, title: { en: `Why ${symbol}`, vi: `Vì sao ${symbol}` }, steps: [base.steps[0], reasons, memory, ...base.steps.slice(1)] }
 }
