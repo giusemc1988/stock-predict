@@ -2,7 +2,7 @@
  * Version and "What's new". Bump APP_VERSION and add an entry to the top of RELEASES
  * with each update. The banner shows once per version, then stays dismissed.
  */
-export const APP_VERSION = '1.5.0'
+export const APP_VERSION = '1.5.1'
 
 export interface Release {
   version: string
@@ -13,6 +13,18 @@ export interface Release {
 }
 
 export const RELEASES: Release[] = [
+  {
+    version: '1.5.1',
+    date: '2026-10-10',
+    changes: [
+      "Fix: the AI's practice trades now show in the bottom panel. Positions lists its open trades, Open orders lists each trade's take-profit and stop-loss, and History lists every buy and sell, each tagged 🎯 Practice. Before, these tabs only showed your own paper account, so they looked empty while the AI was trading.",
+      'Turn it off in the Practice tab ("In Positions & History") or Settings > AI rules. Practice rows have no Close or Cancel button; the AI manages them.',
+    ],
+    changesVi: [
+      'Sửa lỗi: lệnh luyện tập của AI giờ hiện ở bảng dưới. Vị thế liệt kê các lệnh đang mở, Lệnh chờ liệt kê chốt lời và cắt lỗ của từng lệnh, và Lịch sử liệt kê mọi lệnh mua bán, đều gắn nhãn 🎯 Practice. Trước đây các tab này chỉ hiện tài khoản thử nghiệm của bạn nên trông trống trơn dù AI đang giao dịch.',
+      'Tắt trong tab Luyện tập ("Trong Vị thế & Lịch sử") hoặc Cài đặt > Quy tắc AI. Dòng luyện tập không có nút Đóng hay Hủy; AI tự quản lý.',
+    ],
+  },
   {
     version: '1.5.0',
     date: '2026-10-10',

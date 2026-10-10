@@ -94,7 +94,7 @@ export function PracticePanel({ state, rules, symbol, priceOf, onReset, scan, on
   const wins = shownTrades.filter((t) => t.pnl > 0)
   const fails = shownTrades.filter((t) => t.pnl <= 0)
 
-  const toggle = (key: 'practiceMode' | 'practiceOnChart' | 'practiceFeed' | 'practiceDayOn' | 'practiceLongOn' | 'practiceAutoPick' | 'practiceMovers' | 'practiceServer' | 'practiceWatchlist' | 'practiceFollow', label: string) => (
+  const toggle = (key: 'practiceMode' | 'practiceOnChart' | 'practiceFeed' | 'practiceDayOn' | 'practiceLongOn' | 'practiceAutoPick' | 'practiceMovers' | 'practiceServer' | 'practiceWatchlist' | 'practiceFollow' | 'practiceInPanels', label: string) => (
     <label className="al-toggle">
       <span>{label}</span>
       <span className="switch">
@@ -252,6 +252,7 @@ export function PracticePanel({ state, rules, symbol, priceOf, onReset, scan, on
             {toggle('practiceServer', L('24/7 on the server', '24/7 trên máy chủ'))}
             {toggle('practiceWatchlist', L('AI active list', 'Danh sách AI'))}
             {toggle('practiceFollow', L('Chart follows trades', 'Biểu đồ theo lệnh'))}
+            {toggle('practiceInPanels', L('In Positions & History', 'Trong Vị thế & Lịch sử'))}
           </div>
           {(rules.practiceAutoPick || serverMode) && on && (
             <div className="al-card">

@@ -5,6 +5,7 @@ import { OPEN_STATUSES } from '../broker/types'
 import { fmtPct, fmtPrice, fmtTime, fmtUsd, tone } from '../lib/format'
 import { RobotIcon } from './RobotIcon'
 import { OrdersTable, PositionsTable } from './AccountTables'
+import type { practiceRows } from '../lib/practiceRows'
 
 interface Props {
   broker: BrokerState
@@ -14,12 +15,16 @@ interface Props {
   onClose: (p: BrokerPosition) => unknown
   onSelect: (symbol: string) => void
   onPortfolio: () => void
+  /** The AI's practice account, listed under your own rows (null when practice mode or this toggle is off). */
+  practice?: ReturnType<typeof practiceRows> | null
 }
 
-export function BottomPanel({ broker, signals, symbol, onCancel, onClose, onSelect, onPortfolio }: Props) {
+export function BottomPanel({ broker, signals, symbol, onCancel, onClose, onSelect, onPortfolio, practice }: Props) {
   const [tab, setTab] = useState<'positions' | 'open' | 'history' | 'signals'>('positions')
-  const { account, positions, orders } = broker
-  const open = orders.filter((o) => OPEN_STATUSES.includes(o.status))
+  const { account, orders } = broker
+  const positions = [...broker.positions, ...(practice?.positions ?? [])]
+  const open = [...orders.filter((o) => OPEN_STATUSES.includes(o.status)), ...(practice?.working ?? [])]
+  const history = [...orders.filter((o) => !OPEN_STATUSES.includes(o.status)), ...(practice?.history ?? [])]
 
   return (
     <section className="panel bottom">
@@ -53,7 +58,7 @@ export function BottomPanel({ broker, signals, symbol, onCancel, onClose, onSele
       <div className="table-wrap">
         {tab === 'positions' && <PositionsTable positions={positions} onSelect={onSelect} onClose={onClose} />}
         {tab === 'open' && <OrdersTable orders={open} onCancel={onCancel} empty="No working orders." />}
-        {tab === 'history' && <OrdersTable orders={orders.filter((o) => !OPEN_STATUSES.includes(o.status))} empty="No completed orders yet." />}
+        {tab === 'history' && <OrdersTable orders={history} empty="No completed orders yet." />}
         {tab === 'signals' && (
           <table>
             <thead>

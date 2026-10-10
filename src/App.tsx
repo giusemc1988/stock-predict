@@ -27,6 +27,7 @@ import { useAutoLearning } from './hooks/useAutoLearning'
 import { usePractice } from './hooks/usePractice'
 import { PracticePanel } from './components/PracticePanel'
 import { dayKey, kindOf, type PracticeEvent } from './lib/practice'
+import { practiceRows } from './lib/practiceRows'
 import type { AiActiveRow } from './components/Watchlist'
 import type { PracticeOverlay } from './components/ChartPanel'
 import { useLang, useT } from './lib/i18n'
@@ -335,6 +336,8 @@ export default function App() {
       if (!rows.some((r) => r.symbol === c.symbol)) rows.push({ symbol: c.symbol, status: 'watching', place: c.place ?? undefined, gainPct: c.gainPct })
     return rows
   }, [practice.state, practice.scan.candidates, todayKey])
+  // practice trades live in their own account: list them in the bottom panel too, tagged, so they aren't invisible there
+  const panelPractice = aiRules.practiceMode && aiRules.practiceInPanels ? practiceRows(practice.state, practice.priceOf) : null
   const aiKey = aiRules.practiceMode ? aiActive.map((r) => r.symbol).join(',') : ''
   useEffect(() => setAiSymbols(aiKey ? aiKey.split(',') : []), [aiKey])
   const kindTag = (x: { kind?: 'day' | 'long' }) => (kindOf(x) === 'day' ? (lang === 'vi' ? 'Ngày' : 'Day') : lang === 'vi' ? 'Dài' : 'Long')
@@ -431,6 +434,7 @@ export default function App() {
               onClose={onClose}
               onSelect={select}
               onPortfolio={() => setPage('portfolio')}
+              practice={panelPractice}
             />
           </main>
           <aside className="panel right">
