@@ -220,7 +220,7 @@ export function ask(id: AskId, c: AskContext): Bi[] {
   if (id === 'boughtHigh' || id === 'thisStock') {
     const sym = c.symbol ?? ''
     const held = s.open.find((p) => p.symbol === sym)
-    const pos = held ?? (id === 'boughtHigh' ? [...s.open, ...s.trades].sort((a, b) => b.openedAt - a.openedAt).find((t) => !sym || t.symbol === sym) ?? [...s.open].sort((a, b) => b.openedAt - a.openedAt)[0] : undefined)
+    const pos = held ?? (id === 'boughtHigh' ? [...s.open, ...s.trades].sort((a, b) => b.openedAt - a.openedAt).find((t) => !sym || t.symbol === sym) : undefined)
     if (!pos) return sym ? stockMemory(sym, s) : [{ en: "I haven't made a practice trade yet.", vi: 'Tôi chưa có lệnh luyện tập nào.' }]
     const isOpen = s.open.includes(pos as PracticePosition)
     const now = isOpen ? c.priceOf(pos.symbol) || pos.entry : (pos as PracticeTrade).exit

@@ -44,6 +44,13 @@ export function JarvisFab({ state, rules, journal, learn, killSwitch, priceOf, k
   const [chat, setChat] = useState<ChatTurn[]>(loadChat)
   const statuses = useSkillStatuses()
   const stopListen = useRef<(() => void) | null>(null)
+  // only the newest answer may update the speaking state
+  const speechRun = useRef(0)
+  const speechPoll = useRef<ReturnType<typeof setInterval> | null>(null)
+  const clearPoll = () => {
+    if (speechPoll.current) clearInterval(speechPoll.current)
+    speechPoll.current = null
+  }
   const listRef = useRef<HTMLDivElement>(null)
   const talk = rules.jarvisFabTalk && canSpeak()
   // say why the voice failed once, not after every answer
@@ -55,6 +62,8 @@ export function JarvisFab({ state, rules, journal, learn, killSwitch, priceOf, k
   }, [chat, words, open])
   useEffect(
     () => () => {
+      speechRun.current++
+      clearPoll()
       stopListen.current?.()
       stopSpeaking('fab')
     },
@@ -64,8 +73,11 @@ export function JarvisFab({ state, rules, journal, learn, killSwitch, priceOf, k
   const add = (...turns: ChatTurn[]) => setChat((c) => [...c, ...turns].slice(-MAX_CHAT))
   const say = (lines: Bi[]) => {
     if (!talk) return setPhase('idle')
+    const run = ++speechRun.current
+    clearPoll()
     setPhase('speaking')
     void speak(lines.map(pick).join(' '), loadVoicePrefs(), lang, [], 'fab').then((r) => {
+      if (run !== speechRun.current) return
       const problem = speakProblem(r, lang)
       if (!problem) soundWarned.current = false
       else if (!soundWarned.current) {
@@ -73,9 +85,9 @@ export function JarvisFab({ state, rules, journal, learn, killSwitch, priceOf, k
         add({ who: 'jarvis', text: { en: problem, vi: problem }, time: stamp() })
       }
       // the result only says sound started; check back until it stops
-      const poll = setInterval(() => {
+      speechPoll.current = setInterval(() => {
         if (!speechSynthesis.speaking) {
-          clearInterval(poll)
+          clearPoll()
           setPhase((p) => (p === 'speaking' ? 'idle' : p))
         }
       }, 400)
@@ -119,9 +131,11 @@ export function JarvisFab({ state, rules, journal, learn, killSwitch, priceOf, k
     say(r.text)
   }
 
+  // a proposal from before actions were switched off can be cancelled, not done
+  const canAct = rules.jarvisActions && !!onAction
   const settle = (i: number, done: boolean) => {
     const turn = chat[i]
-    if (!turn?.action || turn.settled) return
+    if (!turn?.action || turn.settled || (done && !canAct)) return
     if (done) onAction?.(turn.action)
     logAction({ time: stamp(), label: describeAction(turn.action), result: done ? 'done' : 'cancelled' })
     const reply: Bi = done ? { en: 'Done. It’s in my action log in the Brain tab.', vi: 'Xong. Đã ghi vào nhật ký hành động trong tab Bộ não.' } : { en: 'Okay, I left it as it is.', vi: 'Được, tôi giữ nguyên.' }
@@ -202,9 +216,11 @@ export function JarvisFab({ state, rules, journal, learn, killSwitch, priceOf, k
                 <p>{pick(m.text)}</p>
                 {m.action && !m.settled && (
                   <div className="brain-confirm-btns">
-                    <button className="al-save" onClick={() => settle(i, true)}>
-                      {L('Do it', 'Làm đi')}
-                    </button>
+                    {canAct && (
+                      <button className="al-save" onClick={() => settle(i, true)}>
+                        {L('Do it', 'Làm đi')}
+                      </button>
+                    )}
                     <button className="pr-rescan" onClick={() => settle(i, false)}>
                       {L('Cancel', 'Hủy')}
                     </button>

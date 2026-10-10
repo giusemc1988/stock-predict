@@ -85,24 +85,26 @@ export function listenOnce(lang: 'en' | 'vi', onText: (text: string) => void, on
   r.lang = lang === 'vi' ? 'vi-VN' : 'en-US'
   r.interimResults = !!onWords
   r.maxAlternatives = 1
-  let sent = false
+  // send the sentence when listening ends: some phones mark half a sentence as final
+  let latest = ''
   let ended = false
   const end = (error?: string) => {
-    if (!ended) {
-      ended = true
-      onDone(error)
-    }
+    if (ended) return
+    ended = true
+    if (latest && error !== 'aborted') {
+      onText(latest)
+      onDone()
+    } else onDone(error ?? 'no-speech')
   }
   r.onresult = (e) => {
-    const parts = Array.from(e.results)
-    const text = parts.map((x) => x[0]?.transcript ?? '').join(' ').trim()
-    if (parts.every((x) => x.isFinal !== false)) {
-      if (!sent && text) onText(text)
-      sent = true
-    } else onWords?.(text)
+    latest = Array.from(e.results)
+      .map((x) => x[0]?.transcript ?? '')
+      .join(' ')
+      .trim()
+    onWords?.(latest)
   }
   r.onerror = (e) => end(e.error)
-  r.onend = () => end(sent ? undefined : 'no-speech')
+  r.onend = () => end()
   try {
     r.start()
   } catch {
