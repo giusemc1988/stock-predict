@@ -2,7 +2,7 @@
  * Version and "What's new". Bump APP_VERSION and add an entry to the top of RELEASES
  * with each update. The banner shows once per version, then stays dismissed.
  */
-export const APP_VERSION = '1.6.1'
+export const APP_VERSION = '1.6.2'
 
 export interface Release {
   version: string
@@ -14,7 +14,7 @@ export interface Release {
 
 export const RELEASES: Release[] = [
   {
-    version: '1.6.1',
+    version: '1.6.2',
     date: '2026-10-10',
     changes: [
       'Penny stocks (on by default): practice can now trade stocks from $1 to $5, and today\'s movers lists include them, because they move more and give the AI more to learn from.',
