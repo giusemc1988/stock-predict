@@ -8,8 +8,8 @@ import type { Analysis } from '../types'
 import type { AiRules } from './aiRules'
 import type { AuditEntry } from './audit'
 import { baseRate, type JournalEntry } from './journal'
-import { dayKey, kindOf, PRACTICE_START, practiceEquity, type PracticeState, type PracticeTrade } from './practice'
-import { brokenRules, PLAYBOOK, ruleById, ruleEvidence, type RuleEvidence } from './playbook'
+import { dayKey, kindOf, PRACTICE_START, practiceEquity, type PracticePosition, type PracticeState, type PracticeTrade } from './practice'
+import { brokenRules, PB_MIN_RR, PLAYBOOK, ruleById, ruleEvidence, type RuleEvidence } from './playbook'
 import { REVIEW_FAIL } from './review'
 
 export interface Bi {
@@ -108,6 +108,7 @@ export function briefing(s: PracticeState, rules: AiRules, journal: JournalEntry
 
 export interface Lesson extends Bi {
   time: number
+  tradeId: string
   tone: 'good' | 'bad' | 'info'
 }
 
@@ -123,12 +124,12 @@ export function tradeLessons(s: PracticeState, max = 12): Lesson[] {
     const whyVi = broken.length ? broken.map((b) => b.vi.name).join('; ') : r.fails.map((f) => REVIEW_FAIL[f].vi).join('; ')
     const res = `${money(t.pnl)} (${t.retPct >= 0 ? '+' : ''}${t.retPct.toFixed(2)}%)`
     if (r.bucket === 'lucky')
-      out.push({ time: t.closedAt, tone: 'bad', en: `Lucky win on ${t.symbol}, ${res}. Broke: ${why}. Don't repeat it.`, vi: `Thắng may mắn ở ${t.symbol}, ${res}. Vi phạm: ${whyVi}. Đừng lặp lại.` })
+      out.push({ time: t.closedAt, tradeId: t.id, tone: 'bad', en: `Lucky win on ${t.symbol}, ${res}. Broke: ${why}. Don't repeat it.`, vi: `Thắng may mắn ở ${t.symbol}, ${res}. Vi phạm: ${whyVi}. Đừng lặp lại.` })
     else if (r.bucket === 'mistake')
-      out.push({ time: t.closedAt, tone: 'bad', en: `Avoidable loss on ${t.symbol}, ${res}. Broke: ${why}.`, vi: `Thua có thể tránh ở ${t.symbol}, ${res}. Vi phạm: ${whyVi}.` })
+      out.push({ time: t.closedAt, tradeId: t.id, tone: 'bad', en: `Avoidable loss on ${t.symbol}, ${res}. Broke: ${why}.`, vi: `Thua có thể tránh ở ${t.symbol}, ${res}. Vi phạm: ${whyVi}.` })
     else if (r.bucket === 'unlucky')
-      out.push({ time: t.closedAt, tone: 'info', en: `Good process, lost on ${t.symbol}, ${res}. That is the cost of trading; no change.${broken.length ? ` (Playbook note: ${why}.)` : ''}`, vi: `Quy trình tốt nhưng thua ở ${t.symbol}, ${res}. Đó là chi phí giao dịch; không cần đổi.${broken.length ? ` (Ghi chú: ${whyVi}.)` : ''}` })
-    else out.push({ time: t.closedAt, tone: 'good', en: `Good process, won on ${t.symbol}, ${res}. One good trade proves little; keep doing it the same way.`, vi: `Quy trình tốt, thắng ở ${t.symbol}, ${res}. Một lệnh tốt chưa chứng minh gì; cứ làm đúng như vậy.` })
+      out.push({ time: t.closedAt, tradeId: t.id, tone: 'info', en: `Good process, lost on ${t.symbol}, ${res}. That is the cost of trading; no change.${broken.length ? ` (Playbook note: ${why}.)` : ''}`, vi: `Quy trình tốt nhưng thua ở ${t.symbol}, ${res}. Đó là chi phí giao dịch; không cần đổi.${broken.length ? ` (Ghi chú: ${whyVi}.)` : ''}` })
+    else out.push({ time: t.closedAt, tradeId: t.id, tone: 'good', en: `Good process, won on ${t.symbol}, ${res}. One good trade proves little; keep doing it the same way.`, vi: `Quy trình tốt, thắng ở ${t.symbol}, ${res}. Một lệnh tốt chưa chứng minh gì; cứ làm đúng như vậy.` })
   }
   return out
 }
@@ -253,4 +254,101 @@ export function jarvisSays(a: Analysis, symbol: string): Bi {
     en: `${symbol} looks like it wants to go ${up ? 'up' : 'down'}, ${sure.en}. Keep it small and stick to the stop.`,
     vi: `${symbol} có vẻ muốn ${up ? 'đi lên' : 'đi xuống'}, ${sure.vi}. Vào nhỏ và giữ đúng cắt lỗ.`,
   }
+}
+
+// ---------- Show me: a guided tour on the chart ----------
+
+export interface TourStep extends Bi {
+  /** Price levels drawn for this step. */
+  lines: { price: number; color: string; title: string }[]
+  /** Bar and price the pointer sits on, when the step is about one spot. */
+  focus?: { time: number; price: number }
+  marker?: { time: number; side: 'buy' | 'sell'; text: string }
+}
+
+export interface Tour {
+  id: string
+  symbol: string
+  title: Bi
+  steps: TourStep[]
+}
+
+const C = { entry: '#f0b90b', stop: '#f6465d', target: '#0ecb81', price: '#4fd1ff' }
+const px = (p: number) => (p >= 1000 ? p.toLocaleString('en-US', { maximumFractionDigits: 2 }) : p.toPrecision(5))
+const signed = (x: number) => `${x >= 0 ? '+' : '−'}${Math.abs(x).toFixed(1)}%`
+
+/** Walk through one practice trade: where it bought, the stop, the target, how it ended, and the lesson. */
+export function tradeTour(t: PracticeTrade | PracticePosition, history: PracticeTrade[]): Tour {
+  const closed = 'exit' in t
+  const at = t.signal ?? t.entry
+  const risk = ((at - t.stop) / at) * 100
+  const reward = ((t.target - at) / at) * 100
+  const rr = risk > 0 ? reward / risk : 0
+  const entry = { price: t.entry, color: C.entry, title: 'Buy' }
+  const stop = { price: t.stop, color: C.stop, title: 'Stop' }
+  const target = { price: t.target, color: C.target, title: 'Target' }
+  const steps: TourStep[] = [
+    {
+      en: `Here's ${t.symbol}. I bought right here, at ${px(t.entry)}${t.info.tradeScore != null ? `, because the setup scored ${t.info.tradeScore} out of 100` : ''}.`,
+      vi: `Đây là ${t.symbol}. Tôi mua ngay tại đây, giá ${px(t.entry)}${t.info.tradeScore != null ? `, vì thiết lập đạt ${t.info.tradeScore} trên 100 điểm` : ''}.`,
+      lines: [entry],
+      focus: { time: t.barTime, price: t.entry },
+      marker: { time: t.barTime, side: 'buy', text: 'Jarvis buy' },
+    },
+    {
+      en: `This red line is my stop at ${px(t.stop)}. If price falls there, I sell and take a small loss of about ${Math.abs(risk).toFixed(1)}%.`,
+      vi: `Đường đỏ này là cắt lỗ ở ${px(t.stop)}. Nếu giá rơi tới đó, tôi bán và chịu lỗ nhỏ khoảng ${Math.abs(risk).toFixed(1)}%.`,
+      lines: [entry, stop],
+      focus: { time: t.barTime, price: t.stop },
+    },
+    {
+      en: `The green line is my target at ${px(t.target)}, about ${signed(reward)}. ${rr >= PB_MIN_RR ? `That's ${rr.toFixed(1)} times what I risked, which is what I look for.` : `That's only ${rr.toFixed(1)} times the risk, less than I'd like.`}`,
+      vi: `Đường xanh là mục tiêu ở ${px(t.target)}, khoảng ${signed(reward)}. ${rr >= PB_MIN_RR ? `Gấp ${rr.toFixed(1)} lần mức rủi ro, đúng điều tôi tìm.` : `Chỉ gấp ${rr.toFixed(1)} lần rủi ro, thấp hơn tôi muốn.`}`,
+      lines: [entry, stop, target],
+      focus: { time: t.barTime, price: t.target },
+    },
+  ]
+  if (closed) {
+    const x = t as PracticeTrade
+    const how: Record<PracticeTrade['exitReason'], Bi> = {
+      target: { en: 'it hit the target', vi: 'chạm mục tiêu' },
+      stop: { en: 'it hit the stop', vi: 'chạm cắt lỗ' },
+      signal: { en: 'my read turned to sell', vi: 'nhận định chuyển sang bán' },
+      time: { en: "it wasn't going anywhere", vi: 'giá không chạy' },
+      close: { en: 'the market was about to close', vi: 'sắp đóng cửa' },
+      hold: { en: 'the holding time ran out', vi: 'hết thời gian giữ' },
+    }
+    steps.push({
+      en: `And it sold here at ${px(x.exit)}, because ${how[x.exitReason].en}. ${x.pnl >= 0 ? 'A win' : 'A loss'} of ${signed(x.retPct)}.`,
+      vi: `Và lệnh bán ở đây giá ${px(x.exit)}, vì ${how[x.exitReason].vi}. ${x.pnl >= 0 ? 'Thắng' : 'Thua'} ${signed(x.retPct)}.`,
+      lines: [entry, stop, target, { price: x.exit, color: C.price, title: 'Sold' }],
+      focus: { time: x.exitBarTime, price: x.exit },
+      marker: { time: x.exitBarTime, side: 'sell', text: 'Jarvis sell' },
+    })
+  }
+  const { broken } = brokenRules(t, history)
+  steps.push(
+    broken.length
+      ? { en: `The lesson: this trade broke ${broken.map((r) => r.en.name.toLowerCase()).join(', and ')}. I'm tracking whether that matters.`, vi: `Bài học: lệnh này vi phạm ${broken.map((r) => r.vi.name.toLowerCase()).join(', và ')}. Tôi đang theo dõi xem điều đó có quan trọng không.`, lines: [entry, stop, target] }
+      : { en: 'It followed every rule in my playbook. Win or lose, that is the trade I want to repeat.', vi: 'Lệnh này đạt mọi quy tắc trong sổ tay. Thắng hay thua, đó là kiểu lệnh tôi muốn lặp lại.', lines: [entry, stop, target] },
+  )
+  return { id: `${t.id}-${Date.now()}`, symbol: t.symbol, title: { en: `${t.symbol} trade`, vi: `Lệnh ${t.symbol}` }, steps }
+}
+
+/** Walk through the analyst's current call on the open chart: the signal bar, then the plan's entry, stop and target. */
+export function analysisTour(a: Analysis, symbol: string, barTime: number): Tour | null {
+  const plan = a.exitPlan ?? (a.plan ? { entry: a.plan.entry, stop: a.plan.stop, target: a.plan.target } : null)
+  const says = jarvisSays(a, symbol)
+  const steps: TourStep[] = [{ ...says, lines: [], focus: plan ? { time: barTime, price: plan.entry } : undefined }]
+  if (plan && a.verdict !== 'HOLD') {
+    const entry = { price: plan.entry, color: C.entry, title: 'Entry' }
+    const stop = { price: plan.stop, color: C.stop, title: 'Stop' }
+    const target = { price: plan.target, color: C.target, title: 'Target' }
+    steps.push(
+      { en: `If I took it, I'd get in around ${px(plan.entry)}.`, vi: `Nếu vào lệnh, tôi sẽ vào quanh ${px(plan.entry)}.`, lines: [entry], focus: { time: barTime, price: plan.entry } },
+      { en: `I'd put the stop at ${px(plan.stop)}. Below that, I'm wrong and I get out.`, vi: `Tôi đặt cắt lỗ ở ${px(plan.stop)}. Dưới mức đó là tôi sai và tôi thoát.`, lines: [entry, stop], focus: { time: barTime, price: plan.stop } },
+      { en: `And I'd aim for ${px(plan.target)}. Keep the size small; this is practice, not a promise.`, vi: `Và nhắm tới ${px(plan.target)}. Vào nhỏ thôi; đây là luyện tập, không phải lời hứa.`, lines: [entry, stop, target], focus: { time: barTime, price: plan.target } },
+    )
+  }
+  return { id: `${symbol}-${barTime}-${Date.now()}`, symbol, title: { en: `${symbol} right now`, vi: `${symbol} lúc này` }, steps }
 }

@@ -33,6 +33,25 @@ export interface PracticeOverlay {
   flashText: string
 }
 
+/** Jarvis "Show me": one step of a guided tour drawn on the chart, with a callout. */
+export interface ChartTour {
+  key: string
+  title: string
+  text: string
+  index: number
+  total: number
+  lines: { price: number; color: string; title: string }[]
+  focus?: { time: number; price: number }
+  marker?: { time: number; side: 'buy' | 'sell'; text: string }
+  backLabel: string
+  nextLabel: string
+  doneLabel: string
+  motion: boolean
+  onBack: () => void
+  onNext: () => void
+  onClose: () => void
+}
+
 const COLORS = {
   up: '#0ecb81',
   down: '#f6465d',
@@ -58,6 +77,7 @@ interface Props {
   showForecast: boolean
   showRobots: boolean
   practice?: PracticeOverlay | null
+  tour?: ChartTour | null
 }
 
 const ts = (t: number) => t as UTCTimestamp
@@ -89,7 +109,7 @@ function NumField({ label, value, min, max, step, onCommit }: { label: string; v
 
 export function ChartPanel(props: Props) {
   const t = useT()
-  const { symbol, tf, candles, signals, prediction, emaFast, emaSlow, showEmas, showForecast, showRobots, practice } = props
+  const { symbol, tf, candles, signals, prediction, emaFast, emaSlow, showEmas, showForecast, showRobots, practice, tour } = props
   const host = useRef<HTMLDivElement>(null)
   const overlay = useRef<HTMLDivElement>(null)
   const chart = useRef<IChartApi | null>(null)
@@ -252,7 +272,7 @@ export function ChartPanel(props: Props) {
   }, [candles, symbol, tf])
 
   // overlays: EMAs, forecast cone, arrow markers (practice markers compared by value, not identity)
-  const marksKey = JSON.stringify(practice?.markers ?? [])
+  const marksKey = JSON.stringify([...(practice?.markers ?? []), ...(tour?.marker ? [{ ...tour.marker, tour: true }] : [])])
   useEffect(() => {
     const s = series.current
     if (!s) return
@@ -265,15 +285,15 @@ export function ChartPanel(props: Props) {
     s.fHi.setData(fc.map((f) => ({ time: ts(f.time), value: f.upper })))
     s.fLo.setData(fc.map((f) => ({ time: ts(f.time), value: f.lower })))
     const barTimes = new Set(candles.map((c) => c.time))
-    const practiceMarks = (JSON.parse(marksKey) as PracticeOverlay['markers'])
+    const practiceMarks = (JSON.parse(marksKey) as (PracticeOverlay['markers'][number] & { tour?: boolean })[])
       .filter((m) => barTimes.has(m.time))
       .map((m) => ({
         time: ts(m.time),
         position: m.side === 'buy' ? ('belowBar' as const) : ('aboveBar' as const),
         shape: m.side === 'buy' ? ('arrowUp' as const) : ('arrowDown' as const),
-        color: COLORS.practice,
+        color: m.tour ? COLORS.forecast : COLORS.practice,
         text: m.text,
-        size: 1,
+        size: m.tour ? 2 : 1,
       }))
     s.markers.setMarkers(
       [
@@ -300,6 +320,48 @@ export function ChartPanel(props: Props) {
       s.candle.createPriceLine({ price: l.price, color: l.color, lineWidth: 1, lineStyle: LineStyle.Dashed, axisLabelVisible: true, title: l.title }),
     )
   }, [linesKey, symbol, tf])
+
+  // Jarvis "Show me": bold lines for this step, the chart scrolled to the bar, and a pulsing pointer on the spot
+  const tourLines = useRef<IPriceLine[]>([])
+  const tourLinesKey = JSON.stringify(tour?.lines ?? [])
+  useEffect(() => {
+    const s = series.current
+    if (!s) return
+    for (const l of tourLines.current) s.candle.removePriceLine(l)
+    tourLines.current = (JSON.parse(tourLinesKey) as ChartTour['lines']).map((l) =>
+      s.candle.createPriceLine({ price: l.price, color: l.color, lineWidth: 2, lineStyle: LineStyle.Solid, axisLabelVisible: true, title: `Jarvis · ${l.title}` }),
+    )
+  }, [tourLinesKey, symbol, tf])
+  const [pointer, setPointer] = useState<{ x: number; y: number } | null>(null)
+  const tourKey = tour?.key ?? ''
+  const fTime = tour?.focus?.time ?? null
+  const fPrice = tour?.focus?.price ?? null
+  useEffect(() => {
+    const c = chart.current
+    const s = series.current
+    const f = fTime != null && fPrice != null ? [fTime, fPrice] : null
+    if (!c || !s || !f || !candlesRef.current.length) {
+      setPointer(null)
+      return
+    }
+    const bars = candlesRef.current
+    const i = bars.findIndex((b) => b.time >= f[0])
+    const idx = i < 0 ? bars.length - 1 : i
+    const range = c.timeScale().getVisibleLogicalRange()
+    const width = range ? Math.max(40, range.to - range.from) : 120
+    if (!range || idx < range.from + 5 || idx > range.to - 5) c.timeScale().setVisibleLogicalRange({ from: idx - width * 0.6, to: idx + width * 0.4 })
+    const place = () => {
+      const x = c.timeScale().timeToCoordinate(ts(bars[idx].time))
+      const y = s.candle.priceToCoordinate(f[1])
+      setPointer(x != null && y != null ? { x, y } : null)
+    }
+    const raf = requestAnimationFrame(place)
+    c.timeScale().subscribeVisibleLogicalRangeChange(place)
+    return () => {
+      cancelAnimationFrame(raf)
+      c.timeScale().unsubscribeVisibleLogicalRangeChange(place)
+    }
+  }, [tourKey, fTime, fPrice, candles.length, symbol, tf])
 
   // SMA and Bollinger bands from the chart's own candles; volume bars can be hidden
   useEffect(() => {
@@ -345,6 +407,31 @@ export function ChartPanel(props: Props) {
           <b>🎯 {practice.flash.kind === 'buy' ? 'BUY' : 'SELL'} {practice.flash.symbol}</b>
           <span>{practice.flashText}</span>
         </div>
+      )}
+      {tour && (
+        <>
+          {pointer && <div className={`tour-pointer${tour.motion ? '' : ' still'}`} style={{ left: pointer.x, top: pointer.y }} aria-hidden />}
+          <div key={tour.key} className={`tour-callout${tour.motion ? '' : ' still'}`} role="dialog" aria-label={tour.title}>
+            <div className="tour-head">
+              <b>Jarvis · {tour.title}</b>
+              <span className="mono">
+                {tour.index + 1}/{tour.total}
+              </span>
+              <button className="tour-x" onClick={tour.onClose} aria-label={tour.doneLabel}>
+                ×
+              </button>
+            </div>
+            <p>{tour.text}</p>
+            <div className="tour-nav">
+              <button onClick={tour.onBack} disabled={tour.index === 0}>
+                {tour.backLabel}
+              </button>
+              <button className="primary" onClick={tour.index + 1 < tour.total ? tour.onNext : tour.onClose}>
+                {tour.index + 1 < tour.total ? tour.nextLabel : tour.doneLabel}
+              </button>
+            </div>
+          </div>
+        </>
       )}
       <div ref={overlay} className="robot-layer">
         {robots.map(({ sig, anchor }) => (

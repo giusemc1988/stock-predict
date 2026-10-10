@@ -69,3 +69,14 @@ import { speakable } from '../src/lib/speech'
 assert.equal(speakable('Lost −$4.61 (fees) · done'), 'Lost minus $4.61. done')
 assert.equal(speakable('Lỗ −$2', 'vi'), 'Lỗ âm $2')
 console.log('speech ok')
+
+// Show me: a closed trade's tour points at the buy, stop, target and the sell, then gives the lesson
+import { tradeTour } from '../src/lib/jarvis'
+const tour = tradeTour(trade(7, { exit: 104, exitReason: 'target', exitBarTime: 99 }), [])
+assert.equal(tour.symbol, 'S7')
+assert.equal(tour.steps.length, 5)
+assert.equal(tour.steps[0].marker?.side, 'buy')
+assert.equal(tour.steps[3].marker?.side, 'sell')
+assert.deepEqual(tour.steps[2].lines.map((l) => l.title), ['Buy', 'Stop', 'Target'])
+assert.ok(tour.steps.every((s) => s.en && s.vi))
+console.log('tour ok')

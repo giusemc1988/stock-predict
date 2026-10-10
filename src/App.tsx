@@ -28,6 +28,9 @@ import { usePractice } from './hooks/usePractice'
 import { PracticePanel } from './components/PracticePanel'
 import { BrainPanel } from './components/BrainPanel'
 import { JarvisAvatar } from './components/JarvisAvatar'
+import type { ChartTour } from './components/ChartPanel'
+import { analysisTour, tradeTour, type Tour } from './lib/jarvis'
+import { canSpeak, loadVoicePrefs, speak, stopSpeaking } from './lib/speech'
 import { dayKey, kindOf, type PracticeEvent } from './lib/practice'
 import { practiceRows } from './lib/practiceRows'
 import type { AiActiveRow } from './components/Watchlist'
@@ -101,14 +104,17 @@ export default function App() {
   const universe = useMemo(() => [...INSTRUMENTS, ...added.filter((a) => !INSTRUMENTS.some((i) => i.symbol === a.symbol))], [added])
   // markets practice mode is watching or trading join the chart and quotes (not your saved watchlist)
   const [aiSymbols, setAiSymbols] = useState<string[]>([])
+  // Jarvis "Show me": a guided tour on the chart (its market joins the chart list while it runs)
+  const [tour, setTour] = useState<{ t: Tour; i: number } | null>(null)
+  const tourSymbol = tour?.t.symbol ?? ''
   const chartUniverse = useMemo(
     () => [
       ...universe,
-      ...aiSymbols
+      ...[...aiSymbols, ...(tourSymbol && !aiSymbols.includes(tourSymbol) ? [tourSymbol] : [])]
         .filter((s) => !universe.some((i) => i.symbol === s))
         .map((s): Instrument => ({ symbol: s, name: 'AI practice pick', assetClass: s.includes('/') ? 'crypto' : 'stock', feedId: s.includes('/') ? s.replace('/', '') : s, demoPrice: 100, demoVol: 0.4 })),
     ],
-    [universe, aiSymbols],
+    [universe, aiSymbols, tourSymbol],
   )
   const inst = useMemo(() => chartUniverse.find((i) => i.symbol === prefs.symbol) ?? INSTRUMENTS[0], [chartUniverse, prefs.symbol])
   const market = useMarketData(inst, prefs.tf, keys, alpacaKeys)
@@ -368,6 +374,63 @@ export default function App() {
         flashText: flash ? (lang === 'vi' ? flash.vi : flash.en) : '',
       }
 
+  const showMeOn = aiRules.jarvisOn && aiRules.jarvisShowMe
+  const startTour = useCallback(
+    (t: Tour | null) => {
+      if (!t || !t.steps.length) return
+      setTour({ t, i: 0 })
+      setPrefs((p) => ({ ...p, symbol: t.symbol }))
+      setPage('trade')
+      // on a phone the chart may be scrolled away: bring it into view
+      requestAnimationFrame(() => document.querySelector('.chart-wrap')?.scrollIntoView({ behavior: 'smooth', block: 'nearest' }))
+    },
+    [setPrefs],
+  )
+  const endTour = useCallback(() => {
+    setTour(null)
+    stopSpeaking()
+  }, [])
+  // the tour ends when Show me is switched off or Escape is pressed
+  useEffect(() => {
+    if (!tour) return
+    const onKey = (e: KeyboardEvent) => e.key === 'Escape' && endTour()
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [tour, endTour])
+  const tourStep = tour && showMeOn ? tour.t.steps[tour.i] : null
+  // each step is read aloud when Jarvis speaks
+  const spokenKey = tourStep && aiRules.jarvisSpeech ? `${tour!.t.id}|${tour!.i}|${lang}` : ''
+  useEffect(() => {
+    if (!spokenKey || !tourStep || !canSpeak()) return
+    speak(lang === 'vi' ? tourStep.vi : tourStep.en, loadVoicePrefs(), lang, speechSynthesis.getVoices())
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [spokenKey])
+  const chartTour: ChartTour | null =
+    tour && tourStep && inst.symbol === tour.t.symbol
+      ? {
+          key: `${tour.t.id}-${tour.i}`,
+          title: lang === 'vi' ? tour.t.title.vi : tour.t.title.en,
+          text: lang === 'vi' ? tourStep.vi : tourStep.en,
+          index: tour.i,
+          total: tour.t.steps.length,
+          lines: tourStep.lines,
+          focus: tourStep.focus ? { time: snapToBar(tourStep.focus.time), price: tourStep.focus.price } : undefined,
+          marker: tourStep.marker ? { ...tourStep.marker, time: snapToBar(tourStep.marker.time) } : undefined,
+          backLabel: lang === 'vi' ? 'Lùi' : 'Back',
+          nextLabel: lang === 'vi' ? 'Tiếp' : 'Next',
+          doneLabel: lang === 'vi' ? 'Xong' : 'Done',
+          motion: aiRules.jarvisMotion,
+          onBack: () => setTour((x) => (x ? { ...x, i: Math.max(0, x.i - 1) } : x)),
+          onNext: () => setTour((x) => (x ? { ...x, i: Math.min(x.t.steps.length - 1, x.i + 1) } : x)),
+          onClose: endTour,
+        }
+      : null
+  const showTrade = showMeOn ? (id: string) => {
+    const t = [...practice.state.open, ...practice.state.trades].find((x) => x.id === id)
+    if (t) startTour(tradeTour(t, practice.state.trades))
+  } : undefined
+  const showAnalysis = showMeOn && analysis && candles.length ? () => startTour(analysisTour(analysis, inst.symbol, candles[candles.length - 1].time)) : undefined
+
   return (
     <div className={`app page-${page}`}>
       <WhatsNew />
@@ -422,6 +485,7 @@ export default function App() {
                 showForecast={prefs.forecast}
                 showRobots={prefs.robots}
                 practice={practiceOverlay}
+                tour={chartTour}
               />
               {market.status === 'demo' && (
                 <div className="demo-note">
@@ -472,9 +536,9 @@ export default function App() {
               {shownTab === 'ai' && <AnalystPanel analysis={analysis} stats={closed.stats} lastSignal={lastSignal} symbol={inst.symbol} tfLabel={tfLabel} onTrade={() => {
                     setPlanNonce((n) => n + 1)
                     setRightTab('trade')
-                  }} onEditRules={() => setAiRulesOpen(true)} jarvis={aiRules.jarvisOn && aiRules.jarvisVoice} jarvisMotion={aiRules.jarvisMotion} />}
+                  }} onEditRules={() => setAiRulesOpen(true)} jarvis={aiRules.jarvisOn && aiRules.jarvisVoice} jarvisMotion={aiRules.jarvisMotion} onShowMe={showAnalysis} />}
               {shownTab === 'practice' && <PracticePanel state={practice.state} rules={aiRules} symbol={inst.symbol} priceOf={practice.priceOf} onReset={practice.reset} scan={practice.scan} onRescan={practice.rescan} onOpen={(s) => select(s)} universe={chartUniverse.map((i) => i.symbol)} serverMode={practice.serverMode} serverLastRun={practice.serverLastRun} />}
-              {shownTab === 'brain' && <BrainPanel state={practice.state} rules={aiRules} journal={autoLearn.state.journal} learn={autoLearn.state} killSwitch={prefs.killSwitch} priceOf={practice.priceOf} onEditRules={() => setAiRulesOpen(true)} />}
+              {shownTab === 'brain' && <BrainPanel state={practice.state} rules={aiRules} journal={autoLearn.state.journal} learn={autoLearn.state} killSwitch={prefs.killSwitch} priceOf={practice.priceOf} onEditRules={() => setAiRulesOpen(true)} onShowTrade={showTrade} />}
               {shownTab === 'flow' && <OrderFlowPanel flow={flow} last={lastClose} />}
               {shownTab === 'learn' && <AutoLearnPanel al={autoLearn} rules={aiRules} symbol={inst.symbol} liveScore={live?.probUp ?? null} />}
               {shownTab === 'picks' && (

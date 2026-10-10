@@ -58,6 +58,7 @@ export interface AiRules {
   jarvisGate: boolean // practice buys must pass every playbook rule proven on paper trades
   jarvisMotion: boolean // animated Jarvis avatar
   jarvisSpeech: boolean // Jarvis reads briefings and answers aloud (browser's built-in speech)
+  jarvisShowMe: boolean // Show me: Jarvis opens the stock and points at what it explains on the chart
 }
 
 export const DEFAULT_AI_RULES: AiRules = {
@@ -114,6 +115,7 @@ export const DEFAULT_AI_RULES: AiRules = {
   jarvisGate: false,
   jarvisMotion: true,
   jarvisSpeech: false,
+  jarvisShowMe: true,
 }
 
 type NumKey = { [K in keyof AiRules]: AiRules[K] extends number ? K : never }[keyof AiRules]
@@ -184,6 +186,7 @@ export const RULE_FIELDS: RuleField[] = [
   { group: 'jarvis', key: 'jarvisStory', en: 'Playbook checks in practice trade stories', vi: 'Kiểm tra sổ tay trong câu chuyện lệnh luyện tập' },
   { group: 'jarvis', key: 'jarvisGate', en: 'Practice buys must pass every playbook rule proven on paper trades', vi: 'Lệnh mua luyện tập phải đạt mọi quy tắc sổ tay đã chứng minh trên lệnh thử' },
   { group: 'jarvis', key: 'jarvisMotion', en: 'Animated Jarvis avatar', vi: 'Hình đại diện Jarvis chuyển động' },
+  { group: 'jarvis', key: 'jarvisShowMe', en: 'Show me: Jarvis opens the stock and points at what it is explaining on the chart', vi: 'Chỉ cho tôi: Jarvis mở mã và chỉ vào điều đang giải thích trên biểu đồ' },
   { group: 'jarvis', key: 'jarvisSpeech', en: "Jarvis speaks (reads briefings and answers aloud with your device's voices; pick the voice in the Brain tab)", vi: 'Jarvis nói (đọc to bản tin và câu trả lời bằng giọng có sẵn trên thiết bị; chọn giọng trong tab Bộ não)' },
 ]
 

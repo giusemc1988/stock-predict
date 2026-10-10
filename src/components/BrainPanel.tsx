@@ -17,12 +17,14 @@ interface Props {
   killSwitch: boolean
   priceOf: (symbol: string) => number
   onEditRules: () => void
+  /** Show me: walk through a practice trade on the chart. */
+  onShowTrade?: (id: string) => void
 }
 
 type Tab = 'today' | 'lessons' | 'playbook'
 
 /** Jarvis, the Arc Brain: briefing, Ask Jarvis, lessons and the playbook with its evidence. */
-export function BrainPanel({ state, rules, journal, learn, killSwitch, priceOf, onEditRules }: Props) {
+export function BrainPanel({ state, rules, journal, learn, killSwitch, priceOf, onEditRules, onShowTrade }: Props) {
   const lang = useLang()
   const L = (en: string, vi: string) => (lang === 'vi' ? vi : en)
   const pick = (b: { en: string; vi: string }) => (lang === 'vi' ? b.vi : b.en)
@@ -38,9 +40,12 @@ export function BrainPanel({ state, rules, journal, learn, killSwitch, priceOf, 
   const voices = sortVoices(useVoices())
   const speech = rules.jarvisSpeech && canSpeak()
   const say = (lines: { en: string; vi: string }[]) => speak(lines.map(pick).join(' '), voice, lang, voices)
+  const lastTrade = [...state.open, ...state.trades].sort((a, b) => b.openedAt - a.openedAt)[0]
   const askAndSay = (id: AskId) => {
     const next = q === id ? null : id
     setQ(next)
+    // "why did you buy" opens the stock and walks through the trade on the chart (the tour speaks each step)
+    if (next === 'whyBuy' && onShowTrade && lastTrade) return onShowTrade(lastTrade.id)
     if (!speech) return
     if (next) say(ask(next, { state, rules, journal, killSwitch, priceOf }))
     else stopSpeaking()
@@ -131,7 +136,14 @@ export function BrainPanel({ state, rules, journal, learn, killSwitch, priceOf, 
               {answer && (
                 <div className="brain-answer">
                   <JarvisAvatar size={24} mood="speaking" motion={false} />
-                  <p>{answer.map(pick).join(' ')}</p>
+                  <div>
+                    <p>{answer.map(pick).join(' ')}</p>
+                    {q === 'whyBuy' && onShowTrade && lastTrade && (
+                      <button className="pr-rescan" onClick={() => onShowTrade(lastTrade.id)}>
+                        {L('Show me on the chart', 'Chỉ trên biểu đồ')}
+                      </button>
+                    )}
+                  </div>
                 </div>
               )}
               <p className="muted al-note">{L('Answers come from the app’s own records. No AI service or API key is used.', 'Câu trả lời lấy từ dữ liệu của chính ứng dụng. Không dùng dịch vụ AI hay khóa API.')}</p>
@@ -188,6 +200,11 @@ export function BrainPanel({ state, rules, journal, learn, killSwitch, priceOf, 
               <div key={i} className={`brain-lesson ${l.tone}`}>
                 <em>{when(l.time)}</em>
                 {pick(l)}
+                {onShowTrade && (
+                  <button className="tour-link" onClick={() => onShowTrade(l.tradeId)}>
+                    {L('Show me', 'Chỉ cho tôi')} ›
+                  </button>
+                )}
               </div>
             ))
           ) : (

@@ -65,4 +65,13 @@ export function speak(text: string, prefs: VoicePrefs, lang: 'en' | 'vi', voices
   speechSynthesis.speak(u)
 }
 
+/** Saved voice settings (set in the Brain tab), for speaking outside it. */
+export function loadVoicePrefs(): VoicePrefs {
+  try {
+    return { ...DEFAULT_VOICE, ...JSON.parse(localStorage.getItem('arc.jarvisVoice.v1') ?? '{}') }
+  } catch {
+    return DEFAULT_VOICE
+  }
+}
+
 export const stopSpeaking = () => canSpeak() && speechSynthesis.cancel()

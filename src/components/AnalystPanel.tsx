@@ -19,11 +19,13 @@ interface Props {
   /** Show Jarvis's plain-words line under the call. */
   jarvis?: boolean
   jarvisMotion?: boolean
+  /** Jarvis walks through this call on the chart. */
+  onShowMe?: () => void
 }
 
 const ICON = { bull: '▲', bear: '▼', neutral: '•' }
 
-export function AnalystPanel({ analysis: a, stats, lastSignal, symbol, tfLabel, onTrade, onEditRules, jarvis = false, jarvisMotion = true }: Props) {
+export function AnalystPanel({ analysis: a, stats, lastSignal, symbol, tfLabel, onTrade, onEditRules, jarvis = false, jarvisMotion = true, onShowMe }: Props) {
   const t = useT()
   const lang = useLang()
   if (!a) {
@@ -65,6 +67,11 @@ export function AnalystPanel({ analysis: a, stats, lastSignal, symbol, tfLabel, 
           <span>
             <b>Jarvis:</b> {lang === 'vi' ? jarvisSays(a, symbol).vi : jarvisSays(a, symbol).en}
           </span>
+          {onShowMe && (
+            <button className="pr-rescan jarvis-show" onClick={onShowMe}>
+              {lang === 'vi' ? 'Chỉ trên biểu đồ' : 'Show me'}
+            </button>
+          )}
         </div>
       )}
 
