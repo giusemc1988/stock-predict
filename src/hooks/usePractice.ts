@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import type { Analysis, AssetClass, Candle, Instrument } from '../types'
+import { tfSeconds, type Analysis, type AssetClass, type Candle, type Instrument, type Timeframe } from '../types'
 import type { AiRules } from '../lib/aiRules'
+import { costsFrom } from '../lib/costs'
+import { stampData } from '../lib/dataGuard'
 import { baseRate, decide, type JournalEntry } from '../lib/journal'
 import { emptyPractice, onBarClose, onPrice, parsePractice, type PickRow, type PracticeEvent, type PracticeState } from '../lib/practice'
 import { PICK_TF, scanCycle, withOpenMarkets, type ScanMarket } from '../lib/practiceScan'
@@ -70,10 +72,14 @@ interface Args {
   alpacaKeys: AlpacaDataKeys
   /** Called once when the server account made trades since this browser last looked. */
   onAway?: (trades: number) => void
+  /** The open chart's feed name (e.g. "Binance", "Simulated feed"), for the data label. */
+  feedSource: string
+  /** Approved skills, recorded on each decision. */
+  skills: string[]
 }
 
 /** Runs practice mode while the app is open: decides on each closed bar, exits on live prices. */
-export function usePractice({ rules, symbol, asset, tf, candles, analysis, liveScore, journal, priceOf, quotesKey, killSwitch, maxTradesPerDay, onEvent, universe, keys, alpacaKeys, onAway }: Args) {
+export function usePractice({ rules, symbol, asset, tf, candles, analysis, liveScore, journal, priceOf, quotesKey, killSwitch, maxTradesPerDay, onEvent, universe, keys, alpacaKeys, onAway, feedSource, skills }: Args) {
   const [local, setState] = useState<PracticeState>(load)
   const on = rules.practiceMode
   const autoPick = rules.practiceAutoPick
@@ -159,8 +165,8 @@ export function usePractice({ rules, symbol, asset, tf, candles, analysis, liveS
   }, [state.events, onEvent, serverMode])
 
   // decide once per closed bar on the open chart
-  const ctx = useRef({ analysis, liveScore, journal, rules, killSwitch, maxTradesPerDay, asset, serverMode })
-  ctx.current = { analysis, liveScore, journal, rules, killSwitch, maxTradesPerDay, asset, serverMode }
+  const ctx = useRef({ analysis, liveScore, journal, rules, killSwitch, maxTradesPerDay, asset, serverMode, feedSource, skills })
+  ctx.current = { analysis, liveScore, journal, rules, killSwitch, maxTradesPerDay, asset, serverMode, feedSource, skills }
   const n = candles.length
   const closed = n > 1 ? candles[n - 2] : null
   const seen = useRef('')
@@ -199,14 +205,24 @@ export function usePractice({ rules, symbol, asset, tf, candles, analysis, liveS
         maxTradesPerDay: c.maxTradesPerDay,
         killSwitch: c.killSwitch,
         now: Date.now(),
+        hardLimitsOn: c.rules.hardLimitsOn,
+        maxOpenPositions: c.rules.maxOpenPositions,
+        maxExposurePct: c.rules.maxExposurePct,
+        data: stampData(c.feedSource, closed.time, tfSeconds(tf as Timeframe), Date.now()),
+        tfSec: tfSeconds(tf as Timeframe),
+        dataGuardOn: c.rules.dataGuardOn,
+        maxDataAgeMin: c.rules.maxDataAgeMin,
+        costs: costsFrom(c.rules),
+        audit: c.rules.auditOn,
+        skills: c.skills,
       }),
     )
   }, [closed, symbol, tf, on])
 
   // the stock picker: scan the watchlist and today's movers, rank BUY calls, trade the best
   const [scan, setScan] = useState<PracticeScan>({ at: null, busy: false, candidates: [], failed: [], noStockData: false })
-  const scanCtx = useRef({ universe, keys, alpacaKeys, journal, rules, killSwitch, maxTradesPerDay, state })
-  scanCtx.current = { universe, keys, alpacaKeys, journal, rules, killSwitch, maxTradesPerDay, state }
+  const scanCtx = useRef({ universe, keys, alpacaKeys, journal, rules, killSwitch, maxTradesPerDay, state, skills })
+  scanCtx.current = { universe, keys, alpacaKeys, journal, rules, killSwitch, maxTradesPerDay, state, skills }
   const lastBars = useRef(loadBars())
   const scanPrices = useRef(new Map<string, number>())
   const movers = useRef<{ at: number; list: MarketMover[] }>({ at: 0, list: [] })
@@ -232,6 +248,9 @@ export function usePractice({ rules, symbol, asset, tf, candles, analysis, liveS
         maxTradesPerDay: c.maxTradesPerDay,
         lastBars: Object.fromEntries(lastBars.current),
         now: Date.now(),
+        // the same feeds candlesFor reads
+        sourceFor: (m) => (m.asset === 'crypto' ? 'Binance' : hasAlpacaData(c.alpacaKeys) ? 'Alpaca (IEX)' : 'Alpha Vantage'),
+        skills: c.skills,
       })
       lastBars.current = new Map(Object.entries(r.lastBars))
       saveBars(lastBars.current)

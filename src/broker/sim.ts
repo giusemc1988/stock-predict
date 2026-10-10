@@ -5,9 +5,10 @@
  */
 import type { BrokerOrder, EquityPoint, OrderRequest } from './types'
 import { OPEN_STATUSES } from './types'
+import { getAiRules } from '../lib/aiRules'
+import { costsFrom, feeFor, fillPrice } from '../lib/costs'
 
 export const SIM_STARTING_CASH = 100_000
-const SLIPPAGE = 0.0002
 
 export interface SimPosition {
   qty: number
@@ -70,25 +71,28 @@ const reject = (s: SimState, o: BrokerOrder, reason: string): SimState => ({
 })
 
 function fill(s: SimState, o: BrokerOrder, price: number): SimState {
-  const px = o.type === 'limit' || o.type === 'stop_limit' ? price : o.side === 'buy' ? price * (1 + SLIPPAGE) : price * (1 - SLIPPAGE)
+  // fees, half the spread and slippage from Settings > AI rules; limit fills pay the fee only
+  const costs = costsFrom(getAiRules())
+  const px = fillPrice(price, o.side, costs, o.type === 'limit' || o.type === 'stop_limit')
   const pos = s.positions[o.symbol] ?? { qty: 0, avgCost: 0, realized: 0 }
   const cost = px * o.qty
-  if (o.side === 'buy' && cost > s.cash + 1e-6) return reject(s, o, 'Insufficient buying power')
+  const fee = feeFor(cost, costs)
+  if (o.side === 'buy' && cost + fee > s.cash + 1e-6) return reject(s, o, 'Insufficient buying power')
   if (o.side === 'sell' && o.qty > pos.qty + 1e-9) return reject(s, o, 'Not enough shares to sell (short selling is off)')
   const nextPos: SimPosition =
     o.side === 'buy'
-      ? { qty: pos.qty + o.qty, avgCost: (pos.avgCost * pos.qty + cost) / (pos.qty + o.qty), realized: pos.realized }
-      : { qty: pos.qty - o.qty, avgCost: pos.avgCost, realized: pos.realized + (px - pos.avgCost) * o.qty }
+      ? { qty: pos.qty + o.qty, avgCost: (pos.avgCost * pos.qty + cost + fee) / (pos.qty + o.qty), realized: pos.realized }
+      : { qty: pos.qty - o.qty, avgCost: pos.avgCost, realized: pos.realized + (px - pos.avgCost) * o.qty - fee }
   const positions = { ...s.positions, [o.symbol]: nextPos }
   if (nextPos.qty <= 1e-9) delete positions[o.symbol]
-  let orders = upsert(s.orders, { ...o, status: 'filled', filledQty: o.qty, filledAt: Date.now(), filledPrice: px })
+  let orders = upsert(s.orders, { ...o, status: 'filled', filledQty: o.qty, filledAt: Date.now(), filledPrice: px, ...(fee ? { fee: +fee.toFixed(4) } : {}) })
   // bracket: entry filled → arm its legs; a leg filled → cancel its sibling (OCO)
   orders = orders.map((x) => {
     if (x.parentId === o.id && x.status === 'held') return { ...x, status: 'open' as const }
     if (o.parentId && x.parentId === o.parentId && x.id !== o.id && OPEN_STATUSES.includes(x.status)) return { ...x, status: 'canceled' as const, reason: 'Other bracket leg filled' }
     return x
   })
-  return { ...s, cash: s.cash + (o.side === 'buy' ? -cost : cost), positions, orders, marks: { ...s.marks, [o.symbol]: price } }
+  return { ...s, cash: s.cash + (o.side === 'buy' ? -cost : cost) - fee, positions, orders, marks: { ...s.marks, [o.symbol]: price } }
 }
 
 function rollDay(s: SimState): SimState {
@@ -100,6 +104,8 @@ export function simReducer(s: SimState, a: SimAction): SimState {
   switch (a.type) {
     case 'place': {
       const r = a.req
+      // idempotent: the same client order id never places a second order
+      if (r.clientOrderId && s.orders.some((o) => o.clientOrderId === r.clientOrderId)) return s
       const base: BrokerOrder = {
         id: newId(),
         symbol: r.symbol,
@@ -113,6 +119,7 @@ export function simReducer(s: SimState, a: SimAction): SimState {
         status: 'open',
         createdAt: Date.now(),
         source: r.source,
+        ...(r.clientOrderId ? { clientOrderId: r.clientOrderId } : {}),
       }
       if (!(r.qty > 0)) return reject(s, base, 'Quantity must be more than zero')
       if ((r.type === 'limit' || r.type === 'stop_limit') && !(r.limitPrice! > 0)) return reject(s, base, 'Enter a limit price')
@@ -131,6 +138,7 @@ export function simReducer(s: SimState, a: SimAction): SimState {
           status: 'held',
           parentId: base.id,
           legLabel: label,
+          clientOrderId: undefined,
         })
         next = { ...next, orders: [leg('limit', r.bracket.takeProfit, 'Take profit'), leg('stop', r.bracket.stopLoss, 'Stop loss'), ...next.orders] }
       }

@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
-import { dayKey, emptyPractice, kindOf, lessons, onBarClose, onBars, onPrice, practiceEquity, practiceReport, sessionEnd, type EntryContext } from '../src/lib/practice.ts'
-import type { Analysis } from '../src/types.ts'
+import { dayKey, emptyPractice, kindOf, lessons, onBarClose, onBars, onPrice, practiceEquity, practiceReport, sessionEnd, type EntryContext } from '../src/lib/practice'
+import type { Analysis } from '../src/types'
 
 const buy = { verdict: 'BUY', score: 0.6, headline: 'Trend up', tradeScore: { score: 70, grade: 'B', regime: 'normal' }, exitPlan: { entry: 100, stop: 95, target: 110 }, plan: null } as unknown as Analysis
 const sell = { ...buy, verdict: 'SELL' } as Analysis

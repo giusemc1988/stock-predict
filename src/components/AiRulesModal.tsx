@@ -1,4 +1,6 @@
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
+import { SKILLS, setSkillStatus, skillVersion, statusOf, useSkillStatuses, type SkillStatus } from '../lib/skills'
+import { runSkillTests } from '../lib/skillTests'
 import { DEFAULT_AI_RULES, RULE_FIELDS, setAiRules, useAiRules, type AiRules, type RuleField } from '../lib/aiRules'
 import { useLang, useT, type Key } from '../lib/i18n'
 
@@ -6,6 +8,7 @@ const GROUPS: { id: RuleField['group']; label: Key }[] = [
   { id: 'call', label: 'rulesCall' },
   { id: 'sizing', label: 'rulesSizing' },
   { id: 'gates', label: 'rulesGates' },
+  { id: 'costs', label: 'rulesCosts' },
   { id: 'modules', label: 'rulesModules' },
 ]
 
@@ -17,6 +20,11 @@ export function AiRulesModal({ onClose }: { onClose: () => void }) {
   // numbers are kept as text while typing so an empty box doesn't snap to a value
   const [draft, setDraft] = useState<Record<string, string | boolean>>(() => ({ ...rules }) as unknown as Record<string, string | boolean>)
   const set = (k: keyof AiRules, v: string | boolean) => setDraft((d) => ({ ...d, [k]: v }))
+  const statuses = useSkillStatuses()
+  const tests = useMemo(() => runSkillTests(), [])
+  const failed = new Set(tests.filter((x) => !x.ok).map((x) => x.id))
+  const vi = lang === 'vi'
+  const STATUS: Record<SkillStatus, string> = { approved: vi ? 'Đã duyệt' : 'Approved', quarantine: vi ? 'Cách ly' : 'Quarantine', revoked: vi ? 'Thu hồi' : 'Revoked' }
 
   return (
     <div className="modal-back" onClick={onClose}>
@@ -53,6 +61,40 @@ export function AiRulesModal({ onClose }: { onClose: () => void }) {
             )}
           </div>
         ))}
+        {draft.skillRegistryOn && (
+          <div className="rules-group">
+            <div className="section-title">{vi ? 'Kỹ năng (chỉ kỹ năng được duyệt mới tạo tín hiệu; lưu ngay)' : 'Skills (only approved skills feed signals; saved right away)'}</div>
+            <p className="muted">
+              {vi
+                ? 'Mỗi kỹ năng được kiểm thử trên dữ liệu giả lập khi mở ứng dụng; kỹ năng không đạt sẽ bị cách ly. Không tải hay chạy mã từ GitHub hoặc do AI viết.'
+                : 'Each skill is self-tested on simulated bars when the app opens; one that fails is quarantined. No code is downloaded from GitHub or written by an AI.'}
+            </p>
+            {SKILLS.map((k) => {
+              const st = statusOf(k.id, statuses, failed)
+              const test = tests.find((x) => x.id === k.id)
+              const v = vi ? k.vi : k.en
+              return (
+                <div key={k.id} className="rule-row skill-row">
+                  <span>
+                    <b>{v.name}</b> <em className="muted">v{skillVersion(k)} · {k.category}</em>
+                    <br />
+                    <span className="muted">
+                      {v.does} {k.limits} · {vi ? 'Nguồn' : 'Source'}: {k.source} · {vi ? 'Quyền' : 'Permissions'}: {k.permissions.join(', ')} · {vi ? 'Kiểm thử' : 'Self-test'}:{' '}
+                      <span className={test?.ok ? 'up' : 'down'}>{test?.ok ? (vi ? 'đạt' : 'passed') : `${vi ? 'không đạt' : 'failed'} (${test?.detail})`}</span>
+                    </span>
+                  </span>
+                  <select value={st} onChange={(e) => setSkillStatus(k.id, e.target.value as SkillStatus)} aria-label={v.name}>
+                    {(['approved', 'quarantine', 'revoked'] as SkillStatus[]).map((x) => (
+                      <option key={x} value={x}>
+                        {STATUS[x]}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )
+            })}
+          </div>
+        )}
         <div className="modal-actions">
           <button onClick={() => setDraft({ ...DEFAULT_AI_RULES } as unknown as Record<string, string | boolean>)}>{t('resetDefaults')}</button>
           <button onClick={onClose}>{t('cancel')}</button>

@@ -14,6 +14,7 @@ import { readFileSync, writeFileSync } from 'node:fs'
 import type { Candle } from '../src/types'
 import { INSTRUMENTS } from '../src/data/instruments'
 import { DEFAULT_AI_RULES } from '../src/lib/aiRules'
+import { SKILLS, skillTag } from '../src/lib/skills'
 import { parseState } from '../src/lib/autoLearn'
 import type { JournalEntry } from '../src/lib/journal'
 import { emptyPractice, parsePractice, sessionEnd, type PracticeState } from '../src/lib/practice'
@@ -93,6 +94,9 @@ const r = await scanCycle({
   now,
   // the server is not running overnight, so crypto day trades also close with the stock market
   dayEnd: sessionEnd('stock', now),
+  // Yahoo's public chart data is treated as delayed
+  sourceFor: () => 'Yahoo Finance',
+  skills: SKILLS.map(skillTag),
 })
 if (Object.keys(r.prices).length === 0) {
   console.error(`No market data at all (${r.failed.join(', ')}); leaving the saved state unchanged.`)

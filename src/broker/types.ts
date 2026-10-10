@@ -16,6 +16,8 @@ export interface OrderRequest {
   /** Attach a take-profit and a stop-loss that cancel each other (bracket / OCO). */
   bracket?: { takeProfit: number; stopLoss: number }
   source: 'manual' | 'robot'
+  /** Same id = same order: a retried request is ignored instead of filled twice. */
+  clientOrderId?: string
 }
 
 export interface BrokerOrder {
@@ -39,6 +41,9 @@ export interface BrokerOrder {
   legLabel?: 'Take profit' | 'Stop loss'
   /** Simulator only: a stop-limit whose stop has been hit. */
   triggered?: boolean
+  clientOrderId?: string
+  /** Simulator only: fee paid on the fill. */
+  fee?: number
 }
 
 export interface BrokerPosition {

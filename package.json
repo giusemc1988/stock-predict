@@ -11,7 +11,8 @@
     "learn:build": "vite build --ssr scripts/learn-cycle.ts --outDir .learn --emptyOutDir --logLevel warn",
     "practice": "vite build --ssr scripts/practice-cycle.ts --outDir .practice --emptyOutDir --logLevel warn && node .practice/practice-cycle.js",
     "learn": "npm run learn:build && node .learn/learn-cycle.js",
-    "test": "node scripts/journal.test.ts && node scripts/practice.test.ts && vite build --ssr scripts/practice-picks.test.ts --outDir .learn/test --emptyOutDir --logLevel warn && node .learn/test/practice-picks.test.js && npm run learn:build && node .learn/learn-cycle.js --demo --cycles 3 --out .learn/demo.json"
+    "test": "node scripts/journal.test.ts && npm run t -- practice && npm run t -- practice-picks && npm run t -- upgrade && npm run learn:build && node .learn/learn-cycle.js --demo --cycles 3 --out .learn/demo.json",
+    "t": "f() { vite build --ssr scripts/$1.test.ts --outDir .learn/test --emptyOutDir --logLevel warn && node .learn/test/$1.test.js; }; f"
   },
   "dependencies": {
     "lightweight-charts": "^5.2.1",

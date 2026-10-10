@@ -154,7 +154,8 @@ export async function alpacaPlace(keys: AlpacaKeys, r: OrderRequest) {
     side: r.side,
     type: r.type,
     time_in_force: crypto ? 'gtc' : r.tif,
-    client_order_id: `${r.source}-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 6)}`,
+    // Alpaca rejects a second order with the same client id, so a retried robot order can't fill twice
+    client_order_id: r.clientOrderId ?? `${r.source}-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 6)}`,
   }
   // Alpaca allows more decimals for crypto and for stocks under $1; don't silently round those away
   const px = (p: number) => (crypto ? String(+p.toPrecision(8)) : p.toFixed(p >= 1 ? 2 : 4))

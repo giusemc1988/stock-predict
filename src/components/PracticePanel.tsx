@@ -1,11 +1,15 @@
 import { useState } from 'react'
-import { setAiRules, type AiRules } from '../lib/aiRules'
+import { getAiRules, setAiRules, type AiRules } from '../lib/aiRules'
 import { useLang } from '../lib/i18n'
 import type { PracticeScan } from '../hooks/usePractice'
 import { pickSourceLabel } from '../lib/practicePicks'
+import { loadRobotAudit, type AuditEntry } from '../lib/audit'
+import { buildDailyReport } from '../lib/dailyReport'
+import { DATA_LABEL } from '../lib/dataGuard'
+import { BUCKET_LABEL, REVIEW_FAIL, reviewCounts, type ReviewBucket } from '../lib/review'
 import { dayKey, exitReasonLabel, kindOf, lessons, LONG_WIDTH, MAX_BARS, PRACTICE_START, practiceEquity, practiceReport, type GroupRow, type PracticeKind, type PracticeState, type PracticeTrade } from '../lib/practice'
 
-type Tab = 'live' | 'report' | 'trades'
+type Tab = 'live' | 'report' | 'trades' | 'daily' | 'log'
 
 interface Props {
   state: PracticeState
@@ -56,6 +60,8 @@ export function PracticePanel({ state, rules, symbol, priceOf, onReset, scan, on
   const [tab, setTab] = useState<Tab>('live')
   const [confirmReset, setConfirmReset] = useState(false)
   const [only, setOnly] = useState<'all' | PracticeKind>('all')
+  const [logFilter, setLogFilter] = useState<'all' | 'ok' | 'no'>('all')
+  const [day, setDay] = useState<string | null>(null)
   const on = rules.practiceMode
   const r = practiceReport(state, only === 'all' ? undefined : only)
   const shownTrades = only === 'all' ? state.trades : state.trades.filter((t) => kindOf(t) === only)
@@ -92,7 +98,7 @@ export function PracticePanel({ state, rules, symbol, priceOf, onReset, scan, on
     <label className="al-toggle">
       <span>{label}</span>
       <span className="switch">
-        <input type="checkbox" checked={rules[key]} onChange={(e) => setAiRules({ ...rules, [key]: e.target.checked })} />
+        <input type="checkbox" checked={rules[key]} onChange={(e) => setAiRules({ ...getAiRules(), [key]: e.target.checked })} />
         <i />
       </span>
     </label>
@@ -142,6 +148,7 @@ export function PracticePanel({ state, rules, symbol, priceOf, onReset, scan, on
         {t.info.grade && ` · ${L('Trade Score', 'Điểm GD')} ${t.info.grade}`}
         {t.info.regime && ` · ${L('volatility', 'biến động')} ${t.info.regime}`}
         {` · ${L('learner', 'bộ học')} ${t.info.learner}`}
+        {t.info.data && ` · ${L(DATA_LABEL[t.info.data.label].en, DATA_LABEL[t.info.data.label].vi)} ${t.info.data.source}, ${Math.round(t.info.data.ageSec / 60)} ${L('min old', 'phút trước')}`}
       </div>
       {t.info.pick && (
         <div className="pr-why">
@@ -150,9 +157,27 @@ export function PracticePanel({ state, rules, symbol, priceOf, onReset, scan, on
       )}
       <div className="pr-why">
         <span className="al-tag">{L('OUT', 'RA')}</span> {px(t.exit)} · {L(exitReasonLabel[t.exitReason].en, exitReasonLabel[t.exitReason].vi)} · {t.bars} {L('bars', 'nến')}
+        {t.costPaid != null && ` · ${L('costs', 'chi phí')} $${t.costPaid.toFixed(2)}`}
       </div>
+      {rules.reviewOn && t.review && (
+        <div className="pr-why">
+          <span className={`al-tag pr-rv ${t.review.bucket}`}>{L('REVIEW', 'ĐÁNH GIÁ')}</span> {L(BUCKET_LABEL[t.review.bucket].en, BUCKET_LABEL[t.review.bucket].vi)}
+          {t.review.fails.length > 0 && `: ${t.review.fails.map((f) => L(REVIEW_FAIL[f].en, REVIEW_FAIL[f].vi)).join(', ')}`}
+        </div>
+      )}
     </li>
   )
+
+  // decision log: practice decisions plus the robot's orders on your paper account
+  const log: AuditEntry[] = tab === 'log' ? [...(state.audit ?? []), ...loadRobotAudit()].sort((a, b) => b.time - a.time) : []
+  const shownLog = log.filter((e) => logFilter === 'all' || (logFilter === 'ok') === e.accepted).slice(0, 150)
+  const reviews = reviewCounts(shownTrades.map((t) => t.review))
+  const reviewed = Object.values(reviews).reduce((a, b) => a + b, 0)
+  const costs = shownTrades.reduce((a, t) => a + (t.costPaid ?? 0), 0)
+  // daily report: saved ones plus today's, built live
+  const days = [...new Set([today, ...Object.keys(state.reports ?? {})])].sort().reverse()
+  const shownDay = day ?? days[0]
+  const report = shownDay === today ? buildDailyReport(state, today) : state.reports?.[shownDay] ?? buildDailyReport(state, shownDay)
 
   return (
     <div className="autolearn practice">
@@ -168,6 +193,8 @@ export function PracticePanel({ state, rules, symbol, priceOf, onReset, scan, on
             ['live', 'Live', 'Trực tiếp'],
             ['report', 'What it learned', 'AI đã học gì'],
             ['trades', 'Wins & fails', 'Thắng & thua'],
+            ...(rules.dailyReportOn ? ([['daily', 'Daily report', 'Báo cáo ngày']] as const) : []),
+            ...(rules.auditOn ? ([['log', 'Decision log', 'Nhật ký quyết định']] as const) : []),
           ] as const
         ).map(([id, en, vi]) => (
           <button key={id} className={tab === id ? 'on' : ''} onClick={() => setTab(id)}>
@@ -210,7 +237,7 @@ export function PracticePanel({ state, rules, symbol, priceOf, onReset, scan, on
             <label className="al-toggle">
               <b>{on ? 'ON' : 'OFF'}</b>
               <span className="switch">
-                <input type="checkbox" checked={on} onChange={(e) => setAiRules({ ...rules, practiceMode: e.target.checked })} />
+                <input type="checkbox" checked={on} onChange={(e) => setAiRules({ ...getAiRules(), practiceMode: e.target.checked })} />
                 <i />
               </span>
             </label>
@@ -410,6 +437,33 @@ export function PracticePanel({ state, rules, symbol, priceOf, onReset, scan, on
               <b className="down">{money(r.avgLoss)}</b>
             </div>
           </div>
+          {costs > 0 && (
+            <p className="muted al-note">
+              {L(`P&L is after $${costs.toFixed(2)} of fees, spread and slippage.`, `Lãi/lỗ đã trừ $${costs.toFixed(2)} phí, chênh lệch và trượt giá.`)}
+            </p>
+          )}
+          {rules.reviewOn && reviewed > 0 && (
+            <div className="al-card">
+              <div className="al-kicker">{L('PROCESS VS. LUCK', 'QUY TRÌNH HAY MAY MẮN')}</div>
+              <table className="al-table">
+                <tbody>
+                  {(['skill', 'unlucky', 'lucky', 'mistake'] as ReviewBucket[]).map((b) => (
+                    <tr key={b}>
+                      <td>{L(BUCKET_LABEL[b].en, BUCKET_LABEL[b].vi)}</td>
+                      <td>{reviews[b]}</td>
+                      <td>{pct(reviews[b] / reviewed)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+              <p className="muted al-note">
+                {L(
+                  'Good process = reward at least 1.5x the risk, Trade Score 40+, fresh real data, and the learner not saying HOLD. Lucky wins are not a reason to repeat a trade.',
+                  'Quy trình tốt = lợi nhuận ít nhất 1,5 lần rủi ro, Điểm GD từ 40, dữ liệu thật và mới, và bộ học không nói GIỮ. Thắng nhờ may mắn không phải lý do để lặp lại.',
+                )}
+              </p>
+            </div>
+          )}
           <div className="al-card">
             <div className="al-kicker">{L('P&L OVER TIME', 'LÃI/LỖ THEO THỜI GIAN')}</div>
             {curve.length < 2 ? <p className="muted al-note">{L('The curve starts after the first closed trade.', 'Đường cong bắt đầu sau lệnh đóng đầu tiên.')}</p> : <Curve points={curve} />}
@@ -449,6 +503,101 @@ export function PracticePanel({ state, rules, symbol, priceOf, onReset, scan, on
               {L('FAILED', 'THẤT BẠI')} ({fails.length})
             </div>
             {fails.length === 0 ? <p className="muted al-note">{L('No losing practice trades yet.', 'Chưa có lệnh luyện tập thua.')}</p> : <ul className="pr-trades">{fails.slice(-30).reverse().map(tradeRow)}</ul>}
+          </div>
+        </>
+      )}
+
+      {tab === 'daily' && rules.dailyReportOn && (
+        <>
+          <div className="pr-filter" role="group">
+            {days.slice(0, 7).map((d) => (
+              <button key={d} className={shownDay === d ? 'on' : ''} onClick={() => setDay(d)}>
+                {d === today ? L('Today', 'Hôm nay') : d.slice(5)}
+              </button>
+            ))}
+          </div>
+          <div className="al-tiles">
+            <div>
+              <span>{L('Trades closed', 'Lệnh đã đóng')}</span>
+              <b>{report.trades}</b>
+            </div>
+            <div>
+              <span>{L('Won', 'Thắng')}</span>
+              <b>{report.wins}</b>
+            </div>
+            <div>
+              <span>{L('Net P&L', 'Lãi/lỗ ròng')}</span>
+              <b className={report.net >= 0 ? 'up' : 'down'}>{money(report.net)}</b>
+            </div>
+            <div>
+              <span>{L('Costs', 'Chi phí')}</span>
+              <b>${report.costs.toFixed(2)}</b>
+            </div>
+            <div>
+              <span>{L('Buys taken', 'Lệnh mua đã vào')}</span>
+              <b>{report.opened}</b>
+            </div>
+            <div>
+              <span>{L('Buys rejected', 'Lệnh mua bị từ chối')}</span>
+              <b>{report.rejected}</b>
+            </div>
+          </div>
+          <div className="al-card">
+            <div className="al-kicker">{L('SUMMARY AND LESSONS', 'TÓM TẮT VÀ BÀI HỌC')}</div>
+            <ul className="pr-lessons">
+              {report.lessons.map((l) => (
+                <li key={l.en}>{L(l.en, l.vi)}</li>
+              ))}
+              {report.best && report.trades > 1 && (
+                <li>
+                  {L('Best', 'Tốt nhất')}: {report.best.symbol} {money(report.best.pnl)} · {L('worst', 'kém nhất')}: {report.worst!.symbol} {money(report.worst!.pnl)}
+                </li>
+              )}
+            </ul>
+          </div>
+        </>
+      )}
+
+      {tab === 'log' && rules.auditOn && (
+        <>
+          <div className="pr-filter" role="group">
+            {(
+              [
+                ['all', 'All', 'Tất cả'],
+                ['ok', 'Accepted', 'Chấp nhận'],
+                ['no', 'Rejected', 'Từ chối'],
+              ] as const
+            ).map(([id, en, vi]) => (
+              <button key={id} className={logFilter === id ? 'on' : ''} onClick={() => setLogFilter(id)}>
+                {L(en, vi)}
+              </button>
+            ))}
+          </div>
+          <div className="al-card">
+            <div className="al-kicker">{L('EVERY AI DECISION, WITH ITS DATA', 'MỌI QUYẾT ĐỊNH AI, KÈM DỮ LIỆU')}</div>
+            {shownLog.length === 0 ? (
+              <p className="muted al-note">{L('No decisions logged yet.', 'Chưa có quyết định nào.')}</p>
+            ) : (
+              <ul className="pr-feed pr-log">
+                {shownLog.map((e) => (
+                  <li key={e.id} className={e.accepted ? 'ok' : 'no'}>
+                    <div className="pr-trade-head">
+                      <span className={`al-tag ${e.accepted ? 'up' : 'down'}`}>{e.accepted ? L('ACCEPTED', 'CHẤP NHẬN') : L('REJECTED', 'TỪ CHỐI')}</span>
+                      <b>{e.symbol}</b>
+                      <span className="muted">{e.account === 'robot' ? L('robot', 'robot') : L('practice', 'luyện tập')}</span>
+                      <span className="muted">{when(e.time)}</span>
+                    </div>
+                    <div className="pr-why">{L(e.en, e.vi)}</div>
+                    <div className="pr-why muted">
+                      {e.data ? `${L(DATA_LABEL[e.data.label].en, DATA_LABEL[e.data.label].vi)} · ${e.data.source} · ${L('bar closed', 'nến đóng')} ${Math.round(e.data.ageSec / 60)} ${L('min before', 'phút trước')}` : L('no bar data', 'không có dữ liệu nến')}
+                      {e.tradeScore != null && ` · ${L('Trade Score', 'Điểm GD')} ${e.tradeScore}`}
+                      {e.passed && e.passed.length > 0 && ` · ${L('passed', 'đạt')}: ${e.passed.join(', ')}`}
+                      {e.blockedBy && ` · ${L('stopped by', 'bị chặn bởi')}: ${e.blockedBy}`}
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            )}
           </div>
         </>
       )}

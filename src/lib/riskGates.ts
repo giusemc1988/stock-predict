@@ -35,11 +35,32 @@ export function riskGates(req: OrderRequest, price: number, broker: BrokerState,
       ? { name: 'Kill switch', level: 'block', message: 'The kill switch is on. New buys are stopped; you can still sell.' }
       : { name: 'Kill switch', level: 'pass', message: limits.killSwitch ? 'On, but selling is always allowed.' : 'Off.' },
   )
+  // hard limits for the robot: they hold even with the other gates off, and the AI can't change them
+  const robot = req.source === 'robot'
+  const MAX_DRAWDOWN = rules.maxDrawdownPct / 100
+  const peak = Math.max(equity, ...broker.history.map((h) => h.equity))
+  const dd = peak > 0 ? 1 - equity / peak : 0
+  const hard = robot && rules.hardLimitsOn
+  if (hard && buy) {
+    const held = broker.positions.filter((p) => p.qty > 0)
+    const isNew = !held.some((p) => p.symbol === req.symbol)
+    const exposure = held.reduce((x, p) => x + Math.abs(p.marketValue), 0) + req.qty * price
+    checks.push(
+      dd >= MAX_DRAWDOWN
+        ? { name: 'Hard: drawdown', level: 'block', message: `The account is ${(dd * 100).toFixed(0)}% below its high (limit ${rules.maxDrawdownPct}%). Robot buys are halted.` }
+        : { name: 'Hard: drawdown', level: 'pass', message: `${(dd * 100).toFixed(1)}% below the account's high.` },
+      isNew && held.length >= rules.maxOpenPositions
+        ? { name: 'Hard: open positions', level: 'block', message: `${held.length} positions are open (limit ${rules.maxOpenPositions}).` }
+        : { name: 'Hard: open positions', level: 'pass', message: `${held.length} of ${rules.maxOpenPositions} positions open.` },
+      equity > 0 && exposure / equity > rules.maxExposurePct / 100
+        ? { name: 'Hard: exposure', level: 'block', message: `Positions would hold ${((exposure / equity) * 100).toFixed(0)}% of the account (limit ${rules.maxExposurePct}%).` }
+        : { name: 'Hard: exposure', level: 'pass', message: `${equity > 0 ? ((exposure / equity) * 100).toFixed(0) : 0}% of the account in positions after this order.` },
+    )
+  }
   if (!rules.gatesOn) {
-    checks.push({ name: 'Other gates', level: 'warn', message: 'Turned off in Settings > AI rules. Only the kill switch is checked.' })
+    checks.push({ name: 'Other gates', level: 'warn', message: hard ? 'Turned off in Settings > AI rules. Only the kill switch and hard limits are checked.' : 'Turned off in Settings > AI rules. Only the kill switch is checked.' })
     return checks
   }
-  const MAX_DRAWDOWN = rules.maxDrawdownPct / 100
   const MAX_POSITION = rules.maxPositionPct / 100
   const MAX_TRADES_PER_DAY = rules.maxTradesPerDay
 
@@ -50,13 +71,14 @@ export function riskGates(req: OrderRequest, price: number, broker: BrokerState,
       : { name: 'Daily loss limit', level: 'pass', message: limits.lossLimitOn ? `Within your ${fmtUsd(limits.lossLimit)} limit.` : 'Not set.' },
   )
 
-  const peak = Math.max(equity, ...broker.history.map((h) => h.equity))
-  const dd = peak > 0 ? 1 - equity / peak : 0
-  checks.push(
-    dd >= MAX_DRAWDOWN && buy
-      ? { name: 'Drawdown', level: 'block', message: `The account is ${(dd * 100).toFixed(0)}% below its high (limit ${rules.maxDrawdownPct}%). Buys are paused.` }
-      : { name: 'Drawdown', level: 'pass', message: `${(dd * 100).toFixed(1)}% below the account's high.` },
-  )
+  // the robot's drawdown halt is above, as a hard limit
+  if (!hard) {
+    checks.push(
+      dd >= MAX_DRAWDOWN && buy
+        ? { name: 'Drawdown', level: 'block', message: `The account is ${(dd * 100).toFixed(0)}% below its high (limit ${rules.maxDrawdownPct}%). Buys are paused.` }
+        : { name: 'Drawdown', level: 'pass', message: `${(dd * 100).toFixed(1)}% below the account's high.` },
+    )
+  }
 
   const pos = broker.positions.find((p) => p.symbol === req.symbol)
   const after = (pos?.marketValue ?? 0) + (buy ? req.qty * price : 0)
