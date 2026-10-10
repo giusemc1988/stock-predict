@@ -1,0 +1,268 @@
+import { useEffect, useRef, useState } from 'react'
+import type { AiRules } from '../lib/aiRules'
+import { useLang } from '../lib/i18n'
+import type { JournalEntry } from '../lib/journal'
+import type { PracticeState } from '../lib/practice'
+import { SKILLS, statusOf, useSkillStatuses } from '../lib/skills'
+import { canListen, listenOnce } from '../lib/listen'
+import { chatReply, listenProblem, loadChat, saveChat, MAX_CHAT, type ChatTurn } from '../lib/jarvisChat'
+import { describeAction, logAction, type JarvisAction } from '../lib/jarvisActions'
+import { canSpeak, loadVoicePrefs, primeSpeech, speak, speakProblem, stopSpeaking } from '../lib/speech'
+import type { Bi } from '../lib/jarvis'
+import { JarvisAvatar } from './JarvisAvatar'
+
+interface Props {
+  state: PracticeState
+  rules: AiRules
+  journal: JournalEntry[]
+  learn: { oldTests: number; newBars: number; cycles?: number; latest?: Bi | null } | null
+  killSwitch: boolean
+  priceOf: (symbol: string) => number
+  known: { symbol: string; name: string }[]
+  watchlist: string[]
+  onAskStock?: (symbol: string) => void
+  onShowTrade?: (id: string) => void
+  onReplay?: () => void
+  onAction?: (a: JarvisAction) => void
+  /** The stock on the chart, for "it" and "this stock". */
+  symbol?: string
+}
+
+type Phase = 'idle' | 'listening' | 'thinking' | 'speaking'
+
+const stamp = () => Date.now()
+
+/** The floating brain: talk or type to Jarvis from any screen, with the conversation written out. */
+export function JarvisFab({ state, rules, journal, learn, killSwitch, priceOf, known, watchlist, onAskStock, onShowTrade, onReplay, onAction, symbol }: Props) {
+  const lang = useLang()
+  const L = (en: string, vi: string) => (lang === 'vi' ? vi : en)
+  const pick = (b: Bi) => (lang === 'vi' ? b.vi : b.en)
+  const [open, setOpen] = useState(false)
+  const [phase, setPhase] = useState<Phase>('idle')
+  const [words, setWords] = useState('')
+  const [typed, setTyped] = useState('')
+  const [chat, setChat] = useState<ChatTurn[]>(loadChat)
+  const statuses = useSkillStatuses()
+  const stopListen = useRef<(() => void) | null>(null)
+  // only the newest answer may update the speaking state
+  const speechRun = useRef(0)
+  const speechPoll = useRef<ReturnType<typeof setInterval> | null>(null)
+  const clearPoll = () => {
+    if (speechPoll.current) clearInterval(speechPoll.current)
+    speechPoll.current = null
+  }
+  const listRef = useRef<HTMLDivElement>(null)
+  const talk = rules.jarvisFabTalk && canSpeak()
+  // say why the voice failed once, not after every answer
+  const soundWarned = useRef(false)
+
+  useEffect(() => saveChat(chat), [chat])
+  useEffect(() => {
+    listRef.current?.scrollTo({ top: listRef.current.scrollHeight, behavior: 'smooth' })
+  }, [chat, words, open])
+  useEffect(
+    () => () => {
+      speechRun.current++
+      clearPoll()
+      stopListen.current?.()
+      stopSpeaking('fab')
+    },
+    [],
+  )
+
+  const add = (...turns: ChatTurn[]) => setChat((c) => [...c, ...turns].slice(-MAX_CHAT))
+  const say = (lines: Bi[]) => {
+    if (!talk) return setPhase('idle')
+    const run = ++speechRun.current
+    clearPoll()
+    setPhase('speaking')
+    void speak(lines.map(pick).join(' '), loadVoicePrefs(), lang, [], 'fab').then((r) => {
+      if (run !== speechRun.current) return
+      const problem = speakProblem(r, lang)
+      if (!problem) soundWarned.current = false
+      else if (!soundWarned.current) {
+        soundWarned.current = true
+        add({ who: 'jarvis', text: { en: problem, vi: problem }, time: stamp() })
+      }
+      // the result only says sound started; check back until it stops
+      speechPoll.current = setInterval(() => {
+        if (!speechSynthesis.speaking) {
+          clearPoll()
+          setPhase((p) => (p === 'speaking' ? 'idle' : p))
+        }
+      }, 400)
+    })
+  }
+
+  const respond = (text: string) => {
+    const t = text.trim()
+    if (!t) return
+    setPhase('thinking')
+    const skills = SKILLS.map((k) => ({ en: k.en.name, vi: k.vi.name, on: statusOf(k.id, statuses) === 'approved' }))
+    const learnInfo = learn ? { cycles: learn.cycles ?? 0, oldTests: learn.oldTests, newBars: learn.newBars, latest: learn.latest ?? null } : null
+    let name = 'Chanh'
+    try {
+      name = JSON.parse(localStorage.getItem('arc.jarvisName.v1') ?? '"Chanh"') || 'Chanh'
+    } catch {
+      /* keep the default */
+    }
+    const r = chatReply(t, {
+      ctx: { state, rules, journal, killSwitch, priceOf, skills, learn: learnInfo, symbol },
+      name,
+      known,
+      watchlist,
+      canAct: rules.jarvisActions && !!onAction,
+      canStock: rules.jarvisAnyStock && !!onAskStock,
+      canReplay: rules.jarvisReplay && !!onReplay,
+      canShow: rules.jarvisShowMe && !!onShowTrade,
+    })
+    const now = stamp()
+    const answer: Bi = { en: r.text.map((x) => x.en).join(' '), vi: r.text.map((x) => x.vi).join(' ') }
+    add({ who: 'me', text: { en: t, vi: t }, time: now }, { who: 'jarvis', text: answer, time: now + 1, action: r.action })
+    // the chart tours read their own steps aloud, so only speak the plain answers
+    if (r.stock || r.trade || r.replay) {
+      setPhase('idle')
+      setOpen(false)
+      if (r.stock) onAskStock?.(r.stock)
+      else if (r.trade) onShowTrade?.(r.trade)
+      else onReplay?.()
+      return
+    }
+    say(r.text)
+  }
+
+  // a proposal from before actions were switched off can be cancelled, not done
+  const canAct = rules.jarvisActions && !!onAction
+  const settle = (i: number, done: boolean) => {
+    const turn = chat[i]
+    if (!turn?.action || turn.settled || (done && !canAct)) return
+    if (done) onAction?.(turn.action)
+    logAction({ time: stamp(), label: describeAction(turn.action), result: done ? 'done' : 'cancelled' })
+    const reply: Bi = done ? { en: 'Done. It’s in my action log in the Brain tab.', vi: 'Xong. Đã ghi vào nhật ký hành động trong tab Bộ não.' } : { en: 'Okay, I left it as it is.', vi: 'Được, tôi giữ nguyên.' }
+    setChat((c) => [...c.map((x, j) => (j === i ? { ...x, settled: done ? ('done' as const) : ('cancelled' as const) } : x)), { who: 'jarvis' as const, text: reply, time: stamp() }].slice(-MAX_CHAT))
+    say([reply])
+  }
+
+  const mic = () => {
+    if (phase === 'listening') return stopListen.current?.()
+    stopSpeaking()
+    // this tap lets the phone speak the answer later
+    if (talk) primeSpeech()
+    setWords('')
+    setPhase('listening')
+    stopListen.current = listenOnce(
+      lang,
+      (text) => {
+        setWords('')
+        respond(text)
+      },
+      (err) => {
+        setWords('')
+        setPhase((p) => (p === 'listening' ? 'idle' : p))
+        const problem = err ? listenProblem(err) : null
+        if (problem) add({ who: 'jarvis', text: problem, time: stamp() })
+      },
+      setWords,
+    )
+  }
+
+  const send = (e: React.FormEvent) => {
+    e.preventDefault()
+    if (talk) primeSpeech()
+    respond(typed)
+    setTyped('')
+  }
+
+  const status =
+    phase === 'listening'
+      ? L('Listening… speak now', 'Đang nghe… hãy nói')
+      : phase === 'thinking'
+        ? L('Thinking…', 'Đang nghĩ…')
+        : phase === 'speaking'
+          ? L('Speaking…', 'Đang nói…')
+          : canListen()
+            ? L('Tap the mic and ask me anything', 'Bấm micro và hỏi tôi bất cứ điều gì')
+            : L('Type a question below', 'Gõ câu hỏi bên dưới')
+  const mood = killSwitch ? 'warning' : phase === 'thinking' || phase === 'listening' ? 'thinking' : phase === 'speaking' ? 'speaking' : 'idle'
+  const when = (ms: number) => new Date(ms).toLocaleTimeString(lang === 'vi' ? 'vi-VN' : 'en-US', { hour: 'numeric', minute: '2-digit' })
+
+  return (
+    <>
+      {open && (
+        <div className={`jfab-panel${rules.jarvisMotion ? ' anim' : ''}`} role="dialog" aria-label={L('Talk to Jarvis', 'Nói chuyện với Jarvis')}>
+          <div className="jfab-head">
+            <JarvisAvatar size={36} mood={mood} motion={rules.jarvisMotion} />
+            <div className="jfab-title">
+              <b>Jarvis</b>
+              <span className={`jfab-status ${phase}`}>{status}</span>
+            </div>
+            {chat.length > 0 && (
+              <button className="jfab-x" onClick={() => setChat([])} title={L('Clear the conversation', 'Xóa cuộc trò chuyện')}>
+                {L('Clear', 'Xóa')}
+              </button>
+            )}
+            <button className="jfab-x" onClick={() => (setOpen(false), stopListen.current?.(), stopSpeaking('fab'))} aria-label={L('Close', 'Đóng')}>
+              ✕
+            </button>
+          </div>
+          <div className="jfab-list" ref={listRef}>
+            {!chat.length && !words && (
+              <p className="jfab-empty">
+                {L('Ask me about a stock ("why TSLA?"), your risk, what I learned, or say "pause practice". I answer from the app\'s own records; nothing here is real money.', 'Hỏi tôi về một mã ("vì sao TSLA?"), rủi ro, điều tôi học được, hoặc nói "tạm dừng luyện tập". Tôi trả lời từ dữ liệu của ứng dụng; không có tiền thật ở đây.')}
+              </p>
+            )}
+            {chat.map((m, i) => (
+              <div key={m.time + '-' + i} className={`jfab-msg ${m.who}`}>
+                <p>{pick(m.text)}</p>
+                {m.action && !m.settled && (
+                  <div className="brain-confirm-btns">
+                    {canAct && (
+                      <button className="al-save" onClick={() => settle(i, true)}>
+                        {L('Do it', 'Làm đi')}
+                      </button>
+                    )}
+                    <button className="pr-rescan" onClick={() => settle(i, false)}>
+                      {L('Cancel', 'Hủy')}
+                    </button>
+                  </div>
+                )}
+                {m.settled && <em>{m.settled === 'done' ? L('Done', 'Đã làm') : L('Cancelled', 'Đã hủy')}</em>}
+                <time>{when(m.time)}</time>
+              </div>
+            ))}
+            {words && (
+              <div className="jfab-msg me live">
+                <p>{words}</p>
+              </div>
+            )}
+          </div>
+          <form className="jfab-input" onSubmit={send}>
+            {canListen() && (
+              <button type="button" className={`jfab-mic${phase === 'listening' ? ' on' : ''}`} onClick={mic} aria-label={phase === 'listening' ? L('Stop listening', 'Dừng nghe') : L('Talk to Jarvis', 'Nói với Jarvis')}>
+                <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
+                  <rect x="9" y="3" width="6" height="11" rx="3" fill="currentColor" />
+                  <path d="M6 11a6 6 0 0 0 12 0M12 17v4" stroke="currentColor" strokeWidth="2" fill="none" strokeLinecap="round" />
+                </svg>
+              </button>
+            )}
+            <input value={typed} onChange={(e) => setTyped(e.target.value)} placeholder={L('Type to Jarvis…', 'Gõ cho Jarvis…')} />
+            <button type="submit" className="al-save" disabled={!typed.trim()}>
+              {L('Send', 'Gửi')}
+            </button>
+            {phase === 'speaking' && (
+              <button type="button" className="pr-rescan" onClick={() => (stopSpeaking(), setPhase('idle'))}>
+                ■
+              </button>
+            )}
+          </form>
+        </div>
+      )}
+      <button className={`jfab${open ? ' open' : ''}${phase !== 'idle' ? ' busy' : ''}${rules.jarvisMotion ? '' : ' still'}`} onClick={() => setOpen((o) => !o)} aria-label={open ? L('Hide Jarvis', 'Ẩn Jarvis') : L('Talk to Jarvis', 'Nói chuyện với Jarvis')}>
+        <svg viewBox="0 0 48 48" width="30" height="30" aria-hidden="true">
+          <path className="jfab-brain" d="M18 9a6 6 0 0 0-6 6 6 6 0 0 0-4 10 6 6 0 0 0 4 9 6 6 0 0 0 10 4V12a5 5 0 0 0-4-3M30 9a6 6 0 0 1 6 6 6 6 0 0 1 4 10 6 6 0 0 1-4 9 6 6 0 0 1-10 4V12a5 5 0 0 1 4-3" />
+          <path className="jfab-synapse" d="M14 20h5M29 20h5M15 29h4M29 29h4M24 16v22" />
+        </svg>
+      </button>
+    </>
+  )
+}

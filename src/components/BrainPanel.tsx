@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { canListen, listenOnce, understand } from '../lib/listen'
 import { explain } from '../lib/brainRouter'
+import { listenProblem } from '../lib/jarvisChat'
 import { alreadySo, describeAction, loadActionLog, logAction, parseCommand, type ActionLogEntry, type JarvisAction } from '../lib/jarvisActions'
 import { SKILLS, statusOf, useSkillStatuses } from '../lib/skills'
 import type { AiRules } from '../lib/aiRules'
@@ -11,7 +12,7 @@ import { minBrokeFor, PLAYBOOK, ruleEvidence, STATUS_LABEL } from '../lib/playbo
 import { ask, ASK_QUESTIONS, briefing, evidenceLine, evidenceOpts, experience, greeting, QUICK_ASK, stockMemory, tradeLessons, type AskId, type Bi } from '../lib/jarvis'
 import { JarvisAvatar } from './JarvisAvatar'
 import { useLocalStorage } from '../hooks/useLocalStorage'
-import { canSpeak, DEFAULT_VOICE, isNatural, sortVoices, speak, speakProblem, stopSpeaking, useVoices, type VoicePrefs } from '../lib/speech'
+import { canSpeak, DEFAULT_VOICE, isNatural, pickVoice, sortVoices, speak, speakProblem, stopSpeaking, useVoices, voiceGender, type VoicePrefs } from '../lib/speech'
 import { getAiRules, setAiRules } from '../lib/aiRules'
 
 interface Props {
@@ -34,12 +35,14 @@ interface Props {
   onAction?: (a: JarvisAction) => void
   /** Your watchlist symbols, so Jarvis doesn't propose adding one twice. */
   watchlist?: string[]
+  /** The stock on the chart, for "it" and "this stock". */
+  symbol?: string
 }
 
 type Tab = 'today' | 'lessons' | 'playbook'
 
 /** Jarvis, the Arc Brain: briefing, Ask Jarvis, lessons and the playbook with its evidence. */
-export function BrainPanel({ state, rules, journal, learn, killSwitch, priceOf, onEditRules, onShowTrade, onReplay, known = [], onAskStock, onAction, watchlist = [] }: Props) {
+export function BrainPanel({ state, rules, journal, learn, killSwitch, priceOf, onEditRules, onShowTrade, onReplay, known = [], onAskStock, onAction, watchlist = [], symbol }: Props) {
   const lang = useLang()
   const L = (en: string, vi: string) => (lang === 'vi' ? vi : en)
   const pick = (b: { en: string; vi: string }) => (lang === 'vi' ? b.vi : b.en)
@@ -52,7 +55,7 @@ export function BrainPanel({ state, rules, journal, learn, killSwitch, priceOf, 
   const statuses = useSkillStatuses()
   const skills = SKILLS.map((k) => ({ en: k.en.name, vi: k.vi.name, on: statusOf(k.id, statuses) === 'approved' }))
   const learnInfo = learn ? { cycles: learn.cycles ?? 0, oldTests: learn.oldTests, newBars: learn.newBars, latest: learn.latest ?? null } : null
-  const ctx = { state, rules, journal, killSwitch, priceOf, skills, learn: learnInfo }
+  const ctx = { state, rules, journal, killSwitch, priceOf, skills, learn: learnInfo, symbol }
   const answer = q && rules.jarvisAsk ? ask(q, ctx) : null
   const mood = killSwitch ? 'warning' : q ? 'speaking' : 'idle'
   const [voice, setVoice] = useLocalStorage<VoicePrefs>('arc.jarvisVoice.v1', DEFAULT_VOICE)
@@ -71,8 +74,9 @@ export function BrainPanel({ state, rules, journal, learn, killSwitch, priceOf, 
   }, [speech])
   useEffect(() => () => stopSpeaking('brain'), [])
   const lastTrade = [...state.open, ...state.trades].sort((a, b) => b.openedAt - a.openedAt)[0]
-  const askAndSay = (id: AskId) => {
-    const next = q === id ? null : id
+  // a chip toggles its answer; a typed question always shows it
+  const askAndSay = (id: AskId, typed = false) => {
+    const next = q === id && !typed ? null : id
     setQ(next)
     setFree(null)
     // "why did you buy" opens the stock and walks through the trade on the chart (the tour speaks each step)
@@ -138,7 +142,14 @@ export function BrainPanel({ state, rules, journal, learn, killSwitch, priceOf, 
       return true
     }
     if (u?.kind === 'replay' && onReplay) return onReplay(), true
-    if (u?.kind === 'ask' && (rules.jarvisLinks || !linked.includes(u.id))) return askAndSay(u.id), true
+    if (u?.kind === 'ask' && (rules.jarvisLinks || !linked.includes(u.id))) return askAndSay(u.id, true), true
+    if (symbol) {
+      const lines = [{ en: `I'm not sure I understood, so here's what I know about ${symbol}, the stock on screen.`, vi: `Tôi chưa chắc đã hiểu, nên đây là điều tôi biết về ${symbol}, mã đang xem.` }, ...ask('thisStock', ctx)]
+      setQ(null)
+      setFree({ text: lines.map(pick).join(' ') })
+      if (speech) say(lines)
+      return true
+    }
     setFree({ text: L("I didn't catch that. Try a stock (\"why AAPL?\"), \"what's my risk\", \"what skills do you use\" or \"replay today\".", 'Tôi chưa hiểu. Thử hỏi một mã ("vì sao AAPL?"), "rủi ro", "kỹ năng" hoặc "xem lại hôm nay".') })
     return false
   }
@@ -159,8 +170,10 @@ export function BrainPanel({ state, rules, journal, learn, killSwitch, priceOf, 
       },
       (err) => {
         setListening(false)
-        if (err && err !== 'no-speech' && err !== 'aborted') setHeard(L(`Couldn't hear you (${err}).`, `Không nghe được (${err}).`))
+        const problem = err ? listenProblem(err) : null
+        if (problem) setHeard(pick(problem))
       },
+      setHeard,
     )
   }
   const when = (ms: number) => new Date(ms).toLocaleString(lang === 'vi' ? 'vi-VN' : 'en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })
@@ -412,13 +425,22 @@ export function BrainPanel({ state, rules, journal, learn, killSwitch, priceOf, 
               ) : (
                 <div className="brain-voice">
                   <label>
+                    <span>{L('Sound', 'Kiểu giọng')}</span>
+                    <select value={voice.gender} onChange={(e) => setVoice({ ...voice, gender: e.target.value as VoicePrefs['gender'], voice: '' })}>
+                      <option value="male">{L('Male (Jarvis)', 'Nam (Jarvis)')}</option>
+                      <option value="female">{L('Female', 'Nữ')}</option>
+                      <option value="any">{L('Any', 'Bất kỳ')}</option>
+                    </select>
+                  </label>
+                  <label>
                     <span>{L('Voice', 'Giọng')}</span>
                     <select value={voice.voice} onChange={(e) => setVoice({ ...voice, voice: e.target.value })}>
-                      <option value="">{L('Most natural voice for the app language', 'Giọng tự nhiên nhất theo ngôn ngữ ứng dụng')}</option>
+                      <option value="">{L('Best match for the sound above', 'Giọng hợp nhất với kiểu trên')}</option>
                       {voices.map((v) => (
                         <option key={v.voiceURI} value={v.voiceURI}>
                           {isNatural(v) ? '★ ' : ''}
-                          {v.name} ({v.lang})
+                          {v.name} ({v.lang}
+                          {voiceGender(v) ? `, ${voiceGender(v) === 'male' ? L('male', 'nam') : L('female', 'nữ')}` : ''})
                         </option>
                       ))}
                     </select>
@@ -444,8 +466,9 @@ export function BrainPanel({ state, rules, journal, learn, killSwitch, priceOf, 
                     </button>
                   </div>
                   {voiceMsg && <p className="brain-voice-msg">{voiceMsg}</p>}
+                  {voices.length > 0 && <p className="muted al-note">{L('Speaking as', 'Đang dùng giọng')}: {pickVoice(voice, lang, voices)?.name ?? '—'}</p>}
                   {!voices.length && <p className="brain-voice-msg">{L("I can't find any voices on this device yet. Wait a few seconds and try again; on Android, install a voice under Settings > Text-to-speech.", 'Chưa tìm thấy giọng nào trên thiết bị. Đợi vài giây rồi thử lại; trên Android, cài giọng trong Cài đặt > Chuyển văn bản thành giọng nói.')}</p>}
-                  <p className="muted al-note">{L("Uses your device's built-in voices, free and with no key. ★ marks the natural-sounding ones; male, female and Vietnamese voices depend on what your device has installed.", 'Dùng giọng có sẵn trên thiết bị, miễn phí và không cần khóa. ★ là giọng tự nhiên; giọng nam, nữ và tiếng Việt tùy vào thiết bị đã cài.')}</p>
+                  <p className="muted al-note">{L("Uses your device's built-in voices, free and with no key. ★ marks the natural-sounding ones; male, female and Vietnamese voices depend on what your device has installed. If the voice never changes on an Android phone, Chrome is using the phone's own voice: change it in Settings > Text-to-speech.", 'Dùng giọng có sẵn trên thiết bị, miễn phí và không cần khóa. ★ là giọng tự nhiên; giọng nam, nữ và tiếng Việt tùy vào thiết bị đã cài. Nếu giọng không đổi trên điện thoại Android, Chrome đang dùng giọng của máy: đổi trong Cài đặt > Chuyển văn bản thành giọng nói.')}</p>
                 </div>
               )}
             </div>

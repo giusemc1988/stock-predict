@@ -9,9 +9,11 @@ export interface VoicePrefs {
   voice: string
   rate: number
   pitch: number
+  /** Used when no exact voice is picked: Jarvis is a man's voice unless you choose otherwise. */
+  gender: 'male' | 'female' | 'any'
 }
 
-export const DEFAULT_VOICE: VoicePrefs = { voice: '', rate: 1, pitch: 1 }
+export const DEFAULT_VOICE: VoicePrefs = { voice: '', rate: 1, pitch: 1, gender: 'male' }
 
 export const canSpeak = () => typeof window !== 'undefined' && 'speechSynthesis' in window
 
@@ -36,10 +38,39 @@ export function sortVoices(voices: SpeechSynthesisVoice[]) {
   return [...voices].sort((a, b) => rank(a) - rank(b) || a.lang.localeCompare(b.lang) || a.name.localeCompare(b.name))
 }
 
-/** The most human-sounding voice the device has for a language. */
-export function bestVoice(voices: SpeechSynthesisVoice[], lang: 'en' | 'vi') {
+// Browsers don't say a voice's gender, so go by the names devices ship with.
+const MALE = /\b(male|man|daniel|alex|fred|aaron|arthur|gordon|oliver|rishi|tom|thomas|james|george|ryan|guy|andrew|brian|christopher|eric|roger|steffan|davis|tony|jason|william|liam|reed|ralph|evan|nathan|lee|mark|david|nam ?minh)\b/i
+const FEMALE = /\b(female|woman|samantha|victoria|karen|moira|tessa|fiona|serena|kate|susan|zira|aria|jenny|michelle|emma|ava|allison|libby|sonia|natasha|nicky|zoe|siri female|hoaimy|hoài ?my|linh)\b/i
+export const voiceGender = (v: SpeechSynthesisVoice): 'male' | 'female' | null => (MALE.test(v.name) ? 'male' : FEMALE.test(v.name) ? 'female' : null)
+
+/** The most human-sounding voice the device has for a language, a man's voice first when asked. */
+export function bestVoice(voices: SpeechSynthesisVoice[], lang: 'en' | 'vi', gender: VoicePrefs['gender'] = 'any') {
   const mine = voices.filter((v) => v.lang.toLowerCase().startsWith(lang))
-  return mine.find(isNatural) ?? mine.find((v) => v.localService === false) ?? mine[0]
+  const pool = gender === 'any' ? mine : mine.filter((v) => voiceGender(v) === gender)
+  const from = pool.length ? pool : mine
+  return from.find(isNatural) ?? from.find((v) => v.localService === false) ?? from[0]
+}
+
+/**
+ * The voice Jarvis will use. The list is read fresh each time: some browsers ignore a voice
+ * object from an older list, which is why a picked voice could sound unchanged.
+ */
+export function pickVoice(prefs: VoicePrefs, lang: 'en' | 'vi', voices: SpeechSynthesisVoice[] = []) {
+  const fresh = canSpeak() ? speechSynthesis.getVoices() : []
+  const list = fresh.length ? fresh : voices
+  const exact = prefs.voice ? list.find((v) => v.voiceURI === prefs.voice) ?? list.find((v) => v.name === prefs.voice) : undefined
+  return exact ?? bestVoice(list, lang, prefs.gender ?? 'male')
+}
+
+/** No man's voice installed: lower the pitch a little so Jarvis still sounds deeper. */
+const pitchFor = (prefs: VoicePrefs, v: SpeechSynthesisVoice | undefined) => (!prefs.voice && prefs.gender === 'male' && v && voiceGender(v) !== 'male' ? prefs.pitch * 0.8 : prefs.pitch)
+
+/** Call inside a tap: iPhone only lets a page speak later if it first spoke during a tap. */
+export function primeSpeech() {
+  if (!canSpeak() || speechSynthesis.speaking) return
+  const u = new SpeechSynthesisUtterance(' ')
+  u.volume = 0
+  speechSynthesis.speak(u)
 }
 
 /** Spoken text: only the answer, with symbols turned into words so it reads like speech. */
@@ -78,14 +109,13 @@ function chunks(text: string) {
 export function speak(text: string, prefs: VoicePrefs, lang: 'en' | 'vi', voices: SpeechSynthesisVoice[], by = ''): Promise<SpeakResult> {
   if (!canSpeak()) return Promise.resolve('unsupported')
   owner = by
-  const list = voices.length ? voices : speechSynthesis.getVoices()
-  const chosen = list.find((v) => v.voiceURI === prefs.voice) ?? bestVoice(list, lang)
+  const chosen = pickVoice(prefs, lang, voices)
   const utterances = chunks(speakable(text, lang)).map((t) => {
     const u = new SpeechSynthesisUtterance(t)
     if (chosen) u.voice = chosen
     u.lang = chosen?.lang ?? (lang === 'vi' ? 'vi-VN' : 'en-US')
     u.rate = Math.min(2, Math.max(0.5, prefs.rate))
-    u.pitch = Math.min(2, Math.max(0, prefs.pitch))
+    u.pitch = Math.min(2, Math.max(0, pitchFor(prefs, chosen)))
     u.volume = 1
     return u
   })

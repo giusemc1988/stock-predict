@@ -27,6 +27,7 @@ import { useAutoLearning } from './hooks/useAutoLearning'
 import { usePractice } from './hooks/usePractice'
 import { PracticePanel } from './components/PracticePanel'
 import { BrainPanel } from './components/BrainPanel'
+import { JarvisFab } from './components/JarvisFab'
 import { JarvisAvatar } from './components/JarvisAvatar'
 import { JarvisAlert, type JarvisAlertData } from './components/JarvisAlert'
 import type { ChartTour } from './components/ChartPanel'
@@ -488,6 +489,9 @@ export default function App() {
   return (
     <div className={`app page-${page}`}>
       <WhatsNew />
+      {aiRules.jarvisOn && aiRules.jarvisFab && (
+        <JarvisFab state={practice.state} rules={aiRules} journal={autoLearn.state.journal} learn={autoLearn.state} killSwitch={prefs.killSwitch} priceOf={practice.priceOf} known={chartUniverse} watchlist={universe.map((i) => i.symbol)} onAskStock={askStock} onShowTrade={showTrade} onReplay={showReplay} onAction={jarvisAct} symbol={inst.symbol} />
+      )}
       {jAlert && aiRules.jarvisOn && aiRules.jarvisAlerts && (
         <JarvisAlert
           alert={jAlert}
@@ -610,7 +614,7 @@ export default function App() {
                     setRightTab('trade')
                   }} onEditRules={() => setAiRulesOpen(true)} jarvis={aiRules.jarvisOn && aiRules.jarvisVoice} jarvisMotion={aiRules.jarvisMotion} onShowMe={showAnalysis} />}
               {shownTab === 'practice' && <PracticePanel state={practice.state} rules={aiRules} symbol={inst.symbol} priceOf={practice.priceOf} onReset={practice.reset} scan={practice.scan} onRescan={practice.rescan} onOpen={(s) => select(s)} universe={chartUniverse.map((i) => i.symbol)} serverMode={practice.serverMode} serverLastRun={practice.serverLastRun} />}
-              {shownTab === 'brain' && <BrainPanel state={practice.state} rules={aiRules} journal={autoLearn.state.journal} learn={autoLearn.state} killSwitch={prefs.killSwitch} priceOf={practice.priceOf} onEditRules={() => setAiRulesOpen(true)} onShowTrade={showTrade} onReplay={showReplay} known={chartUniverse} onAskStock={askStock} onAction={jarvisAct} watchlist={universe.map((i) => i.symbol)} />}
+              {shownTab === 'brain' && <BrainPanel state={practice.state} rules={aiRules} journal={autoLearn.state.journal} learn={autoLearn.state} killSwitch={prefs.killSwitch} priceOf={practice.priceOf} onEditRules={() => setAiRulesOpen(true)} onShowTrade={showTrade} onReplay={showReplay} known={chartUniverse} onAskStock={askStock} onAction={jarvisAct} watchlist={universe.map((i) => i.symbol)} symbol={inst.symbol} />}
               {shownTab === 'flow' && <OrderFlowPanel flow={flow} last={lastClose} />}
               {shownTab === 'learn' && <AutoLearnPanel al={autoLearn} rules={aiRules} symbol={inst.symbol} liveScore={live?.probUp ?? null} />}
               {shownTab === 'picks' && (

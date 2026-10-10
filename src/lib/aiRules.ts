@@ -71,6 +71,8 @@ export interface AiRules {
   jarvisLinks: boolean // "What I'm linked to": memory, skills, playbook, decision log, reviews, learner
   jarvisActions: boolean // Jarvis may propose setting changes (practice, kill switch, watchlist, AI rules); each needs your tap
   jarvisAnyStock: boolean // ask about any stock ("why AAPL?"): Jarvis opens it and explains on the chart
+  jarvisFab: boolean // floating brain button: talk or type to Jarvis from any screen, with the conversation written out
+  jarvisFabTalk: boolean // the floating brain reads its answers aloud
 }
 
 export const DEFAULT_AI_RULES: AiRules = {
@@ -140,6 +142,8 @@ export const DEFAULT_AI_RULES: AiRules = {
   jarvisLinks: true,
   jarvisAnyStock: true,
   jarvisActions: true,
+  jarvisFab: true,
+  jarvisFabTalk: true,
 }
 
 type NumKey = { [K in keyof AiRules]: AiRules[K] extends number ? K : never }[keyof AiRules]
@@ -222,6 +226,8 @@ export const RULE_FIELDS: RuleField[] = [
   { group: 'jarvis', key: 'jarvisLinks', en: "What I'm linked to: ask Jarvis about its memory, skills, playbook, decision log, reviews and learner", vi: 'Kết nối của tôi: hỏi Jarvis về bộ nhớ, kỹ năng, sổ tay, nhật ký quyết định, đánh giá và bộ học' },
   { group: 'jarvis', key: 'jarvisAnyStock', en: 'Ask about any stock ("why AAPL?"): Jarvis opens it and explains on the chart', vi: 'Hỏi về bất kỳ mã nào ("vì sao AAPL?"): Jarvis mở mã đó và giải thích trên biểu đồ' },
   { group: 'jarvis', key: 'jarvisActions', en: 'Jarvis can act: it proposes changes (pause practice, kill switch, watchlist, these switches) and does them only after you tap "Do it"; every one is logged', vi: 'Jarvis có thể hành động: đề xuất thay đổi (tạm dừng luyện tập, dừng khẩn cấp, danh sách theo dõi, các công tắc này) và chỉ làm khi bạn bấm "Làm đi"; mọi việc đều được ghi lại' },
+  { group: 'jarvis', key: 'jarvisFab', en: 'Floating brain button: talk or type to Jarvis from any screen, with the conversation written out', vi: 'Nút bộ não nổi: nói hoặc gõ với Jarvis ở mọi màn hình, kèm bản ghi cuộc trò chuyện' },
+  { group: 'jarvis', key: 'jarvisFabTalk', en: 'The floating brain answers out loud (male voice by default; change it in the Brain tab)', vi: 'Bộ não nổi trả lời thành tiếng (mặc định giọng nam; đổi trong tab Bộ não)' },
   { group: 'jarvis', key: 'jarvisListen', en: 'Ask Jarvis by voice (microphone; Chrome, Edge or Safari)', vi: 'Hỏi Jarvis bằng giọng nói (micro; Chrome, Edge hoặc Safari)' },
   { group: 'jarvis', key: 'jarvisSpeech', en: "Jarvis speaks (reads briefings and answers aloud with your device's voices; pick the voice in the Brain tab)", vi: 'Jarvis nói (đọc to bản tin và câu trả lời bằng giọng có sẵn trên thiết bị; chọn giọng trong tab Bộ não)' },
 ]
