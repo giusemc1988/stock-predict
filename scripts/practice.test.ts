@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict'
 import { dayKey, emptyPractice, kindOf, lessons, onBarClose, onBars, onPrice, practiceEquity, practiceReport, sessionEnd, type EntryContext } from '../src/lib/practice'
+import { practiceRows } from '../src/lib/practiceRows'
 import type { Analysis } from '../src/types'
 
 const buy = { verdict: 'BUY', score: 0.6, headline: 'Trend up', tradeScore: { score: 70, grade: 'B', regime: 'normal' }, exitPlan: { entry: 100, stop: 95, target: 110 }, plan: null } as unknown as Analysis
@@ -77,4 +78,14 @@ assert.equal(hit.trades[0].exit, 95)
 assert.equal(onBars(s, 'AAPL', [{ time: 1900, open: 100, high: 111, low: 99, close: 105, volume: 1 }], 5)!.trades[0].exit, 110)
 // a server dayEnd closes crypto day trades with the stock market
 assert.equal(onBarClose(emptyPractice(), ctx({ asset: 'crypto', dayEnd: Date.UTC(2026, 9, 9, 19, 55) })).open[0].closeBy, Date.UTC(2026, 9, 9, 19, 55))
+// practice trades show up in the bottom panel's Positions, Open orders and History rows
+const fresh = onBarClose(emptyPractice(), ctx())
+const rows = practiceRows({ ...won, open: fresh.open }, () => 104)
+assert.equal(rows.positions.length, 1)
+assert.equal(rows.positions[0].last, 104)
+assert.ok(rows.positions[0].unrealized > 0 && rows.positions[0].tag.startsWith('Practice'))
+assert.deepEqual(rows.working.map((o) => o.legLabel), ['Take profit', 'Stop loss'])
+assert.equal(rows.history.filter((o) => o.side === 'sell').length, 1, 'the closed trade is a sell fill')
+assert.equal(rows.history.filter((o) => o.side === 'buy').length, 2, 'a buy fill for the closed and the open trade')
+assert.equal(practiceRows(fresh, () => 0).positions[0].last, fresh.open[0].entry, 'no price yet: last falls back to the entry')
 console.log('practice tests passed')

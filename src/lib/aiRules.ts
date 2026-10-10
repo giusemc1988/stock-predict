@@ -35,6 +35,7 @@ export interface AiRules {
   practiceServer: boolean // show the 24/7 server practice account (trades while the app is closed)
   practiceWatchlist: boolean // pin the markets practice is watching or trading at the top of the watchlist
   practiceFollow: boolean // the chart jumps to each new practice trade
+  practiceInPanels: boolean // list practice positions and orders in the Positions, Open orders and History tabs
   dataGuardOn: boolean // block new AI entries on simulated or stale data
   maxDataAgeMin: number // oldest bar close allowed for a new entry (at least one bar)
   hardLimitsOn: boolean // hard limits for AI orders: drawdown halt, open positions, total exposure
@@ -81,6 +82,7 @@ export const DEFAULT_AI_RULES: AiRules = {
   practiceServer: true,
   practiceWatchlist: true,
   practiceFollow: false,
+  practiceInPanels: true,
   dataGuardOn: true,
   maxDataAgeMin: 30,
   hardLimitsOn: true,
@@ -145,6 +147,7 @@ export const RULE_FIELDS: RuleField[] = [
   { group: 'modules', key: 'practiceServer', en: 'Practice 24/7 on the server (keeps trading while the app is closed)', vi: 'Luyện tập 24/7 trên máy chủ (vẫn giao dịch khi đóng ứng dụng)' },
   { group: 'modules', key: 'practiceWatchlist', en: 'Show what practice is watching and trading at the top of the watchlist', vi: 'Hiện các mã luyện tập đang theo dõi và giao dịch ở đầu danh sách' },
   { group: 'modules', key: 'practiceFollow', en: 'Chart follows each new practice trade', vi: 'Biểu đồ tự chuyển theo mỗi lệnh luyện tập mới' },
+  { group: 'modules', key: 'practiceInPanels', en: 'Show practice trades in Positions, Open orders and History', vi: 'Hiện lệnh luyện tập trong Vị thế, Lệnh chờ và Lịch sử' },
   { group: 'modules', key: 'practiceOnChart', en: 'Show practice orders on the chart (animated)', vi: 'Hiện lệnh luyện tập trên biểu đồ (có hiệu ứng)' },
   { group: 'modules', key: 'practiceFeed', en: 'Pop-up notices for practice orders', vi: 'Thông báo bật lên cho lệnh luyện tập' },
   { group: 'modules', key: 'gatesOn', en: 'Risk gates (kill switch always works)', vi: 'Cổng rủi ro (công tắc dừng khẩn cấp luôn hoạt động)' },

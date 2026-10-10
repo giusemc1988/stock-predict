@@ -42,7 +42,7 @@ export function PositionsTable({
   onClose,
   empty = 'No positions yet. Place a paper order to get started.',
 }: {
-  positions: BrokerPosition[]
+  positions: (BrokerPosition & { id?: string; tag?: string })[]
   onSelect?: (s: string) => void
   onClose?: (p: BrokerPosition) => unknown
   empty?: string
@@ -70,9 +70,10 @@ export function PositionsTable({
           </tr>
         )}
         {positions.map((p) => (
-          <tr key={p.symbol} className={onSelect ? 'click' : ''} onClick={() => onSelect?.(p.symbol)}>
+          <tr key={p.id ?? p.symbol} className={onSelect ? 'click' : ''} onClick={() => onSelect?.(p.symbol)}>
             <td>
               <b>{p.symbol}</b>
+              {p.tag && <span className="leg-tag">🎯 {p.tag}</span>}
             </td>
             <td className="mono r">{qtyFmt(p.qty)}</td>
             <td className="mono r">{fmtPrice(p.avgCost)}</td>
@@ -83,6 +84,7 @@ export function PositionsTable({
             </td>
             {onClose && (
               <td className="r">
+                {!p.tag && (
                 <button
                   className="btn-mini"
                   disabled={pending.has(p.symbol)}
@@ -93,6 +95,7 @@ export function PositionsTable({
                 >
                   {pending.has(p.symbol) ? 'Closing…' : 'Close'}
                 </button>
+                )}
               </td>
             )}
           </tr>
@@ -102,7 +105,7 @@ export function PositionsTable({
   )
 }
 
-export function OrdersTable({ orders, onCancel, empty = 'No orders yet.' }: { orders: BrokerOrder[]; onCancel?: (id: string) => unknown; empty?: string }) {
+export function OrdersTable({ orders, onCancel, empty = 'No orders yet.' }: { orders: (BrokerOrder & { tag?: string })[]; onCancel?: (id: string) => unknown; empty?: string }) {
   const [pending, run] = usePending()
   return (
     <table>
@@ -137,6 +140,7 @@ export function OrdersTable({ orders, onCancel, empty = 'No orders yet.' }: { or
               <td>
                 <b>{o.symbol}</b> {o.source === 'robot' && <RobotIcon size={13} side={o.side} title="Placed by the robot" />}
                 {o.legLabel && <span className="leg-tag">{o.legLabel}</span>}
+                {o.tag && <span className="leg-tag">🎯 {o.tag}</span>}
               </td>
               <td className={o.side === 'buy' ? 'up' : 'down'}>{o.side === 'buy' ? 'Buy' : 'Sell'}</td>
               <td>
@@ -153,7 +157,7 @@ export function OrdersTable({ orders, onCancel, empty = 'No orders yet.' }: { or
               </td>
               {onCancel && (
                 <td className="r">
-                  {OPEN_STATUSES.includes(o.status) && (
+                  {!o.tag && OPEN_STATUSES.includes(o.status) && (
                     <button className="btn-mini" disabled={pending.has(o.id)} onClick={() => run(o.id, () => onCancel(o.id))}>
                       {pending.has(o.id) ? 'Canceling…' : 'Cancel'}
                     </button>
