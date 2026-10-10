@@ -4,7 +4,7 @@
  * AI's BUY calls, then exit and enter practice trades. Paper only: nothing here places an order.
  */
 import type { AssetClass, Candle, OrderFlow } from '../types'
-import type { AiRules } from './aiRules'
+import { practiceLimits, type AiRules } from './aiRules'
 import { analyze } from './analyst'
 import { costsFrom } from './costs'
 import { stampData } from './dataGuard'
@@ -144,7 +144,7 @@ export async function scanCycle(input: ScanInput): Promise<ScanResult> {
         killSwitch: input.killSwitch,
         now,
         hardLimitsOn: rules.hardLimitsOn,
-        maxOpenPositions: rules.maxOpenPositions,
+        ...practiceLimits(rules),
         maxExposurePct: rules.maxExposurePct,
         data: stampData(input.sourceFor(x), x.barTime, BAR_SEC, now),
         tfSec: BAR_SEC,

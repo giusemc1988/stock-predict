@@ -175,8 +175,11 @@ export function parsePractice(raw: unknown): PracticeState | null {
 }
 
 export const practiceEquity = (s: PracticeState) => PRACTICE_START + s.realized
+/** Net P&L of the practice trades closed on this trading day (US Eastern). */
+export const todayRealized = (s: PracticeState, day: string) => s.trades.filter((t) => dayKey(t.closedAt) === day).reduce((x, t) => x + t.pnl, 0)
 
 const fmt = (p: number) => (p >= 1000 ? p.toLocaleString('en-US', { maximumFractionDigits: 2 }) : p.toPrecision(5))
+const usd = (x: number) => `$${x.toFixed(2)}`
 const money = (x: number) => `${x >= 0 ? '+' : '−'}$${Math.abs(x).toFixed(2)}`
 let seq = 0
 const newId = (now: number) => `${now.toString(36)}${(seq++).toString(36)}`
@@ -224,6 +227,10 @@ export interface EntryContext {
   costs?: Costs | null
   /** Record the decision in the log (default on). */
   audit?: boolean
+  /** Lift the per-day trade caps (day trades, and the orders-per-day gate): trade every BUY the rules allow. */
+  unlimited?: boolean
+  /** Stop new buys for the rest of the day once today's closed trades lost this % of the account (0/missing = off). */
+  dayLossLimitPct?: number
   skills?: string[]
 }
 
@@ -272,7 +279,7 @@ export function onBarClose(prev: PracticeState, ctx: EntryContext): PracticeStat
   const dayEnd = ctx.dayEnd ?? sessionEnd(ctx.asset, ctx.now)
   let kind: PracticeKind
   if (ctx.longOn && openedToday('long') < ctx.longTrades && !holding('long')) kind = 'long'
-  else if (ctx.dayOn && openedToday('day') < ctx.dayTrades && !holding('day') && ctx.now < dayEnd - LAST_ENTRY_MS) kind = 'day'
+  else if (ctx.dayOn && (ctx.unlimited || openedToday('day') < ctx.dayTrades) && !holding('day') && ctx.now < dayEnd - LAST_ENTRY_MS) kind = 'day'
   else {
     log(false, `No BUY on ${ctx.symbol}: today's trade slots are used or it is already held`, `Không MUA ${ctx.symbol}: đã dùng hết lượt hôm nay hoặc đang giữ mã này`, 'Slots')
     return s
@@ -293,6 +300,13 @@ export function onBarClose(prev: PracticeState, ctx: EntryContext): PracticeStat
     pass('Data')
   }
   const eq = practiceEquity(s)
+  if (ctx.dayLossLimitPct && ctx.dayLossLimitPct > 0) {
+    const lostToday = -todayRealized(s, today)
+    const limit = (eq + lostToday) * (ctx.dayLossLimitPct / 100)
+    if (lostToday >= limit)
+      return skip('Daily loss limit', `lost ${usd(lostToday)} today (limit ${ctx.dayLossLimitPct}% = ${usd(limit)}); no new buys until tomorrow`, `đã lỗ ${usd(lostToday)} hôm nay (giới hạn ${ctx.dayLossLimitPct}% = ${usd(limit)}); không mua thêm đến ngày mai`)
+    pass('Daily loss limit')
+  }
   const hard = ctx.hardLimitsOn ?? true
   if (hard) {
     if (eq < s.peak * (1 - ctx.maxDrawdownPct / 100)) return skip('Drawdown', `practice account is down ${ctx.maxDrawdownPct}%+ from its peak`, `tài khoản luyện tập giảm hơn ${ctx.maxDrawdownPct}% từ đỉnh`)
@@ -302,7 +316,7 @@ export function onBarClose(prev: PracticeState, ctx: EntryContext): PracticeStat
     pass('Open positions')
   }
   const todays = s.trades.filter((t) => dayKey(t.openedAt) === today).length + s.open.length
-  if (ctx.gatesOn && todays >= ctx.maxTradesPerDay) return skip('Trades today', `${ctx.maxTradesPerDay} trades today already`, `đã đủ ${ctx.maxTradesPerDay} lệnh hôm nay`)
+  if (ctx.gatesOn && !ctx.unlimited && todays >= ctx.maxTradesPerDay) return skip('Trades today', `${ctx.maxTradesPerDay} trades today already`, `đã đủ ${ctx.maxTradesPerDay} lệnh hôm nay`)
   const regime = a.tradeScore?.regime ?? null
   if (ctx.gatesOn && regime === 'extreme') return skip('Volatility', 'price swings are extreme', 'giá dao động quá mạnh')
   if (ctx.gatesOn) pass('Risk gates')

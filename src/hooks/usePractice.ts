@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { tfSeconds, type Analysis, type AssetClass, type Candle, type Instrument, type Timeframe } from '../types'
-import type { AiRules } from '../lib/aiRules'
+import { practiceLimits, type AiRules } from '../lib/aiRules'
 import { costsFrom } from '../lib/costs'
 import { stampData } from '../lib/dataGuard'
 import { baseRate, decide, type JournalEntry } from '../lib/journal'
@@ -206,7 +206,7 @@ export function usePractice({ rules, symbol, asset, tf, candles, analysis, liveS
         killSwitch: c.killSwitch,
         now: Date.now(),
         hardLimitsOn: c.rules.hardLimitsOn,
-        maxOpenPositions: c.rules.maxOpenPositions,
+        ...practiceLimits(c.rules),
         maxExposurePct: c.rules.maxExposurePct,
         data: stampData(c.feedSource, closed.time, tfSeconds(tf as Timeframe), Date.now()),
         tfSec: tfSeconds(tf as Timeframe),
