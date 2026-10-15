@@ -10,6 +10,7 @@ import { describeAction, logAction, type JarvisAction } from '../lib/jarvisActio
 import { canSpeak, loadVoicePrefs, primeSpeech, speak, speakProblem, stopSpeaking } from '../lib/speech'
 import type { Bi } from '../lib/jarvis'
 import { JarvisAvatar } from './JarvisAvatar'
+import { askCloud, factsForAi } from '../lib/cloudBrain'
 
 interface Props {
   state: PracticeState
@@ -106,8 +107,9 @@ export function JarvisFab({ state, rules, journal, learn, killSwitch, priceOf, k
     } catch {
       /* keep the default */
     }
+    const ctx = { state, rules, journal, killSwitch, priceOf, skills, learn: learnInfo, symbol }
     const r = chatReply(t, {
-      ctx: { state, rules, journal, killSwitch, priceOf, skills, learn: learnInfo, symbol },
+      ctx,
       name,
       known,
       watchlist,
@@ -118,6 +120,16 @@ export function JarvisFab({ state, rules, journal, learn, killSwitch, priceOf, k
     })
     const now = stamp()
     const answer: Bi = { en: r.text.map((x) => x.en).join(' '), vi: r.text.map((x) => x.vi).join(' ') }
+    // not understood: our own data came first; now ask the free-AI helper, with those facts
+    if (r.unsure && rules.jarvisCloudAi) {
+      add({ who: 'me', text: { en: t, vi: t }, time: now })
+      void askCloud(t, lang, factsForAi(ctx)).then((ai) => {
+        const said: Bi = ai ? { en: ai.text, vi: ai.text } : answer
+        add({ who: 'jarvis', text: said, time: stamp(), by: ai?.by })
+        say(ai ? [said] : r.text)
+      })
+      return
+    }
     add({ who: 'me', text: { en: t, vi: t }, time: now }, { who: 'jarvis', text: answer, time: now + 1, action: r.action })
     // the chart tours read their own steps aloud, so only speak the plain answers
     if (r.stock || r.trade || r.replay) {
@@ -227,7 +239,10 @@ export function JarvisFab({ state, rules, journal, learn, killSwitch, priceOf, k
                   </div>
                 )}
                 {m.settled && <em>{m.settled === 'done' ? L('Done', 'Đã làm') : L('Cancelled', 'Đã hủy')}</em>}
-                <time>{when(m.time)}</time>
+                <time>
+                  {when(m.time)}
+                  {m.by ? ` · ${L('answered with', 'trả lời bằng')} ${m.by}` : ''}
+                </time>
               </div>
             ))}
             {words && (

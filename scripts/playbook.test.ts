@@ -168,3 +168,25 @@ assert.equal(bestVoice(vs, 'en', 'female')?.name, 'Google UK English Female')
 console.log('chat + male voice ok')
 assert.match(chatReply('did you buy it too high?', { ...deps, ctx: { ...chatCtx, symbol: 'ZZZ' } }).text[0].en, /haven't traded ZZZ/)
 console.log('on-screen stock ok')
+
+// Free-AI helper: only providers with a key are asked, in order, and the next one covers a failure
+import { askBrain, brainStatus, cleanAsk } from '../src/lib/brainServer'
+assert.equal(chatReply('blah blah', deps).unsure, true)
+assert.equal(chatReply('did you buy it too high?', deps).unsure, undefined)
+assert.equal(cleanAsk({ question: '  ' }), null)
+const big = cleanAsk({ question: 'x'.repeat(2000), lang: 'vi', facts: Array(50).fill('f'.repeat(999)) })!
+assert.equal(big.question.length, 500)
+assert.equal(big.facts.length, 12)
+assert.equal(big.lang, 'vi')
+assert.deepEqual(brainStatus({ GROQ_API_KEY: 'xai-abc' }).filter((p) => p.on).map((p) => p.id), ['xai'])
+const calls: string[] = []
+const fakeFetch = (async (url: string) => {
+  calls.push(String(url))
+  if (String(url).includes('googleapis')) return new Response('quota', { status: 429 })
+  return new Response(JSON.stringify({ choices: [{ message: { content: ' Practice answer. ' } }] }))
+}) as typeof fetch
+const aiAns = await askBrain({ question: 'what is a stop loss', lang: 'en', facts: ['I hold HIMS.'] }, { GEMINI_API_KEY: 'g', GROQ_API_KEY: 'gsk_1' }, fakeFetch)
+assert.deepEqual(aiAns, { text: 'Practice answer.', by: 'Groq' })
+assert.equal(calls.length, 2)
+assert.equal(await askBrain({ question: 'q', lang: 'en', facts: [] }, {}, fakeFetch), null)
+console.log('free AI helper ok')

@@ -14,6 +14,8 @@ export interface ChatTurn {
   /** A change Jarvis proposed; it waits for your tap. */
   action?: JarvisAction
   settled?: 'done' | 'cancelled'
+  /** The free-AI helper that wrote this answer, e.g. "Gemini". */
+  by?: string
 }
 
 export interface ChatReply {
@@ -24,6 +26,8 @@ export interface ChatReply {
   /** Walk through this practice trade on the chart. */
   trade?: string
   replay?: boolean
+  /** Jarvis didn't understand; the free-AI helper may answer instead, if switched on. */
+  unsure?: boolean
 }
 
 export interface ChatDeps {
@@ -59,6 +63,7 @@ export function chatReply(text: string, d: ChatDeps): ChatReply {
   // not sure what was asked: talk about the stock on screen rather than give up
   if (ctx.symbol)
     return {
+      unsure: true,
       text: [
         { en: `I'm not sure I understood, so here's what I know about ${ctx.symbol}, the stock on screen.`, vi: `Tôi chưa chắc đã hiểu, nên đây là điều tôi biết về ${ctx.symbol}, mã đang xem.` },
         ...ask('thisStock', ctx),
@@ -66,6 +71,7 @@ export function chatReply(text: string, d: ChatDeps): ChatReply {
       ],
     }
   return {
+    unsure: true,
     text: [
       {
         en: 'I didn\'t catch that. Try a stock ("why AAPL?"), "what\'s my risk", "what have you learned", "pause practice" or "replay today".',
