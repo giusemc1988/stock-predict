@@ -2,7 +2,7 @@
  * Version and "What's new". Bump APP_VERSION and add an entry to the top of RELEASES
  * with each update. The banner shows once per version, then stays dismissed.
  */
-export const APP_VERSION = '1.7.0'
+export const APP_VERSION = '1.8.0'
 
 export interface Release {
   version: string
@@ -13,6 +13,20 @@ export interface Release {
 }
 
 export const RELEASES: Release[] = [
+  {
+    version: '1.8.0',
+    date: '2026-10-15',
+    changes: [
+      'Optional free AI helper for Jarvis. He still answers from his own records first. Only when he doesn\'t understand you does he ask a free AI (Gemini, Groq, Grok or NVIDIA), and he hands it those records so the answer is about your trades. Answers from the AI say which one wrote them.',
+      'Keys stay on the server as Cloudflare secrets, never in the app or the code. The Brain tab shows whether a key is connected and how to add one. Without a key, Jarvis works exactly as before.',
+      'The AI only explains: it can\'t change settings or place trades, and it never promises profits. Switch it off in Settings > AI rules: "Free AI helper".',
+    ],
+    changesVi: [
+      'Trợ lý AI miễn phí tùy chọn cho Jarvis. Jarvis vẫn trả lời từ dữ liệu của mình trước. Chỉ khi không hiểu bạn, Jarvis mới hỏi một AI miễn phí (Gemini, Groq, Grok hoặc NVIDIA), kèm dữ liệu đó để câu trả lời đúng về lệnh của bạn. Câu trả lời từ AI ghi rõ AI nào viết.',
+      'Khóa nằm trên máy chủ dưới dạng secret của Cloudflare, không bao giờ trong ứng dụng hay mã nguồn. Tab Bộ não cho biết đã kết nối khóa chưa và cách thêm. Không có khóa, Jarvis hoạt động như cũ.',
+      'AI chỉ giải thích: không thể đổi cài đặt hay đặt lệnh, và không bao giờ hứa lợi nhuận. Tắt trong Cài đặt > Quy tắc AI: "Trợ lý AI miễn phí".',
+    ],
+  },
   {
     version: '1.7.0',
     date: '2026-10-10',

@@ -28,3 +28,7 @@ dist-ssr
 
 # practice server build
 .practice
+
+# local Worker secrets for wrangler dev
+.dev.vars
+.wrangler

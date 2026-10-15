@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { canListen, listenOnce, understand } from '../lib/listen'
 import { explain } from '../lib/brainRouter'
 import { listenProblem } from '../lib/jarvisChat'
+import { askCloud, factsForAi, useCloudStatus } from '../lib/cloudBrain'
 import { alreadySo, describeAction, loadActionLog, logAction, parseCommand, type ActionLogEntry, type JarvisAction } from '../lib/jarvisActions'
 import { SKILLS, statusOf, useSkillStatuses } from '../lib/skills'
 import type { AiRules } from '../lib/aiRules'
@@ -61,6 +62,7 @@ export function BrainPanel({ state, rules, journal, learn, killSwitch, priceOf, 
   const [voice, setVoice] = useLocalStorage<VoicePrefs>('arc.jarvisVoice.v1', DEFAULT_VOICE)
   const voices = sortVoices(useVoices())
   const speech = rules.jarvisSpeech && canSpeak()
+  const cloud = useCloudStatus(rules.jarvisCloudAi)
   // when speaking fails, say why in the voice card instead of staying silent
   const [voiceMsg, setVoiceMsg] = useState<string | null>(null)
   const say = (lines: { en: string; vi: string }[]) => {
@@ -143,6 +145,20 @@ export function BrainPanel({ state, rules, journal, learn, killSwitch, priceOf, 
     }
     if (u?.kind === 'replay' && onReplay) return onReplay(), true
     if (u?.kind === 'ask' && (rules.jarvisLinks || !linked.includes(u.id))) return askAndSay(u.id, true), true
+    // not understood: our own data came first; the free-AI helper answers with those facts
+    if (rules.jarvisCloudAi) {
+      setQ(null)
+      setFree({ text: L('Thinking…', 'Đang nghĩ…') })
+      void askCloud(text, lang, factsForAi(ctx)).then((ai) => {
+        if (!ai) return fallback()
+        setFree({ text: `${ai.text} (${L('answered with', 'trả lời bằng')} ${ai.by})` })
+        if (speech) say([{ en: ai.text, vi: ai.text }])
+      })
+      return true
+    }
+    return fallback()
+  }
+  const fallback = () => {
     if (symbol) {
       const lines = [{ en: `I'm not sure I understood, so here's what I know about ${symbol}, the stock on screen.`, vi: `Tôi chưa chắc đã hiểu, nên đây là điều tôi biết về ${symbol}, mã đang xem.` }, ...ask('thisStock', ctx)]
       setQ(null)
@@ -415,6 +431,23 @@ export function BrainPanel({ state, rules, journal, learn, killSwitch, priceOf, 
                 🔊 {L("Turn on Jarvis's voice", 'Bật giọng Jarvis')}
               </button>
               {voiceMsg && <p className="brain-voice-msg">{voiceMsg}</p>}
+            </div>
+          )}
+          {rules.jarvisCloudAi && (
+            <div className="al-card">
+              <div className="al-kicker">{L('FREE AI HELPER', 'TRỢ LÝ AI MIỄN PHÍ')}</div>
+              <p className="muted al-note">
+                {L("I always answer from my own records first. Only when I don't understand you do I ask a free AI, and I give it those records so it answers about your trades, not guesses. It explains; it never trades.", 'Tôi luôn trả lời từ dữ liệu của mình trước. Chỉ khi không hiểu bạn, tôi mới hỏi một AI miễn phí, kèm dữ liệu đó để nó trả lời đúng về lệnh của bạn. Nó chỉ giải thích, không bao giờ giao dịch.')}
+              </p>
+              {cloud == null ? (
+                <p className="muted al-note">{L('Checking the server…', 'Đang kiểm tra máy chủ…')}</p>
+              ) : cloud.some((p) => p.on) ? (
+                <p className="al-note">✓ {L('Connected', 'Đã kết nối')}: {cloud.filter((p) => p.on).map((p) => p.name).join(', ')}</p>
+              ) : (
+                <p className="brain-voice-msg">
+                  {L('No AI key on the server yet, so I use my own answers only. To add one: get a free Gemini key at aistudio.google.com, then in Cloudflare open Workers & Pages > stock-predict > Settings > Variables and Secrets, and add a Secret named GEMINI_API_KEY. Groq (GROQ_API_KEY), Grok (XAI_API_KEY) and NVIDIA (NVIDIA_API_KEY) work too.', 'Máy chủ chưa có khóa AI nên tôi chỉ dùng câu trả lời của mình. Để thêm: lấy khóa Gemini miễn phí tại aistudio.google.com, rồi trong Cloudflare mở Workers & Pages > stock-predict > Settings > Variables and Secrets, thêm Secret tên GEMINI_API_KEY. Groq (GROQ_API_KEY), Grok (XAI_API_KEY) và NVIDIA (NVIDIA_API_KEY) cũng dùng được.')}
+                </p>
+              )}
             </div>
           )}
           {rules.jarvisSpeech && (
