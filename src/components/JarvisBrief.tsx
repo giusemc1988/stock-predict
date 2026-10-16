@@ -6,7 +6,7 @@ import { briefFacts, briefKey, briefNodes, buyCalls, type BriefInputs, type Node
 import { fmtCompact, fmtPct, fmtUsd, tone } from '../lib/format'
 import { useLang } from '../lib/i18n'
 import { greeting } from '../lib/jarvis'
-import { dayKey, practiceEquity, practiceReport, PRACTICE_START, type PickRow, type PracticeState } from '../lib/practice'
+import { dayKey, practiceEquity, PRACTICE_START, type PickRow, type PracticeState } from '../lib/practice'
 import { pickSourceLabel } from '../lib/practicePicks'
 import { canSpeak, loadVoicePrefs, speak } from '../lib/speech'
 import { useBriefText } from '../hooks/useBriefText'
@@ -89,7 +89,6 @@ export function JarvisBrief(p: Props) {
   const brief = useBriefText(p.rules.briefAi && p.rules.jarvisCloudAi && ready, stableFacts, key, lang, p.rules.localAiOn && ready)
   const hello = greeting(name, p.practice, p.killSwitch)
   const buys = buyCalls(p.scan.candidates)
-  const rep = practiceReport(p.practice)
   const memory = p.learn.journal.length + p.practice.trades.length + p.learn.log.length
   const [spoke, setSpoke] = useState<string | null>(null)
   const listen = () => {

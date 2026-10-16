@@ -1,13 +1,11 @@
-import { fmtPct, fmtUsd, tone } from '../lib/format'
-import { practiceReport, PRACTICE_START, type PracticeState } from '../lib/practice'
+import { fmtUsd, tone } from '../lib/format'
+import { practiceReport, type PracticeState } from '../lib/practice'
 import { useLang } from '../lib/i18n'
 
 export function ScoreboardPanel({ practice }: { practice: PracticeState }) {
   const lang = useLang()
   const vi = lang === 'vi'
   const rep = practiceReport(practice)
-  const equity = practice.v + practice.realized
-  const edgeVsBaseline = equity - PRACTICE_START - (practice.v + practice.realized - PRACTICE_START) * 0.5 // simplified: assume 50% baseline
   const recentTrades = practice.trades.slice(-8) // Last 8 trades
 
   return (

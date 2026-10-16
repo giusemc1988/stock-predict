@@ -81,6 +81,7 @@ export interface AiRules {
   localModelName: string // local LLM name: llama3.2, gemma4:e2b, qwen3-coder:30b (default: llama3.2)
   localExplain: boolean // explain your trades using llama3.2 (browser only, no API)
   localQA: boolean // answer questions about your trades using llama3.2 (browser only)
+  resizePanels: boolean // drag the side lists and bottom bar to resize them
   localVoiceNarrator: boolean // read explanations + answers aloud using browser speechSynthesis
   signalValidator: boolean // validate every signal path before showing (alerts, Brief, playbook)
   newsAnalysis: boolean // analyze market news sentiment for BUY/SELL bias
@@ -167,6 +168,7 @@ export const DEFAULT_AI_RULES: AiRules = {
   localModelName: 'llama3.2',
   localExplain: false,
   localQA: false,
+  resizePanels: true,
   localVoiceNarrator: false,
   signalValidator: true,
   newsAnalysis: false,
@@ -239,6 +241,7 @@ export const RULE_FIELDS: RuleField[] = [
   { group: 'modules', key: 'dataGuardOn', en: 'Block AI buys on simulated or stale price data', vi: 'Chặn AI mua khi dữ liệu giá là giả lập hoặc đã cũ' },
   { group: 'modules', key: 'costsOn', en: 'Realistic fills (fees, spread and slippage)', vi: 'Khớp lệnh thực tế (phí, chênh lệch và trượt giá)' },
   { group: 'modules', key: 'auditOn', en: 'Decision log (every accepted and rejected AI decision, with its data)', vi: 'Nhật ký quyết định (mọi quyết định AI được chấp nhận và bị từ chối, kèm dữ liệu)' },
+  { group: 'modules', key: 'resizePanels', en: 'Resizable panels (drag the edges of the side lists and bottom bar; double-click to reset)', vi: 'Kéo đổi kích thước khung (kéo mép danh sách hai bên và thanh dưới; nhấp đúp để đặt lại)' },
   { group: 'modules', key: 'reviewOn', en: 'Trade review: good process vs. luck', vi: 'Đánh giá lệnh: quy trình tốt hay may mắn' },
   { group: 'modules', key: 'dailyReportOn', en: 'Daily practice report', vi: 'Báo cáo luyện tập hằng ngày' },
   { group: 'modules', key: 'skillRegistryOn', en: 'Skill registry (only approved skills feed signals)', vi: 'Danh sách kỹ năng (chỉ kỹ năng được duyệt mới tạo tín hiệu)' },

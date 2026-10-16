@@ -2,7 +2,7 @@
  * Version and "What's new". Bump APP_VERSION and add an entry to the top of RELEASES
  * with each update. The banner shows once per version, then stays dismissed.
  */
-export const APP_VERSION = '1.11.0'
+export const APP_VERSION = '1.12.0'
 
 export interface Release {
   version: string
@@ -13,6 +13,20 @@ export interface Release {
 }
 
 export const RELEASES: Release[] = [
+  {
+    version: '1.12.0',
+    date: '2026-10-16',
+    changes: [
+      'Resizable panels: drag the edge of the watchlist, the right panel or the bottom bar. Sizes scale with the window and are remembered; double-click an edge to go back to auto. Toggle: Settings > AI rules > "Resizable panels".',
+      'Jarvis Brief scoreboard: P&L, win rate, average win and loss, and your recent practice trades with the reason for each.',
+      'Fixed: some lessons in Brain > Lessons were squashed into a tiny column with overlapping text.',
+    ],
+    changesVi: [
+      'Kéo đổi kích thước khung: kéo mép danh sách theo dõi, khung bên phải hoặc thanh dưới. Kích thước tự co giãn theo cửa sổ và được ghi nhớ; nhấp đúp vào mép để về tự động. Bật/tắt: Cài đặt > Quy tắc AI > "Kéo đổi kích thước khung".',
+      'Bảng điểm Jarvis ở trang Bản tin: lãi/lỗ, tỉ lệ thắng, lãi và lỗ trung bình, và các lệnh luyện tập gần đây kèm lý do.',
+      'Đã sửa: một số bài học trong Bộ não > Bài học bị ép thành cột nhỏ, chữ chồng lên nhau.',
+    ],
+  },
   {
     version: '1.11.0',
     date: '2026-10-16',

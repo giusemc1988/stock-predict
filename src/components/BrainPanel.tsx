@@ -519,7 +519,7 @@ export function BrainPanel({ state, rules, journal, learn, killSwitch, priceOf, 
           <div className="al-kicker">{L('LESSONS FROM REVIEWED TRADES', 'BÀI HỌC TỪ LỆNH ĐÃ ĐÁNH GIÁ')}</div>
           {lessons.length ? (
             lessons.map((l, i) => (
-              <div key={i} className={`brain-lesson ${l.tone}`}>
+              <div key={i} className={`brain-lesson tone-${l.tone}`}>
                 <em>{when(l.time)}</em>
                 {pick(l)}
                 {onShowTrade && (
