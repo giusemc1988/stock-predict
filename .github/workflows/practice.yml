@@ -11,8 +11,9 @@
 name: Practice trading
 
 on:
-  schedule:
-    - cron: '7,22,37,52 13-21 * * 1-5'
+  # Disabled: practice trading moved to Cloudflare Cron every 5 minutes
+  # schedule:
+  #   - cron: '7,22,37,52 13-21 * * 1-5'
   workflow_dispatch:
 
 permissions:

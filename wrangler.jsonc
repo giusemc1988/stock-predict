@@ -1,6 +1,7 @@
 // Cloudflare Workers deploy: `npm run build` produces dist/, `npx wrangler deploy` uploads it.
 // src/worker.ts serves those files and /api/brain (Jarvis's optional free-AI helper).
 // AI keys are Worker secrets, never in the repo: npx wrangler secret put GEMINI_API_KEY
+// Live practice: KV namespace "practice" for state storage on Cron every 5 minutes.
 {
   "name": "stock-predict",
   "main": "src/worker.ts",
@@ -10,5 +11,11 @@
     "binding": "ASSETS",
     "not_found_handling": "single-page-application",
     "run_worker_first": ["/api/*"]
+  },
+  "kv_namespaces": [
+    { "binding": "PRACTICE" }
+  ],
+  "triggers": {
+    "crons": ["0 */5 13-21 * 1-5"]
   }
 }

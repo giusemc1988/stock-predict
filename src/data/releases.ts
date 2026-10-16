@@ -2,7 +2,7 @@
  * Version and "What's new". Bump APP_VERSION and add an entry to the top of RELEASES
  * with each update. The banner shows once per version, then stays dismissed.
  */
-export const APP_VERSION = '1.11.0'
+export const APP_VERSION = '1.12.0'
 
 export interface Release {
   version: string
@@ -13,6 +13,16 @@ export interface Release {
 }
 
 export const RELEASES: Release[] = [
+  {
+    version: '1.12.0',
+    date: '2026-10-16',
+    changes: [
+      'Live paper trading via Cloudflare Cron: watch Jarvis trade every 5 minutes in real time from anywhere (phone included). Trades run automatically on the server every 5 minutes during US market hours, even when the app is closed. Toggle: Settings > AI rules > "Practice 24/7 on the server".',
+    ],
+    changesVi: [
+      'Giao dịch giả lập trực tiếp qua Cloudflare Cron: theo dõi Jarvis giao dịch mỗi 5 phút theo thời gian thực từ bất kỳ đâu (cả điện thoại). Lệnh chạy tự động trên máy chủ mỗi 5 phút trong giờ thị trường Mỹ, ngay cả khi tắt ứng dụng. Cài đặt > Quy tắc AI > "Luyện tập 24/7 trên máy chủ".',
+    ],
+  },
   {
     version: '1.11.0',
     date: '2026-10-16',
