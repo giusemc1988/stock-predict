@@ -46,7 +46,9 @@ export function AiRulesModal({ onClose }: { onClose: () => void }) {
   }, [])
 
   const saveTelegramConfig = async () => {
-    if (!telegramToken.trim() || !telegramChatId.trim()) {
+    const cleanToken = telegramToken.replace(/\s/g, '')
+    const cleanChatId = telegramChatId.replace(/\s/g, '')
+    if (!cleanToken || !cleanChatId) {
       alert(vi ? 'Token và Chat ID không được trống' : 'Token and Chat ID cannot be empty')
       return
     }
@@ -54,7 +56,7 @@ export function AiRulesModal({ onClose }: { onClose: () => void }) {
       const res = await fetch('/api/practice/telegram/config', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ token: telegramToken.trim(), chatId: telegramChatId.trim() }),
+        body: JSON.stringify({ token: cleanToken, chatId: cleanChatId }),
       })
       if (res.ok) {
         setTelegramSaved(true)

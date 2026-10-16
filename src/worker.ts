@@ -110,8 +110,8 @@ export default {
         if (!sameOrigin(req)) return json({ error: 'Not allowed' }, 403)
         try {
           const body = (await req.json().catch(() => null)) as { token?: string; chatId?: string } | null
-          const token = String(body?.token ?? '').trim()
-          const chatId = String(body?.chatId ?? '').trim()
+          const token = String(body?.token ?? '').replace(/\s/g, '')
+          const chatId = String(body?.chatId ?? '').replace(/\s/g, '')
           if (!token || !chatId) return json({ error: 'Token and chatId required' }, 400)
           await env.PRACTICE.put('telegramConfig', JSON.stringify({ token, chatId }))
           return json({ ok: true, config: { token, chatId } })
@@ -145,7 +145,9 @@ export default {
         })
         const tgData = (await tgRes.json().catch(() => ({}))) as Record<string, unknown>
         if (!tgRes.ok) {
-          const errorMsg = tgData.description ? String(tgData.description) : `HTTP ${tgRes.status}`
+          const errorMsg = tgData.description
+            ? `${String(tgData.description)} (HTTP ${tgRes.status})`
+            : `HTTP ${tgRes.status}`
           return json({ error: errorMsg }, 400)
         }
         return json({ ok: true, message: 'Test message sent successfully' })
