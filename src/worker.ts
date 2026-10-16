@@ -112,8 +112,13 @@ export default {
           const body = (await req.json().catch(() => null)) as { token?: string; chatId?: string } | null
           const token = String(body?.token ?? '').replace(/\s/g, '')
           const chatId = String(body?.chatId ?? '').replace(/\s/g, '')
+          console.log('[telegram/config PUT] Received token:', token ? `${token.substring(0, 30)}... (len: ${token.length})` : 'empty')
+          console.log('[telegram/config PUT] Received chatId:', chatId)
           if (!token || !chatId) return json({ error: 'Token and chatId required' }, 400)
-          await env.PRACTICE.put('telegramConfig', JSON.stringify({ token, chatId }))
+          const configJson = JSON.stringify({ token, chatId })
+          console.log('[telegram/config PUT] Storing to KV:', configJson.substring(0, 100) + '...')
+          await env.PRACTICE.put('telegramConfig', configJson)
+          console.log('[telegram/config PUT] Stored successfully')
           return json({ ok: true, config: { token, chatId } })
         } catch (e) {
           console.error('Telegram config put error:', e)
@@ -127,13 +132,17 @@ export default {
       if (!sameOrigin(req)) return json({ error: 'Not allowed' }, 403)
       try {
         const stored = await env.PRACTICE.get('telegramConfig')
+        console.log('[telegram/test] Stored KV value:', stored ? `${stored.substring(0, 100)}...` : 'null/undefined')
         const config = stored ? JSON.parse(stored) : null
+        console.log('[telegram/test] Parsed config:', config ? { token: config.token ? config.token.substring(0, 30) : null, chatId: config.chatId } : null)
         if (!config || !config.token || !config.chatId) {
           return json({ error: 'Telegram config not found. Save your token and Chat ID first.' }, 400)
         }
         const { token, chatId } = config
         const testMessage = '✅ Jarvis test message\n\nYour Telegram bot is working! You will now receive trade alerts here.'
         const telegramUrl = `https://api.telegram.org/bot${token}/sendMessage`
+        console.log('[telegram/test] Built URL:', telegramUrl.substring(0, 60) + '...')
+        console.log('[telegram/test] Token length:', token.length)
         const tgRes = await fetch(telegramUrl, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -144,6 +153,7 @@ export default {
           }),
         })
         const tgData = (await tgRes.json().catch(() => ({}))) as Record<string, unknown>
+        console.log('[telegram/test] Telegram response status:', tgRes.status, 'data:', JSON.stringify(tgData).substring(0, 200))
         if (!tgRes.ok) {
           const description = tgData.description ? String(tgData.description) : 'Error'
           const errorMsg = `Telegram: ${description} (HTTP ${tgRes.status})`
