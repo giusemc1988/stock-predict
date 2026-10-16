@@ -20,7 +20,11 @@
   - **Completion:** Rolling window algorithm with purging support, tests: `vite build --ssr tests/walk-forward.test.ts --outDir .learn/test-wf && node .learn/test-wf/walk-forward.test.js` → PASS ✓ Walk-forward validator tests passed
   - **Commits:** 55cb60c (walk-forward validator + rolling window algorithm)
 
-- [ ] Task 2: Jarvis Configuration & Toggles
+- [x] Task 2: Jarvis Configuration & Toggles
+  - **Completion:** Config object with jarvisValidatorOn/RouterOn/LearnerOn (all OFF), localStorage persistence, tests: `vite build --ssr tests/jarvis-config.test.ts --outDir .learn/test-cfg && node .learn/test-cfg/jarvis-config.test.js` → PASS ✓ Jarvis config tests passed
+  - **Commits:** adca17c (Jarvis feature toggles all default OFF)
+
+- [ ] Task 3: Unified Router Implementation
 - [ ] Task 3: Unified Router Implementation
 - [ ] Task 4: Integrate Validator into Learner
 - [ ] Task 5: React Hook for Router
