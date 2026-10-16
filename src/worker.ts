@@ -1,10 +1,14 @@
 /**
  * Cloudflare Worker: serves the app's built files and one small API, /api/brain, for Jarvis's
  * free-AI helper. Keys are Worker secrets (wrangler secret put GEMINI_API_KEY, etc.).
+ * Also serves /api/practice for live paper trading via Cron every 5 minutes.
  */
+/// <reference types="@cloudflare/workers-types" />
 import { askBrain, brainStatus, cleanAsk, type BrainEnv } from './lib/brainServer'
+import { practiceCycle, type WorkerEnv as PracticeEnv } from './worker/practiceCycle'
+import type { PracticeState } from './lib/practice'
 
-interface Env extends BrainEnv {
+interface Env extends BrainEnv, PracticeEnv {
   ASSETS: { fetch: (r: Request) => Promise<Response> }
 }
 
@@ -21,6 +25,42 @@ export default {
       const r = await askBrain(ask, env)
       return r ? json(r) : json({ error: 'No AI helper answered' }, 503)
     }
+    if (pathname === '/api/practice/cycle') {
+      if (req.method !== 'POST') return json({ error: 'POST only' }, 405)
+      try {
+        const result = await practiceCycle(env)
+        return json(result)
+      } catch (e) {
+        console.error('Practice cycle error:', e)
+        return json({ error: String(e) }, 500)
+      }
+    }
+    if (pathname === '/api/practice/state') {
+      if (req.method !== 'GET') return json({ error: 'GET only' }, 405)
+      try {
+        const stored = await env.PRACTICE.get('state')
+        const state: PracticeState = stored ? JSON.parse(stored) : null
+        return json({ state })
+      } catch (e) {
+        console.error('Practice state error:', e)
+        return json({ error: String(e) }, 500)
+      }
+    }
     return env.ASSETS.fetch(req)
+  },
+  async scheduled(_event: ScheduledEvent, env: Env): Promise<void> {
+    const now = new Date()
+    const utcHour = now.getUTCHours()
+    const utcDay = now.getUTCDay()
+    // Market hours: 13:00-21:55 UTC (9am-4:55pm ET), Mon-Fri
+    if (utcDay >= 1 && utcDay <= 5 && utcHour >= 13 && utcHour <= 21) {
+      console.log('Practice cycle triggered by Cron')
+      try {
+        const result = await practiceCycle(env)
+        console.log('Practice cycle result:', result.message)
+      } catch (e) {
+        console.error('Practice cycle error:', e)
+      }
+    }
   },
 }
