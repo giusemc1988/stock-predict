@@ -10,9 +10,9 @@
 # add PRACTICE = off (or disable this workflow in the Actions tab).
 name: Practice trading
 
-# The Cloudflare Worker now runs practice every 5 minutes (src/worker.ts, wrangler.jsonc); GitHub's
-# scheduler only managed 2-3 runs a day. This stays as a manual fallback (Actions tab > Run workflow).
 on:
+  schedule:
+    - cron: '7,22,37,52 13-21 * * 1-5'
   workflow_dispatch:
 
 permissions:
