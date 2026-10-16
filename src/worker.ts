@@ -48,6 +48,21 @@ export default {
       const body = (await req.json().catch(() => null)) as { id?: unknown } | null
       return json(await testProvider(String(body?.id ?? ''), await withSavedKeys(env, env.SETTINGS)))
     }
+    // Temporary diagnostic endpoint (no auth check) for testing which providers work with saved keys
+    if (pathname === '/api/brain/diagnose') {
+      if (req.method !== 'POST') return json({ error: 'POST only' }, 405)
+      const e = await withSavedKeys(env, env.SETTINGS)
+      const results = await Promise.all([
+        testProvider('gemini', e),
+        testProvider('groq', e),
+        testProvider('nvidia', e),
+      ])
+      return json({
+        gemini: results[0],
+        groq: results[1],
+        nvidia: results[2],
+      })
+    }
     if (pathname === '/api/brain') {
       if (req.method !== 'POST') return json({ error: 'POST only' }, 405)
       const ask = cleanAsk(await req.json().catch(() => null))
