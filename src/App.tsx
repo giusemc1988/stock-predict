@@ -55,6 +55,7 @@ import { runSkillTests } from './lib/skillTests'
 import { logRobot } from './lib/audit'
 import { stampData, staleReason } from './lib/dataGuard'
 import { Toasts, type Toast } from './components/Toasts'
+import { PanelGuard } from './components/PanelGuard'
 
 const NO_CANDLES: Candle[] = []
 
@@ -545,7 +546,7 @@ export default function App() {
       <WhatsNew />
       <TradeAlerts />
       {aiRules.jarvisOn && aiRules.jarvisFab && (
-        <JarvisFab state={practice.state} rules={aiRules} journal={autoLearn.state.journal} learn={autoLearn.state} killSwitch={prefs.killSwitch} priceOf={practice.priceOf} known={chartUniverse} watchlist={universe.map((i) => i.symbol)} onAskStock={askStock} onShowTrade={showTrade} onReplay={showReplay} onAction={jarvisAct} symbol={inst.symbol} />
+        <PanelGuard name="Jarvis"><JarvisFab state={practice.state} rules={aiRules} journal={autoLearn.state.journal} learn={autoLearn.state} killSwitch={prefs.killSwitch} priceOf={practice.priceOf} known={chartUniverse} watchlist={universe.map((i) => i.symbol)} onAskStock={askStock} onShowTrade={showTrade} onReplay={showReplay} onAction={jarvisAct} symbol={inst.symbol} /></PanelGuard>
       )}
       {jAlert && aiRules.jarvisOn && aiRules.jarvisAlerts && (
         <JarvisAlert
@@ -589,7 +590,7 @@ export default function App() {
         equity={broker.account.equity}
         dayPL={broker.account.dayPL}
       />
-      {shownPage !== 'brief' && <Watchlist
+      {shownPage !== 'brief' && <PanelGuard name="Watchlist"><Watchlist
         sortRequest={sortRequest}
         aiActive={aiRules.practiceMode && aiRules.practiceWatchlist ? aiActive : null}
         instruments={universe}
@@ -605,8 +606,9 @@ export default function App() {
         keys={keys}
         tf={prefs.tf}
         scanOn={aiRules.watchlistScan}
-      />}
+      /></PanelGuard>}
       {shownPage === 'brief' ? (
+        <PanelGuard name="Jarvis Brief">
         <JarvisBrief
           rules={aiRules}
           alpacaKeys={alpacaKeys}
@@ -624,10 +626,12 @@ export default function App() {
           onSymbol={openSymbol}
           onDesk={() => setPage('trade')}
         />
+        </PanelGuard>
       ) : shownPage === 'trade' ? (
         <>
           <main className="center">
             <section className="panel chart-panel">
+              <PanelGuard name="Chart" resetKey={`${inst.symbol}|${prefs.tf}`}>
               <ChartPanel
                 symbol={inst.symbol}
                 tf={prefs.tf}
@@ -643,6 +647,7 @@ export default function App() {
                 practice={practiceOverlay}
                 tour={chartTour}
               />
+              </PanelGuard>
               {market.status === 'demo' && (
                 <div className="demo-note">
                   Simulated data
@@ -650,6 +655,7 @@ export default function App() {
                 </div>
               )}
             </section>
+            <PanelGuard name="Positions" resetKey={inst.symbol}>
             <BottomPanel
               broker={broker}
               signals={closed.signals}
@@ -660,6 +666,7 @@ export default function App() {
               onPortfolio={() => setPage('portfolio')}
               practice={panelPractice}
             />
+            </PanelGuard>
             {aiRules.resizePanels && (
               <ResizeHandle
                 axis="y"
@@ -730,6 +737,7 @@ export default function App() {
               </button>
             </div>
             <div className="right-body">
+              <PanelGuard name={shownTab} resetKey={`${shownTab}|${inst.symbol}`}>
               {shownTab === 'ai' && <AnalystPanel analysis={analysis} stats={closed.stats} lastSignal={lastSignal} symbol={inst.symbol} tfLabel={tfLabel} onTrade={() => {
                     setPlanNonce((n) => n + 1)
                     setRightTab('trade')
@@ -765,11 +773,13 @@ export default function App() {
                   onKillSwitch={(killSwitch) => setPrefs((p) => ({ ...p, killSwitch }))}
                 />
               )}
+              </PanelGuard>
             </div>
           </aside>
         </>
       ) : (
         <main className="portfolio-wrap">
+          <PanelGuard name="Portfolio">
           <PortfolioPage
             broker={broker}
             period={prefs.equityPeriod}
@@ -792,6 +802,7 @@ export default function App() {
             lossLimitOn={prefs.lossLimitOn}
             onLossLimitOn={(lossLimitOn) => setPrefs((p) => ({ ...p, lossLimitOn }))}
           />
+          </PanelGuard>
         </main>
       )}
       {settingsOpen && (

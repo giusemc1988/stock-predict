@@ -1157,3 +1157,8 @@ body:has(.jfab) .toasts, body:has(.jfab) .jarvis-alert { bottom: 84px; }
 .wl-call.buy { color: var(--up); background: var(--up-bg); }
 .wl-call.sell { color: var(--down); background: var(--down-bg); }
 .wl-call.hold { color: inherit; opacity: 0.6; background: rgba(255, 255, 255, 0.06); }
+
+/* a panel that crashed shows its error here instead of blacking out the app */
+.panel-guard { display: flex; flex-direction: column; gap: 8px; align-items: flex-start; padding: 16px; margin: 8px; border: 1px solid var(--down-bg); border-radius: 10px; background: rgba(246, 70, 93, 0.06); color: var(--text, #e6e8ee); }
+.panel-guard code { font-size: 12px; color: var(--down); white-space: pre-wrap; word-break: break-word; }
+.panel-guard button { padding: 6px 12px; border-radius: 8px; border: 1px solid var(--line-2); }
