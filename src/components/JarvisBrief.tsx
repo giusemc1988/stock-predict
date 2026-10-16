@@ -7,13 +7,15 @@ import { fmtCompact, fmtPct, fmtUsd, tone } from '../lib/format'
 import { useLang } from '../lib/i18n'
 import { greeting } from '../lib/jarvis'
 import { dayKey, practiceEquity, practiceReport, PRACTICE_START, type PracticeState } from '../lib/practice'
-import { pickSourceLabel } from '../lib/practicePicks'
+import { pickSourceLabel, type PracticeCandidate } from '../lib/practicePicks'
 import { canSpeak, loadVoicePrefs, speak } from '../lib/speech'
 import { useBriefText } from '../hooks/useBriefText'
 import { useLocalStorage } from '../hooks/useLocalStorage'
 import { useMarketLists } from '../hooks/useMarketLists'
 import type { PracticeScan } from '../hooks/usePractice'
 import { BrainCore } from './BrainCore'
+import { SignalFlowExplainer } from './SignalFlowExplainer'
+import { AgentReadiness } from './AgentReadiness'
 
 interface Props {
   rules: AiRules
@@ -56,6 +58,8 @@ export function JarvisBrief(p: Props) {
   const [name] = useLocalStorage('arc.jarvisName.v1', 'Chanh')
   const lists = useMarketLists(true, p.alpacaKeys)
   const [moverTab, setMoverTab] = useState<'stock' | 'crypto'>(lists.stocksNeedKey ? 'crypto' : 'stock')
+  const [showSignalFlow, setShowSignalFlow] = useState<PracticeCandidate | null>(null)
+  const [showReadiness, setShowReadiness] = useState(false)
   const now = lists.updatedAt ?? 0
   const today = dayKey(Date.now())
   const learnIn = {
@@ -93,6 +97,7 @@ export function JarvisBrief(p: Props) {
   const time = (ms: number | null) => (ms ? new Date(ms).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '—')
   const moverRows = moverTab === 'stock' ? lists.stocks : lists.crypto
   const openRow = (r: MarketListRow) => p.onSymbol(r.symbol, r.assetClass)
+  const openSignalFlow = (signal: PracticeCandidate) => setShowSignalFlow(signal)
 
   return (
     <main className="brief-page">
@@ -118,6 +123,9 @@ export function JarvisBrief(p: Props) {
             </button>
             <button className="btn" onClick={() => p.onNode('learner')}>
               {vi ? 'Hỏi Jarvis' : 'Ask Jarvis'}
+            </button>
+            <button className="btn" onClick={() => setShowReadiness(true)}>
+              {vi ? 'Sẵn sàng ngày mai?' : 'Ready for tomorrow?'}
             </button>
             <button className="btn" onClick={p.onDesk}>
               {vi ? 'Mở Bàn giao dịch' : 'Open Trading desk'}
@@ -156,13 +164,18 @@ export function JarvisBrief(p: Props) {
           {p.scan.at && !buys.length && <p className="muted">{vi ? 'Lần quét gần nhất không có lệnh MUA nào đạt quy tắc.' : 'The last scan found no BUY call that passes the rules.'}</p>}
           {p.scan.noStockData && <p className="warn">{vi ? 'Chưa quét cổ phiếu: cần key Alpaca paper ở trang Danh mục.' : 'Stocks skipped: add an Alpaca paper key on the Portfolio page.'}</p>}
           {buys.slice(0, 8).map((b) => (
-            <button key={b.symbol} className="bf-row pick" onClick={() => p.onSymbol(b.symbol, b.symbol.includes('/') ? 'crypto' : 'stock')}>
-              <span className="bf-place mono">#{b.place}</span>
-              <b className="mono">{b.symbol}</b>
-              <span className="muted small">{L(pickSourceLabel[b.source])}</span>
-              <span className={`mono ${tone(b.gainPct ?? 0)}`}>{b.gainPct != null ? fmtPct(b.gainPct) : ''}</span>
-              <span className="mono muted">{b.tradeScore != null ? `TS ${Math.round(b.tradeScore)}` : ''}</span>
-            </button>
+            <div key={b.symbol} className="bf-row-group">
+              <button className="bf-row pick" onClick={() => p.onSymbol(b.symbol, b.symbol.includes('/') ? 'crypto' : 'stock')}>
+                <span className="bf-place mono">#{b.place}</span>
+                <b className="mono">{b.symbol}</b>
+                <span className="muted small">{L(pickSourceLabel[b.source])}</span>
+                <span className={`mono ${tone(b.gainPct ?? 0)}`}>{b.gainPct != null ? fmtPct(b.gainPct) : ''}</span>
+                <span className="mono muted">{b.tradeScore != null ? `TS ${Math.round(b.tradeScore)}` : ''}</span>
+              </button>
+              <button className="bf-info-btn" onClick={() => openSignalFlow(b)} title={vi ? 'Xem quy trình tín hiệu' : 'View signal flow'}>
+                ℹ
+              </button>
+            </div>
           ))}
         </section>
 
@@ -219,6 +232,12 @@ export function JarvisBrief(p: Props) {
           {rep.n < 30 && <p className="muted small">{vi ? 'Dưới 30 lệnh: tỉ lệ thắng chưa đáng tin.' : 'Under 30 trades: the win rate is not reliable yet.'}</p>}
         </section>
       </div>
+
+      {showSignalFlow && (
+        <SignalFlowExplainer signal={showSignalFlow} of={buys.length} onClose={() => setShowSignalFlow(null)} />
+      )}
+
+      {showReadiness && <AgentReadiness nodes={nodes} onClose={() => setShowReadiness(false)} />}
     </main>
   )
 }

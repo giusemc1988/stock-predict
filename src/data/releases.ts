@@ -2,7 +2,7 @@
  * Version and "What's new". Bump APP_VERSION and add an entry to the top of RELEASES
  * with each update. The banner shows once per version, then stays dismissed.
  */
-export const APP_VERSION = '1.10.0'
+export const APP_VERSION = '1.10.1'
 
 export interface Release {
   version: string
@@ -13,6 +13,20 @@ export interface Release {
 }
 
 export const RELEASES: Release[] = [
+  {
+    version: '1.10.1',
+    date: '2026-10-16',
+    changes: [
+      'Understand each signal: tap the ℹ button next to a BUY call to see the 6-step decision flow. Each step (Scan, Filter, Score, Confirm, Risk check, Decision) shows what was checked and whether it passed. Helps you see exactly why a signal was picked.',
+      'Plain language signal explanations: Each signal now shows why it was ranked where it is—Trade Score, volume relative to average, today\'s gain, and its source (server scan, browser, or your watchlist).',
+      'Ready for tomorrow? A new readiness check shows the status of all six helpers (Scanner, Order flow, Signals, Learner, Risk guard, News) with practical tips to prepare: enable the practice scan, add an Alpaca key, check your internet, set a loss limit.',
+    ],
+    changesVi: [
+      'Hiểu rõ từng tín hiệu: bấm nút ℹ bên cạnh một lệnh MUA để xem dòng quy trình quyết định 6 bước. Mỗi bước (Quét, Lọc, Điểm số, Xác nhận, Kiểm tra rủi ro, Quyết định) cho biết điều được kiểm tra và kết quả. Giúp bạn thấy rõ tại sao một tín hiệu được chọn.',
+      'Giải thích tín hiệu bằng lời thường: Mỗi tín hiệu giờ hiện lý do nó được xếp hạng ở đó—Điểm GD, khối lượng so với trung bình, lợi hôm nay, và nguồn (quét máy chủ, trình duyệt, hoặc danh sách của bạn).',
+      'Sẵn sàng cho ngày mai? Một kiểm tra sẵn sàng mới cho biết trạng thái của cả sáu trợ lý (Máy quét, Dòng lệnh, Tín hiệu, Tự học, Bảo vệ rủi ro, Tin tức) với những mẹo thực tế để chuẩn bị: bật quét luyện tập, thêm key Alpaca, kiểm tra internet, đặt giới hạn lỗ.',
+    ],
+  },
   {
     version: '1.10.0',
     date: '2026-10-16',
