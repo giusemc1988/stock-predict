@@ -796,6 +796,7 @@ body {
 @keyframes j-pulse { 50% { transform: scale(1.12); } }
 @media (prefers-reduced-motion: reduce) { .jarvis-avatar .j-ring, .jarvis-avatar .j-ring2, .jarvis-avatar .j-core { animation: none !important; } }
 .right-tabs.has-brain { grid-template-columns: repeat(4, 1fr); }
+.right-tabs.has-brain.no-picks { grid-template-columns: repeat(3, 1fr); }
 .right-tabs .brain-tab { color: var(--gold); }
 .brain-head { display: flex; gap: 10px; align-items: center; margin-bottom: 8px; }
 .brain-head h3 { margin: 0; font-size: 16px; background: linear-gradient(90deg, var(--robot), var(--gold)); -webkit-background-clip: text; background-clip: text; color: transparent; }
@@ -1146,3 +1147,13 @@ body:has(.jfab) .toasts, body:has(.jfab) .jarvis-alert { bottom: 84px; }
 .alert-row { display: flex; justify-content: space-between; font-size: 12px; }
 .alert-row .label { color: var(--muted); }
 .alert-row .value { font-weight: 500; font-family: var(--mono); }
+
+/* AI scan inside the watchlist: one button, the call shows on each row */
+.wl-scan { display: flex; flex-direction: column; gap: 4px; padding: 0 10px 8px; }
+.wl-scan-btn { width: 100%; padding: 7px 10px; border-radius: 8px; border: 1px solid rgba(240, 185, 11, 0.45); background: rgba(240, 185, 11, 0.1); color: var(--gold); font-weight: 600; cursor: pointer; transition: background 0.2s ease, opacity 0.2s ease; }
+.wl-scan-btn:hover:not(:disabled) { background: rgba(240, 185, 11, 0.18); }
+.wl-scan-btn:disabled { opacity: 0.7; cursor: progress; }
+.wl-call { display: inline-block; margin-right: 5px; padding: 0 5px; border-radius: 4px; font-size: 10px; font-weight: 700; line-height: 16px; vertical-align: middle; }
+.wl-call.buy { color: var(--up); background: var(--up-bg); }
+.wl-call.sell { color: var(--down); background: var(--down-bg); }
+.wl-call.hold { color: inherit; opacity: 0.6; background: rgba(255, 255, 255, 0.06); }

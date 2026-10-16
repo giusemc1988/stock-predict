@@ -20,6 +20,9 @@ export interface AiRules {
   maxTradesPerDay: number
   minScoreWarn: number
   autoLearn: boolean // 24/7 auto learning: replay old bars and test new ones as simulated paper trades
+  watchlistScan: boolean // AI scan button in the watchlist; each row shows the AI's BUY/HOLD/SELL call
+  aiPicksTab: boolean // the old separate AI Picks tab on the right (the watchlist scan replaces it)
+  learnFromScanner: boolean // auto learning also studies the markets the practice scanner found (movers, penny, mid caps)
   learnEdgeMarginPct: number // learner needs this many points over always-buy before it says BUY
   practiceMode: boolean // AI paper-trades small on live data in its own practice account
   practiceSizePct: number // % of the practice account per trade
@@ -117,6 +120,9 @@ export const DEFAULT_AI_RULES: AiRules = {
   maxTradesPerDay: 50,
   minScoreWarn: 40,
   autoLearn: true,
+  learnFromScanner: true,
+  watchlistScan: true,
+  aiPicksTab: false,
   learnEdgeMarginPct: 3,
   practiceMode: true,
   practiceSizePct: 2,
@@ -241,6 +247,9 @@ export const RULE_FIELDS: RuleField[] = [
   { group: 'modules', key: 'riskScoreSizing', en: 'Size by risk score', vi: 'Khối lượng theo điểm rủi ro' },
   { group: 'modules', key: 'volatilityOn', en: 'Volatility rules (halve or stop in wild swings)', vi: 'Quy tắc biến động (giảm nửa hoặc dừng khi dao động mạnh)' },
   { group: 'modules', key: 'autoLearn', en: '24/7 auto learning (tests old and new bars as paper trades)', vi: 'Tự học 24/7 (kiểm thử nến cũ và mới bằng giao dịch thử nghiệm)' },
+  { group: 'modules', key: 'watchlistScan', en: 'AI scan button in the watchlist (each row shows BUY / HOLD / SELL)', vi: 'Nút AI quét trong watchlist (mỗi dòng hiện MUA / GIỮ / BÁN)' },
+  { group: 'modules', key: 'aiPicksTab', en: 'Show the old AI Picks tab on the right as well', vi: 'Hiện thêm tab AI Picks cũ bên phải' },
+  { group: 'modules', key: 'learnFromScanner', en: 'Auto learning also studies the stocks the scanner found today (movers, penny, mid caps), up to 40 a cycle', vi: 'Tự học cũng học các mã máy quét tìm thấy hôm nay (tăng mạnh, penny, mid cap), tối đa 40 mã mỗi vòng' },
   { group: 'modules', key: 'practiceMode', en: 'Practice mode (AI paper-trades small on live data)', vi: 'Chế độ luyện tập (AI giao dịch thử nhỏ trên dữ liệu trực tiếp)' },
   { group: 'modules', key: 'practiceDayOn', en: 'Practice day trades (in and out the same day)', vi: 'Lệnh luyện tập trong ngày (vào và ra cùng ngày)' },
   { group: 'modules', key: 'practiceLongOn', en: 'Practice long-term trade (held for days)', vi: 'Lệnh luyện tập dài hạn (giữ nhiều ngày)' },
@@ -309,6 +318,9 @@ export const RULE_FIELDS: RuleField[] = [
 ]
 
 const KEY = 'arc.aiRules.v1'
+const ONBOARD_KEY = 'arc.aiRules.onboard.v2'
+/** Switched on once for browsers that saved rules before these were on by default; the user can still turn them off after. */
+const TURN_ON_ONCE: BoolKey[] = ['autoLearn', 'learnFromScanner', 'watchlistScan', 'practiceMode', 'practiceAutoPick', 'practiceMovers', 'practiceServer', 'practicePenny', 'practiceCryptoMovers', 'signalValidator', 'jarvisOn', 'briefAi', 'newsEnabled']
 const EVENT = 'arc:aiRules'
 
 export function sanitize(raw: unknown): AiRules {
@@ -328,7 +340,13 @@ export function sanitize(raw: unknown): AiRules {
 
 function load(): AiRules {
   try {
-    return sanitize(JSON.parse(localStorage.getItem(KEY) ?? 'null'))
+    const r = sanitize(JSON.parse(localStorage.getItem(KEY) ?? 'null'))
+    if (!localStorage.getItem(ONBOARD_KEY)) {
+      for (const k of TURN_ON_ONCE) r[k] = true
+      localStorage.setItem(KEY, JSON.stringify(r))
+      localStorage.setItem(ONBOARD_KEY, '1')
+    }
+    return r
   } catch {
     return DEFAULT_AI_RULES
   }

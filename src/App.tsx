@@ -110,7 +110,7 @@ export default function App() {
   const [rightTab, setRightTab] = useState<'ai' | 'flow' | 'trade' | 'learn' | 'picks' | 'practice' | 'brain'>('ai')
   const lang = useLang()
   // the Brain tab disappears when Jarvis is switched off
-  const shownTab = rightTab === 'brain' && !aiRules.jarvisOn ? 'ai' : rightTab
+  const shownTab = (rightTab === 'brain' && !aiRules.jarvisOn) || (rightTab === 'picks' && !aiRules.aiPicksTab) ? 'ai' : rightTab
   const [toasts, setToasts] = useState<Toast[]>([])
   // Tickers added from the search box persist in this browser and join the built-in watchlist.
   const [added, setAdded] = useLocalStorage<Instrument[]>('bluechip.added', [])
@@ -140,7 +140,9 @@ export default function App() {
   const marketCandles = market.key === `${inst.symbol}|${prefs.tf}` ? market.candles : NO_CANDLES
   const flow = useOrderFlow(inst, keys, marketCandles)
   // 24/7 auto learning runs here so it keeps going whichever tab is open (off by default)
-  const autoLearn = useAutoLearning(universe, keys, alpacaKeys, aiRules)
+  // markets the practice scanner found join the learner (set once the scan below has run)
+  const [scannerSyms, setScannerSyms] = useState<string[]>([])
+  const autoLearn = useAutoLearning(universe, keys, alpacaKeys, aiRules, scannerSyms)
   const brokerApi = useBroker(prefs.brokerMode, alpacaKeys, prefs.equityPeriod)
   const broker = brokerApi.state
   const jarvisConfig = useMemo(() => getJarvisConfig(), [])
@@ -375,6 +377,8 @@ export default function App() {
     feedSource: market.source,
     skills: skillTags,
   })
+  const scannerKey = practice.scan.candidates.map((c) => c.symbol).join(',')
+  useEffect(() => setScannerSyms(scannerKey ? scannerKey.split(',') : []), [scannerKey])
   // practice trades may be on a different timeframe than the chart: mark the chart bar they fall in
   const snapToBar = (t: number) => {
     let lo = 0
@@ -598,6 +602,9 @@ export default function App() {
         onAdd={addInstrument}
         activeSignal={lastSignal}
         alpacaKeys={alpacaKeys}
+        keys={keys}
+        tf={prefs.tf}
+        scanOn={aiRules.watchlistScan}
       />}
       {shownPage === 'brief' ? (
         <JarvisBrief
@@ -694,7 +701,7 @@ export default function App() {
             </>
           )}
           <aside className="panel right">
-            <div className={`right-tabs${aiRules.jarvisOn ? ' has-brain' : ''}`}>
+            <div className={`right-tabs${aiRules.jarvisOn ? ' has-brain' : ''}${aiRules.aiPicksTab ? '' : ' no-picks'}`}>
               {aiRules.jarvisOn && (
                 <button className={`brain-tab${shownTab === 'brain' ? ' on' : ''}`} onClick={() => setRightTab('brain')}>
                   <JarvisAvatar size={14} motion={false} /> {lang === 'vi' ? 'Bộ não' : 'Brain'}
@@ -712,9 +719,11 @@ export default function App() {
               <button className={shownTab === 'learn' ? 'on' : ''} onClick={() => setRightTab('learn')}>
                 {t('learning')}
               </button>
-              <button className={shownTab === 'picks' ? 'on' : ''} onClick={() => setRightTab('picks')}>
-                {t('aiPicks')}
-              </button>
+              {aiRules.aiPicksTab && (
+                <button className={shownTab === 'picks' ? 'on' : ''} onClick={() => setRightTab('picks')}>
+                  {t('aiPicks')}
+                </button>
+              )}
               <button className={shownTab === 'practice' ? 'on' : ''} onClick={() => setRightTab('practice')}>
                 {lang === 'vi' ? 'Luyện tập' : 'Practice'}
                 {aiRules.practiceMode && <i className="live-dot" />}
@@ -789,6 +798,8 @@ export default function App() {
         <SettingsModal
           keys={keys}
           onSave={setKeys}
+          alpacaKeys={alpacaKeys}
+          onAlpacaKeys={setAlpacaKeys}
           onClose={() => setSettingsOpen(false)}
           onOpenAiRules={() => {
             setSettingsOpen(false)

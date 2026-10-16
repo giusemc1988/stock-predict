@@ -2,7 +2,7 @@
  * Version and "What's new". Bump APP_VERSION and add an entry to the top of RELEASES
  * with each update. The banner shows once per version, then stays dismissed.
  */
-export const APP_VERSION = '1.20.1'
+export const APP_VERSION = '1.21.0'
 
 export interface Release {
   version: string
@@ -13,6 +13,22 @@ export interface Release {
 }
 
 export const RELEASES: Release[] = [
+  {
+    version: '1.21.0',
+    date: '2026-10-16',
+    changes: [
+      'Jarvis learns from more stocks: 24/7 learning now also studies the stocks the scanner found today (movers, penny, mid caps), up to 40 extra a cycle, not only your watchlist. Free data only, no AI quota. Toggle: Settings > AI rules > "Auto learning also studies the stocks the scanner found".',
+      'The useful features are now on by default, also in browsers that saved older settings: 24/7 learning, practice with auto pick, movers, penny stocks, server practice, signal check, AI-written Brief and news. You can still switch any of them off.',
+      'AI scan moved into the watchlist: one "AI scan this list" button checks the rows you see (your list or Top gainers, Most active and so on), and each row shows BUY / HOLD / SELL. The separate AI Picks tab on the right is hidden (Settings > AI rules can bring it back).',
+      'The Alpaca paper key can now be entered in Settings too, without leaving the trading screen.',
+    ],
+    changesVi: [
+      'Jarvis học từ nhiều mã hơn: tự học 24/7 giờ học cả các mã máy quét tìm thấy hôm nay (tăng mạnh, penny, mid cap), thêm tối đa 40 mã mỗi vòng, không chỉ watchlist. Chỉ dùng dữ liệu miễn phí, không tốn quota AI. Nút bật/tắt: Cài đặt > Quy tắc AI.',
+      'Các tính năng hữu ích giờ được bật sẵn, kể cả trên trình duyệt đã lưu cài đặt cũ: tự học 24/7, luyện tập tự chọn mã, mã tăng mạnh, penny, luyện tập trên máy chủ, kiểm tra tín hiệu, AI viết bản tin và tin tức. Anh vẫn tắt được bất kỳ cái nào.',
+      'Nút AI quét chuyển vào watchlist: bấm "AI quét danh sách này" để kiểm tra các dòng đang thấy (danh sách của anh hoặc Top tăng, Giao dịch nhất...), mỗi dòng hiện MUA / GIỮ / BÁN. Tab AI Picks bên phải được ẩn (bật lại trong Cài đặt > Quy tắc AI).',
+      'Key Alpaca paper giờ nhập được ngay trong Cài đặt, không cần rời màn hình giao dịch.',
+    ],
+  },
   {
     version: '1.20.1',
     date: '2026-10-16',
