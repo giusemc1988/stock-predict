@@ -110,6 +110,8 @@ export interface MarketLists {
   gainers: MarketListRow[]
   losers: MarketListRow[]
   volume: MarketListRow[]
+  most_active: MarketListRow[]
+  new_highs: MarketListRow[]
 }
 
 const STABLE = /^(USDC|FDUSD|TUSD|USDP|DAI|BUSD|EUR|AEUR|USDE|PYUSD|XUSD|USD1)USDT$/
@@ -128,7 +130,13 @@ export async function binanceMarketLists(top = 15): Promise<MarketLists> {
       dollarVolume: +r.quoteVolume,
     }))
   const by = (f: (r: MarketListRow) => number) => [...all].sort((a, b) => f(b) - f(a)).slice(0, top)
-  return { gainers: by((r) => r.changePct), losers: by((r) => -r.changePct), volume: by((r) => r.dollarVolume ?? 0) }
+  return {
+    gainers: by((r) => r.changePct),
+    losers: by((r) => -r.changePct),
+    volume: by((r) => r.dollarVolume ?? 0),
+    most_active: by((r) => r.dollarVolume ?? 0),
+    new_highs: by((r) => r.price),
+  }
 }
 
 /** Opens a Binance stream, trying each host in turn. Returns a disposer. */
@@ -434,7 +442,9 @@ export async function alpacaMarketLists(k: AlpacaDataKeys, top = 15): Promise<Ma
       const q = snaps[s]
       return { symbol: s, assetClass: 'stock' as const, price: q.last, changePct: ((q.last - q.open) / q.open) * 100, dollarVolume: q.volume * q.last }
     })
-  return { gainers: moves(mv.gainers), losers: moves(mv.losers), volume }
+  const most_active = [...volume].sort((a, b) => (b.dollarVolume ?? 0) - (a.dollarVolume ?? 0)).slice(0, top)
+  const new_highs = [...volume].sort((a, b) => b.price - a.price).slice(0, top)
+  return { gainers: moves(mv.gainers), losers: moves(mv.losers), volume, most_active, new_highs }
 }
 
 export interface MarketMover {
