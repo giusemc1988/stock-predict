@@ -2,6 +2,8 @@ import { useState } from 'react'
 import type { ApiKeys } from '../data/providers'
 import { setLang, useLang, useT } from '../lib/i18n'
 import { APP_VERSION } from '../data/releases'
+import { useAiRules } from '../lib/aiRules'
+import { AiKeysSection } from './AiKeysSection'
 
 /** Alpaca key IDs start with PK (paper) or AK (live); they don't work as Alpha Vantage or Finnhub keys. */
 const looksAlpaca = (v: string) => /^(PK|AK)[A-Z0-9]{14,}$/i.test(v)
@@ -9,6 +11,7 @@ const looksAlpaca = (v: string) => /^(PK|AK)[A-Z0-9]{14,}$/i.test(v)
 export function SettingsModal({ keys, onSave, onClose, onOpenAiRules }: { keys: ApiKeys; onSave: (k: ApiKeys) => void; onClose: () => void; onOpenAiRules: () => void }) {
   const t = useT()
   const lang = useLang()
+  const rules = useAiRules()
   const [draft, setDraft] = useState(keys)
   return (
     <div className="modal-back" onClick={onClose}>
@@ -59,6 +62,7 @@ export function SettingsModal({ keys, onSave, onClose, onOpenAiRules }: { keys: 
           <input value={draft.finnhub} onChange={(e) => setDraft({ ...draft, finnhub: e.target.value.trim() })} placeholder="Real-time stock trades + quotes" />
           {looksAlpaca(draft.finnhub) && <small className="warn">This looks like an Alpaca key. Put it on the Portfolio page instead.</small>}
         </label>
+        {rules.aiKeyBoxes && <AiKeysSection />}
         <h3>Jarvis AI Trading (Experimental)</h3>
         <p className="muted">Unified agent for trading decisions. All features default OFF — enable only what you trust.</p>
         <label className="field">

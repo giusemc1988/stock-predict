@@ -2,7 +2,7 @@
  * Version and "What's new". Bump APP_VERSION and add an entry to the top of RELEASES
  * with each update. The banner shows once per version, then stays dismissed.
  */
-export const APP_VERSION = '1.12.1'
+export const APP_VERSION = '1.14.0'
 
 export interface Release {
   version: string
@@ -14,29 +14,43 @@ export interface Release {
 
 export const RELEASES: Release[] = [
   {
-    version: '1.12.1',
+    version: '1.14.0',
     date: '2026-10-16',
     changes: [
-      'Scan times older than today now show the date (for example "Oct 15, 06:17 PM"), so an old server scan no longer looks like today\'s.',
+      'Fixed: the 5-minute server practice only ran a few times a day (its schedule said "every 5th hour, days 13-21 of the month"). It now runs every 5 minutes in US market hours.',
       'Chart ranges work like Webull: 1D, 5D, 1M, 3M, 1Y and All each pick the right candle size (1D = 5-minute, 5D = 15-minute, 1M = 1-hour, 3M = 4-hour, 1Y and All = daily) and zoom to that window. Older bars stay loaded, so you can scroll back. Toggle: Settings > AI rules > "Chart ranges pick the bar size".',
+      'Resizable panels: drag the edge of the watchlist, the right panel or the bottom bar. Sizes scale with the window and are remembered; double-click an edge to go back to auto. Toggle: Settings > AI rules > "Resizable panels".',
+      'Jarvis Brief scoreboard: P&L, win rate, average win and loss, and your recent practice trades with the reason for each.',
+      'Scan times older than today now show the date, so an old scan no longer looks like today\'s.',
+      'Fixed: some lessons in Brain > Lessons were squashed into a tiny column with overlapping text.',
     ],
     changesVi: [
-      'Giờ quét cũ hơn hôm nay giờ có kèm ngày (ví dụ "Oct 15, 06:17 PM"), để lần quét cũ của máy chủ không bị nhầm là của hôm nay.',
+      'Đã sửa: luyện tập 5 phút trên máy chủ chỉ chạy vài lần mỗi ngày (lịch ghi nhầm "mỗi 5 giờ, ngày 13-21 trong tháng"). Giờ chạy đúng mỗi 5 phút trong giờ thị trường Mỹ.',
       'Khoảng biểu đồ giống Webull: 1D, 5D, 1M, 3M, 1Y và All tự chọn cỡ nến phù hợp (1D = 5 phút, 5D = 15 phút, 1M = 1 giờ, 3M = 4 giờ, 1Y và All = ngày) và phóng to đúng khoảng đó. Nến cũ vẫn còn để kéo xem lại. Bật/tắt: Cài đặt > Quy tắc AI > "Khoảng biểu đồ tự chọn cỡ nến".',
+      'Kéo đổi kích thước khung: kéo mép danh sách theo dõi, khung bên phải hoặc thanh dưới. Kích thước tự co giãn theo cửa sổ và được ghi nhớ; nhấp đúp vào mép để về tự động. Bật/tắt: Cài đặt > Quy tắc AI > "Kéo đổi kích thước khung".',
+      'Bảng điểm Jarvis ở trang Bản tin: lãi/lỗ, tỉ lệ thắng, lãi và lỗ trung bình, và các lệnh luyện tập gần đây kèm lý do.',
+      'Giờ quét cũ hơn hôm nay giờ có kèm ngày, để lần quét cũ không bị nhầm là của hôm nay.',
+      'Đã sửa: một số bài học trong Bộ não > Bài học bị ép thành cột nhỏ, chữ chồng lên nhau.',
+    ],
+  },
+  {
+    version: '1.13.0',
+    date: '2026-10-16',
+    changes: [
+      'Free AI keys in Settings: paste a free Gemini, Groq or NVIDIA key into a box, press Test, and Jarvis can use it. Keys are saved on the server (never in the browser), never shown again, and you can remove them any time. Toggle: Settings > AI rules > "Show the free AI key boxes".',
+    ],
+    changesVi: [
+      'Nhập khóa AI miễn phí trong Cài đặt: dán khóa Gemini, Groq hoặc NVIDIA vào ô, bấm Thử, Jarvis sẽ dùng được ngay. Khóa lưu trên máy chủ (không lưu trong trình duyệt), không bao giờ hiện lại, và bạn xóa được bất cứ lúc nào. Bật/tắt: Cài đặt > Quy tắc AI > "Hiện ô nhập khóa AI miễn phí".',
     ],
   },
   {
     version: '1.12.0',
     date: '2026-10-16',
     changes: [
-      'Resizable panels: drag the edge of the watchlist, the right panel or the bottom bar. Sizes scale with the window and are remembered; double-click an edge to go back to auto. Toggle: Settings > AI rules > "Resizable panels".',
-      'Jarvis Brief scoreboard: P&L, win rate, average win and loss, and your recent practice trades with the reason for each.',
-      'Fixed: some lessons in Brain > Lessons were squashed into a tiny column with overlapping text.',
+      'Live paper trading via Cloudflare Cron: watch Jarvis trade every 5 minutes in real time from anywhere (phone included). Trades run automatically on the server every 5 minutes during US market hours, even when the app is closed. Toggle: Settings > AI rules > "Practice 24/7 on the server".',
     ],
     changesVi: [
-      'Kéo đổi kích thước khung: kéo mép danh sách theo dõi, khung bên phải hoặc thanh dưới. Kích thước tự co giãn theo cửa sổ và được ghi nhớ; nhấp đúp vào mép để về tự động. Bật/tắt: Cài đặt > Quy tắc AI > "Kéo đổi kích thước khung".',
-      'Bảng điểm Jarvis ở trang Bản tin: lãi/lỗ, tỉ lệ thắng, lãi và lỗ trung bình, và các lệnh luyện tập gần đây kèm lý do.',
-      'Đã sửa: một số bài học trong Bộ não > Bài học bị ép thành cột nhỏ, chữ chồng lên nhau.',
+      'Giao dịch giả lập trực tiếp qua Cloudflare Cron: theo dõi Jarvis giao dịch mỗi 5 phút theo thời gian thực từ bất kỳ đâu (cả điện thoại). Lệnh chạy tự động trên máy chủ mỗi 5 phút trong giờ thị trường Mỹ, ngay cả khi tắt ứng dụng. Cài đặt > Quy tắc AI > "Luyện tập 24/7 trên máy chủ".',
     ],
   },
   {

@@ -85,15 +85,16 @@ export function usePractice({ rules, symbol, asset, tf, candles, analysis, liveS
   const on = rules.practiceMode
   const autoPick = rules.practiceAutoPick
 
-  // the 24/7 server account (scripts/practice-cycle.ts, every 15 minutes in US market hours)
+  // the 24/7 server account (Cloudflare Cron every 5 minutes in US market hours)
   const [server, setServer] = useState<PracticeState | null>(null)
   const [pullNow, setPullNow] = useState(() => Date.now())
   useEffect(() => {
     if (!on || !rules.practiceServer) return
     const pull = () =>
-      fetch(`${import.meta.env.BASE_URL}practice.json?t=${Date.now()}`, { cache: 'no-store' })
+      fetch(`/api/practice/state?t=${Date.now()}`, { cache: 'no-store' })
         .then((r) => (r.ok ? r.json() : null))
-        .then((raw) => {
+        .then((json) => {
+          const raw = (json as { state?: unknown } | null)?.state
           const s = parsePractice(raw)
           setPullNow(Date.now())
           if (s?.server) setServer((cur) => (cur && cur.server && cur.server.lastRun >= s.server!.lastRun ? cur : s))

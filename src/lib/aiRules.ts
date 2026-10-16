@@ -73,6 +73,7 @@ export interface AiRules {
   jarvisAnyStock: boolean // ask about any stock ("why AAPL?"): Jarvis opens it and explains on the chart
   jarvisFab: boolean // floating brain button: talk or type to Jarvis from any screen, with the conversation written out
   jarvisFabTalk: boolean // the floating brain reads its answers aloud
+  aiKeyBoxes: boolean // Settings shows boxes to type the free AI keys (saved on the server, never in the browser)
   jarvisCloudAi: boolean // when Jarvis doesn't understand, ask a free AI helper (keys live on the server)
   briefHome: boolean // Jarvis Brief is the home page; off opens the Trading desk as before
   briefAi: boolean // a free AI helper writes the Jarvis Brief from the page's real data (once per scan)
@@ -161,6 +162,7 @@ export const DEFAULT_AI_RULES: AiRules = {
   jarvisActions: true,
   jarvisFab: true,
   jarvisFabTalk: true,
+  aiKeyBoxes: true,
   jarvisCloudAi: true,
   briefHome: true,
   briefAi: false,
@@ -264,7 +266,8 @@ export const RULE_FIELDS: RuleField[] = [
   { group: 'jarvis', key: 'jarvisActions', en: 'Jarvis can act: it proposes changes (pause practice, kill switch, watchlist, these switches) and does them only after you tap "Do it"; every one is logged', vi: 'Jarvis có thể hành động: đề xuất thay đổi (tạm dừng luyện tập, dừng khẩn cấp, danh sách theo dõi, các công tắc này) và chỉ làm khi bạn bấm "Làm đi"; mọi việc đều được ghi lại' },
   { group: 'jarvis', key: 'jarvisFab', en: 'Floating brain button: talk or type to Jarvis from any screen, with the conversation written out', vi: 'Nút bộ não nổi: nói hoặc gõ với Jarvis ở mọi màn hình, kèm bản ghi cuộc trò chuyện' },
   { group: 'jarvis', key: 'jarvisFabTalk', en: 'The floating brain answers out loud (male voice by default; change it in the Brain tab)', vi: 'Bộ não nổi trả lời thành tiếng (mặc định giọng nam; đổi trong tab Bộ não)' },
-  { group: 'jarvis', key: 'jarvisCloudAi', en: "Free AI helper: when Jarvis doesn't understand you, he asks a free AI (Gemini, Groq, Grok or NVIDIA) using his own facts. Only works after a key is added on the server", vi: 'Trợ lý AI miễn phí: khi Jarvis không hiểu, Jarvis hỏi một AI miễn phí (Gemini, Groq, Grok hoặc NVIDIA) kèm dữ liệu của mình. Chỉ hoạt động sau khi thêm khóa trên máy chủ' },
+  { group: 'jarvis', key: 'jarvisCloudAi', en: "Free AI helper: when Jarvis doesn't understand you, he asks a free AI (Gemini, Groq, Grok or NVIDIA) using his own facts. Only works after a key is added (type it in Settings, or set it as a server secret)", vi: 'Trợ lý AI miễn phí: khi Jarvis không hiểu, Jarvis hỏi một AI miễn phí (Gemini, Groq, Grok hoặc NVIDIA) kèm dữ liệu của mình. Chỉ hoạt động sau khi thêm khóa (nhập trong Cài đặt, hoặc đặt làm secret trên máy chủ)' },
+  { group: 'jarvis', key: 'aiKeyBoxes', en: 'Show the free AI key boxes in Settings (Gemini, Groq, NVIDIA)', vi: 'Hiện ô nhập khóa AI miễn phí trong Cài đặt (Gemini, Groq, NVIDIA)' },
   { group: 'jarvis', key: 'briefHome', en: 'Jarvis Brief as the home page (off: open the Trading desk first)', vi: 'Jarvis Brief là trang chủ (tắt: mở Bàn giao dịch trước)' },
   { group: 'jarvis', key: 'briefAi', en: 'Free AI writes the Jarvis Brief from real data (once per scan; plain text if every AI key fails)', vi: 'AI miễn phí viết Jarvis Brief từ dữ liệu thật (mỗi lần quét một lần; nếu mọi key AI lỗi thì dùng văn bản thường)' },
   { group: 'jarvis', key: 'localExplain', en: 'Local AI explains your trades (on your device, no cloud keys)', vi: 'AI cục bộ giải thích lệnh của bạn (trên máy, không cần key đám mây)' },
