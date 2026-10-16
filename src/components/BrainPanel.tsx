@@ -262,6 +262,10 @@ export function BrainPanel({ state, rules, journal, learn, killSwitch, priceOf, 
         </div>
       </div>
 
+      <div className="al-note muted" style={{ fontSize: '0.9em', padding: '8px 0' }}>
+        <strong>Jarvis Phase 1 Status:</strong> Walk-forward validator ready. Router + Learner integration disabled until Phase 2.
+      </div>
+
       <div className="al-tabs" style={{ gridTemplateColumns: `repeat(${tabs.length}, 1fr)` }}>
         {tabs.map(([id, en, vi]) => (
           <button key={id} className={shown === id ? 'on' : ''} onClick={() => setTab(id)}>
