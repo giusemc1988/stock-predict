@@ -47,6 +47,7 @@ import { AIPicks } from './components/AIPicks'
 import { WhatsNew } from './components/WhatsNew'
 import { SettingsModal } from './components/SettingsModal'
 import { AiRulesModal } from './components/AiRulesModal'
+import { TradeAlerts } from './components/TradeAlerts'
 import { setAiRules, useAiRules } from './lib/aiRules'
 import type { JarvisAction } from './lib/jarvisActions'
 import { approvedTags, effectiveRules, useSkillStatuses } from './lib/skills'
@@ -538,6 +539,7 @@ export default function App() {
       }
     >
       <WhatsNew />
+      <TradeAlerts />
       {aiRules.jarvisOn && aiRules.jarvisFab && (
         <JarvisFab state={practice.state} rules={aiRules} journal={autoLearn.state.journal} learn={autoLearn.state} killSwitch={prefs.killSwitch} priceOf={practice.priceOf} known={chartUniverse} watchlist={universe.map((i) => i.symbol)} onAskStock={askStock} onShowTrade={showTrade} onReplay={showReplay} onAction={jarvisAct} symbol={inst.symbol} />
       )}

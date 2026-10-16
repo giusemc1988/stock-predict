@@ -74,6 +74,27 @@ export default {
         return json({ error: String(e) }, 500)
       }
     }
+    if (pathname === '/api/practice/alerts') {
+      if (req.method !== 'GET') return json({ error: 'GET only' }, 405)
+      try {
+        const stored = await env.PRACTICE.get('alerts')
+        const alerts = stored ? JSON.parse(stored) : []
+        return json({ alerts })
+      } catch (e) {
+        console.error('Practice alerts error:', e)
+        return json({ error: String(e) }, 500)
+      }
+    }
+    if (pathname === '/api/practice/alerts/clear') {
+      if (req.method !== 'POST') return json({ error: 'POST only' }, 405)
+      try {
+        await env.PRACTICE.delete('alerts')
+        return json({ ok: true })
+      } catch (e) {
+        console.error('Practice alerts clear error:', e)
+        return json({ error: String(e) }, 500)
+      }
+    }
     return env.ASSETS.fetch(req)
   },
   async scheduled(_event: unknown, env: Env): Promise<void> {
