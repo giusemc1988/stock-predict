@@ -64,7 +64,7 @@ export function SettingsModal({ keys, onSave, onClose, onOpenAiRules }: { keys: 
         </label>
         {rules.aiKeyBoxes && <AiKeysSection />}
         <h3>Jarvis AI Trading (Experimental)</h3>
-        <p className="muted">Unified agent for trading decisions. All features default OFF — enable only what you trust.</p>
+        <p className="muted">Unified agent for trading decisions. Phase 1 focuses on honest scoreboard and signal testing. These features are disabled until Phase 2 research validates them:</p>
         <label className="field">
           <input
             type="checkbox"
@@ -73,8 +73,9 @@ export function SettingsModal({ keys, onSave, onClose, onOpenAiRules }: { keys: 
             disabled
             title="Validator: disabled in Phase 1"
           />
-          <span>Walk-forward validator (disabled)</span>
+          <span>Walk-forward validator (disabled in Phase 1)</span>
         </label>
+        <p className="muted tiny">Tests each signal on unseen data to catch overfitting. Ready when we have enough trades.</p>
         <label className="field">
           <input
             type="checkbox"
@@ -83,8 +84,9 @@ export function SettingsModal({ keys, onSave, onClose, onOpenAiRules }: { keys: 
             disabled
             title="Router: disabled in Phase 1"
           />
-          <span>Unified router (disabled)</span>
+          <span>Unified router (disabled in Phase 1)</span>
         </label>
+        <p className="muted tiny">Combines multiple signal types (price, volume, AI explanations) into one buy/sell/hold decision per chart.</p>
         <label className="field">
           <input
             type="checkbox"
@@ -93,8 +95,9 @@ export function SettingsModal({ keys, onSave, onClose, onOpenAiRules }: { keys: 
             disabled
             title="Learner: disabled in Phase 1"
           />
-          <span>Auto-learner with walk-forward (disabled)</span>
+          <span>Auto-learner with walk-forward (disabled in Phase 1)</span>
         </label>
+        <p className="muted tiny">Lets Jarvis improve its own signal weights as it watches your trades. Uses the validator first.</p>
         <p className="muted tiny">
           {t('appVersion')} v{APP_VERSION}
         </p>

@@ -2,7 +2,7 @@
  * Version and "What's new". Bump APP_VERSION and add an entry to the top of RELEASES
  * with each update. The banner shows once per version, then stays dismissed.
  */
-export const APP_VERSION = '1.20.0'
+export const APP_VERSION = '1.20.1'
 
 export interface Release {
   version: string
@@ -13,6 +13,16 @@ export interface Release {
 }
 
 export const RELEASES: Release[] = [
+  {
+    version: '1.20.1',
+    date: '2026-10-16',
+    changes: [
+      'AI keys: Test button now shows the working model name (e.g. "Dùng được (gemini-2.5-flash)") and exact error details, never silent. Settings > Jarvis AI Trading explains why the three Phase 2 features are disabled until research validates them.',
+    ],
+    changesVi: [
+      'Khóa AI: nút Thử giờ hiện tên mô hình hoạt động (ví dụ "Dùng được (gemini-2.5-flash)") và chi tiết lỗi chính xác, không bao giờ im lặng. Cài đặt > Giao dịch AI của Jarvis giải thích tại sao ba tính năng Phase 2 bị tắt cho đến khi nghiên cứu xác nhận.',
+    ],
+  },
   {
     version: '1.20.0',
     date: '2026-10-16',

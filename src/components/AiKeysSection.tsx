@@ -51,7 +51,7 @@ const TXT = {
 
 async function call(url: string, init?: RequestInit) {
   const r = await fetch(url, init)
-  const j = (await r.json().catch(() => ({}))) as { keys?: KeyRow[]; error?: string; ok?: boolean }
+  const j = (await r.json().catch(() => ({}))) as { keys?: KeyRow[]; error?: string; ok?: boolean; model?: string }
   return { ok: r.ok, ...j }
 }
 
@@ -96,7 +96,11 @@ export function AiKeysSection() {
         else say(id, r.error ?? x.failed)
       } else {
         const r = await call('/api/brain/test', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ id }) })
-        say(id, r.ok ? x.working : `${x.failed}: ${r.error ?? ''}`)
+        if (r.ok) {
+          say(id, `${x.working}${r.model ? ` (${r.model})` : ''}`)
+        } else {
+          say(id, `${x.failed}: ${r.error ?? ''}`)
+        }
       }
     } catch {
       say(id, x.loadFail)

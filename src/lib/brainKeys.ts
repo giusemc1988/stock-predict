@@ -73,18 +73,23 @@ export function sameOrigin(req: Request): boolean {
   return !!origin && origin === new URL(req.url).origin
 }
 
-/** One tiny call to one helper. Never returns the key or the answer. */
-export async function testProvider(id: string, env: BrainEnv, f: typeof fetch = fetch): Promise<{ ok: boolean; error?: string }> {
+/** One tiny call to one helper. Returns the working model name on success, or detailed error. Never returns the key or the answer. */
+export async function testProvider(id: string, env: BrainEnv, f: typeof fetch = fetch): Promise<{ ok: boolean; model?: string; error?: string }> {
   const p = PROVIDERS.find((x) => x.id === id)
   const key = p?.key(env)
   if (!p || !isSlot(id)) return { ok: false, error: 'Unknown helper' }
   if (!key) return { ok: false, error: 'No key saved for this helper' }
+
   let why = ''
   try {
     const text = await callHelper(p, key, env, systemPrompt('en'), 'Reply with the single word: pong', f, (status, reason) => {
       why = `${status ? `HTTP ${status}` : ''}${reason ? `${status ? ': ' : ''}${reason}` : ''}`
     })
-    if (text?.trim()) return { ok: true }
+    if (text?.trim()) {
+      const modelFor = ({ gemini: env.GEMINI_MODEL, groq: env.GROQ_MODEL, xai: env.XAI_MODEL, nvidia: env.NVIDIA_MODEL })[id]
+      const model = modelFor || p.models[0]
+      return { ok: true, model }
+    }
     return { ok: false, error: `${p.name} refused${why ? ` (${why})` : ''}. ${hint(why)}`.trim() }
   } catch (e) {
     return { ok: false, error: `Could not reach ${p.name} (${String((e as Error)?.message ?? e).slice(0, 120)})` }

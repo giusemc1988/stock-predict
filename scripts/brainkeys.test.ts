@@ -50,7 +50,9 @@ const ok = (async (u: string) => {
   urls.push(String(u))
   return new Response(JSON.stringify({ choices: [{ message: { content: 'pong' } }] }))
 }) as typeof fetch
-assert.deepEqual(await testProvider('nvidia', { NVIDIA_API_KEY: 'nvapi-secretsecretsecret123', GEMINI_API_KEY: 'AIzaSyDUMMYDUMMYDUMMYDUMMY1234567890' }, ok), { ok: true })
+const result = await testProvider('nvidia', { NVIDIA_API_KEY: 'nvapi-secretsecretsecret123', GEMINI_API_KEY: 'AIzaSyDUMMYDUMMYDUMMYDUMMY1234567890' }, ok)
+assert.equal(result.ok, true)
+assert.ok(result.model && typeof result.model === 'string')
 assert.equal(urls.length, 1)
 assert.ok(urls[0].includes('nvidia.com'))
 const bad = (async () => new Response('nope', { status: 401 })) as typeof fetch
@@ -74,7 +76,9 @@ const retired = (async (_u: string, init?: RequestInit) => {
     ? new Response(JSON.stringify({ status: 410, detail: `The model '${model}' has reached its end of life` }), { status: 410 })
     : new Response(JSON.stringify({ choices: [{ message: { content: 'pong' } }] }))
 }) as typeof fetch
-assert.deepEqual(await testProvider('nvidia', { NVIDIA_API_KEY: 'nvapi-secretsecretsecret123' }, retired), { ok: true })
+const result2 = await testProvider('nvidia', { NVIDIA_API_KEY: 'nvapi-secretsecretsecret123' }, retired)
+assert.equal(result2.ok, true)
+assert.ok(result2.model && typeof result2.model === 'string')
 assert.equal(tried.length, 2)
 assert.notEqual(tried[0], tried[1])
 // a bad key is not retried on every model
