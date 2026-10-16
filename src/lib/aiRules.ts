@@ -262,7 +262,7 @@ export const RULE_FIELDS: RuleField[] = [
   { group: 'modules', key: 'preMarketAlerts', en: 'Alerts before market open (pre-market movers and news)', vi: 'Cảnh báo trước khi mở cửa thị trường (mã tăng trước giờ và tin tức)' },
   { group: 'modules', key: 'cryptoMoversThrottleHrs', en: 'Crypto movers scan frequency (0 = always, >0 = max hours between scans)', vi: 'Tần suất quét crypto tăng (0 = luôn luôn, >0 = giờ tối đa giữa các lần quét)', min: 0, max: 24, step: 1, unit: 'hours' },
   { group: 'jarvis', key: 'autoRotateKeys', en: 'Auto-rotate API keys: try multiple keys in order, skip any that run out of quota', vi: 'Xoay khóa API tự động: thử nhiều khóa theo thứ tự, bỏ qua khóa nào hết hạn' },
-  { group: 'jarvis', key: 'localAiOn', en: 'Use local AI (Ollama on your device, Gemini fallback; works only when this app runs locally)', vi: 'Dùng AI cục bộ (Ollama trên thiết bị, dự phòng Gemini; chỉ hoạt động khi ứng dụng chạy cục bộ)' },
+  { group: 'jarvis', key: 'localAiOn', en: 'Use local AI: Ollama on your computer writes the Brief with a model you have installed (works only when this app runs on that computer; falls back to Gemini if Brief AI is on)', vi: 'Dùng AI cục bộ: Ollama trên máy bạn viết bản tin bằng mô hình đã cài (chỉ hoạt động khi ứng dụng chạy trên máy đó; dự phòng Gemini nếu AI viết bản tin đang bật)' },
 ]
 
 const KEY = 'arc.aiRules.v1'

@@ -83,7 +83,8 @@ export function JarvisBrief(p: Props) {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   const stableFacts = useMemo(() => facts, [key, now])
   // the AI waits for the first market lists, so it is not asked about an empty page
-  const brief = useBriefText(p.rules.briefAi && p.rules.jarvisCloudAi && lists.updatedAt != null, stableFacts, key, lang, p.rules.localAiOn)
+  const ready = lists.updatedAt != null
+  const brief = useBriefText(p.rules.briefAi && p.rules.jarvisCloudAi && ready, stableFacts, key, lang, p.rules.localAiOn && ready)
   const hello = greeting(name, p.practice, p.killSwitch)
   const buys = buyCalls(p.scan.candidates)
   const rep = practiceReport(p.practice)
