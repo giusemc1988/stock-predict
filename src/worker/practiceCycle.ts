@@ -3,7 +3,6 @@
  * Reads state from KV, runs one scan cycle, writes state back.
  * Paper only: nothing here places an order.
  */
-/// <reference types="@cloudflare/workers-types" />
 import type { Candle } from '../types'
 import { INSTRUMENTS } from '../data/instruments'
 import { DEFAULT_AI_RULES } from '../lib/aiRules'
@@ -64,7 +63,7 @@ async function coingeckoMovers(top = 8): Promise<Mover[]> {
 }
 
 export interface WorkerEnv {
-  PRACTICE: KVNamespace
+  PRACTICE: { get(key: string): Promise<string | null>; put(key: string, value: string): Promise<void> }
 }
 
 export async function practiceCycle(env: WorkerEnv): Promise<{ state: PracticeState; message: string }> {

@@ -3,7 +3,6 @@
  * free-AI helper. Keys are Worker secrets (wrangler secret put GEMINI_API_KEY, etc.).
  * Also serves /api/practice for live paper trading via Cron every 5 minutes.
  */
-/// <reference types="@cloudflare/workers-types" />
 import { askBrain, brainStatus, cleanAsk, type BrainEnv } from './lib/brainServer'
 import { practiceCycle, type WorkerEnv as PracticeEnv } from './worker/practiceCycle'
 import type { PracticeState } from './lib/practice'
@@ -48,7 +47,7 @@ export default {
     }
     return env.ASSETS.fetch(req)
   },
-  async scheduled(_event: ScheduledEvent, env: Env): Promise<void> {
+  async scheduled(_event: unknown, env: Env): Promise<void> {
     const now = new Date()
     const utcHour = now.getUTCHours()
     const utcDay = now.getUTCDay()
