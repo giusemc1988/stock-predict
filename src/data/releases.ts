@@ -2,7 +2,7 @@
  * Version and "What's new". Bump APP_VERSION and add an entry to the top of RELEASES
  * with each update. The banner shows once per version, then stays dismissed.
  */
-export const APP_VERSION = '1.10.2'
+export const APP_VERSION = '1.10.3'
 
 export interface Release {
   version: string
@@ -13,6 +13,18 @@ export interface Release {
 }
 
 export const RELEASES: Release[] = [
+  {
+    version: '1.10.3',
+    date: '2026-10-16',
+    changes: [
+      'Local AI on your computer: turn on "Use local AI" in Settings > AI rules and, when the app runs on your own computer with Ollama open, Jarvis writes the Brief with a model already installed there (it picks one by itself, for example llama3.2). The Brief footer names the model. If Ollama is closed, the Brief falls back to Gemini when Brief AI is on, otherwise to the plain facts.',
+      'Auto-rotate API keys toggle added to Settings > AI rules (off by default).',
+    ],
+    changesVi: [
+      'AI cục bộ trên máy bạn: bật "Dùng AI cục bộ" trong Cài đặt > Quy tắc AI. Khi ứng dụng chạy trên máy bạn và Ollama đang mở, Jarvis viết bản tin bằng mô hình đã cài sẵn (tự chọn, ví dụ llama3.2). Dòng cuối bản tin ghi tên mô hình. Nếu Ollama tắt, bản tin dùng Gemini khi AI viết bản tin đang bật, nếu không thì dùng dữ liệu thường.',
+      'Thêm nút Xoay khóa API tự động trong Cài đặt > Quy tắc AI (mặc định tắt).',
+    ],
+  },
   {
     version: '1.10.2',
     date: '2026-10-16',

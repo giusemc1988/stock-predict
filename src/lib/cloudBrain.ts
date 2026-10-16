@@ -35,12 +35,12 @@ export async function askCloud(question: string, lang: 'en' | 'vi', facts: strin
 }
 
 /** Try local Ollama first if enabled; fall back to cloud. Ollama must allow the site origin via OLLAMA_ORIGINS. */
-export async function askAi(question: string, lang: 'en' | 'vi', facts: string[], localAiOn: boolean, timeoutMs = 15000): Promise<CloudAnswer | null> {
-  if (localAiOn) {
+export async function askAi(question: string, lang: 'en' | 'vi', facts: string[], use: { local: boolean; cloud: boolean }, timeoutMs = 15000): Promise<CloudAnswer | null> {
+  if (use.local) {
     const local = await askOllama({ question, facts, lang })
     if (local) return local
   }
-  return askCloud(question, lang, facts, timeoutMs)
+  return use.cloud ? askCloud(question, lang, facts, timeoutMs) : null
 }
 
 export interface HelperStatus {

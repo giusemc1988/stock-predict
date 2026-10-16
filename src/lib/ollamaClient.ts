@@ -21,14 +21,48 @@ function systemPrompt(lang: 'en' | 'vi') {
 
 const LIMIT = { question: 500, fact: 400, facts: 12, answer: 450 }
 
-export async function askOllama(req: OllamaRequest, model = 'llama2'): Promise<{ text: string; by: string } | null> {
-  const baseUrl = 'http://localhost:11434'
-  const user = `Facts from the app:\n${req.facts.map((x) => `- ${x}`).join('\n') || '- (none)'}\n\nQuestion: ${req.question}`
+const BASE = 'http://localhost:11434'
+/** Small chat models first; coder models answer prose badly. */
+const PREFER = ['llama3.2', 'llama3.1', 'llama3', 'gemma', 'qwen', 'mistral', 'phi']
+let picked: Promise<string | null> | null = null
 
+/** Pick an installed model by name preference, so no model name is hard-coded to one machine. */
+export function pickModel(names: string[]): string | null {
+  const chat = names.filter((n) => !/coder|embed/i.test(n))
+  for (const p of PREFER) {
+    const hit = chat.find((n) => n.startsWith(p))
+    if (hit) return hit
+  }
+  return chat[0] ?? names[0] ?? null
+}
+
+function installedModel(): Promise<string | null> {
+  picked ??= fetch(`${BASE}/api/tags`)
+    .then((r) => (r.ok ? (r.json() as Promise<{ models?: { name: string }[] }>) : null))
+    .then((j) => pickModel((j?.models ?? []).map((m) => m.name)))
+    .catch(() => null)
+    .then((m) => {
+      if (!m) picked = null
+      return m
+    })
+  return picked
+}
+
+// a local model can take a while to load into memory on the first call
+export async function askOllama(req: OllamaRequest, timeoutMs = 90_000): Promise<{ text: string; by: string } | null> {
+  const model = await installedModel()
+  if (!model) {
+    console.warn('Ollama: not reachable or no model installed')
+    return null
+  }
+  const user = `Facts from the app:\n${req.facts.map((x) => `- ${x}`).join('\n') || '- (none)'}\n\nQuestion: ${req.question}`
+  const ctl = new AbortController()
+  const t = setTimeout(() => ctl.abort(), timeoutMs)
   try {
-    const response = await fetch(`${baseUrl}/v1/chat/completions`, {
+    const response = await fetch(`${BASE}/v1/chat/completions`, {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
+      signal: ctl.signal,
       body: JSON.stringify({
         model,
         max_tokens: LIMIT.answer,
@@ -39,17 +73,17 @@ export async function askOllama(req: OllamaRequest, model = 'llama2'): Promise<{
         ],
       }),
     })
-
     if (!response.ok) {
       console.warn(`Ollama error: ${response.status}`)
       return null
     }
-
     const data = (await response.json()) as { choices?: { message?: { content?: string } }[] }
     const text = data.choices?.[0]?.message?.content?.trim()
-    return text ? { text, by: 'Local AI' } : null
+    return text ? { text, by: `Local AI (${model})` } : null
   } catch (e) {
     console.warn('Ollama unreachable:', e instanceof Error ? e.message : String(e))
     return null
+  } finally {
+    clearTimeout(t)
   }
 }

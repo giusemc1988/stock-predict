@@ -24,8 +24,9 @@ const load = (): Saved | null => {
 }
 
 /** The brief text: written by a free AI helper once per change in the data, else the plain facts. */
-export function useBriefText(useAi: boolean, facts: Bi[], key: string, lang: 'en' | 'vi', localAiOn = false): { text: string; by: string; writing: boolean } {
+export function useBriefText(cloudOn: boolean, facts: Bi[], key: string, lang: 'en' | 'vi', localAiOn = false): { text: string; by: string; writing: boolean } {
   const plain = plainBrief(facts, lang)
+  const useAi = cloudOn || localAiOn
   const [saved, setSaved] = useState<Saved | null>(load)
   const [writing, setWriting] = useState(false)
   const [tick, setTick] = useState(0)
@@ -38,7 +39,7 @@ export function useBriefText(useAi: boolean, facts: Bi[], key: string, lang: 'en
     }
     let gone = false
     setWriting(true)
-    void askAi(QUESTION, lang, factsText.split('\n'), localAiOn).then((r) => {
+    void askAi(QUESTION, lang, factsText.split('\n'), { local: localAiOn, cloud: cloudOn }).then((r) => {
       if (gone) return
       setWriting(false)
       if (!r) return
@@ -55,7 +56,7 @@ export function useBriefText(useAi: boolean, facts: Bi[], key: string, lang: 'en
       setWriting(false)
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [useAi, localAiOn, key, lang, tick])
+  }, [cloudOn, localAiOn, key, lang, tick])
   // an AI brief is shown while it matches the data, or for a few minutes after; after that the plain facts win
   if (useAi && saved && saved.key.startsWith(`${lang}|`) && (saved.key === key || Date.now() - saved.at < MIN_GAP_MS)) return { text: saved.text, by: saved.by, writing }
   return { text: plain, by: '', writing }
