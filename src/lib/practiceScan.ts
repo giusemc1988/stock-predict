@@ -55,6 +55,30 @@ export interface ScanResult {
 export const pickRows = (cs: PracticeCandidate[], max = 15): PickRow[] =>
   cs.slice(0, max).map((c) => ({ symbol: c.symbol, source: c.source, verdict: c.analysis?.verdict ?? null, gainPct: c.gainPct, volVsAvg: c.volVsAvg, tradeScore: c.tradeScore, place: c.place }))
 
+export interface Mover {
+  symbol: string
+  source: 'gainer' | 'active'
+}
+
+/** What one scan looks at: your watchlist, plus today's stock and crypto movers from live market-wide lists. */
+export function scanMarkets(watchlist: { symbol: string; assetClass: AssetClass }[], stockMovers: Mover[], cryptoMovers: Mover[]): ScanMarket[] {
+  const out: ScanMarket[] = watchlist.map((i) => ({ symbol: i.symbol, asset: i.assetClass, source: 'watchlist' as const }))
+  const add = (m: Mover, asset: AssetClass) => {
+    if (!out.some((x) => x.symbol === m.symbol)) out.push({ symbol: m.symbol, asset, source: m.source })
+  }
+  for (const m of stockMovers) add(m, 'stock')
+  for (const m of cryptoMovers) add(m, 'crypto')
+  return out
+}
+
+/** Today's top crypto gainers and most-traded coins, taken from a live market list. */
+export function cryptoMovers(lists: { gainers: { symbol: string }[]; volume: { symbol: string }[] } | null, top = 8): Mover[] {
+  if (!lists) return []
+  const out: Mover[] = lists.gainers.slice(0, top).map((r) => ({ symbol: r.symbol, source: 'gainer' }))
+  for (const r of lists.volume.slice(0, top)) if (!out.some((m) => m.symbol === r.symbol)) out.push({ symbol: r.symbol, source: 'active' })
+  return out
+}
+
 /** Markets with an open practice trade are always scanned, so their exits keep working after they leave the movers list. */
 export function withOpenMarkets(markets: ScanMarket[], s: PracticeState): ScanMarket[] {
   const out = [...markets]

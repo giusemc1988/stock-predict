@@ -1,9 +1,11 @@
-import { Fragment, useState } from 'react'
+import { Fragment, useMemo, useState } from 'react'
 import type { Instrument, Candle, Timeframe } from '../types'
 import type { AlpacaDataKeys, ApiKeys } from '../data/providers'
 import { candlesFor } from '../data/series'
 import { rankPicks, savePicks, SMALL_SAMPLE, sortPicks, type Pick, type PickSort } from '../lib/picks'
-import { useT } from '../lib/i18n'
+import { useLang, useT } from '../lib/i18n'
+import { useMarketLists } from '../hooks/useMarketLists'
+import type { MarketListRow } from '../data/providers'
 
 const pct = (x: number) => `${x.toFixed(1)}%`
 
@@ -48,8 +50,20 @@ interface Props {
   onOpen: (symbol: string) => void
 }
 
+const asInstrument = (r: MarketListRow): Instrument => ({ symbol: r.symbol, name: r.symbol, assetClass: r.assetClass, feedId: r.assetClass === 'crypto' ? r.symbol.replace('/', '') : r.symbol, demoPrice: r.price, demoVol: 0.4 })
+
 export function AIPicks({ instruments, tf, keys, alpacaKeys, onOpen }: Props) {
   const t = useT()
+  const vi = useLang() === 'vi'
+  // "the market" = today's live top gainers and most-traded names, stocks and crypto; never a fixed list
+  const [mode, setMode] = useState<'market' | 'list'>('market')
+  const lists = useMarketLists(mode === 'market', alpacaKeys)
+  const market = useMemo(() => {
+    const rows = [lists.stocks, lists.crypto].flatMap((l) => (l ? [...l.gainers.slice(0, 6), ...l.volume.slice(0, 6)] : []))
+    const seen = new Set<string>()
+    return rows.filter((r) => !seen.has(r.symbol) && !!seen.add(r.symbol)).map(asInstrument)
+  }, [lists.stocks, lists.crypto])
+  const targets = mode === 'market' ? market : instruments
   const [picks, setPicks] = useState<Pick[] | null>(null)
   const [busy, setBusy] = useState(false)
   const [skipped, setSkipped] = useState<string[]>([])
@@ -61,7 +75,7 @@ export function AIPicks({ instruments, tf, keys, alpacaKeys, onOpen }: Props) {
     const series: { symbol: string; candles: Candle[] }[] = []
     const failed: string[] = []
     // one at a time, so free-tier data keys are not hit all at once
-    for (const inst of instruments) {
+    for (const inst of targets) {
       try {
         series.push({ symbol: inst.symbol, candles: await candlesFor(inst, tf, keys, alpacaKeys) })
       } catch {
@@ -80,8 +94,28 @@ export function AIPicks({ instruments, tf, keys, alpacaKeys, onOpen }: Props) {
       <p className="muted">
         {t('picksIntro')}
       </p>
-      <button onClick={scan} disabled={busy}>
-        {busy ? t('scanning') : picks ? t('scanAgain') : t('scanMyList')}
+      <div className="right-tabs">
+        <button className={mode === 'market' ? 'on' : ''} onClick={() => setMode('market')}>
+          {vi ? 'Toàn thị trường' : 'The market'}
+        </button>
+        <button className={mode === 'list' ? 'on' : ''} onClick={() => setMode('list')}>
+          {vi ? 'Danh sách của tôi' : 'My list'}
+        </button>
+      </div>
+      {mode === 'market' && (
+        <p className="muted small">
+          {market.length
+            ? vi
+              ? `${market.length} mã tăng mạnh và giao dịch nhiều nhất lúc này (Alpaca, Binance).`
+              : `${market.length} of today's top gainers and most-traded names (Alpaca, Binance).`
+            : lists.loading
+              ? vi ? 'Đang tải danh sách thị trường…' : 'Loading the market lists…'
+              : vi ? 'Chưa có danh sách thị trường.' : 'No market list yet.'}
+          {lists.stocksNeedKey && (vi ? ' Cổ phiếu cần key Alpaca paper.' : ' Stocks need an Alpaca paper key.')}
+        </p>
+      )}
+      <button onClick={scan} disabled={busy || !targets.length}>
+        {busy ? t('scanning') : picks ? t('scanAgain') : mode === 'market' ? (vi ? 'Quét thị trường' : 'Scan the market') : t('scanMyList')}
       </button>
       <div className="right-tabs">
         <button className={by === 'call' ? 'on' : ''} onClick={() => setBy('call')}>

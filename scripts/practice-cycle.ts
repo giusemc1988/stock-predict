@@ -3,7 +3,7 @@
  * hours by .github/workflows/practice.yml, so practice keeps trading while the app is closed.
  * Reads and writes public/practice.json, which the app shows on the chart, in the feed and in the report.
  *
- *   npm run practice                        live Yahoo Finance 15-minute bars and movers
+ *   npm run practice                        live Yahoo Finance 15-minute bars and stock movers, CoinGecko crypto movers
  *   npm run practice -- --out x.json        write somewhere else (for testing)
  *
  * The server can't see the rules saved in a browser, so it uses the default AI rules
@@ -18,7 +18,7 @@ import { SKILLS, skillTag } from '../src/lib/skills'
 import { parseState } from '../src/lib/autoLearn'
 import type { JournalEntry } from '../src/lib/journal'
 import { emptyPractice, parsePractice, PENNY_MIN_PRICE, PENNY_PRICE, sessionEnd, type PracticeState } from '../src/lib/practice'
-import { scanCycle, withOpenMarkets, type ScanMarket } from '../src/lib/practiceScan'
+import { cryptoMovers, scanCycle, scanMarkets, withOpenMarkets, type Mover, type ScanMarket } from '../src/lib/practiceScan'
 
 const args = process.argv.slice(2)
 const outIdx = args.indexOf('--out')
@@ -65,6 +65,19 @@ async function yahooMovers(top = 10, minPrice = 5): Promise<ScanMarket[]> {
   return out
 }
 
+/** Today's top crypto gainers and most-traded coins from CoinGecko's public market list (keyless; Binance blocks US servers). */
+async function coingeckoMovers(top = 8): Promise<Mover[]> {
+  const res = await fetch('https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=volume_desc&per_page=100&page=1', { headers: UA })
+  if (!res.ok) throw new Error(`CoinGecko ${res.status}`)
+  const rows = (await res.json()) as { symbol: string; name: string; total_volume: number | null; price_change_percentage_24h: number | null }[]
+  const STABLE = /^(usdt|usdc|dai|fdusd|tusd|usde|usdp|pyusd|busd|usds|usd1|eurc|xaut|paxg)$/
+  const all = rows
+    .filter((r) => !STABLE.test(r.symbol) && !/wrapped|staked|bridged/i.test(r.name) && (r.total_volume ?? 0) >= 2_000_000 && r.price_change_percentage_24h != null)
+    .map((r) => ({ symbol: `${r.symbol.toUpperCase()}/USDT`, change: r.price_change_percentage_24h ?? 0, volume: r.total_volume ?? 0 }))
+  const by = (f: (r: (typeof all)[number]) => number) => [...all].sort((a, b) => f(b) - f(a))
+  return cryptoMovers({ gainers: by((r) => r.change), volume: by((r) => r.volume) }, top)
+}
+
 let prev: PracticeState = emptyPractice()
 try {
   prev = parsePractice(JSON.parse(readFileSync(file, 'utf8'))) ?? prev
@@ -80,8 +93,11 @@ try {
 
 const rules = DEFAULT_AI_RULES
 const now = Date.now()
-const markets: ScanMarket[] = INSTRUMENTS.map((i) => ({ symbol: i.symbol, asset: i.assetClass, source: 'watchlist' as const }))
-if (rules.practiceMovers) for (const m of await yahooMovers(10, rules.practicePenny ? PENNY_MIN_PRICE : PENNY_PRICE)) if (!markets.some((x) => x.symbol === m.symbol)) markets.push(m)
+const markets: ScanMarket[] = scanMarkets(
+  INSTRUMENTS,
+  rules.practiceMovers ? (await yahooMovers(10, rules.practicePenny ? PENNY_MIN_PRICE : PENNY_PRICE)).map((m) => ({ symbol: m.symbol, source: m.source as Mover['source'] })) : [],
+  rules.practiceCryptoMovers ? await coingeckoMovers().catch(() => []) : [],
+)
 
 const r = await scanCycle({
   markets: withOpenMarkets(markets, prev),

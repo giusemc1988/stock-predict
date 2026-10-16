@@ -74,6 +74,9 @@ export interface AiRules {
   jarvisFab: boolean // floating brain button: talk or type to Jarvis from any screen, with the conversation written out
   jarvisFabTalk: boolean // the floating brain reads its answers aloud
   jarvisCloudAi: boolean // when Jarvis doesn't understand, ask a free AI helper (keys live on the server)
+  briefHome: boolean // Jarvis Brief is the home page; off opens the Trading desk as before
+  briefAi: boolean // a free AI helper writes the Jarvis Brief from the page's real data (once per scan)
+  practiceCryptoMovers: boolean // practice also scans today's top crypto gainers and most-traded coins
 }
 
 export const DEFAULT_AI_RULES: AiRules = {
@@ -146,6 +149,9 @@ export const DEFAULT_AI_RULES: AiRules = {
   jarvisFab: true,
   jarvisFabTalk: true,
   jarvisCloudAi: true,
+  briefHome: true,
+  briefAi: true,
+  practiceCryptoMovers: true,
 }
 
 type NumKey = { [K in keyof AiRules]: AiRules[K] extends number ? K : never }[keyof AiRules]
@@ -196,6 +202,7 @@ export const RULE_FIELDS: RuleField[] = [
   { group: 'modules', key: 'practiceLongOn', en: 'Practice long-term trade (held for days)', vi: 'Lệnh luyện tập dài hạn (giữ nhiều ngày)' },
   { group: 'modules', key: 'practiceAutoPick', en: 'Practice picks its own stocks (best volume, gain and Trade Score)', vi: 'Luyện tập tự chọn mã (khối lượng, mức tăng và Điểm GD tốt nhất)' },
   { group: 'modules', key: 'practiceMovers', en: "Practice also scans today's top gainers and most-traded stocks", vi: 'Luyện tập quét thêm mã tăng mạnh và giao dịch nhiều nhất hôm nay' },
+  { group: 'modules', key: 'practiceCryptoMovers', en: "Practice also scans today's top crypto gainers and most-traded coins", vi: 'Luyện tập quét thêm crypto tăng mạnh và giao dịch nhiều nhất hôm nay' },
   { group: 'modules', key: 'practiceServer', en: 'Practice 24/7 on the server (keeps trading while the app is closed)', vi: 'Luyện tập 24/7 trên máy chủ (vẫn giao dịch khi đóng ứng dụng)' },
   { group: 'modules', key: 'practiceWatchlist', en: 'Show what practice is watching and trading at the top of the watchlist', vi: 'Hiện các mã luyện tập đang theo dõi và giao dịch ở đầu danh sách' },
   { group: 'modules', key: 'practiceFollow', en: 'Chart follows each new practice trade', vi: 'Biểu đồ tự chuyển theo mỗi lệnh luyện tập mới' },
@@ -231,6 +238,8 @@ export const RULE_FIELDS: RuleField[] = [
   { group: 'jarvis', key: 'jarvisFab', en: 'Floating brain button: talk or type to Jarvis from any screen, with the conversation written out', vi: 'Nút bộ não nổi: nói hoặc gõ với Jarvis ở mọi màn hình, kèm bản ghi cuộc trò chuyện' },
   { group: 'jarvis', key: 'jarvisFabTalk', en: 'The floating brain answers out loud (male voice by default; change it in the Brain tab)', vi: 'Bộ não nổi trả lời thành tiếng (mặc định giọng nam; đổi trong tab Bộ não)' },
   { group: 'jarvis', key: 'jarvisCloudAi', en: "Free AI helper: when Jarvis doesn't understand you, he asks a free AI (Gemini, Groq, Grok or NVIDIA) using his own facts. Only works after a key is added on the server", vi: 'Trợ lý AI miễn phí: khi Jarvis không hiểu, Jarvis hỏi một AI miễn phí (Gemini, Groq, Grok hoặc NVIDIA) kèm dữ liệu của mình. Chỉ hoạt động sau khi thêm khóa trên máy chủ' },
+  { group: 'jarvis', key: 'briefHome', en: 'Jarvis Brief as the home page (off: open the Trading desk first)', vi: 'Jarvis Brief là trang chủ (tắt: mở Bàn giao dịch trước)' },
+  { group: 'jarvis', key: 'briefAi', en: 'Free AI writes the Jarvis Brief from real data (once per scan; plain text if every AI key fails)', vi: 'AI miễn phí viết Jarvis Brief từ dữ liệu thật (mỗi lần quét một lần; nếu mọi key AI lỗi thì dùng văn bản thường)' },
   { group: 'jarvis', key: 'jarvisListen', en: 'Ask Jarvis by voice (microphone; Chrome, Edge or Safari)', vi: 'Hỏi Jarvis bằng giọng nói (micro; Chrome, Edge hoặc Safari)' },
   { group: 'jarvis', key: 'jarvisSpeech', en: "Jarvis speaks (reads briefings and answers aloud with your device's voices; pick the voice in the Brain tab)", vi: 'Jarvis nói (đọc to bản tin và câu trả lời bằng giọng có sẵn trên thiết bị; chọn giọng trong tab Bộ não)' },
 ]

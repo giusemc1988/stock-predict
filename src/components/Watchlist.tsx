@@ -32,6 +32,8 @@ interface Props {
   onAdd: (inst: Instrument) => void
   activeSignal: Signal | null
   alpacaKeys: AlpacaDataKeys
+  /** Bumped to open the live Top gainers list (from the Jarvis Brief scanner). */
+  sortRequest?: number
 }
 
 type ListSort = 'gainers' | 'losers' | 'volume'
@@ -152,13 +154,16 @@ function AiActive({ rows, quotes, active, onSelect }: { rows: AiActiveRow[]; quo
   )
 }
 
-export function Watchlist({ aiActive, instruments, quotes, active, onSelect, onAdd, activeSignal, alpacaKeys }: Props) {
+export function Watchlist({ aiActive, instruments, quotes, active, onSelect, onAdd, activeSignal, alpacaKeys, sortRequest = 0 }: Props) {
   const tx = useT()
   const lang = useLang()
   const L = (en: string, vi: string) => (lang === 'vi' ? vi : en)
   const [filter, setFilter] = useState('')
   const [tab, setTab] = useState<'all' | 'crypto' | 'stock'>('all')
-  const [sort, setSort] = useState<'default' | 'gainers' | 'losers' | 'volume' | 'success'>('default')
+  const [sort, setSort] = useState<'default' | 'gainers' | 'losers' | 'volume' | 'success'>(sortRequest ? 'gainers' : 'default')
+  useEffect(() => {
+    if (sortRequest) setSort('gainers')
+  }, [sortRequest])
   // last AI Picks scan, from browser storage; re-read whenever a new scan is saved
   const picks = useSyncExternalStore(
     (cb) => {
