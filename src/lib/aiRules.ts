@@ -82,6 +82,8 @@ export interface AiRules {
   newsAnalysis: boolean // analyze market news sentiment for BUY/SELL bias
   preMarketAlerts: boolean // alerts before market open (pre-market movers and news)
   cryptoMoversThrottleHrs: number // max frequency to scan crypto movers (0 = always, >0 = hours between scans)
+  autoRotateKeys: boolean // try multiple API keys in order; skip any that fail or run out of quota
+  localAiOn: boolean // use local AI (Ollama on your device) as the first provider, Gemini fallback
 }
 
 export const DEFAULT_AI_RULES: AiRules = {
@@ -162,6 +164,8 @@ export const DEFAULT_AI_RULES: AiRules = {
   newsAnalysis: false,
   preMarketAlerts: false,
   cryptoMoversThrottleHrs: 1,
+  autoRotateKeys: false,
+  localAiOn: false,
 }
 
 type NumKey = { [K in keyof AiRules]: AiRules[K] extends number ? K : never }[keyof AiRules]
@@ -257,6 +261,8 @@ export const RULE_FIELDS: RuleField[] = [
   { group: 'modules', key: 'newsAnalysis', en: 'Analyze market news sentiment for BUY/SELL bias', vi: 'Phân tích độ dốc tin tức thị trường cho thiên vị MUA/BÁN' },
   { group: 'modules', key: 'preMarketAlerts', en: 'Alerts before market open (pre-market movers and news)', vi: 'Cảnh báo trước khi mở cửa thị trường (mã tăng trước giờ và tin tức)' },
   { group: 'modules', key: 'cryptoMoversThrottleHrs', en: 'Crypto movers scan frequency (0 = always, >0 = max hours between scans)', vi: 'Tần suất quét crypto tăng (0 = luôn luôn, >0 = giờ tối đa giữa các lần quét)', min: 0, max: 24, step: 1, unit: 'hours' },
+  { group: 'jarvis', key: 'autoRotateKeys', en: 'Auto-rotate API keys: try multiple keys in order, skip any that run out of quota', vi: 'Xoay khóa API tự động: thử nhiều khóa theo thứ tự, bỏ qua khóa nào hết hạn' },
+  { group: 'jarvis', key: 'localAiOn', en: 'Use local AI (Ollama on your device, Gemini fallback; works only when this app runs locally)', vi: 'Dùng AI cục bộ (Ollama trên thiết bị, dự phòng Gemini; chỉ hoạt động khi ứng dụng chạy cục bộ)' },
 ]
 
 const KEY = 'arc.aiRules.v1'
