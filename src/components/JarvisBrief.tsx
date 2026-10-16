@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react'
 import type { AlpacaDataKeys, MarketListRow } from '../data/providers'
 import type { AiRules } from '../lib/aiRules'
 import type { LearnState } from '../lib/autoLearn'
-import { briefFacts, briefKey, briefNodes, buyCalls, type BriefInputs, type NodeId } from '../lib/brief'
+import { briefFacts, briefKey, briefNodes, buyCalls, hhmm, type BriefInputs, type NodeId } from '../lib/brief'
 import { fmtCompact, fmtPct, fmtUsd, tone } from '../lib/format'
 import { useLang } from '../lib/i18n'
 import { greeting } from '../lib/jarvis'
@@ -96,7 +96,7 @@ export function JarvisBrief(p: Props) {
     setSpoke(null)
     void speak(brief.text, loadVoicePrefs(), lang, speechSynthesis.getVoices())
   }
-  const time = (ms: number | null) => (ms ? new Date(ms).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '—')
+  const time = (ms: number | null) => (ms ? hhmm(ms) : '—')
   const moverRows = moverTab === 'stock' ? lists.stocks : lists.crypto
   const openRow = (r: MarketListRow) => p.onSymbol(r.symbol, r.assetClass)
   const openSignalFlow = (signal: PickRow) => setShowSignalFlow(signal)

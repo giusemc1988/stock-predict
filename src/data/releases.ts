@@ -17,9 +17,11 @@ export const RELEASES: Release[] = [
     version: '1.12.1',
     date: '2026-10-16',
     changes: [
+      'Scan times older than today now show the date (for example "Oct 15, 06:17 PM"), so an old server scan no longer looks like today\'s.',
       'Chart ranges work like Webull: 1D, 5D, 1M, 3M, 1Y and All each pick the right candle size (1D = 5-minute, 5D = 15-minute, 1M = 1-hour, 3M = 4-hour, 1Y and All = daily) and zoom to that window. Older bars stay loaded, so you can scroll back. Toggle: Settings > AI rules > "Chart ranges pick the bar size".',
     ],
     changesVi: [
+      'Giờ quét cũ hơn hôm nay giờ có kèm ngày (ví dụ "Oct 15, 06:17 PM"), để lần quét cũ của máy chủ không bị nhầm là của hôm nay.',
       'Khoảng biểu đồ giống Webull: 1D, 5D, 1M, 3M, 1Y và All tự chọn cỡ nến phù hợp (1D = 5 phút, 5D = 15 phút, 1M = 1 giờ, 3M = 4 giờ, 1Y và All = ngày) và phóng to đúng khoảng đó. Nến cũ vẫn còn để kéo xem lại. Bật/tắt: Cài đặt > Quy tắc AI > "Khoảng biểu đồ tự chọn cỡ nến".',
     ],
   },
