@@ -2,7 +2,7 @@
  * Version and "What's new". Bump APP_VERSION and add an entry to the top of RELEASES
  * with each update. The banner shows once per version, then stays dismissed.
  */
-export const APP_VERSION = '1.10.5'
+export const APP_VERSION = '1.11.0'
 
 export interface Release {
   version: string
@@ -13,6 +13,16 @@ export interface Release {
 }
 
 export const RELEASES: Release[] = [
+  {
+    version: '1.11.0',
+    date: '2026-10-16',
+    changes: [
+      'Local AI explain: Jarvis explains your trades using llama3.2 on your device. No cloud keys needed. Toggle: Settings > AI rules > "Local explain".',
+    ],
+    changesVi: [
+      'AI cục bộ giải thích: Jarvis giải thích giao dịch của bạn dùng llama3.2 trên máy. Không cần key. Cài đặt > Quy tắc AI > "Giải thích cục bộ".',
+    ],
+  },
   {
     version: '1.10.5',
     date: '2026-10-16',

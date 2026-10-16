@@ -78,6 +78,10 @@ export interface AiRules {
   briefAi: boolean // a free AI helper writes the Jarvis Brief from the page's real data (once per scan)
   practiceCryptoMovers: boolean // practice also scans today's top crypto gainers and most-traded coins
   adjustableTimeRange: boolean // custom time range input on the Trading desk chart (beyond the preset 1D/1W/1M/1Y/All buttons)
+  localModelName: string // local LLM name: llama3.2, gemma4:e2b, qwen3-coder:30b (default: llama3.2)
+  localExplain: boolean // explain your trades using llama3.2 (browser only, no API)
+  localQA: boolean // answer questions about your trades using llama3.2 (browser only)
+  localVoiceNarrator: boolean // read explanations + answers aloud using browser speechSynthesis
   signalValidator: boolean // validate every signal path before showing (alerts, Brief, playbook)
   newsAnalysis: boolean // analyze market news sentiment for BUY/SELL bias
   preMarketAlerts: boolean // alerts before market open (pre-market movers and news)
@@ -160,6 +164,10 @@ export const DEFAULT_AI_RULES: AiRules = {
   briefAi: false,
   practiceCryptoMovers: true,
   adjustableTimeRange: true,
+  localModelName: 'llama3.2',
+  localExplain: false,
+  localQA: false,
+  localVoiceNarrator: false,
   signalValidator: true,
   newsAnalysis: false,
   preMarketAlerts: false,
@@ -254,6 +262,10 @@ export const RULE_FIELDS: RuleField[] = [
   { group: 'jarvis', key: 'jarvisCloudAi', en: "Free AI helper: when Jarvis doesn't understand you, he asks a free AI (Gemini, Groq, Grok or NVIDIA) using his own facts. Only works after a key is added on the server", vi: 'Trợ lý AI miễn phí: khi Jarvis không hiểu, Jarvis hỏi một AI miễn phí (Gemini, Groq, Grok hoặc NVIDIA) kèm dữ liệu của mình. Chỉ hoạt động sau khi thêm khóa trên máy chủ' },
   { group: 'jarvis', key: 'briefHome', en: 'Jarvis Brief as the home page (off: open the Trading desk first)', vi: 'Jarvis Brief là trang chủ (tắt: mở Bàn giao dịch trước)' },
   { group: 'jarvis', key: 'briefAi', en: 'Free AI writes the Jarvis Brief from real data (once per scan; plain text if every AI key fails)', vi: 'AI miễn phí viết Jarvis Brief từ dữ liệu thật (mỗi lần quét một lần; nếu mọi key AI lỗi thì dùng văn bản thường)' },
+  { group: 'jarvis', key: 'localModelName', en: 'Local AI model (llama3.2, gemma4:e2b, or qwen3-coder:30b)', vi: 'Mô hình AI cục bộ (llama3.2, gemma4:e2b, hoặc qwen3-coder:30b)' },
+  { group: 'jarvis', key: 'localExplain', en: 'Local AI explains your trades (on your device, no cloud keys)', vi: 'AI cục bộ giải thích lệnh của bạn (trên máy, không cần key đám mây)' },
+  { group: 'jarvis', key: 'localQA', en: 'Local AI answers questions about your trades and rules (on your device)', vi: 'AI cục bộ trả lời câu hỏi về lệnh và quy tắc (trên máy)' },
+  { group: 'jarvis', key: 'localVoiceNarrator', en: 'Local AI reads explanations and answers aloud (browser voice)', vi: 'AI cục bộ đọc giải thích và câu trả lời to (giọng trình duyệt)' },
   { group: 'jarvis', key: 'jarvisListen', en: 'Ask Jarvis by voice (microphone; Chrome, Edge or Safari)', vi: 'Hỏi Jarvis bằng giọng nói (micro; Chrome, Edge hoặc Safari)' },
   { group: 'jarvis', key: 'jarvisSpeech', en: "Jarvis speaks (reads briefings and answers aloud with your device's voices; pick the voice in the Brain tab)", vi: 'Jarvis nói (đọc to bản tin và câu trả lời bằng giọng có sẵn trên thiết bị; chọn giọng trong tab Bộ não)' },
   { group: 'modules', key: 'adjustableTimeRange', en: 'Adjustable time range on Trading desk (custom days input beyond preset buttons)', vi: 'Khoảng thời gian điều chỉnh được trên Bàn giao dịch (nhập ngày tùy chỉnh ngoài các nút sẵn)' },
