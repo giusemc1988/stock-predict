@@ -9,7 +9,8 @@ export function useLocalStorage<T>(key: string, initial: T) {
       // arrays are stored whole; objects are merged over the defaults so new fields get a value
       if (Array.isArray(initial)) return (Array.isArray(saved) ? saved : initial) as T
       return saved && typeof saved === 'object' && !Array.isArray(saved) ? { ...initial, ...saved } : initial
-    } catch {
+    } catch (e) {
+      console.warn(`Failed to load ${key} from localStorage:`, e)
       return initial
     }
   })

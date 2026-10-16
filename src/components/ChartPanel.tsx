@@ -175,9 +175,18 @@ export function ChartPanel(props: Props) {
         barSpacing: 8,
         tickMarkFormatter: (t: Time) => {
           const d = new Date((t as number) * 1000)
-          return d.getHours() === 0 && d.getMinutes() === 0
-            ? d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
-            : d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false })
+          const hh = d.getHours()
+          const mm = d.getMinutes()
+          // Show date on day boundaries (midnight) and every 6-hour mark for visibility on intraday charts
+          const isStartOfDay = hh === 0 && mm === 0
+          const isSixHourMark = (hh === 0 || hh === 6 || hh === 12 || hh === 18) && mm === 0
+          if (isStartOfDay) {
+            return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+          }
+          if (isSixHourMark) {
+            return `${d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} ${hh.toString().padStart(2, '0')}:00`
+          }
+          return d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false })
         },
       },
       localization: { timeFormatter: (t: Time) => fmtTime(t as number) },

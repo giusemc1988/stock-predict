@@ -96,6 +96,41 @@ export async function binanceTickers(pairs: string[]): Promise<Ticker24[]> {
   }))
 }
 
+/** One row of a live market-wide list (top gainers, losers or volume). */
+export interface MarketListRow {
+  symbol: string
+  assetClass: 'crypto' | 'stock'
+  price: number
+  changePct: number
+  /** Dollar volume today (stocks) or over 24h (crypto); undefined when the source does not give it. */
+  dollarVolume?: number
+}
+
+export interface MarketLists {
+  gainers: MarketListRow[]
+  losers: MarketListRow[]
+  volume: MarketListRow[]
+}
+
+const STABLE = /^(USDC|FDUSD|TUSD|USDP|DAI|BUSD|EUR|AEUR|USDE|PYUSD|XUSD|USD1)USDT$/
+const LEVERAGED = /(UP|DOWN|BULL|BEAR)USDT$/
+
+/** Every Binance USDT pair ranked by 24h change and by 24h dollar volume. Pairs under $2M a day are skipped as too thin. */
+export async function binanceMarketLists(top = 15): Promise<MarketLists> {
+  const rows: Record<string, string>[] = await binanceGet('/api/v3/ticker/24hr?type=MINI')
+  const all: MarketListRow[] = rows
+    .filter((r) => r.symbol.endsWith('USDT') && !STABLE.test(r.symbol) && !LEVERAGED.test(r.symbol) && +r.quoteVolume >= 2_000_000 && +r.openPrice > 0)
+    .map((r) => ({
+      symbol: r.symbol.replace(/USDT$/, '/USDT'),
+      assetClass: 'crypto' as const,
+      price: +r.lastPrice,
+      changePct: ((+r.lastPrice - +r.openPrice) / +r.openPrice) * 100,
+      dollarVolume: +r.quoteVolume,
+    }))
+  const by = (f: (r: MarketListRow) => number) => [...all].sort((a, b) => f(b) - f(a)).slice(0, top)
+  return { gainers: by((r) => r.changePct), losers: by((r) => -r.changePct), volume: by((r) => r.dollarVolume ?? 0) }
+}
+
 /** Opens a Binance stream, trying each host in turn. Returns a disposer. */
 export function binanceStream(streams: string[], onMessage: (data: any) => void, onState: (live: boolean) => void): () => void {
   let disposed = false
@@ -376,6 +411,30 @@ export async function alpacaSnapshots(symbols: string[], k: AlpacaDataKeys) {
     out[sym] = { last, open: s.prevDailyBar?.c ?? s.dailyBar?.o ?? last, high: s.dailyBar?.h ?? last, low: s.dailyBar?.l ?? last, volume: s.dailyBar?.v ?? 0 }
   }
   return out
+}
+
+/** Today's top US stock gainers, losers and most-traded names from Alpaca's market-wide screener. */
+export async function alpacaMarketLists(k: AlpacaDataKeys, top = 15): Promise<MarketLists> {
+  const plain = (s: string) => /^[A-Z]{1,5}$/.test(s)
+  type Move = { symbol: string; percent_change: number; price: number }
+  const [mv, act] = await Promise.all([
+    alpacaData<{ gainers?: Move[]; losers?: Move[] }>(k, `/v1beta1/screener/stocks/movers?top=50`),
+    alpacaData<{ most_actives?: { symbol: string; volume: number }[] }>(k, `/v1beta1/screener/stocks/most-actives?by=volume&top=${top * 2}`),
+  ])
+  const moves = (list: Move[] = []) =>
+    list
+      .filter((g) => plain(g.symbol) && g.price >= 1)
+      .slice(0, top)
+      .map((g) => ({ symbol: g.symbol, assetClass: 'stock' as const, price: g.price, changePct: g.percent_change }))
+  const activeSyms = (act.most_actives ?? []).map((a) => a.symbol).filter(plain).slice(0, top)
+  const snaps = activeSyms.length ? await alpacaSnapshots(activeSyms, k) : {}
+  const volume = activeSyms
+    .filter((s) => snaps[s])
+    .map((s) => {
+      const q = snaps[s]
+      return { symbol: s, assetClass: 'stock' as const, price: q.last, changePct: ((q.last - q.open) / q.open) * 100, dollarVolume: q.volume * q.last }
+    })
+  return { gainers: moves(mv.gainers), losers: moves(mv.losers), volume }
 }
 
 export interface MarketMover {

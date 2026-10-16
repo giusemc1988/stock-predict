@@ -38,7 +38,7 @@ export function SettingsModal({ keys, onSave, onClose, onOpenAiRules }: { keys: 
           </a>{' '}
           (Paper account, then API Keys), and paste it on the <b>Portfolio</b> page under Alpaca paper, not here.
         </p>
-        <p className="muted">The keys below are optional extras. Alpha Vantage's free plan allows only 25 requests a day. Keys stay in this browser.</p>
+        <p className="muted">The keys below are optional extras. Alpha Vantage's free plan allows only 25 requests a day. Keys stay in this browser's localStorage for this origin ({window.location.origin}). They are separate from keys on other sites or if you access from a different URL.</p>
         <label className="field">
           <span>
             Alpha Vantage key (optional){' '}
