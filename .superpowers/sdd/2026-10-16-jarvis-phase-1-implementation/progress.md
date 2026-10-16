@@ -16,7 +16,10 @@
 
 ## Task Progress
 
-- [ ] Task 1: Walk-Forward Validator Implementation
+- [x] Task 1: Walk-Forward Validator Implementation
+  - **Completion:** Rolling window algorithm with purging support, tests: `vite build --ssr tests/walk-forward.test.ts --outDir .learn/test-wf && node .learn/test-wf/walk-forward.test.js` → PASS ✓ Walk-forward validator tests passed
+  - **Commits:** 55cb60c (walk-forward validator + rolling window algorithm)
+
 - [ ] Task 2: Jarvis Configuration & Toggles
 - [ ] Task 3: Unified Router Implementation
 - [ ] Task 4: Integrate Validator into Learner
