@@ -1002,6 +1002,21 @@ body:has(.jfab) .toasts, body:has(.jfab) .jarvis-alert { bottom: 84px; }
 .bf-movers .bf-row { grid-template-columns: minmax(0, 1fr) auto; padding: 5px 6px; }
 .bf-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
 .bf-lesson { font-size: 12.5px; color: #c9d3e3; border-left: 2px solid var(--robot); padding-left: 10px; }
+
+/* Scoreboard styles */
+.scoreboard-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin-bottom: 8px; }
+.score-metric { display: grid; gap: 4px; }
+.score-value { font-size: 18px; font-weight: 700; font-family: monospace; }
+.score-value.up { color: var(--g); }
+.score-value.down { color: var(--r); }
+.score-label { font-size: 11px; color: var(--muted); font-weight: 500; }
+.score-sub { font-size: 11px; color: var(--muted); }
+.scoreboard-trades { display: grid; gap: 6px; padding-top: 8px; border-top: 1px solid var(--line); }
+.trades-label { text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 2px; }
+.trades-list { display: grid; gap: 4px; max-height: 140px; overflow-y: auto; }
+.trade-row { display: grid; grid-template-columns: 40px minmax(0, 1fr) auto; gap: 8px; align-items: center; padding: 4px 6px; border-radius: 6px; background: var(--panel-2); font-size: 11px; }
+.trade-row b { min-width: 40px; }
+.trade-row .mono { font-family: monospace; font-weight: 600; }
 @media (max-width: 1200px) { .bf-grid { grid-template-columns: 1fr 1fr; } }
 @media (max-width: 900px) {
   .page-brief .brief-page { grid-area: center; overflow: visible; }
