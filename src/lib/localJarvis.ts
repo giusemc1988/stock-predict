@@ -34,6 +34,19 @@ export function buildGroundingPacket(
   // Header
   prompt += `# Your Trading Data\n\n`
 
+  // Data summary: count and date range
+  if (recentTrades.length > 0) {
+    const dates = recentTrades.map((t) => t.closedAt).filter((d) => d)
+    const earliest = dates.length > 0 ? Math.min(...dates) : null
+    const latest = dates.length > 0 ? Math.max(...dates) : null
+    const earliestStr = earliest ? new Date(earliest).toLocaleDateString() : 'unknown'
+    const latestStr = latest ? new Date(latest).toLocaleDateString() : 'unknown'
+    prompt += `## Data Summary\n`
+    prompt += `- Total trades in this packet: ${recentTrades.length}\n`
+    prompt += `- Date range: ${earliestStr} to ${latestStr}\n`
+    prompt += `- Data period: last ${daysBack} days\n\n`
+  }
+
   // Recent trades
   if (recentTrades.length > 0) {
     prompt += `## Recent Trades (last ${daysBack} days)\n`
@@ -44,6 +57,9 @@ export function buildGroundingPacket(
       prompt += `- ${time}: ${position} ${t.symbol}${gain}\n`
     }
     prompt += '\n'
+  } else {
+    prompt += `## Recent Trades\n`
+    prompt += `- No trades in the last ${daysBack} days.\n\n`
   }
 
   // Active rules (simplified)
@@ -59,9 +75,11 @@ export function buildGroundingPacket(
   prompt += `- Data guard: ${rules.dataGuardOn ? 'ON' : 'OFF'} (max age: ${rules.maxDataAgeMin} min)\n`
   prompt += '\n'
 
-  // Instruction
+  // Instruction with strict constraint
   prompt += `## Your Task\n`
-  prompt += `Analyze the trades above using only the facts above. Cite relevant rules. Be brief (<500 tokens).\n`
+  prompt += `Analyze ONLY the trades and rules shown above. Do not mention any trades or dates not explicitly listed above.\n`
+  prompt += `If asked about data not in this packet, respond with "I don't have data for that.".\n`
+  prompt += `Cite relevant rules when applicable. Be brief (<500 tokens).\n`
 
   // Estimate tokens (rough: 1 token ≈ 4 chars)
   let tokens = Math.ceil(prompt.length / 4)
@@ -191,10 +209,17 @@ export async function answerQuestion(
   // Build grounding packet
   const packet = buildGroundingPacket(journal, rules, daysBack, maxTokens)
 
+  // Construct the full question with grounding constraint
+  const constrainedQuestion = `Answer based ONLY on the data shown in the sections above.
+If the user asks about something not shown (a date, trade, or metric not listed), respond "I don't have data for that."
+Do not invent or estimate data.
+
+Question: ${question}`
+
   // Call Ollama with the question and grounding context
   const response = await askOllama(
     {
-      question,
+      question: constrainedQuestion,
       facts: packet.prompt.split('\n').filter((line) => line.trim().length > 0),
       lang: 'en',
     },
