@@ -2,7 +2,7 @@
  * Version and "What's new". Bump APP_VERSION and add an entry to the top of RELEASES
  * with each update. The banner shows once per version, then stays dismissed.
  */
-export const APP_VERSION = '1.16.0'
+export const APP_VERSION = '1.17.0'
 
 export interface Release {
   version: string
@@ -13,6 +13,16 @@ export interface Release {
 }
 
 export const RELEASES: Release[] = [
+  {
+    version: '1.17.0',
+    date: '2026-10-16',
+    changes: [
+      'Trade alerts: Jarvis notifies you before placing a practice trade with symbol, side (BUY), entry price, stop loss, take profit, and reason. Each alert appears in the app and can be dismissed. Toggle in Settings > AI rules.',
+    ],
+    changesVi: [
+      'Thông báo trước lệnh: Jarvis báo trước khi đặt lệnh luyện tập, với mã, mua/bán (MUA), giá vào, cắt lỗ, chốt lời, lý do. Mỗi thông báo hiện trong app, bấm X để đóng. Tắt/bật trong Cài đặt > Quy tắc AI.',
+    ],
+  },
   {
     version: '1.16.0',
     date: '2026-10-16',

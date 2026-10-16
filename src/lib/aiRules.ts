@@ -93,6 +93,7 @@ export interface AiRules {
   autoRotateKeys: boolean // try multiple API keys in order; skip any that fail or run out of quota
   localAiOn: boolean // use local AI (Ollama on your device) as the first provider, Gemini fallback
   orderFlowEstimate: boolean // show estimated order flow from delayed candles when live data unavailable
+  practiceTradeNotifications: boolean // notify before Jarvis places a practice trade
 }
 
 export const DEFAULT_AI_RULES: AiRules = {
@@ -184,6 +185,7 @@ export const DEFAULT_AI_RULES: AiRules = {
   autoRotateKeys: false,
   localAiOn: false,
   orderFlowEstimate: true,
+  practiceTradeNotifications: true,
 }
 
 type NumKey = { [K in keyof AiRules]: AiRules[K] extends number ? K : never }[keyof AiRules]
@@ -289,6 +291,7 @@ export const RULE_FIELDS: RuleField[] = [
   { group: 'jarvis', key: 'autoRotateKeys', en: 'Auto-rotate API keys: try multiple keys in order, skip any that run out of quota', vi: 'Xoay khóa API tự động: thử nhiều khóa theo thứ tự, bỏ qua khóa nào hết hạn' },
   { group: 'jarvis', key: 'localAiOn', en: 'Use local AI: Ollama on your computer writes the Brief with a model you have installed (works only when this app runs on that computer; falls back to Gemini if Brief AI is on)', vi: 'Dùng AI cục bộ: Ollama trên máy bạn viết bản tin bằng mô hình đã cài (chỉ hoạt động khi ứng dụng chạy trên máy đó; dự phòng Gemini nếu AI viết bản tin đang bật)' },
   { group: 'modules', key: 'orderFlowEstimate', en: 'Show estimated order flow when live data unavailable', vi: 'Hiện dòng lệnh ước tính khi không có dữ liệu trực tiếp' },
+  { group: 'modules', key: 'practiceTradeNotifications', en: 'Notify before placing a practice trade (symbol, side, entry, stop, target, reason)', vi: 'Báo trước khi đặt lệnh luyện tập (mã, mua/bán, vào, cắt lỗ, chốt lời, lý do)' },
 ]
 
 const KEY = 'arc.aiRules.v1'
