@@ -620,6 +620,7 @@ export default function App() {
               <ChartPanel
                 symbol={inst.symbol}
                 tf={prefs.tf}
+                onTf={(tf) => setPrefs((p) => ({ ...p, tf }))}
                 candles={candles}
                 signals={closed.signals}
                 prediction={prefs.forecast ? live : null}
