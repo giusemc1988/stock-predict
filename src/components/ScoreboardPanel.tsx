@@ -1,11 +1,22 @@
-import { fmtUsd, tone } from '../lib/format'
-import { practiceReport, type PracticeState } from '../lib/practice'
+import { fmtPct, fmtUsd, tone } from '../lib/format'
+import { practiceReport, scoreboardNumbers, type PracticeState } from '../lib/practice'
+import { hhmm } from '../lib/brief'
 import { useLang } from '../lib/i18n'
 
-export function ScoreboardPanel({ practice }: { practice: PracticeState }) {
+interface Props {
+  practice: PracticeState
+  /** Show open P&L and the account against buy-and-hold (Settings > AI rules). */
+  baseline?: boolean
+  /** Live prices for open positions; the server's last prices fill the gaps. */
+  priceOf?: (symbol: string) => number
+}
+
+export function ScoreboardPanel({ practice, baseline = true, priceOf }: Props) {
   const lang = useLang()
   const vi = lang === 'vi'
   const rep = practiceReport(practice)
+  const sb = scoreboardNumbers(practice, priceOf)
+  const b = sb.baseline
   const recentTrades = practice.trades.slice(-8) // Last 8 trades
 
   return (
@@ -16,10 +27,38 @@ export function ScoreboardPanel({ practice }: { practice: PracticeState }) {
       </header>
       <p className="bf-source">{vi ? "Nguồn: tài khoản luyện tập" : "Source: practice account"}</p>
 
+      {baseline && (
+        <div className="scoreboard-vs">
+          <div className="score-metric">
+            <div className={`score-value mono ${tone(sb.total)}`}>{fmtPct(sb.jarvisPct)}</div>
+            <div className="score-label">Jarvis</div>
+            <div className="score-sub mono">{vi ? `${fmtUsd(sb.total)} đã đóng + đang mở` : `${fmtUsd(sb.total)} closed + open`}</div>
+          </div>
+          <div className="score-metric">
+            <div className={`score-value mono ${sb.basePct == null ? '' : tone(sb.basePct)}`}>{sb.basePct == null ? '—' : fmtPct(sb.basePct)}</div>
+            <div className="score-label">{vi ? `Mua giữ ${b?.symbol ?? 'SPY'}` : `Buy & hold ${b?.symbol ?? 'SPY'}`}</div>
+            <div className="score-sub mono">{b ? `${b.start.toFixed(2)} → ${b.last.toFixed(2)}` : vi ? 'chờ máy chủ' : 'waiting for the server'}</div>
+          </div>
+          <div className="score-metric">
+            <div className={`score-value mono ${sb.edgePct == null ? '' : tone(sb.edgePct)}`}>{sb.edgePct == null ? '—' : `${fmtPct(sb.edgePct)}`}</div>
+            <div className="score-label">{sb.edgePct == null || Math.abs(sb.edgePct) < 0.005 ? (sb.edgePct == null ? (vi ? 'Chênh lệch' : 'Difference') : vi ? 'Đang hòa' : 'Even so far') : sb.edgePct > 0 ? (vi ? 'Jarvis đang hơn' : 'Jarvis ahead by') : vi ? 'Jarvis đang thua' : 'Jarvis behind by'}</div>
+            <div className="score-sub mono">{b ? (vi ? `từ ${hhmm(b.startAt)}` : `since ${hhmm(b.startAt)}`) : '—'}</div>
+          </div>
+          <div className="score-metric">
+            <div className={`score-value mono ${sb.priced ? tone(sb.unrealized) : ''}`}>{sb.open === 0 ? fmtUsd(0) : sb.priced ? fmtUsd(sb.unrealized) : '—'}</div>
+            <div className="score-label">{vi ? 'Lãi/lỗ đang mở' : 'Open P&L'}</div>
+            <div className="score-sub mono">
+              {vi ? `${sb.open} lệnh đang mở` : `${sb.open} open`}
+              {sb.priced < sb.open ? (vi ? `, ${sb.open - sb.priced} chưa có giá` : `, ${sb.open - sb.priced} unpriced`) : ''}
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="scoreboard-grid">
         <div className="score-metric">
           <div className={`score-value mono ${tone(rep.pnl)}`}>{fmtUsd(rep.pnl)}</div>
-          <div className="score-label">{vi ? "P&L luyện tập" : "Practice P&L"}</div>
+          <div className="score-label">{vi ? "Lãi/lỗ đã đóng" : "Closed P&L"}</div>
           <div className="score-sub mono">{vi ? `${rep.n} lệnh` : `${rep.n} trades`}</div>
         </div>
 
@@ -69,6 +108,14 @@ export function ScoreboardPanel({ practice }: { practice: PracticeState }) {
             ))}
           </div>
         </div>
+      )}
+
+      {rep.n === 0 && (
+        <p className="muted small" style={{ marginTop: "8px" }}>
+          {vi
+            ? "Chưa có lệnh nào đóng. Lệnh trong ngày đóng trước 3:55 chiều giờ New York, lúc đó các ô trên mới có số."
+            : "No closed trades yet. Day trades close by 3:55 PM New York time; the boxes above fill in then."}
+        </p>
       )}
 
       {rep.n < 30 && (

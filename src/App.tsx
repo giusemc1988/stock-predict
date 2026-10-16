@@ -602,6 +602,7 @@ export default function App() {
           alpacaKeys={alpacaKeys}
           flow={{ symbol: inst.symbol, buyShare, live: flow.live, source: flow.source }}
           practice={practice.state}
+          priceOf={practice.priceOf}
           scan={practice.scan}
           serverMode={practice.serverMode}
           learn={autoLearn.state}

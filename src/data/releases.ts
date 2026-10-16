@@ -2,7 +2,7 @@
  * Version and "What's new". Bump APP_VERSION and add an entry to the top of RELEASES
  * with each update. The banner shows once per version, then stays dismissed.
  */
-export const APP_VERSION = '1.14.1'
+export const APP_VERSION = '1.15.0'
 
 export interface Release {
   version: string
@@ -13,6 +13,20 @@ export interface Release {
 }
 
 export const RELEASES: Release[] = [
+  {
+    version: '1.15.0',
+    date: '2026-10-16',
+    changes: [
+      "Jarvis's Scoreboard now compares Jarvis with simply buying and holding SPY over the same time (closed plus open trades, after costs), and says whether Jarvis is ahead or behind.",
+      'Scoreboard: new Open P&L box for trades still open, using live prices or the server\'s last prices. Before, the board showed only zeros until the first trade closed.',
+      'The server practice account now saves after every 5-minute scan, so "Last scan" and open P&L stay fresh. Turn the comparison off in Settings > AI rules.',
+    ],
+    changesVi: [
+      'Bảng điểm Jarvis giờ so Jarvis với việc chỉ mua giữ SPY trong cùng khoảng thời gian (gồm lệnh đã đóng và đang mở, đã trừ phí), và cho biết Jarvis đang hơn hay thua.',
+      'Bảng điểm: thêm ô Lãi/lỗ đang mở cho các lệnh còn mở, dùng giá trực tiếp hoặc giá máy chủ thấy lần cuối. Trước đây bảng chỉ toàn số 0 cho tới khi có lệnh đầu tiên đóng.',
+      'Tài khoản luyện tập trên máy chủ giờ lưu sau mỗi lần quét 5 phút, nên "Lần quét cuối" và lãi/lỗ đang mở luôn mới. Tắt phần so sánh trong Cài đặt > Quy tắc AI.',
+    ],
+  },
   {
     version: '1.14.1',
     date: '2026-10-16',
