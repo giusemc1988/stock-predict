@@ -14,7 +14,6 @@ export interface BrainEnv {
   GROQ_MODEL?: string
   XAI_MODEL?: string
   NVIDIA_MODEL?: string
-  OLLAMA_URL?: string
 }
 
 export interface BrainAsk {
@@ -50,22 +49,6 @@ const openAiStyle = (url: string, fallbackModel: string) => async (key: string, 
 }
 
 export const PROVIDERS: Provider[] = [
-  {
-    id: 'ollama',
-    name: 'Local AI',
-    key: (e) => e.OLLAMA_URL ? 'local' : undefined,
-    call: async (key, model, system, user, f) => {
-      const baseUrl = process.env.OLLAMA_URL || 'http://localhost:11434'
-      const r = await f(`${baseUrl}/v1/chat/completions`, {
-        method: 'POST',
-        headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ model: model || 'llama2', max_tokens: LIMIT.answer, temperature: 0.4, messages: [{ role: 'system', content: system }, { role: 'user', content: user }] }),
-      })
-      if (!r.ok) return null
-      const j = (await r.json()) as { choices?: { message?: { content?: string } }[] }
-      return j.choices?.[0]?.message?.content ?? null
-    },
-  },
   {
     id: 'gemini',
     name: 'Gemini',

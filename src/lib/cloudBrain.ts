@@ -1,9 +1,11 @@
 /**
  * Browser side of the free-AI helper: Jarvis asks it only when his own rules don't understand.
  * It talks to our Worker (/api/brain), which holds the keys; the browser never sees one.
+ * If localAiOn is enabled, tries Ollama locally first (must allow the site origin via OLLAMA_ORIGINS).
  */
 import { useEffect, useState } from 'react'
 import { ask, briefing, type AskContext } from './jarvis'
+import { askOllama } from './ollamaClient'
 
 export interface CloudAnswer {
   text: string
@@ -30,6 +32,15 @@ export async function askCloud(question: string, lang: 'en' | 'vi', facts: strin
   } finally {
     clearTimeout(t)
   }
+}
+
+/** Try local Ollama first if enabled; fall back to cloud. Ollama must allow the site origin via OLLAMA_ORIGINS. */
+export async function askAi(question: string, lang: 'en' | 'vi', facts: string[], localAiOn: boolean, timeoutMs = 15000): Promise<CloudAnswer | null> {
+  if (localAiOn) {
+    const local = await askOllama({ question, facts, lang })
+    if (local) return local
+  }
+  return askCloud(question, lang, facts, timeoutMs)
 }
 
 export interface HelperStatus {
