@@ -64,19 +64,24 @@ async function coingeckoMovers(top = 8): Promise<Mover[]> {
   return cryptoMovers({ gainers: by((r) => r.change), volume: by((r) => r.volume) }, top)
 }
 
-async function sendTelegramAlert(alert: TradeAlert, token: string, chatId: string): Promise<void> {
-  const message = `🚀 *New Trade Alert*\n\n*Symbol:* ${alert.symbol}\n*Side:* BUY\n*Entry:* $${alert.entry.toFixed(2)}\n*Stop:* $${alert.stop.toFixed(2)}\n*Target:* $${alert.target.toFixed(2)}\n*Reason:* ${alert.reason}${alert.ruleName ? `\n*Rule:* ${alert.ruleName}` : ''}`
+async function sendTelegram(text: string, token: string, chatId: string): Promise<void> {
   try {
     const res = await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ chat_id: chatId, text: message, parse_mode: 'Markdown' }),
+      body: JSON.stringify({ chat_id: chatId, text }),
     })
     if (!res.ok) console.log(`Telegram send failed: ${res.status}`)
   } catch (e) {
     console.log('Telegram error:', e)
   }
 }
+
+const buyText = (a: TradeAlert) =>
+  `🚀 BUY ${a.symbol}\nEntry: $${a.entry.toFixed(2)}\nStop: $${a.stop.toFixed(2)}\nTarget: $${a.target.toFixed(2)}\nReason: ${a.reason}${a.ruleName ? `\nRule: ${a.ruleName}` : ''}`
+
+const sellText = (t: { symbol: string; entry: number; exit: number; pnl: number; retPct: number; exitReason: string }) =>
+  `${t.pnl >= 0 ? '✅' : '🔻'} SELL ${t.symbol}\nEntry: $${t.entry.toFixed(2)} → Exit: $${t.exit.toFixed(2)}\nP&L: ${t.pnl >= 0 ? '+' : ''}$${t.pnl.toFixed(2)} (${t.retPct >= 0 ? '+' : ''}${t.retPct.toFixed(2)}%)\nWhy: ${t.exitReason}`
 
 export interface WorkerEnv {
   PRACTICE: { get(key: string): Promise<string | null>; put(key: string, value: string): Promise<void>; delete(key: string): Promise<void> }
@@ -172,9 +177,9 @@ export async function practiceCycle(env: WorkerEnv): Promise<{ state: PracticeSt
     /* no telegram config */
   }
   if (telegramConfig?.token && telegramConfig?.chatId) {
-    for (const alert of alerts) {
-      await sendTelegramAlert(alert, telegramConfig.token, telegramConfig.chatId)
-    }
+    for (const alert of alerts) await sendTelegram(buyText(alert), telegramConfig.token, telegramConfig.chatId)
+    const seenClosed = new Set(prev.trades.map((t) => t.id))
+    for (const t of next.trades.filter((x) => !seenClosed.has(x.id))) await sendTelegram(sellText(t), telegramConfig.token, telegramConfig.chatId)
   }
 
   // written every run (about 108 KV writes a day; the free tier allows 1,000) so the last scan time, open P&L and the yardstick stay fresh

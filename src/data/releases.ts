@@ -2,7 +2,7 @@
  * Version and "What's new". Bump APP_VERSION and add an entry to the top of RELEASES
  * with each update. The banner shows once per version, then stays dismissed.
  */
-export const APP_VERSION = '1.19.1'
+export const APP_VERSION = '1.19.2'
 
 export interface Release {
   version: string
@@ -13,6 +13,16 @@ export interface Release {
 }
 
 export const RELEASES: Release[] = [
+  {
+    version: '1.19.2',
+    date: '2026-10-16',
+    changes: [
+      'Telegram now alerts on every practice trade: each buy and each sell (with profit or loss and the reason). It runs on the server every 5 minutes, so it works even when the app is closed. Messages are plain text so a symbol or reason can never make Telegram drop one.',
+    ],
+    changesVi: [
+      'Telegram giờ báo mọi lệnh thực hành: mỗi lệnh mua và mỗi lệnh bán (kèm lời/lỗ và lý do). Chạy trên server mỗi 5 phút nên vẫn báo khi đóng app. Tin nhắn là chữ thường để Telegram không bao giờ bỏ tin vì ký tự đặc biệt.',
+    ],
+  },
   {
     version: '1.19.1',
     date: '2026-10-16',
