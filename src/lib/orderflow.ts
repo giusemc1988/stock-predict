@@ -31,3 +31,39 @@ export function bookImbalance(bids: BookLevel[], asks: BookLevel[], levels = 10)
   const a = asks.slice(0, levels).reduce((s, l) => s + l.size, 0)
   return a + b > 0 ? b / (a + b) : 0.5
 }
+
+/** Estimate buy/sell volume split from OHLCV when live data is unavailable. Uses On-Balance Volume logic. */
+export function estimateOrderFlow(
+  candles: Candle[],
+  lastPrice: number
+): { buyVolume: number; sellVolume: number } {
+  let buyVolume = 0
+  let sellVolume = 0
+
+  for (const candle of candles) {
+    if (candle.volume === 0) continue
+
+    if (candle.close > candle.open) {
+      // Price closed higher: buyer initiated
+      buyVolume += candle.volume
+    } else if (candle.close < candle.open) {
+      // Price closed lower: seller initiated
+      sellVolume += candle.volume
+    } else {
+      // Close == open: split by relative position in high/low range
+      const range = candle.high - candle.low
+      if (range === 0) {
+        // No range, split evenly
+        buyVolume += candle.volume / 2
+        sellVolume += candle.volume / 2
+      } else {
+        // Position high = more buyers
+        const buyPct = (lastPrice - candle.low) / range
+        buyVolume += candle.volume * buyPct
+        sellVolume += candle.volume * (1 - buyPct)
+      }
+    }
+  }
+
+  return { buyVolume, sellVolume }
+}
