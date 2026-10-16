@@ -24,6 +24,7 @@ export const KEY_SLOTS = [
   { id: 'gemini', env: 'GEMINI_API_KEY' },
   { id: 'groq', env: 'GROQ_API_KEY' },
   { id: 'nvidia', env: 'NVIDIA_API_KEY' },
+  { id: 'alpaca', env: 'ALPACA_API_KEY' },
 ] as const
 
 export type KeySlotId = (typeof KEY_SLOTS)[number]['id']

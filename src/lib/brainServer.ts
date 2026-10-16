@@ -10,6 +10,7 @@ export interface BrainEnv {
   GROQ_API_KEY?: string
   XAI_API_KEY?: string
   NVIDIA_API_KEY?: string
+  ALPACA_API_KEY?: string
   GEMINI_MODEL?: string
   GROQ_MODEL?: string
   XAI_MODEL?: string

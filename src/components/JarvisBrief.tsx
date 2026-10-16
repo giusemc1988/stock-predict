@@ -105,7 +105,7 @@ export function JarvisBrief(p: Props) {
   const openRow = (r: MarketListRow) => p.onSymbol(r.symbol, r.assetClass)
   const openSignalFlow = (signal: PickRow) => setShowSignalFlow(signal)
   const watchedSymbols = useMemo(() => buys.map((b) => b.symbol), [buys])
-  const news = useNews(watchedSymbols, p.rules.newsEnabled)
+  const newsResult = useNews(watchedSymbols, p.rules.newsEnabled)
 
   return (
     <main className="brief-page">
@@ -216,7 +216,7 @@ export function JarvisBrief(p: Props) {
         <ScoreboardPanel practice={p.practice} baseline={p.rules.scoreboardBaseline} priceOf={p.priceOf} />
 
         <section className="bf-card">
-          <NewsBox news={news} enabled={p.rules.newsEnabled} />
+          <NewsBox news={newsResult.items} enabled={p.rules.newsEnabled} lastCheckedAt={newsResult.lastCheckedAt} />
         </section>
 
         <section className="bf-card">

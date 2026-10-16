@@ -78,13 +78,18 @@ export default {
     }
     if (pathname.startsWith('/api/news/')) {
       if (req.method !== 'GET') return json({ error: 'GET only' }, 405)
-      if (!env.ALPACA_API_KEY) return json({ error: 'News service not configured' }, 503)
       const symbol = pathname.slice('/api/news/'.length)
       if (!symbol) return json({ error: 'Symbol required' }, 400)
       try {
+        let alpacaKey: string | undefined = env.ALPACA_API_KEY
+        if (env.SETTINGS && !alpacaKey) {
+          const saved = await env.SETTINGS.get('brainkey:alpaca')
+          alpacaKey = saved ?? undefined
+        }
+        if (!alpacaKey) return json({ error: 'News service not configured' }, 503)
         const url = `https://data.alpaca.markets/v1beta3/news?symbols=${encodeURIComponent(symbol)}&limit=10&sort=desc`
         const response = await fetch(url, {
-          headers: { Authorization: `Bearer ${env.ALPACA_API_KEY}` },
+          headers: { Authorization: `Bearer ${alpacaKey}` },
           signal: AbortSignal.timeout(5000),
         })
         if (!response.ok) {

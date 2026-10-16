@@ -6,6 +6,11 @@ interface NewsCacheEntry {
   fetchedAt: number;
 }
 
+export interface NewsResult {
+  items: NewsItem[];
+  lastCheckedAt: number | null;
+}
+
 const CACHE_TTL_MS = 60 * 60 * 1000; // 1 hour
 
 /**
@@ -14,16 +19,16 @@ const CACHE_TTL_MS = 60 * 60 * 1000; // 1 hour
  * Avoids redundant API calls for the same symbol within the cache window.
  *
  * @param symbols List of stock symbols to fetch news for (e.g., ['TSLA', 'MSFT'])
- * @param enabled Whether to fetch news (when false, returns empty array)
- * @returns Flattened list of latest news items (max 10 total), sorted by created_at desc
+ * @param enabled Whether to fetch news (when false, returns empty items)
+ * @returns Object with news items and timestamp of last fetch
  */
-export function useNews(symbols: string[], enabled: boolean): NewsItem[] {
-  const [news, setNews] = useState<NewsItem[]>([]);
+export function useNews(symbols: string[], enabled: boolean): NewsResult {
+  const [result, setResult] = useState<NewsResult>({ items: [], lastCheckedAt: null });
   const cacheRef = useRef<Map<string, NewsCacheEntry>>(new Map());
 
   useEffect(() => {
     if (!enabled || !symbols || symbols.length === 0) {
-      setNews([]);
+      setResult({ items: [], lastCheckedAt: null });
       return;
     }
 
@@ -51,11 +56,11 @@ export function useNews(symbols: string[], enabled: boolean): NewsItem[] {
         .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
         .slice(0, 10);
 
-      setNews(sorted);
+      setResult({ items: sorted, lastCheckedAt: now });
     };
 
     fetchNews();
   }, [symbols, enabled]);
 
-  return news;
+  return result;
 }

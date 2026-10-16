@@ -182,7 +182,7 @@ export const DEFAULT_AI_RULES: AiRules = {
   autoRangeTf: true,
   localVoiceNarrator: false,
   signalValidator: true,
-  newsEnabled: false,
+  newsEnabled: true,
   newsAnalysis: false,
   preMarketAlerts: false,
   cryptoMoversThrottleHrs: 1,
