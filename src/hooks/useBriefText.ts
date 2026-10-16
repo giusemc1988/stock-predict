@@ -40,6 +40,7 @@ export function useBriefText(cloudOn: boolean, facts: Bi[], key: string, lang: '
   }, [])
   const factsText = facts.map((f) => f.en).join('\n')
   useEffect(() => {
+    console.info(`[Brief AI] local=${localAiOn} cloud=${cloudOn}${!useAi ? ' (off, or waiting for market data)' : saved?.key === key ? ' (already written for this data)' : ''}`)
     if (!useAi || saved?.key === key) return
     if (saved && Date.now() - saved.at < MIN_GAP_MS && saved.key.startsWith(`${lang}|`)) {
       const t = setTimeout(() => setTick((n) => n + 1), MIN_GAP_MS - (Date.now() - saved.at) + 1000)

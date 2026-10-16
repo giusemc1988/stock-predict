@@ -16,8 +16,8 @@ export const RELEASES: Release[] = [
   {
     version: '1.10.4',
     date: '2026-10-16',
-    changes: ['Local AI Brief is more patient: a slow model on your computer is no longer cut off each time the market data refreshes, so its Brief now gets through.'],
-    changesVi: ['Bản tin AI cục bộ kiên nhẫn hơn: mô hình chạy chậm trên máy bạn không còn bị ngắt mỗi khi dữ liệu thị trường cập nhật, nên bản tin giờ viết xong được.'],
+    changes: ['Local AI Brief is more patient: a slow model on your computer is no longer cut off each time the market data refreshes, so its Brief now gets through. The browser console (F12) shows [Brief AI] lines that say what it is doing.'],
+    changesVi: ['Bản tin AI cục bộ kiên nhẫn hơn: mô hình chạy chậm trên máy bạn không còn bị ngắt mỗi khi dữ liệu thị trường cập nhật, nên bản tin giờ viết xong được. Bảng Console (F12) hiện các dòng [Brief AI] cho biết nó đang làm gì.'],
   },
   {
     version: '1.10.3',

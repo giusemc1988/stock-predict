@@ -55,6 +55,7 @@ export async function askOllama(req: OllamaRequest, timeoutMs = 90_000): Promise
     console.warn('Ollama: not reachable or no model installed')
     return null
   }
+  console.info(`[Brief AI] asking Ollama model ${model}…`)
   const user = `Facts from the app:\n${req.facts.map((x) => `- ${x}`).join('\n') || '- (none)'}\n\nQuestion: ${req.question}`
   const ctl = new AbortController()
   const t = setTimeout(() => ctl.abort(), timeoutMs)
@@ -79,6 +80,7 @@ export async function askOllama(req: OllamaRequest, timeoutMs = 90_000): Promise
     }
     const data = (await response.json()) as { choices?: { message?: { content?: string } }[] }
     const text = data.choices?.[0]?.message?.content?.trim()
+    console.info(`[Brief AI] Ollama ${text ? 'answered' : 'returned no text'}`)
     return text ? { text, by: `Local AI (${model})` } : null
   } catch (e) {
     console.warn('Ollama unreachable:', e instanceof Error ? e.message : String(e))
