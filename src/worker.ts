@@ -120,6 +120,27 @@ export default {
         return json({ error: String(e) }, 500)
       }
     }
+    if (pathname === '/api/practice/telegram/diagnostic') {
+      if (req.method !== 'GET') return json({ error: 'GET only' }, 405)
+      try {
+        const stored = await env.PRACTICE.get('telegramConfig')
+        if (!stored) {
+          return json({ stored: false, message: 'No Telegram config in KV' })
+        }
+        const config = JSON.parse(stored)
+        const token = config.token || ''
+        const tokenPreview = token ? `${token.substring(0, 5)}...${token.substring(Math.max(0, token.length - 5))}` : 'empty'
+        return json({
+          stored: true,
+          tokenLength: token.length,
+          tokenPreview,
+          chatId: config.chatId || 'none',
+          fullKvValue: stored.substring(0, 200) + (stored.length > 200 ? '...' : ''),
+        })
+      } catch (e) {
+        return json({ error: String(e), stored: 'error' })
+      }
+    }
     if (pathname === '/api/practice/telegram/config') {
       if (req.method === 'GET') {
         try {
