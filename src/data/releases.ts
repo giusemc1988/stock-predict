@@ -2,7 +2,7 @@
  * Version and "What's new". Bump APP_VERSION and add an entry to the top of RELEASES
  * with each update. The banner shows once per version, then stays dismissed.
  */
-export const APP_VERSION = '1.14.1'
+export const APP_VERSION = '1.15.0'
 
 export interface Release {
   version: string
@@ -13,6 +13,16 @@ export interface Release {
 }
 
 export const RELEASES: Release[] = [
+  {
+    version: '1.15.0',
+    date: '2026-10-16',
+    changes: [
+      "Scoreboard fix: it no longer looks empty on the server account. It now adds the profit or loss of positions still open, and compares Jarvis with simply buying and holding SPY since the account started. SPY's figures come from the server and are as of its last save. Toggle: Settings > AI rules > \"Scoreboard counts open positions and compares with SPY\".",
+    ],
+    changesVi: [
+      'Sửa bảng điểm: trên tài khoản máy chủ bảng không còn trống. Giờ có thêm lãi/lỗ của các lệnh còn mở, và so sánh Jarvis với việc chỉ mua giữ SPY từ lúc tài khoản bắt đầu. Số của SPY lấy từ máy chủ, tính tại lần lưu gần nhất. Bật/tắt: Cài đặt > Quy tắc AI > "Bảng điểm tính cả lệnh đang mở và so sánh với SPY".',
+    ],
+  },
   {
     version: '1.14.1',
     date: '2026-10-16',

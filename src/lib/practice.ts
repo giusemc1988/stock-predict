@@ -156,6 +156,10 @@ export interface PracticeState {
   curve: { t: number; equity: number }[]
   /** Set by the server job (scripts/practice-cycle.ts): when it ran, what it picked, and bars it has seen. */
   server?: PracticeServerInfo
+  /** Server only: SPY at the account's start and now, so the scoreboard can compare with buy-and-hold. */
+  baseline?: Baseline
+  /** Server only: the latest price of each open market when the server last saved. */
+  marks?: Record<string, number>
   /** Decision log, newest first. */
   audit?: AuditEntry[]
   /** End-of-day reports by trading day (YYYY-MM-DD), the last REPORT_DAYS kept. */
@@ -171,6 +175,14 @@ export interface PickRow {
   volVsAvg: number | null
   tradeScore: number | null
   place: number | null
+}
+
+export interface Baseline {
+  symbol: string
+  startPrice: number
+  startAt: number // ms
+  lastPrice: number
+  lastAt: number // ms
 }
 
 export interface PracticeServerInfo {

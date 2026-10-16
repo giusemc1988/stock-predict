@@ -10,6 +10,7 @@ import { SKILLS, skillTag } from '../lib/skills'
 import { parseState } from '../lib/autoLearn'
 import type { JournalEntry } from '../lib/journal'
 import { emptyPractice, parsePractice, PENNY_MIN_PRICE, PENNY_PRICE, sessionEnd, type PracticeState } from '../lib/practice'
+import { makeBaseline } from '../lib/scoreboard'
 import { cryptoMovers, scanCycle, scanMarkets, withOpenMarkets, type Mover, type ScanMarket } from '../lib/practiceScan'
 
 const UA = { 'User-Agent': 'Mozilla/5.0 (arc-analyst practice)' }
@@ -113,6 +114,9 @@ export async function practiceCycle(env: WorkerEnv): Promise<{ state: PracticeSt
 
   const next = r.apply(prev)
   next.server = { lastRun: now, lastBars: r.lastBars, picks: r.picks, failed: r.failed }
+  const spyBars = await yahoo15m('SPY').catch(() => [] as Candle[])
+  next.baseline = makeBaseline(prev.baseline, spyBars, prev.curve[0]?.t ?? now, now)
+  next.marks = Object.fromEntries(next.open.filter((p) => r.prices[p.symbol] > 0).map((p) => [p.symbol, r.prices[p.symbol]]))
 
   const traded = JSON.stringify([next.open, next.trades.length, next.events[0]?.id]) !== JSON.stringify([prev.open, prev.trades.length, prev.events[0]?.id])
   const quietFor = now - (prev.server?.lastRun ?? 0)
