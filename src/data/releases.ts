@@ -2,7 +2,7 @@
  * Version and "What's new". Bump APP_VERSION and add an entry to the top of RELEASES
  * with each update. The banner shows once per version, then stays dismissed.
  */
-export const APP_VERSION = '1.18.0'
+export const APP_VERSION = '1.19.0'
 
 export interface Release {
   version: string
@@ -13,6 +13,16 @@ export interface Release {
 }
 
 export const RELEASES: Release[] = [
+  {
+    version: '1.19.0',
+    date: '2026-10-16',
+    changes: [
+      'Telegram test message: press "Send test" in Settings > AI rules > Telegram Configuration to send a test message. You will see success or Telegram\'s error message (for example "HTTP 401: Invalid token"). This lets you verify your settings before trading alerts start.',
+    ],
+    changesVi: [
+      'Tin Telegram thử: bấm "Gửi tin thử" trong Cài đặt > Quy tắc AI > Cấu hình Telegram để gửi tin test. Bạn sẽ thấy thành công hoặc lỗi của Telegram (ví dụ "HTTP 401: Invalid token"). Cách này kiểm tra cài đặt trước khi cảnh báo giao dịch bắt đầu.',
+    ],
+  },
   {
     version: '1.18.0',
     date: '2026-10-16',

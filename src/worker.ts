@@ -122,6 +122,38 @@ export default {
       }
       return json({ error: 'GET or PUT only' }, 405)
     }
+    if (pathname === '/api/practice/telegram/test') {
+      if (req.method !== 'POST') return json({ error: 'POST only' }, 405)
+      if (!sameOrigin(req)) return json({ error: 'Not allowed' }, 403)
+      try {
+        const stored = await env.PRACTICE.get('telegramConfig')
+        const config = stored ? JSON.parse(stored) : null
+        if (!config || !config.token || !config.chatId) {
+          return json({ error: 'Telegram config not found. Save your token and Chat ID first.' }, 400)
+        }
+        const { token, chatId } = config
+        const testMessage = '✅ Jarvis test message\n\nYour Telegram bot is working! You will now receive trade alerts here.'
+        const telegramUrl = `https://api.telegram.org/bot${token}/sendMessage`
+        const tgRes = await fetch(telegramUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            chat_id: chatId,
+            text: testMessage,
+            parse_mode: 'HTML',
+          }),
+        })
+        const tgData = (await tgRes.json().catch(() => ({}))) as Record<string, unknown>
+        if (!tgRes.ok) {
+          const errorMsg = tgData.description ? String(tgData.description) : `HTTP ${tgRes.status}`
+          return json({ error: errorMsg }, 400)
+        }
+        return json({ ok: true, message: 'Test message sent successfully' })
+      } catch (e) {
+        console.error('Telegram test error:', e)
+        return json({ error: String(e) }, 500)
+      }
+    }
     return env.ASSETS.fetch(req)
   },
   async scheduled(_event: unknown, env: Env): Promise<void> {

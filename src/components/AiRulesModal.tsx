@@ -29,6 +29,8 @@ export function AiRulesModal({ onClose }: { onClose: () => void }) {
   const [telegramToken, setTelegramToken] = useState('')
   const [telegramChatId, setTelegramChatId] = useState('')
   const [telegramSaved, setTelegramSaved] = useState(false)
+  const [telegramTestLoading, setTelegramTestLoading] = useState(false)
+  const [telegramTestResult, setTelegramTestResult] = useState<{ ok: boolean; message?: string; error?: string } | null>(null)
 
   useEffect(() => {
     // Load Telegram config from server
@@ -56,12 +58,34 @@ export function AiRulesModal({ onClose }: { onClose: () => void }) {
       })
       if (res.ok) {
         setTelegramSaved(true)
+        setTelegramTestResult(null)
         setTimeout(() => setTelegramSaved(false), 2000)
       } else {
         alert(vi ? 'Lỗi lưu Telegram config' : 'Error saving Telegram config')
       }
     } catch (e) {
       alert(vi ? 'Lỗi kết nối' : 'Connection error')
+    }
+  }
+
+  const sendTelegramTest = async () => {
+    setTelegramTestLoading(true)
+    setTelegramTestResult(null)
+    try {
+      const res = await fetch('/api/practice/telegram/test', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+      })
+      const data = (await res.json().catch(() => ({ error: 'Failed to parse response' }))) as Record<string, unknown>
+      if (res.ok) {
+        setTelegramTestResult({ ok: true, message: data.message ? String(data.message) : 'Test message sent' })
+      } else {
+        setTelegramTestResult({ ok: false, error: data.error ? String(data.error) : 'Failed to send test message' })
+      }
+    } catch (e) {
+      setTelegramTestResult({ ok: false, error: e instanceof Error ? e.message : 'Connection error' })
+    } finally {
+      setTelegramTestLoading(false)
     }
   }
 
@@ -131,13 +155,27 @@ export function AiRulesModal({ onClose }: { onClose: () => void }) {
                 ? '💡 Cách lấy Chat ID: Thêm bot vào chat, gửi /start, sau đó truy cập https://api.telegram.org/botTOKEN/getUpdates để xem Chat ID của bạn'
                 : '💡 How to get Chat ID: Add the bot to your chat, send /start, then visit https://api.telegram.org/botTOKEN/getUpdates to see your Chat ID'}
             </p>
-            <button
-              className={telegramSaved ? 'primary ok' : 'primary'}
-              onClick={saveTelegramConfig}
-              style={{ marginTop: '8px' }}
-            >
-              {telegramSaved ? (vi ? '✓ Đã lưu' : '✓ Saved') : vi ? 'Lưu Telegram' : 'Save Telegram'}
-            </button>
+            <div style={{ display: 'flex', gap: '8px', marginTop: '8px' }}>
+              <button
+                className={telegramSaved ? 'primary ok' : 'primary'}
+                onClick={saveTelegramConfig}
+              >
+                {telegramSaved ? (vi ? '✓ Đã lưu' : '✓ Saved') : vi ? 'Lưu Telegram' : 'Save Telegram'}
+              </button>
+              <button
+                className="primary"
+                onClick={sendTelegramTest}
+                disabled={telegramTestLoading || !telegramToken.trim() || !telegramChatId.trim()}
+              >
+                {telegramTestLoading ? (vi ? '⏳ Gửi tin...' : '⏳ Sending...') : vi ? 'Gửi tin thử' : 'Send test'}
+              </button>
+            </div>
+            {telegramTestResult && (
+              <p className={`muted tiny ${telegramTestResult.ok ? 'up' : 'down'}`} style={{ marginTop: '8px' }}>
+                {telegramTestResult.ok ? '✓ ' : '✗ '}
+                {telegramTestResult.ok ? telegramTestResult.message : telegramTestResult.error}
+              </p>
+            )}
           </div>
         )}
         {draft.skillRegistryOn && (
