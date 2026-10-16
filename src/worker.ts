@@ -95,6 +95,33 @@ export default {
         return json({ error: String(e) }, 500)
       }
     }
+    if (pathname === '/api/practice/telegram/config') {
+      if (req.method === 'GET') {
+        try {
+          const stored = await env.PRACTICE.get('telegramConfig')
+          const config = stored ? JSON.parse(stored) : { token: '', chatId: '' }
+          return json({ config })
+        } catch (e) {
+          console.error('Telegram config error:', e)
+          return json({ error: String(e) }, 500)
+        }
+      }
+      if (req.method === 'PUT') {
+        if (!sameOrigin(req)) return json({ error: 'Not allowed' }, 403)
+        try {
+          const body = (await req.json().catch(() => null)) as { token?: string; chatId?: string } | null
+          const token = String(body?.token ?? '').trim()
+          const chatId = String(body?.chatId ?? '').trim()
+          if (!token || !chatId) return json({ error: 'Token and chatId required' }, 400)
+          await env.PRACTICE.put('telegramConfig', JSON.stringify({ token, chatId }))
+          return json({ ok: true, config: { token, chatId } })
+        } catch (e) {
+          console.error('Telegram config put error:', e)
+          return json({ error: String(e) }, 500)
+        }
+      }
+      return json({ error: 'GET or PUT only' }, 405)
+    }
     return env.ASSETS.fetch(req)
   },
   async scheduled(_event: unknown, env: Env): Promise<void> {

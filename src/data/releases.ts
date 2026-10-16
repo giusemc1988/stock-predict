@@ -2,7 +2,7 @@
  * Version and "What's new". Bump APP_VERSION and add an entry to the top of RELEASES
  * with each update. The banner shows once per version, then stays dismissed.
  */
-export const APP_VERSION = '1.17.0'
+export const APP_VERSION = '1.18.0'
 
 export interface Release {
   version: string
@@ -13,6 +13,16 @@ export interface Release {
 }
 
 export const RELEASES: Release[] = [
+  {
+    version: '1.18.0',
+    date: '2026-10-16',
+    changes: [
+      'Telegram Bot: receive trade alerts instantly on Telegram (in addition to in-app alerts). Create a bot with BotFather, enter token and Chat ID in Settings > AI rules > Telegram Configuration. Alerts include symbol, side, entry, stop, target, and reason. Free.',
+    ],
+    changesVi: [
+      'Telegram Bot: nhận cảnh báo giao dịch ngay lập tức trên Telegram (thêm vào thông báo trong app). Tạo bot với BotFather, nhập token và Chat ID trong Cài đặt > Quy tắc AI > Cấu hình Telegram. Cảnh báo gồm mã, mua/bán, vào, cắt lỗ, chốt lời, lý do. Miễn phí.',
+    ],
+  },
   {
     version: '1.17.0',
     date: '2026-10-16',
