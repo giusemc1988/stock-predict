@@ -2,7 +2,7 @@
  * Version and "What's new". Bump APP_VERSION and add an entry to the top of RELEASES
  * with each update. The banner shows once per version, then stays dismissed.
  */
-export const APP_VERSION = '1.21.1'
+export const APP_VERSION = '1.21.2'
 
 export interface Release {
   version: string
@@ -13,6 +13,16 @@ export interface Release {
 }
 
 export const RELEASES: Release[] = [
+  {
+    version: '1.21.2',
+    date: '2026-10-16',
+    changes: [
+      'Settings modal is now scrollable so you can reach the Save button and Jarvis AI Trading toggles, even on phones.',
+    ],
+    changesVi: [
+      'Modal cài đặt giờ có thể cuộn nên bạn tới được nút Lưu và các công tắc Giao dịch Jarvis, ngay cả trên điện thoại.',
+    ],
+  },
   {
     version: '1.21.1',
     date: '2026-10-16',
