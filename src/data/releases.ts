@@ -2,7 +2,7 @@
  * Version and "What's new". Bump APP_VERSION and add an entry to the top of RELEASES
  * with each update. The banner shows once per version, then stays dismissed.
  */
-export const APP_VERSION = '1.19.2'
+export const APP_VERSION = '1.19.3'
 
 export interface Release {
   version: string
@@ -13,6 +13,16 @@ export interface Release {
 }
 
 export const RELEASES: Release[] = [
+  {
+    version: '1.19.3',
+    date: '2026-10-16',
+    changes: [
+      'Cleaner Telegram trade messages: a "Jarvis · PAPER TRADE" header, then action, symbol, quantity and price, stop and target, a short reason, and the time in US Eastern and Vietnam time. Short enough to read on a phone.',
+    ],
+    changesVi: [
+      'Tin Telegram gọn và chuyên nghiệp hơn: tiêu đề "Jarvis · PAPER TRADE", rồi lệnh mua/bán, mã, số lượng, giá, cắt lỗ, chốt lời, lý do ngắn, và giờ Mỹ (ET) cùng giờ Việt Nam. Đủ ngắn để đọc trên điện thoại.',
+    ],
+  },
   {
     version: '1.19.2',
     date: '2026-10-16',
