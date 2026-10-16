@@ -243,8 +243,11 @@ export function usePractice({ rules, symbol, asset, tf, candles, analysis, liveS
     try {
       if (c.rules.practiceMovers && hasAlpacaData(c.alpacaKeys) && Date.now() - movers.current.at > MOVERS_MS)
         movers.current = { at: Date.now(), list: await alpacaMovers(c.alpacaKeys, 10, c.rules.practicePenny ? PENNY_MIN_PRICE : PENNY_PRICE).catch(() => movers.current.list) }
-      if (c.rules.practiceCryptoMovers && Date.now() - coins.current.at > MOVERS_MS)
-        coins.current = { at: Date.now(), list: await binanceMarketLists(15).then((l) => cryptoMovers(l)).catch(() => coins.current.list) }
+      if (c.rules.practiceCryptoMovers) {
+        const throttleMs = c.rules.cryptoMoversThrottleHrs === 0 ? MOVERS_MS : c.rules.cryptoMoversThrottleHrs * 3_600_000
+        if (Date.now() - coins.current.at > throttleMs)
+          coins.current = { at: Date.now(), list: await binanceMarketLists(15).then((l) => cryptoMovers(l)).catch(() => coins.current.list) }
+      }
       const markets: ScanMarket[] = scanMarkets(
         c.universe.filter((i) => i.assetClass === 'crypto' || stockData),
         c.rules.practiceMovers ? movers.current.list.map((m) => ({ symbol: m.symbol, source: m.source })) : [],

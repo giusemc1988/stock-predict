@@ -78,6 +78,10 @@ export interface AiRules {
   briefAi: boolean // a free AI helper writes the Jarvis Brief from the page's real data (once per scan)
   practiceCryptoMovers: boolean // practice also scans today's top crypto gainers and most-traded coins
   adjustableTimeRange: boolean // custom time range input on the Trading desk chart (beyond the preset 1D/1W/1M/1Y/All buttons)
+  signalValidator: boolean // validate every signal path before showing (alerts, Brief, playbook)
+  newsAnalysis: boolean // analyze market news sentiment for BUY/SELL bias
+  preMarketAlerts: boolean // alerts before market open (pre-market movers and news)
+  cryptoMoversThrottleHrs: number // max frequency to scan crypto movers (0 = always, >0 = hours between scans)
 }
 
 export const DEFAULT_AI_RULES: AiRules = {
@@ -95,7 +99,7 @@ export const DEFAULT_AI_RULES: AiRules = {
   maxPositionPct: 25,
   maxTradesPerDay: 50,
   minScoreWarn: 40,
-  autoLearn: false,
+  autoLearn: true,
   learnEdgeMarginPct: 3,
   practiceMode: true,
   practiceSizePct: 2,
@@ -151,9 +155,13 @@ export const DEFAULT_AI_RULES: AiRules = {
   jarvisFabTalk: true,
   jarvisCloudAi: true,
   briefHome: true,
-  briefAi: true,
+  briefAi: false,
   practiceCryptoMovers: true,
-  adjustableTimeRange: false,
+  adjustableTimeRange: true,
+  signalValidator: true,
+  newsAnalysis: false,
+  preMarketAlerts: false,
+  cryptoMoversThrottleHrs: 1,
 }
 
 type NumKey = { [K in keyof AiRules]: AiRules[K] extends number ? K : never }[keyof AiRules]
@@ -245,6 +253,10 @@ export const RULE_FIELDS: RuleField[] = [
   { group: 'jarvis', key: 'jarvisListen', en: 'Ask Jarvis by voice (microphone; Chrome, Edge or Safari)', vi: 'Hỏi Jarvis bằng giọng nói (micro; Chrome, Edge hoặc Safari)' },
   { group: 'jarvis', key: 'jarvisSpeech', en: "Jarvis speaks (reads briefings and answers aloud with your device's voices; pick the voice in the Brain tab)", vi: 'Jarvis nói (đọc to bản tin và câu trả lời bằng giọng có sẵn trên thiết bị; chọn giọng trong tab Bộ não)' },
   { group: 'modules', key: 'adjustableTimeRange', en: 'Adjustable time range on Trading desk (custom days input beyond preset buttons)', vi: 'Khoảng thời gian điều chỉnh được trên Bàn giao dịch (nhập ngày tùy chỉnh ngoài các nút sẵn)' },
+  { group: 'modules', key: 'signalValidator', en: 'Validate every signal path before showing (alerts, Brief, playbook)', vi: 'Kiểm tra mọi đường dẫn tín hiệu trước khi hiển thị (cảnh báo, Bản tin, Sổ tay)' },
+  { group: 'modules', key: 'newsAnalysis', en: 'Analyze market news sentiment for BUY/SELL bias', vi: 'Phân tích độ dốc tin tức thị trường cho thiên vị MUA/BÁN' },
+  { group: 'modules', key: 'preMarketAlerts', en: 'Alerts before market open (pre-market movers and news)', vi: 'Cảnh báo trước khi mở cửa thị trường (mã tăng trước giờ và tin tức)' },
+  { group: 'modules', key: 'cryptoMoversThrottleHrs', en: 'Crypto movers scan frequency (0 = always, >0 = max hours between scans)', vi: 'Tần suất quét crypto tăng (0 = luôn luôn, >0 = giờ tối đa giữa các lần quét)', min: 0, max: 24, step: 1, unit: 'hours' },
 ]
 
 const KEY = 'arc.aiRules.v1'
