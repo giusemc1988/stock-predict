@@ -36,6 +36,20 @@ export const RELEASES: Release[] = [
     ],
   },
   {
+    version: '1.9.2',
+    date: '2026-10-16',
+    changes: [
+      'Last session\'s data now shows when markets are closed, with a timestamp and indicator. Instead of empty lists, you see the most recent quotes and top movers. This keeps trading insights active even during overnight hours or weekends.',
+      'New market lists for deeper market insights: Top most active pairs (highest volume) and New highs (prices at their peaks). These join Top gainers, Top losers and Top volume. All update live when markets are open.',
+      'Chart now lets you zoom to different periods: 1D, 1W, 1M, 1Y, and All. Buttons at the top of the chart let you focus on intraday moves, weekly trends, or go back to the entire trading history in one tap.',
+    ],
+    changesVi: [
+      'Dữ liệu phiên trước giờ hiện khi thị trường đóng cửa, kèm timestamp và biểu tượng. Thay vì danh sách rỗng, bạn sẽ thấy báo giá mới nhất và những mã đi lên/xuống nhiều nhất. Điều này giữ cho thông tin trading luôn sẵn sàng cả lúc ban đêm hoặc cuối tuần.',
+      'Danh sách thị trường mới cho thông tin sâu hơn: Giao dịch nhất (khối lượng cao nhất) và Đỉnh mới (giá ở mức cao nhất). Chúng gia nhập Tăng mạnh nhất, Giảm mạnh nhất và Khối lượng lớn nhất. Tất cả cập nhật trực tiếp khi thị trường mở cửa.',
+      'Chart giờ cho phép zoom các kỳ khác nhau: 1D, 1W, 1M, 1Y, và All. Nút ở trên cùng chart để bạn tập trung vào biến động trong ngày, xu hướng hàng tuần, hoặc quay lại toàn bộ lịch sử giao dịch chỉ bằng một chạm.',
+    ],
+  },
+  {
     version: '1.9.1',
     date: '2026-10-16',
     changes: [

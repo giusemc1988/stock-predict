@@ -3,12 +3,14 @@ export interface ChartConfig {
   sma: { on: boolean; period: number }
   bollinger: { on: boolean; period: number; mult: number }
   volume: boolean
+  timeRange: '1d' | '1w' | '1m' | '1y' | 'all'
 }
 
 export const DEFAULT_CHART_CONFIG: ChartConfig = {
   sma: { on: false, period: 50 },
   bollinger: { on: false, period: 20, mult: 2 },
   volume: true,
+  timeRange: 'all',
 }
 
 const KEY = 'bluechip.chart.v1'
@@ -22,6 +24,7 @@ export function loadChartConfig(): ChartConfig {
   try {
     const raw = JSON.parse(localStorage.getItem(KEY) ?? 'null')
     if (!raw) return DEFAULT_CHART_CONFIG
+    const timeRange = raw.timeRange && ['1d', '1w', '1m', '1y', 'all'].includes(raw.timeRange) ? raw.timeRange : DEFAULT_CHART_CONFIG.timeRange
     return {
       sma: {
         on: !!raw.sma?.on,
@@ -33,6 +36,7 @@ export function loadChartConfig(): ChartConfig {
         mult: Math.min(4, Math.max(0.5, Number(raw.bollinger?.mult) || DEFAULT_CHART_CONFIG.bollinger.mult)),
       },
       volume: raw.volume !== false,
+      timeRange,
     }
   } catch {
     return DEFAULT_CHART_CONFIG

@@ -281,22 +281,34 @@ export function ChartPanel(props: Props) {
     const last = candles[candles.length - 1]
     const vol = (c: Candle) => ({ time: ts(c.time), value: c.volume })
     const buy = (c: Candle) => ({ time: ts(c.time), value: barBuyVolume(c) })
-    if (L.key === key && L.first === candles[0].time && (candles.length === L.len || candles.length === L.len + 1)) {
-      s.candle.update({ time: ts(last.time), open: last.open, high: last.high, low: last.low, close: last.close })
-      s.volume.update(vol(last))
-      s.buyVol.update(buy(last))
+
+    // Filter candles by timeRange
+    const now = last.time
+    const getTimeRangeStart = () => {
+      const days = cfg.timeRange === '1d' ? 1 : cfg.timeRange === '1w' ? 7 : cfg.timeRange === '1m' ? 30 : cfg.timeRange === '1y' ? 365 : null
+      if (!days) return 0
+      return now - days * 86400
+    }
+    const timeRangeStart = getTimeRangeStart()
+    const displayCandles = timeRangeStart === 0 ? candles : candles.filter((c) => c.time >= timeRangeStart)
+    const displayLast = displayCandles[displayCandles.length - 1] ?? last
+
+    if (L.key === key && L.first === displayCandles[0]?.time && (displayCandles.length === L.len || displayCandles.length === L.len + 1)) {
+      s.candle.update({ time: ts(displayLast.time), open: displayLast.open, high: displayLast.high, low: displayLast.low, close: displayLast.close })
+      s.volume.update(vol(displayLast))
+      s.buyVol.update(buy(displayLast))
     } else {
-      s.candle.setData(candles.map((c) => ({ time: ts(c.time), open: c.open, high: c.high, low: c.low, close: c.close })))
-      s.volume.setData(candles.map(vol))
-      s.buyVol.setData(candles.map(buy))
-      const d = last.close < 1 ? 6 : last.close < 10 ? 4 : 2
+      s.candle.setData(displayCandles.map((c) => ({ time: ts(c.time), open: c.open, high: c.high, low: c.low, close: c.close })))
+      s.volume.setData(displayCandles.map(vol))
+      s.buyVol.setData(displayCandles.map(buy))
+      const d = displayLast.close < 1 ? 6 : displayLast.close < 10 ? 4 : 2
       s.candle.applyOptions({ priceFormat: { type: 'price', precision: d, minMove: 1 / 10 ** d } })
       if (L.key !== key) {
-        chart.current?.timeScale().setVisibleLogicalRange({ from: Math.max(0, candles.length - 160), to: candles.length + 14 })
+        chart.current?.timeScale().setVisibleLogicalRange({ from: Math.max(0, displayCandles.length - 160), to: displayCandles.length + 14 })
       }
     }
-    loaded.current = { key, len: candles.length, first: candles[0].time }
-  }, [candles, symbol, tf])
+    loaded.current = { key, len: displayCandles.length, first: displayCandles[0]?.time ?? 0 }
+  }, [candles, symbol, tf, cfg.timeRange])
 
   // overlays: EMAs, forecast cone, arrow markers (practice markers compared by value, not identity)
   const marksKey = JSON.stringify([...(practice?.markers ?? []), ...(tour?.marker ? [{ ...tour.marker, tour: true }] : [])])
@@ -537,6 +549,16 @@ export function ChartPanel(props: Props) {
         ))}
       </div>
       <div className="chart-tools">
+        {(['1d', '1w', '1m', '1y', 'all'] as const).map((range) => (
+          <button
+            key={range}
+            className={cfg.timeRange === range ? 'on' : ''}
+            onClick={() => updateCfg({ ...cfg, timeRange: range })}
+          >
+            {range === '1d' ? '1D' : range === '1w' ? '1W' : range === '1m' ? '1M' : range === '1y' ? '1Y' : 'All'}
+          </button>
+        ))}
+        <span className="chart-tool-sep" />
         <button className={cfg.sma.on ? 'on' : ''} onClick={() => updateCfg({ ...cfg, sma: { ...cfg.sma, on: !cfg.sma.on } })}>
           SMA {cfg.sma.period}
         </button>

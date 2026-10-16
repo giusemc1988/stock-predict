@@ -12,6 +12,29 @@ export interface MarketListsState {
   stocksNeedKey: boolean
   updatedAt: number | null
   loading: boolean
+  /** Timestamp of last successful fetch; null if never fetched. Shows market-closed data as stale. */
+  staledAt: number | null
+}
+
+const CACHE_KEY_CRYPTO = 'bluechip.marketlists.crypto'
+const CACHE_KEY_STOCKS = 'bluechip.marketlists.stocks'
+
+function loadCachedLists(key: string): { data: MarketLists; time: number } | null {
+  try {
+    const cached = localStorage.getItem(key)
+    if (!cached) return null
+    return JSON.parse(cached)
+  } catch {
+    return null
+  }
+}
+
+function saveCachedLists(key: string, data: MarketLists): void {
+  try {
+    localStorage.setItem(key, JSON.stringify({ data, time: Date.now() }))
+  } catch {
+    /* storage full */
+  }
 }
 
 /** US regular session, New York time, weekdays (holidays not counted). */
@@ -24,7 +47,18 @@ export function usMarketOpen(now: number) {
 }
 
 // One poller for the whole app: every screen that shows market lists shares the same fetch.
-let state: Omit<MarketListsState, 'stocksNeedKey'> = { crypto: null, stocks: null, cryptoError: null, stockError: null, updatedAt: null, loading: false }
+// It starts from the last session's lists saved in this browser, so a closed market never shows empty lists.
+const cachedCrypto = typeof localStorage === 'undefined' ? null : loadCachedLists(CACHE_KEY_CRYPTO)
+const cachedStocks = typeof localStorage === 'undefined' ? null : loadCachedLists(CACHE_KEY_STOCKS)
+let state: Omit<MarketListsState, 'stocksNeedKey'> = {
+  crypto: cachedCrypto?.data ?? null,
+  stocks: cachedStocks?.data ?? null,
+  cryptoError: null,
+  stockError: null,
+  updatedAt: cachedCrypto?.time ?? null,
+  staledAt: cachedCrypto?.time ?? null,
+  loading: false,
+}
 let keys: AlpacaDataKeys = { keyId: '', secret: '' }
 let users = 0
 let timer: ReturnType<typeof setInterval> | null = null
@@ -43,17 +77,25 @@ async function run(force = false) {
   const k = keys
   const needKey = !hasAlpacaData(k)
   // outside market hours stock lists don't change, so the last one is kept
-  const stocksDue = !needKey && (!state.stocks || usMarketOpen(Date.now()) || Date.now() - stocksAt > 6 * 3600_000)
+  const stocksDue = !needKey && (!state.stocks || !stocksAt || usMarketOpen(Date.now()) || Date.now() - stocksAt > 6 * 3600_000)
   set({ loading: true })
   const [crypto, stocks] = await Promise.allSettled([binanceMarketLists(), stocksDue ? alpacaMarketLists(k) : Promise.resolve(null)])
   if (k !== keys) return
-  if (stocksDue && stocks.status === 'fulfilled') stocksAt = Date.now()
+  const newCrypto = crypto.status === 'fulfilled' ? crypto.value : null
+  const newStocks = stocks.status === 'fulfilled' ? stocks.value : null
+  if (newCrypto) saveCachedLists(CACHE_KEY_CRYPTO, newCrypto)
+  if (newStocks) {
+    saveCachedLists(CACHE_KEY_STOCKS, newStocks)
+    stocksAt = Date.now()
+  }
+  const now = Date.now()
   set({
-    crypto: crypto.status === 'fulfilled' ? crypto.value : state.crypto,
-    stocks: needKey ? null : stocks.status === 'fulfilled' && stocks.value ? stocks.value : state.stocks,
+    crypto: newCrypto ?? state.crypto,
+    stocks: needKey ? null : (newStocks ?? state.stocks),
     cryptoError: msg(crypto),
     stockError: stocksDue ? msg(stocks) : state.stockError,
-    updatedAt: crypto.status === 'fulfilled' || (stocks.status === 'fulfilled' && stocks.value) ? Date.now() : state.updatedAt,
+    updatedAt: newCrypto || newStocks ? now : state.updatedAt,
+    staledAt: newCrypto || newStocks ? now : state.staledAt,
     loading: false,
   })
 }
@@ -64,7 +106,7 @@ const onVisible = () => {
 
 function start() {
   if (timer) return
-  if (Date.now() - (state.updatedAt ?? 0) > REFRESH_MS || (!state.stocks && hasAlpacaData(keys))) void run(true)
+  if (Date.now() - (state.updatedAt ?? 0) > REFRESH_MS || (!stocksAt && hasAlpacaData(keys))) void run(true)
   timer = setInterval(run, REFRESH_MS)
   document.addEventListener('visibilitychange', onVisible)
 }
@@ -74,7 +116,7 @@ function stop() {
   document.removeEventListener('visibilitychange', onVisible)
 }
 
-/** Market-wide top gainers, losers and volume, refreshed every minute while any screen needs them. Never falls back to a fixed list. */
+/** Market-wide top gainers, losers and volume, refreshed every minute while any screen needs them. Never falls back to a fixed list; shows the last session's lists while the market is closed. */
 export function useMarketLists(enabled: boolean, alpacaKeys: AlpacaDataKeys): MarketListsState {
   const snap = useSyncExternalStore(
     (f) => {
@@ -86,9 +128,11 @@ export function useMarketLists(enabled: boolean, alpacaKeys: AlpacaDataKeys): Ma
   useEffect(() => {
     if (!enabled) return
     if (keys.keyId !== alpacaKeys.keyId || keys.secret !== alpacaKeys.secret) {
+      const first = !keys.keyId && !keys.secret
       keys = alpacaKeys
       stocksAt = 0
-      state = { ...state, stocks: null, stockError: null }
+      // a new key means a new account: drop its old list, but keep the saved one on first load
+      if (!first) state = { ...state, stocks: null, stockError: null }
       if (timer) void run(true)
     }
     users++
