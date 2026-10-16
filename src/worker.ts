@@ -5,10 +5,13 @@
  */
 import { askBrain, brainStatus, cleanAsk, type BrainEnv } from './lib/brainServer'
 import { practiceCycle, type WorkerEnv as PracticeEnv } from './worker/practiceCycle'
+import { cleanKey, isSlot, keySources, sameOrigin, storeKey, testProvider, withSavedKeys, type KeyStore } from './lib/brainKeys'
 import type { PracticeState } from './lib/practice'
 
 interface Env extends BrainEnv, PracticeEnv {
   ASSETS: { fetch: (r: Request) => Promise<Response> }
+  /** KV that holds the AI keys typed into Settings. */
+  SETTINGS?: KeyStore
 }
 
 const json = (data: unknown, status = 200) => new Response(JSON.stringify(data), { status, headers: { 'content-type': 'application/json', 'cache-control': 'no-store' } })
@@ -16,12 +19,38 @@ const json = (data: unknown, status = 200) => new Response(JSON.stringify(data),
 export default {
   async fetch(req: Request, env: Env): Promise<Response> {
     const { pathname } = new URL(req.url)
-    if (pathname === '/api/brain/status') return json({ providers: brainStatus(env) })
+    if (pathname === '/api/brain/status') {
+      const e = await withSavedKeys(env, env.SETTINGS)
+      return json({ providers: brainStatus(e), keys: await keySources(env, env.SETTINGS), canSave: !!env.SETTINGS })
+    }
+    if (pathname === '/api/brain/key') {
+      if (req.method !== 'PUT' && req.method !== 'DELETE') return json({ error: 'PUT or DELETE only' }, 405)
+      if (!sameOrigin(req)) return json({ error: 'Not allowed' }, 403)
+      if (!env.SETTINGS) return json({ error: 'Key storage is not set up on this server yet' }, 501)
+      if (req.method === 'DELETE') {
+        const id = new URL(req.url).searchParams.get('id')
+        if (!isSlot(id)) return json({ error: 'Unknown helper' }, 400)
+        await env.SETTINGS.delete(storeKey(id))
+        return json({ keys: await keySources(env, env.SETTINGS) })
+      }
+      const body = (await req.json().catch(() => null)) as { id?: unknown; key?: unknown } | null
+      const key = cleanKey(body?.key)
+      if (!isSlot(body?.id)) return json({ error: 'Unknown helper' }, 400)
+      if (!key) return json({ error: 'That does not look like an API key' }, 400)
+      await env.SETTINGS.put(storeKey(body.id), key)
+      return json({ keys: await keySources(env, env.SETTINGS) })
+    }
+    if (pathname === '/api/brain/test') {
+      if (req.method !== 'POST') return json({ error: 'POST only' }, 405)
+      if (!sameOrigin(req)) return json({ error: 'Not allowed' }, 403)
+      const body = (await req.json().catch(() => null)) as { id?: unknown } | null
+      return json(await testProvider(String(body?.id ?? ''), await withSavedKeys(env, env.SETTINGS)))
+    }
     if (pathname === '/api/brain') {
       if (req.method !== 'POST') return json({ error: 'POST only' }, 405)
       const ask = cleanAsk(await req.json().catch(() => null))
       if (!ask) return json({ error: 'No question' }, 400)
-      const r = await askBrain(ask, env)
+      const r = await askBrain(ask, await withSavedKeys(env, env.SETTINGS))
       return r ? json(r) : json({ error: 'No AI helper answered' }, 503)
     }
     if (pathname === '/api/practice/cycle') {
