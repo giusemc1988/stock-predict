@@ -6,6 +6,7 @@
 import type { AiRules } from './aiRules'
 import type { PickRow } from './practice'
 import type { JournalEntry } from './journal'
+import { askOllama } from './ollamaClient'
 
 export interface GroundingPacket {
   prompt: string
@@ -75,4 +76,42 @@ export function buildGroundingPacket(
   }
 
   return { prompt, tokens }
+}
+
+/**
+ * Explain a trade signal using local llama3.2.
+ * Returns explanation < 500 tokens, or null if localExplain is off or Ollama unavailable.
+ */
+export async function explainSignal(
+  symbol: string,
+  verdict: 'BUY' | 'SELL' | 'HOLD',
+  journal: { trades: PickRow[]; events: JournalEntry[] },
+  rules: AiRules,
+  daysBack: number = 7,
+  maxTokens: number = 2000,
+): Promise<string | null> {
+  // Skip if feature is disabled
+  if (!rules.localExplain) {
+    return null
+  }
+
+  // Build grounding packet
+  const packet = buildGroundingPacket(journal, rules, daysBack, maxTokens)
+
+  // Prepare the question for Ollama
+  const question = `Explain why you made a ${verdict} signal for ${symbol}.
+Use only the rules and facts above. Be brief (2-4 sentences).`
+
+  // Call Ollama
+  const response = await askOllama(
+    {
+      question,
+      facts: packet.prompt.split('\n').filter((line) => line.trim().length > 0),
+      lang: 'en',
+    },
+    90_000, // 90 second timeout
+  )
+
+  // Return text or null if Ollama failed
+  return response?.text ?? null
 }
