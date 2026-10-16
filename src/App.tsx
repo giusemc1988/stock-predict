@@ -47,6 +47,7 @@ import { AIPicks } from './components/AIPicks'
 import { WhatsNew } from './components/WhatsNew'
 import { SettingsModal } from './components/SettingsModal'
 import { AiRulesModal } from './components/AiRulesModal'
+import { TradeAlerts } from './components/TradeAlerts'
 import { setAiRules, useAiRules } from './lib/aiRules'
 import type { JarvisAction } from './lib/jarvisActions'
 import { approvedTags, effectiveRules, useSkillStatuses } from './lib/skills'
@@ -136,7 +137,8 @@ export default function App() {
   const market = useMarketData(inst, prefs.tf, keys, alpacaKeys)
   const quotes = useQuotes(chartUniverse, keys, alpacaKeys)
   const addInstrument = (i: Instrument) => setAdded((list) => (list.some((x) => x.symbol === i.symbol) ? list : [...list, i]))
-  const flow = useOrderFlow(inst, keys)
+  const marketCandles = market.key === `${inst.symbol}|${prefs.tf}` ? market.candles : NO_CANDLES
+  const flow = useOrderFlow(inst, keys, marketCandles)
   // 24/7 auto learning runs here so it keeps going whichever tab is open (off by default)
   const autoLearn = useAutoLearning(universe, keys, alpacaKeys, aiRules)
   const brokerApi = useBroker(prefs.brokerMode, alpacaKeys, prefs.equityPeriod)
@@ -537,6 +539,7 @@ export default function App() {
       }
     >
       <WhatsNew />
+      <TradeAlerts />
       {aiRules.jarvisOn && aiRules.jarvisFab && (
         <JarvisFab state={practice.state} rules={aiRules} journal={autoLearn.state.journal} learn={autoLearn.state} killSwitch={prefs.killSwitch} priceOf={practice.priceOf} known={chartUniverse} watchlist={universe.map((i) => i.symbol)} onAskStock={askStock} onShowTrade={showTrade} onReplay={showReplay} onAction={jarvisAct} symbol={inst.symbol} />
       )}
@@ -600,7 +603,7 @@ export default function App() {
         <JarvisBrief
           rules={aiRules}
           alpacaKeys={alpacaKeys}
-          flow={{ symbol: inst.symbol, buyShare, live: flow.live, source: flow.source }}
+          flow={{ symbol: inst.symbol, buyShare, live: flow.live, source: flow.source, estimated: flow.estimated }}
           practice={practice.state}
           priceOf={practice.priceOf}
           scan={practice.scan}

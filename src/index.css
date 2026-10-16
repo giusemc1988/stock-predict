@@ -1132,3 +1132,17 @@ body:has(.jfab) .toasts, body:has(.jfab) .jarvis-alert { bottom: 84px; }
 .bf-row-group { display: grid; grid-template-columns: 1fr auto; gap: 6px; align-items: center; }
 .bf-info-btn { padding: 4px 8px; font-size: 14px; color: var(--muted); border: 1px solid var(--line); background: none; border-radius: 6px; cursor: pointer; transition: color 0.2s, border-color 0.2s; }
 .bf-info-btn:hover { color: var(--text); border-color: var(--robot); }
+
+/* Trade alerts */
+.trade-alerts { position: fixed; top: 70px; right: 16px; display: grid; gap: 8px; max-width: 320px; z-index: 1000; }
+.alert-card { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 12px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3); animation: slideIn 0.3s ease-out; }
+@keyframes slideIn { from { transform: translateX(340px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+.alert-header { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; padding-bottom: 8px; border-bottom: 1px solid var(--line); }
+.alert-symbol { font-weight: 600; font-size: 14px; flex: 1; }
+.alert-side { background: var(--up-bg); color: var(--up); padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600; }
+.alert-close { padding: 4px; color: var(--muted); font-size: 14px; transition: color 0.2s; }
+.alert-close:hover { color: var(--text); }
+.alert-body { display: grid; gap: 6px; }
+.alert-row { display: flex; justify-content: space-between; font-size: 12px; }
+.alert-row .label { color: var(--muted); }
+.alert-row .value { font-weight: 500; font-family: var(--mono); }

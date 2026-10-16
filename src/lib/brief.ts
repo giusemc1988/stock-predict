@@ -26,7 +26,7 @@ export interface BriefNode {
 export interface BriefInputs {
   now: number
   lists: { crypto: MarketLists | null; stocks: MarketLists | null; stocksNeedKey: boolean; updatedAt: number | null; cryptoError: string | null; stockError: string | null }
-  flow: { symbol: string; buyShare: number | null; live: boolean; source: string }
+  flow: { symbol: string; buyShare: number | null; live: boolean; source: string; estimated: boolean }
   scan: { on: boolean; at: number | null; busy: boolean; candidates: PickRow[]; noStockData: boolean; server: boolean }
   learn: { cycles: number; lastCycle: number | null; lessonsToday: number; right: number; wrong: number }
   risk: { dayPL: number; lossLimit: number; lossLimitOn: boolean; killSwitch: boolean }
@@ -61,17 +61,20 @@ export function briefNodes(d: BriefInputs): BriefNode[] {
         ? { en: 'market lists unavailable', vi: 'không tải được danh sách' }
         : { en: 'loading market lists', vi: 'đang tải danh sách' },
   }
+  const flowNote = flow.buyShare != null && flow.live
+    ? { en: `buyers ${Math.round(flow.buyShare * 100)}% on ${flow.symbol}`, vi: `bên mua ${Math.round(flow.buyShare * 100)}% ở ${flow.symbol}` }
+    : { en: `no live trades on ${flow.symbol}`, vi: `chưa có lệnh trực tiếp ở ${flow.symbol}` }
+  const flowEstimatedNote = flow.estimated && flow.source === 'Estimated from delayed data'
+    ? { en: 'Estimated from delayed data', vi: 'Ước tính từ dữ liệu bị trễ' }
+    : null
   const flowNode: BriefNode = {
     id: 'flow',
     name: { en: 'Order flow', vi: 'Dòng lệnh' },
     inbound: true,
     source: `${flow.source} trades on ${flow.symbol}`,
-    status: flow.buyShare != null && flow.live ? 'live' : 'missing',
+    status: flow.buyShare != null && (flow.live || flow.estimated) ? 'live' : 'missing',
     load: flow.buyShare ?? 0,
-    note:
-      flow.buyShare != null && flow.live
-        ? { en: `buyers ${Math.round(flow.buyShare * 100)}% on ${flow.symbol}`, vi: `bên mua ${Math.round(flow.buyShare * 100)}% ở ${flow.symbol}` }
-        : { en: `no live trades on ${flow.symbol}`, vi: `chưa có lệnh trực tiếp ở ${flow.symbol}` },
+    note: flowEstimatedNote || flowNote,
   }
   const news: BriefNode = {
     id: 'news',

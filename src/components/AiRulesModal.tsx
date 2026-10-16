@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useMemo, useState, useEffect } from 'react'
 import { SKILLS, setSkillStatus, skillVersion, statusOf, useSkillStatuses, type SkillStatus } from '../lib/skills'
 import { runSkillTests } from '../lib/skillTests'
 import { DEFAULT_AI_RULES, RULE_FIELDS, setAiRules, useAiRules, type AiRules, type RuleField } from '../lib/aiRules'
@@ -26,6 +26,78 @@ export function AiRulesModal({ onClose }: { onClose: () => void }) {
   const failed = new Set(tests.filter((x) => !x.ok).map((x) => x.id))
   const vi = lang === 'vi'
   const STATUS: Record<SkillStatus, string> = { approved: vi ? 'Đã duyệt' : 'Approved', quarantine: vi ? 'Cách ly' : 'Quarantine', revoked: vi ? 'Thu hồi' : 'Revoked' }
+  const [telegramToken, setTelegramToken] = useState('')
+  const [telegramChatId, setTelegramChatId] = useState('')
+  const [telegramSaved, setTelegramSaved] = useState(false)
+  const [telegramTestLoading, setTelegramTestLoading] = useState(false)
+  const [telegramTestResult, setTelegramTestResult] = useState<{ ok: boolean; message?: string; error?: string } | null>(null)
+  const [showToken, setShowToken] = useState(false)
+  const [savedTokenPreview, setSavedTokenPreview] = useState<string>('')
+
+  useEffect(() => {
+    // Load Telegram config from server
+    fetch('/api/practice/telegram/config')
+      .then((r) => r.json())
+      .then((data) => {
+        if (data.config) {
+          setTelegramToken(data.config.token || '')
+          setTelegramChatId(data.config.chatId || '')
+        }
+      })
+      .catch(() => {})
+  }, [])
+
+  const saveTelegramConfig = async () => {
+    const cleanToken = telegramToken.replace(/\s/g, '')
+    const cleanChatId = telegramChatId.replace(/\s/g, '')
+    if (!cleanToken || !cleanChatId) {
+      alert(vi ? 'Token và Chat ID không được trống' : 'Token and Chat ID cannot be empty')
+      return
+    }
+    try {
+      const res = await fetch('/api/practice/telegram/config', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ token: cleanToken, chatId: cleanChatId }),
+      })
+      if (res.ok) {
+        // Show preview of saved token
+        if (cleanToken.length > 14) {
+          setSavedTokenPreview(`${cleanToken.substring(0, 10)}…${cleanToken.substring(cleanToken.length - 4)}`)
+        } else {
+          setSavedTokenPreview(cleanToken)
+        }
+        setTelegramSaved(true)
+        setTelegramTestResult(null)
+        setTimeout(() => setTelegramSaved(false), 3000)
+      } else {
+        alert(vi ? 'Lỗi lưu Telegram config' : 'Error saving Telegram config')
+      }
+    } catch (e) {
+      alert(vi ? 'Lỗi kết nối' : 'Connection error')
+    }
+  }
+
+  const sendTelegramTest = async () => {
+    setTelegramTestLoading(true)
+    setTelegramTestResult(null)
+    try {
+      const res = await fetch('/api/practice/telegram/test', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+      })
+      const data = (await res.json().catch(() => ({ error: 'Failed to parse response' }))) as Record<string, unknown>
+      if (res.ok) {
+        setTelegramTestResult({ ok: true, message: data.message ? String(data.message) : 'Test message sent' })
+      } else {
+        setTelegramTestResult({ ok: false, error: data.error ? String(data.error) : 'Failed to send test message' })
+      }
+    } catch (e) {
+      setTelegramTestResult({ ok: false, error: e instanceof Error ? e.message : 'Connection error' })
+    } finally {
+      setTelegramTestLoading(false)
+    }
+  }
 
   return (
     <div className="modal-back" onClick={onClose}>
@@ -62,6 +134,86 @@ export function AiRulesModal({ onClose }: { onClose: () => void }) {
             )}
           </div>
         ))}
+        {draft.telegramNotifications && (
+          <div className="rules-group">
+            <div className="section-title">{vi ? '🔔 Cấu hình Telegram' : '🔔 Telegram Configuration'}</div>
+            <p className="muted">
+              {vi
+                ? 'Nhắn tin từ BotFather (@BotFather) để tạo bot mới. Nhập token của bot và Chat ID (ID của bạn hoặc nhóm). Lưu ngay để nhận cảnh báo giao dịch trên Telegram.'
+                : 'Message BotFather (@BotFather) to create a new bot. Paste the token and your Chat ID (your ID or group ID) to receive trade alerts on Telegram.'}
+            </p>
+            <label className="field">
+              <span>Telegram Bot Token</span>
+              <div style={{ display: 'flex', gap: '4px', alignItems: 'center' }}>
+                <input
+                  type={showToken ? 'text' : 'password'}
+                  value={telegramToken}
+                  onChange={(e) => setTelegramToken(e.target.value)}
+                  autoComplete="new-password"
+                  placeholder={vi ? 'Ví dụ: 123456:ABC-DEF...' : 'e.g., 123456:ABC-DEF...'}
+                  style={{ flex: 1 }}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowToken(!showToken)}
+                  style={{
+                    background: 'none',
+                    border: 'none',
+                    cursor: 'pointer',
+                    padding: '4px 8px',
+                    color: 'inherit',
+                    fontSize: '16px',
+                  }}
+                  title={vi ? 'Hiển thị/ẩn' : 'Show/hide'}
+                >
+                  {showToken ? '🙈' : '👁️'}
+                </button>
+              </div>
+            </label>
+            <label className="field">
+              <span>{vi ? 'Chat ID của bạn' : 'Your Chat ID'}</span>
+              <input
+                type="text"
+                value={telegramChatId}
+                onChange={(e) => setTelegramChatId(e.target.value)}
+                autoComplete="off"
+                placeholder={vi ? 'Ví dụ: 123456789' : 'e.g., 123456789'}
+              />
+            </label>
+            <p className="muted tiny">
+              {vi
+                ? '💡 Cách lấy Chat ID: Thêm bot vào chat, gửi /start, sau đó truy cập https://api.telegram.org/botTOKEN/getUpdates để xem Chat ID của bạn'
+                : '💡 How to get Chat ID: Add the bot to your chat, send /start, then visit https://api.telegram.org/botTOKEN/getUpdates to see your Chat ID'}
+            </p>
+            <div style={{ display: 'flex', gap: '8px', marginTop: '8px' }}>
+              <button
+                className={telegramSaved ? 'primary ok' : 'primary'}
+                onClick={saveTelegramConfig}
+              >
+                {telegramSaved ? (vi ? '✓ Đã lưu' : '✓ Saved') : vi ? 'Lưu Telegram' : 'Save Telegram'}
+              </button>
+              <button
+                className="primary"
+                onClick={sendTelegramTest}
+                disabled={telegramTestLoading || !telegramToken.trim() || !telegramChatId.trim()}
+              >
+                {telegramTestLoading ? (vi ? '⏳ Gửi tin...' : '⏳ Sending...') : vi ? 'Gửi tin thử' : 'Send test'}
+              </button>
+            </div>
+            {telegramSaved && savedTokenPreview && (
+              <p className="muted tiny" style={{ marginTop: '8px' }}>
+                {vi ? '✓ Token đã lưu: ' : '✓ Saved token: '}
+                <code>{savedTokenPreview}</code>
+              </p>
+            )}
+            {telegramTestResult && (
+              <p className={`muted tiny ${telegramTestResult.ok ? 'up' : 'down'}`} style={{ marginTop: '8px' }}>
+                {telegramTestResult.ok ? '✓ ' : '✗ '}
+                {telegramTestResult.ok ? telegramTestResult.message : telegramTestResult.error}
+              </p>
+            )}
+          </div>
+        )}
         {draft.skillRegistryOn && (
           <div className="rules-group">
             <div className="section-title">{vi ? 'Kỹ năng (chỉ kỹ năng được duyệt mới tạo tín hiệu; lưu ngay)' : 'Skills (only approved skills feed signals; saved right away)'}</div>

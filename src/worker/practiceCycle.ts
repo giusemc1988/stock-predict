@@ -64,11 +64,37 @@ async function coingeckoMovers(top = 8): Promise<Mover[]> {
   return cryptoMovers({ gainers: by((r) => r.change), volume: by((r) => r.volume) }, top)
 }
 
-export interface WorkerEnv {
-  PRACTICE: { get(key: string): Promise<string | null>; put(key: string, value: string): Promise<void> }
+async function sendTelegramAlert(alert: TradeAlert, token: string, chatId: string): Promise<void> {
+  const message = `🚀 *New Trade Alert*\n\n*Symbol:* ${alert.symbol}\n*Side:* BUY\n*Entry:* $${alert.entry.toFixed(2)}\n*Stop:* $${alert.stop.toFixed(2)}\n*Target:* $${alert.target.toFixed(2)}\n*Reason:* ${alert.reason}${alert.ruleName ? `\n*Rule:* ${alert.ruleName}` : ''}`
+  try {
+    const res = await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ chat_id: chatId, text: message, parse_mode: 'Markdown' }),
+    })
+    if (!res.ok) console.log(`Telegram send failed: ${res.status}`)
+  } catch (e) {
+    console.log('Telegram error:', e)
+  }
 }
 
-export async function practiceCycle(env: WorkerEnv): Promise<{ state: PracticeState; message: string }> {
+export interface WorkerEnv {
+  PRACTICE: { get(key: string): Promise<string | null>; put(key: string, value: string): Promise<void>; delete(key: string): Promise<void> }
+}
+
+export interface TradeAlert {
+  id: string
+  symbol: string
+  side: 'BUY'
+  entry: number
+  stop: number
+  target: number
+  reason: string
+  openedAt: number
+  ruleName?: string
+}
+
+export async function practiceCycle(env: WorkerEnv): Promise<{ state: PracticeState; message: string; alerts?: TradeAlert[] }> {
 
   let prev: PracticeState = emptyPractice()
   try {
@@ -122,9 +148,52 @@ export async function practiceCycle(env: WorkerEnv): Promise<{ state: PracticeSt
 
   const top = r.candidates.filter((c) => c.place != null).slice(0, 3).map((c) => `${c.place}. ${c.symbol}`)
 
+  // Find new trades by comparing open positions before and after
+  const prevSymbols = new Set(prev.open.map((p) => p.id))
+  const newTrades = next.open.filter((p) => !prevSymbols.has(p.id))
+  const alerts: TradeAlert[] = newTrades.map((trade) => ({
+    id: trade.id,
+    symbol: trade.symbol,
+    side: 'BUY' as const,
+    entry: trade.entry,
+    stop: trade.stop,
+    target: trade.target,
+    reason: trade.info?.reason ?? 'AI signal',
+    openedAt: trade.openedAt,
+    ruleName: trade.info?.pick?.en ?? undefined,
+  }))
+
+  // Send Telegram alerts if configured
+  let telegramConfig: { token: string; chatId: string } | null = null
+  try {
+    const stored = await env.PRACTICE.get('telegramConfig')
+    if (stored) telegramConfig = JSON.parse(stored)
+  } catch {
+    /* no telegram config */
+  }
+  if (telegramConfig?.token && telegramConfig?.chatId) {
+    for (const alert of alerts) {
+      await sendTelegramAlert(alert, telegramConfig.token, telegramConfig.chatId)
+    }
+  }
+
   // written every run (about 108 KV writes a day; the free tier allows 1,000) so the last scan time, open P&L and the yardstick stay fresh
   await env.PRACTICE.put('state', JSON.stringify(next))
 
+  // Save alerts to KV if there are any
+  if (alerts.length > 0) {
+    try {
+      const existing = await env.PRACTICE.get('alerts')
+      const allAlerts = existing ? JSON.parse(existing) : []
+      const merged = [...allAlerts, ...alerts]
+      // Keep only recent alerts (last 50)
+      await env.PRACTICE.put('alerts', JSON.stringify(merged.slice(-50)))
+    } catch {
+      // If alerts storage fails, still continue
+      console.log('Alert storage failed, continuing anyway')
+    }
+  }
+
   const msg = `scanned ${r.candidates.length} markets (${r.failed.length} failed); best: ${top.join(', ') || 'none'}; open ${next.open.length}, closed ${next.trades.length}, realized ${next.realized.toFixed(2)}`
-  return { state: next, message: msg }
+  return { state: next, message: msg, alerts }
 }
