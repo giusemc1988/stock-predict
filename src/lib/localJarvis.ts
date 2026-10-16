@@ -172,3 +172,36 @@ Use only the rules and facts above. Be brief (2-4 sentences).`
   // Return text or null if Ollama failed
   return response?.text ?? null
 }
+
+/**
+ * Answer questions about the trading journal using local llama3.2.
+ * Returns answer < 500 tokens, or null if localQA is off or Ollama unavailable.
+ */
+export async function answerQuestion(
+  question: string,
+  journal: { trades: PickRow[]; events: JournalEntry[] },
+  rules: AiRules,
+  daysBack: number = 7,
+  maxTokens: number = 2000,
+): Promise<string | null> {
+  // Skip if feature is disabled
+  if (!rules.localQA) {
+    return null
+  }
+
+  // Build grounding packet
+  const packet = buildGroundingPacket(journal, rules, daysBack, maxTokens)
+
+  // Call Ollama with the question and grounding context
+  const response = await askOllama(
+    {
+      question,
+      facts: packet.prompt.split('\n').filter((line) => line.trim().length > 0),
+      lang: 'en',
+    },
+    90_000, // 90 second timeout
+  )
+
+  // Return text or null if Ollama failed
+  return response?.text ?? null
+}
