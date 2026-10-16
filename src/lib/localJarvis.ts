@@ -78,6 +78,63 @@ export function buildGroundingPacket(
   return { prompt, tokens }
 }
 
+export interface VoiceSettings {
+  rate: number // 0.5–2.0 (speed)
+  pitch: number // 0.5–2.0
+  volume: number // 0–1
+}
+
+/**
+ * Read text aloud using browser speechSynthesis API.
+ * Chunks long text (>1000 chars) to prevent cutoff.
+ * Returns promise that resolves when speech ends or rejects on error.
+ */
+export function narrate(text: string, settings: VoiceSettings): Promise<void> {
+  return new Promise((resolve, reject) => {
+    if (typeof window === 'undefined' || !window.speechSynthesis) {
+      reject(new Error('Speech synthesis not available'))
+      return
+    }
+
+    // Cancel any ongoing speech
+    window.speechSynthesis.cancel()
+
+    // Chunk long text to prevent cutoff (browser limit ~500 chars per utterance)
+    const CHUNK_SIZE = 300
+    const chunks = []
+    for (let i = 0; i < text.length; i += CHUNK_SIZE) {
+      chunks.push(text.substring(i, i + CHUNK_SIZE))
+    }
+
+    let currentChunk = 0
+
+    const speakChunk = () => {
+      if (currentChunk >= chunks.length) {
+        resolve()
+        return
+      }
+
+      const utterance = new SpeechSynthesisUtterance(chunks[currentChunk])
+      utterance.rate = settings.rate
+      utterance.pitch = settings.pitch
+      utterance.volume = settings.volume
+
+      utterance.onend = () => {
+        currentChunk++
+        speakChunk()
+      }
+
+      utterance.onerror = (event) => {
+        reject(new Error(`Speech synthesis error: ${event.error}`))
+      }
+
+      window.speechSynthesis.speak(utterance)
+    }
+
+    speakChunk()
+  })
+}
+
 /**
  * Explain a trade signal using local llama3.2.
  * Returns explanation < 500 tokens, or null if localExplain is off or Ollama unavailable.
