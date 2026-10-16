@@ -2,7 +2,7 @@
  * Version and "What's new". Bump APP_VERSION and add an entry to the top of RELEASES
  * with each update. The banner shows once per version, then stays dismissed.
  */
-export const APP_VERSION = '1.8.0'
+export const APP_VERSION = '1.9.0-beta'
 
 export interface Release {
   version: string
@@ -13,6 +13,25 @@ export interface Release {
 }
 
 export const RELEASES: Release[] = [
+  {
+    version: '1.9.0-beta',
+    date: '2026-10-16',
+    changes: [
+      'Phase 1: Jarvis unified agent foundation. Walk-forward validator prevents overfitting in the learner. Router combines signals from multiple sources with consensus voting (≥2/3 must agree). All new features disabled by default — enable only what you trust.',
+      'Walk-forward validation: time-series train/test split with purging and embargo to avoid lookahead bias. Learner now evaluates rule accuracy out-of-sample.',
+      'Unified Jarvis router: coordinates signals from analyst, scanner, order flow. Uses consensus voting to decide BUY, SELL, or HOLD.',
+      'React hook for router integration (useJarvisRouter). Settings panel shows Jarvis AI toggles. Brain tab displays Phase 1 status.',
+      'Measured approach: collects actual AI calls and validation metrics. No promises or estimates. Paper trading only.',
+    ],
+    changesVi: [
+      'Phase 1: nền tảng agent Jarvis thống nhất. Walk-forward validator ngăn overfitting trong learner. Router kết hợp tín hiệu từ nhiều nguồn với bỏ phiếu đồng thuận (≥2/3 phải đồng ý). Tất cả tính năng mới tắt theo mặc định — chỉ bật những cái bạn tin tưởng.',
+      'Walk-forward validation: chia train/test theo chuỗi thời gian với purging và embargo tránh lookahead bias. Learner giờ đánh giá độ chính xác rule ngoài mẫu.',
+      'Router Jarvis thống nhất: điều phối tín hiệu từ analyst, scanner, order flow. Dùng bỏ phiếu đồng thuận để quyết BUY, SELL hay HOLD.',
+      'React hook cho tích hợp router (useJarvisRouter). Panel Settings hiển thị Jarvis AI toggles. Tab Bộ não hiển thị trạng thái Phase 1.',
+      'Phương pháp đo lường: ghi lại thực tế AI calls và validation metrics. Không hứa hay ước tính. Chỉ thử nghiệm.',
+    ],
+  },
+
   {
     version: '1.8.0',
     date: '2026-10-15',

@@ -59,6 +59,38 @@ export function SettingsModal({ keys, onSave, onClose, onOpenAiRules }: { keys: 
           <input value={draft.finnhub} onChange={(e) => setDraft({ ...draft, finnhub: e.target.value.trim() })} placeholder="Real-time stock trades + quotes" />
           {looksAlpaca(draft.finnhub) && <small className="warn">This looks like an Alpaca key. Put it on the Portfolio page instead.</small>}
         </label>
+        <h3>Jarvis AI Trading (Experimental)</h3>
+        <p className="muted">Unified agent for trading decisions. All features default OFF — enable only what you trust.</p>
+        <label className="field">
+          <input
+            type="checkbox"
+            checked={false}
+            readOnly
+            disabled
+            title="Validator: disabled in Phase 1"
+          />
+          <span>Walk-forward validator (disabled)</span>
+        </label>
+        <label className="field">
+          <input
+            type="checkbox"
+            checked={false}
+            readOnly
+            disabled
+            title="Router: disabled in Phase 1"
+          />
+          <span>Unified router (disabled)</span>
+        </label>
+        <label className="field">
+          <input
+            type="checkbox"
+            checked={false}
+            readOnly
+            disabled
+            title="Learner: disabled in Phase 1"
+          />
+          <span>Auto-learner with walk-forward (disabled)</span>
+        </label>
         <p className="muted tiny">
           {t('appVersion')} v{APP_VERSION}
         </p>
