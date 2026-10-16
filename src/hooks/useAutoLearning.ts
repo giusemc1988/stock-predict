@@ -55,7 +55,11 @@ export interface AutoLearning {
  * every hour on the markets this browser can fetch. The server job keeps going
  * while the app is closed; whichever copy ran last is the one shown and continued.
  */
-export function useAutoLearning(universe: Instrument[], keys: ApiKeys, alpaca: AlpacaDataKeys, rules: AiRules): AutoLearning {
+const MAX_SCANNER_MARKETS = 40
+
+const asInstrument = (symbol: string): Instrument => ({ symbol, name: symbol, assetClass: symbol.includes('/') ? 'crypto' : 'stock', feedId: symbol.replace('/', ''), demoPrice: 100, demoVol: 0.4 })
+
+export function useAutoLearning(universe: Instrument[], keys: ApiKeys, alpaca: AlpacaDataKeys, rules: AiRules, scanner: string[] = []): AutoLearning {
   const [state, setState] = useState<LearnState>(loadLocal)
   const [running, setRunning] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -66,7 +70,10 @@ export function useAutoLearning(universe: Instrument[], keys: ApiKeys, alpaca: A
   stateRef.current = state
   const busy = useRef(false)
 
-  const markets = universe.filter((i) => i.assetClass === 'crypto' || hasAlpacaData(alpaca)).map((i) => i.symbol)
+  const canFetch = (s: string) => s.includes('/') || hasAlpacaData(alpaca)
+  const own = universe.filter((i) => canFetch(i.symbol)).map((i) => i.symbol)
+  const found = rules.learnFromScanner ? scanner.filter((s) => canFetch(s) && !own.includes(s)).slice(0, MAX_SCANNER_MARKETS) : []
+  const markets = [...own, ...found]
   const ctx = useRef({ universe, keys, alpaca, rules, markets })
   ctx.current = { universe, keys, alpaca, rules, markets }
 
@@ -100,7 +107,7 @@ export function useAutoLearning(universe: Instrument[], keys: ApiKeys, alpaca: A
     setRunning(true)
     setError(null)
     try {
-      const fetchOne = (sym: string) => candlesFor(u.find((i) => i.symbol === sym)!, '1h', k, a, 1000)
+      const fetchOne = (sym: string) => candlesFor(u.find((i) => i.symbol === sym) ?? asInstrument(sym), '1h', k, a, 1000)
       const { state: next, report } = await runCycle({ ...stateRef.current, source: 'browser' }, m, fetchOne, r)
       if (!report.markets.length) setError(report.failed[0]?.error ?? 'No market data')
       else {

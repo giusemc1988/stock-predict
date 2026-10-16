@@ -1,14 +1,15 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import type { Instrument, Quote, Signal } from '../types'
+import type { Instrument, Quote, Signal, Timeframe } from '../types'
 import { fmtCompact, fmtPct, fmtPrice, tone } from '../lib/format'
 import { Sparkline } from './Sparkline'
 import { RobotIcon } from './RobotIcon'
 import { CATALOG, toInstrument } from '../data/catalog'
-import { loadPicks, PICKS_EVENT, type Pick } from '../lib/picks'
+import { loadPicks, PICKS_EVENT, rankPicks, savePicks, type Pick } from '../lib/picks'
+import { candlesFor } from '../data/series'
 import { useSyncExternalStore } from 'react'
 import { useLang, useT } from '../lib/i18n'
 import { useMarketLists } from '../hooks/useMarketLists'
-import type { AlpacaDataKeys, MarketListRow } from '../data/providers'
+import type { AlpacaDataKeys, ApiKeys, MarketListRow } from '../data/providers'
 
 /** One market practice mode is trading, closed today, or watching. */
 export interface AiActiveRow {
@@ -32,6 +33,11 @@ interface Props {
   onAdd: (inst: Instrument) => void
   activeSignal: Signal | null
   alpacaKeys: AlpacaDataKeys
+  keys: ApiKeys
+  /** Chart timeframe the AI scan uses. */
+  tf: Timeframe
+  /** Show the AI scan button and each row's AI call. */
+  scanOn: boolean
   /** Bumped to open the live Top gainers list (from the Jarvis Brief scanner). */
   sortRequest?: number
 }
@@ -46,7 +52,17 @@ function listInstrument(r: MarketListRow): Instrument {
   }
 }
 
-function MarketRow({ r, sort, active, onSelect }: { r: MarketListRow; sort: ListSort; active: boolean; onSelect: () => void }) {
+/** The AI's last call on a market, from the most recent scan. */
+function Call({ pick }: { pick?: Pick }) {
+  if (!pick) return null
+  return (
+    <span className={`wl-call ${pick.verdict.toLowerCase()}`} title={`${pick.headline} (${Math.round(pick.confidence * 100)}%)`}>
+      {pick.verdict}
+    </span>
+  )
+}
+
+function MarketRow({ r, sort, active, onSelect, pick }: { r: MarketListRow; sort: ListSort; active: boolean; onSelect: () => void; pick?: Pick }) {
   const lang = useLang()
   const L = (en: string, vi: string) => (lang === 'vi' ? vi : en)
   const name = CATALOG.find((c) => c.symbol === r.symbol)?.name
@@ -54,7 +70,7 @@ function MarketRow({ r, sort, active, onSelect }: { r: MarketListRow; sort: List
     <button className={`wl-row ${active ? 'active' : ''}`} onClick={onSelect}>
       <div className="wl-id">
         <div className="wl-sym">{r.symbol}</div>
-        <div className="wl-name">{name ?? (r.assetClass === 'crypto' ? L('Crypto · 24h', 'Crypto · 24 giờ') : L('US stock · today', 'Cổ phiếu Mỹ · hôm nay'))}</div>
+        <div className="wl-name"><Call pick={pick} />{name ?? (r.assetClass === 'crypto' ? L('Crypto · 24h', 'Crypto · 24 giờ') : L('US stock · today', 'Cổ phiếu Mỹ · hôm nay'))}</div>
       </div>
       <span className="wl-vol mono muted">{sort === 'volume' && r.dollarVolume ? `$${fmtCompact(r.dollarVolume)}` : ''}</span>
       <div className="wl-px">
@@ -83,7 +99,7 @@ function suggest(query: string, taken: Set<string>) {
     .slice(0, 8)
 }
 
-function Row({ inst, q, active, onSelect, signal }: { inst: Instrument; q?: Quote; active: boolean; onSelect: () => void; signal: Signal | null }) {
+function Row({ inst, q, active, onSelect, signal, pick }: { inst: Instrument; q?: Quote; active: boolean; onSelect: () => void; signal: Signal | null; pick?: Pick }) {
   const prev = useRef(q?.price)
   const [flash, setFlash] = useState<'' | 'up' | 'down'>('')
   useEffect(() => {
@@ -103,6 +119,7 @@ function Row({ inst, q, active, onSelect, signal }: { inst: Instrument; q?: Quot
           {signal && <RobotIcon side={signal.side} size={14} title={`Latest robot signal: ${signal.side.toUpperCase()}`} />}
         </div>
         <div className="wl-name">
+          <Call pick={pick} />
           {inst.name}
           {q && !q.live && <span className="badge-demo">SIM</span>}
         </div>
@@ -154,7 +171,7 @@ function AiActive({ rows, quotes, active, onSelect }: { rows: AiActiveRow[]; quo
   )
 }
 
-export function Watchlist({ aiActive, instruments, quotes, active, onSelect, onAdd, activeSignal, alpacaKeys, sortRequest = 0 }: Props) {
+export function Watchlist({ aiActive, instruments, quotes, active, onSelect, onAdd, activeSignal, alpacaKeys, keys, tf, scanOn, sortRequest = 0 }: Props) {
   const tx = useT()
   const lang = useLang()
   const L = (en: string, vi: string) => (lang === 'vi' ? vi : en)
@@ -194,6 +211,30 @@ export function Watchlist({ aiActive, instruments, quotes, active, onSelect, onA
     return [...filtered].sort((a, b) => won(b) - won(a))
   }, [filtered, sort, picksBySymbol])
   const taken = useMemo(() => new Set(instruments.map((i) => i.symbol)), [instruments])
+  const [scanning, setScanning] = useState<{ done: number; total: number } | null>(null)
+  const [skipped, setSkipped] = useState<string[]>([])
+  // the AI checks exactly the rows on screen, one at a time so free data keys aren't hit all at once
+  const scan = async () => {
+    const targets = marketWide ? marketRows.map(listInstrument) : list
+    if (!targets.length) return
+    const series: { symbol: string; candles: Awaited<ReturnType<typeof candlesFor>> }[] = []
+    const failed: string[] = []
+    setScanning({ done: 0, total: targets.length })
+    for (const inst of targets) {
+      try {
+        series.push({ symbol: inst.symbol, candles: await candlesFor(inst, tf, keys, alpacaKeys) })
+      } catch {
+        failed.push(inst.symbol)
+      }
+      setScanning((s) => (s ? { ...s, done: s.done + 1 } : s))
+    }
+    const fresh = rankPicks(series)
+    // keep earlier calls for markets not on screen now
+    const kept = (JSON.parse(picks) as Pick[]).filter((p) => !fresh.some((f) => f.symbol === p.symbol))
+    savePicks([...fresh, ...kept])
+    setSkipped(failed)
+    setScanning(null)
+  }
   const matches = useMemo(() => suggest(filter, taken), [filter, taken])
   const totalVol = Object.values(quotes).reduce((a, q) => a + (q.live ? q.volume : 0), 0)
   return (
@@ -203,6 +244,16 @@ export function Watchlist({ aiActive, instruments, quotes, active, onSelect, onA
         <span>{tx('watchlist')}</span>
         <span className="muted mono">{totalVol ? `24h vol ${fmtCompact(totalVol)}` : ''}</span>
       </div>
+      {scanOn && (
+        <div className="wl-scan">
+          <button className="wl-scan-btn" onClick={scan} disabled={!!scanning}>
+            {scanning ? L(`Scanning ${scanning.done}/${scanning.total}…`, `Đang quét ${scanning.done}/${scanning.total}…`) : L('AI scan this list', 'AI quét danh sách này')}
+          </button>
+          <span className="muted small">
+            {skipped.length ? L(`No data: ${skipped.join(', ')}`, `Không có dữ liệu: ${skipped.join(', ')}`) : L('BUY / HOLD / SELL shows on each row', 'MUA / GIỮ / BÁN hiện trên từng dòng')}
+          </span>
+        </div>
+      )}
       <div className="search-wrap">
         <input className="search" placeholder="Search symbol or name" value={filter} onChange={(e) => setFilter(e.target.value)} />
         {matches.length > 0 && (
@@ -283,6 +334,7 @@ export function Watchlist({ aiActive, instruments, quotes, active, onSelect, onA
               r={r}
               sort={sort as ListSort}
               active={r.symbol === active}
+              pick={scanOn ? picksBySymbol.get(r.symbol) : undefined}
               onSelect={() => {
                 if (!taken.has(r.symbol)) onAdd(listInstrument(r))
                 onSelect(r.symbol)
@@ -290,7 +342,7 @@ export function Watchlist({ aiActive, instruments, quotes, active, onSelect, onA
             />
           ))}
         {!marketWide && list.map((i) => (
-          <Row key={i.symbol} inst={i} q={quotes[i.symbol]} active={i.symbol === active} onSelect={() => onSelect(i.symbol)} signal={i.symbol === active ? activeSignal : null} />
+          <Row key={i.symbol} inst={i} q={quotes[i.symbol]} active={i.symbol === active} onSelect={() => onSelect(i.symbol)} signal={i.symbol === active ? activeSignal : null} pick={scanOn ? picksBySymbol.get(i.symbol) : undefined} />
         ))}
       </div>
     </aside>
