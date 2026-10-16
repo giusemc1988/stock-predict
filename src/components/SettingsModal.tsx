@@ -46,7 +46,8 @@ export function SettingsModal({ keys, onSave, onClose, onOpenAiRules, alpacaKeys
     <div className="modal-back" onClick={onClose}>
       <div className="modal" onClick={(e) => e.stopPropagation()}>
         <h3>{t('settings')}</h3>
-        <div className="field">
+        <div className="modal-body">
+          <div className="field">
           <span>{t('language')}</span>
           <div className="seg">
             <button className={lang === 'en' ? 'on' : ''} onClick={() => setLang('en')}>
@@ -131,6 +132,7 @@ export function SettingsModal({ keys, onSave, onClose, onOpenAiRules, alpacaKeys
         <p className="muted tiny">
           {t('appVersion')} v{APP_VERSION}
         </p>
+        </div>
         <div className="modal-actions">
           <button onClick={onClose}>Cancel</button>
           <button
