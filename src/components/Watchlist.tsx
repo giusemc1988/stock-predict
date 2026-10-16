@@ -7,6 +7,8 @@ import { CATALOG, toInstrument } from '../data/catalog'
 import { loadPicks, PICKS_EVENT, type Pick } from '../lib/picks'
 import { useSyncExternalStore } from 'react'
 import { useLang, useT } from '../lib/i18n'
+import { useMarketLists } from '../hooks/useMarketLists'
+import type { AlpacaDataKeys, MarketListRow } from '../data/providers'
 
 /** One market practice mode is trading, closed today, or watching. */
 export interface AiActiveRow {
@@ -29,6 +31,36 @@ interface Props {
   onSelect: (symbol: string) => void
   onAdd: (inst: Instrument) => void
   activeSignal: Signal | null
+  alpacaKeys: AlpacaDataKeys
+}
+
+type ListSort = 'gainers' | 'losers' | 'volume'
+
+function listInstrument(r: MarketListRow): Instrument {
+  const known = CATALOG.find((c) => c.symbol === r.symbol)
+  return {
+    ...toInstrument(known ?? { symbol: r.symbol, name: r.symbol.replace('/USDT', ''), assetClass: r.assetClass }),
+    demoPrice: r.price,
+  }
+}
+
+function MarketRow({ r, sort, active, onSelect }: { r: MarketListRow; sort: ListSort; active: boolean; onSelect: () => void }) {
+  const lang = useLang()
+  const L = (en: string, vi: string) => (lang === 'vi' ? vi : en)
+  const name = CATALOG.find((c) => c.symbol === r.symbol)?.name
+  return (
+    <button className={`wl-row ${active ? 'active' : ''}`} onClick={onSelect}>
+      <div className="wl-id">
+        <div className="wl-sym">{r.symbol}</div>
+        <div className="wl-name">{name ?? (r.assetClass === 'crypto' ? L('Crypto · 24h', 'Crypto · 24 giờ') : L('US stock · today', 'Cổ phiếu Mỹ · hôm nay'))}</div>
+      </div>
+      <span className="wl-vol mono muted">{sort === 'volume' && r.dollarVolume ? `$${fmtCompact(r.dollarVolume)}` : ''}</span>
+      <div className="wl-px">
+        <div className="wl-price mono">{fmtPrice(r.price)}</div>
+        <div className={`wl-chg mono ${tone(r.changePct)}`}>{fmtPct(r.changePct)}</div>
+      </div>
+    </button>
+  )
 }
 
 /** Matches typed text against symbol and name; symbol-prefix hits rank first. */
@@ -120,8 +152,10 @@ function AiActive({ rows, quotes, active, onSelect }: { rows: AiActiveRow[]; quo
   )
 }
 
-export function Watchlist({ aiActive, instruments, quotes, active, onSelect, onAdd, activeSignal }: Props) {
+export function Watchlist({ aiActive, instruments, quotes, active, onSelect, onAdd, activeSignal, alpacaKeys }: Props) {
   const tx = useT()
+  const lang = useLang()
+  const L = (en: string, vi: string) => (lang === 'vi' ? vi : en)
   const [filter, setFilter] = useState('')
   const [tab, setTab] = useState<'all' | 'crypto' | 'stock'>('all')
   const [sort, setSort] = useState<'default' | 'gainers' | 'losers' | 'volume' | 'success'>('default')
@@ -137,18 +171,22 @@ export function Watchlist({ aiActive, instruments, quotes, active, onSelect, onA
   const filtered = instruments.filter(
     (i) => (tab === 'all' || i.assetClass === tab) && (i.symbol + i.name).toLowerCase().includes(filter.toLowerCase()),
   )
+  const marketWide = sort === 'gainers' || sort === 'losers' || sort === 'volume'
+  // top gainers / losers / volume come from the whole market, never from the watchlist
+  const lists = useMarketLists(marketWide, alpacaKeys)
+  const marketRows = useMemo(() => {
+    if (!marketWide) return []
+    const metric = (r: MarketListRow) => (sort === 'gainers' ? r.changePct : sort === 'losers' ? -r.changePct : r.dollarVolume ?? 0)
+    const pick = (l: typeof lists.crypto) => (l ? l[sort] : [])
+    const rows = [...(tab !== 'crypto' ? pick(lists.stocks) : []), ...(tab !== 'stock' ? pick(lists.crypto) : [])]
+    const q = filter.toLowerCase()
+    return rows.filter((r) => r.symbol.toLowerCase().includes(q)).sort((a, b) => metric(b) - metric(a)).slice(0, 25)
+  }, [marketWide, sort, tab, filter, lists.crypto, lists.stocks])
   const list = useMemo(() => {
-    if (sort === 'default') return filtered
+    if (sort !== 'success') return filtered
     const won = (i: Instrument) => picksBySymbol.get(i.symbol)?.winRate ?? -1
-    if (sort === 'success') return [...filtered].sort((a, b) => won(b) - won(a))
-    const chg = (i: Instrument) => quotes[i.symbol]?.changePct ?? 0
-    const vol = (i: Instrument) => quotes[i.symbol]?.volume ?? 0
-    const sorted = [...filtered]
-    if (sort === 'gainers') sorted.sort((a, b) => chg(b) - chg(a))
-    if (sort === 'losers') sorted.sort((a, b) => chg(a) - chg(b))
-    if (sort === 'volume') sorted.sort((a, b) => vol(b) - vol(a))
-    return sorted
-  }, [filtered, sort, quotes, picksBySymbol])
+    return [...filtered].sort((a, b) => won(b) - won(a))
+  }, [filtered, sort, picksBySymbol])
   const taken = useMemo(() => new Set(instruments.map((i) => i.symbol)), [instruments])
   const matches = useMemo(() => suggest(filter, taken), [filter, taken])
   const totalVol = Object.values(quotes).reduce((a, q) => a + (q.live ? q.volume : 0), 0)
@@ -203,8 +241,37 @@ export function Watchlist({ aiActive, instruments, quotes, active, onSelect, onA
             : tx('successFromScan')}
         </p>
       )}
+      {marketWide && (
+        <div className="wl-market-note small">
+          {lists.updatedAt && marketRows.length > 0 ? (
+            <span className="live-note">
+              ● {L('Live, whole market', 'Trực tiếp, toàn thị trường')} · {new Date(lists.updatedAt).toLocaleTimeString()}
+            </span>
+          ) : lists.loading ? (
+            <span className="muted">{L('Loading the live market list…', 'Đang tải danh sách trực tiếp…')}</span>
+          ) : null}
+          {tab !== 'crypto' && lists.stocksNeedKey && (
+            <span className="warn">{L('No live stock list yet: add an Alpaca paper key on the Portfolio page.', 'Chưa có dữ liệu cổ phiếu trực tiếp, cần key Alpaca paper ở trang Danh mục.')}</span>
+          )}
+          {tab !== 'crypto' && lists.stockError && <span className="warn">{L('Stocks', 'Cổ phiếu')}: {lists.stockError}</span>}
+          {tab !== 'stock' && lists.cryptoError && <span className="warn">Crypto: {lists.cryptoError}</span>}
+        </div>
+      )}
       <div className="wl-list">
-        {list.map((i) => (
+        {marketWide &&
+          marketRows.map((r) => (
+            <MarketRow
+              key={r.symbol}
+              r={r}
+              sort={sort as ListSort}
+              active={r.symbol === active}
+              onSelect={() => {
+                if (!taken.has(r.symbol)) onAdd(listInstrument(r))
+                onSelect(r.symbol)
+              }}
+            />
+          ))}
+        {!marketWide && list.map((i) => (
           <Row key={i.symbol} inst={i} q={quotes[i.symbol]} active={i.symbol === active} onSelect={() => onSelect(i.symbol)} signal={i.symbol === active ? activeSignal : null} />
         ))}
       </div>

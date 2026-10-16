@@ -2,7 +2,7 @@
  * Version and "What's new". Bump APP_VERSION and add an entry to the top of RELEASES
  * with each update. The banner shows once per version, then stays dismissed.
  */
-export const APP_VERSION = '1.9.0'
+export const APP_VERSION = '1.9.1'
 
 export interface Release {
   version: string
@@ -14,19 +14,33 @@ export interface Release {
 
 export const RELEASES: Release[] = [
   {
+    version: '1.9.1',
+    date: '2026-10-16',
+    changes: [
+      'Top gainers, Top losers and Top volume now come from the whole market, live, refreshed every minute. Before, they only re-sorted your watchlist, so the same names (Tesla, Amazon, Apple and so on) always showed up.',
+      'Stocks come from the Alpaca market screener and need an Alpaca paper key (Portfolio page). Crypto comes from every Binance USDT pair and needs no key. Thin pairs, stablecoins and leveraged tokens are skipped.',
+      'Without a key, the list says so plainly instead of showing a fixed list. Tap any name to open its chart; it is added to your watchlist.',
+    ],
+    changesVi: [
+      'Tăng mạnh nhất, Giảm mạnh nhất và Khối lượng lớn nhất giờ lấy trực tiếp từ toàn thị trường, cập nhật mỗi phút. Trước đây nút này chỉ sắp xếp lại watchlist, nên lúc nào cũng thấy các mã quen như Tesla, Amazon, Apple.',
+      'Cổ phiếu lấy từ bộ lọc thị trường của Alpaca, cần key Alpaca paper (trang Danh mục). Crypto lấy từ mọi cặp USDT trên Binance, không cần key. Bỏ qua cặp quá ít giao dịch, stablecoin và token đòn bẩy.',
+      'Khi chưa có key, danh sách báo rõ là cần key thay vì hiện list cố định. Bấm vào mã để mở biểu đồ, mã đó sẽ được thêm vào watchlist.',
+    ],
+  },
+  {
     version: '1.9.0',
     date: '2026-10-16',
     changes: [
       'Phase 1 Jarvis router now active: integrated useJarvisRouter into live trading flow. Router receives market data on each bar close and generates trading decisions.',
       'Chart dates now show every 6 hours and at day boundaries for professional intraday display. No more missing date context on multi-day views.',
       'Settings modal explains origin-based localStorage isolation. Added diagnostic logging to help debug missing API keys across different app origins.',
-      'Verified: market scanner works correctly (uses watchlist by default, adds top gainers if Alpaca keys configured). Show me tour feature fully integrated and working.',
+      'Show me tour checked and working.',
     ],
     changesVi: [
       'Router Jarvis Phase 1 giờ hoạt động: useJarvisRouter được nối vào flow trading trực tiếp. Router nhận dữ liệu thị trường mỗi khi bar đóng và tạo quyết định giao dịch.',
       'Chart giờ show ngày mỗi 6 giờ và ở biên ngày để hiển thị chuyên nghiệp trên intraday. Không còn thiếu ngày trên view nhiều ngày.',
       'Modal Settings giải thích origin-based localStorage isolation. Thêm diagnostic logging giúp debug missing API keys qua các origin khác nhau.',
-      'Xác nhận: market scanner hoạt động đúng (dùng watchlist by default, thêm top gainers nếu có Alpaca keys). Tour "Show me" hoàn toàn tích hợp và hoạt động.',
+      'Đã kiểm tra tour "Show me" hoạt động.',
     ],
   },
 

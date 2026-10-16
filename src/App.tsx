@@ -558,6 +558,7 @@ export default function App() {
         }}
         onAdd={addInstrument}
         activeSignal={lastSignal}
+        alpacaKeys={alpacaKeys}
       />
       {page === 'trade' ? (
         <>
