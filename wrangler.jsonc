@@ -1,6 +1,9 @@
 // Cloudflare Workers deploy: `npm run build` produces dist/, `npx wrangler deploy` uploads it.
 // src/worker.ts serves those files and /api/brain (Jarvis's optional free-AI helper).
 // AI keys are Worker secrets, never in the repo: npx wrangler secret put GEMINI_API_KEY
+// Practice: a cron runs one paper-trading cycle every 5 minutes in US market hours
+// (13:00-21:59 UTC on weekdays covers 9:30 am-4 pm New York time in summer and winter);
+// the account lives in the PracticeStore Durable Object (SQLite, free plan) and is served at /practice.json.
 {
   "name": "stock-predict",
   "main": "src/worker.ts",
@@ -9,6 +12,11 @@
     "directory": "./dist",
     "binding": "ASSETS",
     "not_found_handling": "single-page-application",
-    "run_worker_first": ["/api/*"]
-  }
+    "run_worker_first": ["/api/*", "/practice.json"]
+  },
+  "durable_objects": {
+    "bindings": [{ "name": "PRACTICE", "class_name": "PracticeStore" }]
+  },
+  "migrations": [{ "tag": "v1", "new_sqlite_classes": ["PracticeStore"] }],
+  "triggers": { "crons": ["*/5 13-21 * * 1-5"] }
 }

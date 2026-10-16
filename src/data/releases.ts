@@ -2,7 +2,7 @@
  * Version and "What's new". Bump APP_VERSION and add an entry to the top of RELEASES
  * with each update. The banner shows once per version, then stays dismissed.
  */
-export const APP_VERSION = '1.12.1'
+export const APP_VERSION = '1.12.2'
 
 export interface Release {
   version: string
@@ -13,6 +13,16 @@ export interface Release {
 }
 
 export const RELEASES: Release[] = [
+  {
+    version: '1.12.2',
+    date: '2026-10-16',
+    changes: [
+      'Practice trading now runs on Cloudflare every 5 minutes in US market hours (it used to wait on GitHub, which only ran 2-3 times a day). New trades and scans show up on the site within minutes.',
+    ],
+    changesVi: [
+      'Luyện tập giao dịch giờ chạy trên Cloudflare mỗi 5 phút trong giờ thị trường Mỹ (trước đây chờ GitHub, mỗi ngày chỉ chạy 2-3 lần). Lệnh mới và lần quét mới hiện trên trang trong vài phút.',
+    ],
+  },
   {
     version: '1.12.1',
     date: '2026-10-16',
