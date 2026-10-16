@@ -61,6 +61,8 @@ export interface AiRules {
   jarvisVoice: boolean // Jarvis's plain-words line under the AI Analyst call
   jarvisStory: boolean // playbook checks in each practice trade's story
   scoreboardBaseline: boolean // scoreboard shows open P&L and the account against buy-and-hold SPY
+  scoreboardSignalMetrics: boolean // scoreboard shows expectancy and max drawdown for signal quality
+  scoreboardPerformanceTimer: boolean // monitor signal-to-order latency and app load times
   jarvisGate: boolean // practice buys must pass every playbook rule proven on paper trades
   jarvisMotion: boolean // animated Jarvis avatar
   jarvisSpeech: boolean // Jarvis reads briefings and answers aloud (browser's built-in speech)
@@ -156,6 +158,8 @@ export const DEFAULT_AI_RULES: AiRules = {
   jarvisVoice: true,
   jarvisStory: true,
   scoreboardBaseline: true,
+  scoreboardSignalMetrics: true,
+  scoreboardPerformanceTimer: true,
   jarvisGate: false,
   jarvisMotion: true,
   jarvisSpeech: false,
@@ -267,6 +271,8 @@ export const RULE_FIELDS: RuleField[] = [
   { group: 'jarvis', key: 'jarvisAsk', en: 'Ask Jarvis', vi: 'Hỏi Jarvis' },
   { group: 'jarvis', key: 'jarvisVoice', en: "Jarvis's line under the AI Analyst call", vi: 'Lời Jarvis dưới nhận định AI' },
   { group: 'jarvis', key: 'scoreboardBaseline', en: 'Scoreboard: open P&L and Jarvis vs buying and holding SPY', vi: 'Bảng điểm: lãi/lỗ lệnh đang mở và Jarvis so với mua giữ SPY' },
+  { group: 'jarvis', key: 'scoreboardSignalMetrics', en: 'Scoreboard: signal quality (expectancy, max drawdown, win vs loss)', vi: 'Bảng điểm: chất lượng tín hiệu (kỳ vọng, rủi ro tối đa, thắng vs thua)' },
+  { group: 'jarvis', key: 'scoreboardPerformanceTimer', en: 'Scoreboard: performance monitor (signal latency, app load times)', vi: 'Bảng điểm: kiểm tra hiệu năng (độ trễ tín hiệu, thời gian tải ứng dụng)' },
   { group: 'jarvis', key: 'jarvisStory', en: 'Playbook checks in practice trade stories', vi: 'Kiểm tra sổ tay trong câu chuyện lệnh luyện tập' },
   { group: 'jarvis', key: 'jarvisGate', en: 'Practice buys must pass every playbook rule proven on paper trades', vi: 'Lệnh mua luyện tập phải đạt mọi quy tắc sổ tay đã chứng minh trên lệnh thử' },
   { group: 'jarvis', key: 'jarvisMotion', en: 'Animated Jarvis avatar', vi: 'Hình đại diện Jarvis chuyển động' },

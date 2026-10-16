@@ -1,5 +1,5 @@
 import { fmtPct, fmtUsd, tone } from '../lib/format'
-import { practiceReport, scoreboardNumbers, type PracticeState } from '../lib/practice'
+import { practiceReport, scoreboardNumbers, expectancy, maxDrawdown, type PracticeState } from '../lib/practice'
 import { hhmm } from '../lib/brief'
 import { useLang } from '../lib/i18n'
 
@@ -92,6 +92,22 @@ export function ScoreboardPanel({ practice, baseline = true, priceOf }: Props) {
           <div className="score-sub mono">
             {rep.n > 0 ? (vi ? `Trung bình/lệnh ${(rep.pnl / rep.n).toFixed(2)}` : `Per trade ${(rep.pnl / rep.n).toFixed(2)}`) : "—"}
           </div>
+        </div>
+
+        <div className="score-metric">
+          <div className={`score-value mono ${expectancy(rep) != null ? tone(expectancy(rep)!) : ""}`}>
+            {expectancy(rep) != null ? fmtUsd(expectancy(rep)!) : "—"}
+          </div>
+          <div className="score-label">{vi ? "Kỳ vọng/lệnh" : "Expectancy"}</div>
+          <div className="score-sub mono">{vi ? "Trung bình lợi nhuận" : "Avg per trade"}</div>
+        </div>
+
+        <div className="score-metric">
+          <div className={`score-value mono ${maxDrawdown(practice) > 0.15 ? "down" : ""}`}>
+            {fmtPct(maxDrawdown(practice))}
+          </div>
+          <div className="score-label">{vi ? "Rủi ro tối đa" : "Max drawdown"}</div>
+          <div className="score-sub mono">{vi ? "Giảm tệ nhất" : "Worst decline"}</div>
         </div>
       </div>
 
