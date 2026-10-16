@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { askAi } from '../lib/cloudBrain'
 import { plainBrief } from '../lib/brief'
 import type { Bi } from '../lib/jarvis'
@@ -30,6 +30,14 @@ export function useBriefText(cloudOn: boolean, facts: Bi[], key: string, lang: '
   const [saved, setSaved] = useState<Saved | null>(load)
   const [writing, setWriting] = useState(false)
   const [tick, setTick] = useState(0)
+  const busy = useRef(false)
+  const alive = useRef(true)
+  useEffect(() => {
+    alive.current = true
+    return () => {
+      alive.current = false
+    }
+  }, [])
   const factsText = facts.map((f) => f.en).join('\n')
   useEffect(() => {
     if (!useAi || saved?.key === key) return
@@ -37,10 +45,13 @@ export function useBriefText(cloudOn: boolean, facts: Bi[], key: string, lang: '
       const t = setTimeout(() => setTick((n) => n + 1), MIN_GAP_MS - (Date.now() - saved.at) + 1000)
       return () => clearTimeout(t)
     }
-    let gone = false
+    // one call at a time; a slow local model must not be cancelled each time the data ticks
+    if (busy.current) return
+    busy.current = true
     setWriting(true)
     void askAi(QUESTION, lang, factsText.split('\n'), { local: localAiOn, cloud: cloudOn }).then((r) => {
-      if (gone) return
+      busy.current = false
+      if (!alive.current) return
       setWriting(false)
       if (!r) return
       const s = { key, text: r.text, by: r.by, at: Date.now() }
@@ -50,11 +61,9 @@ export function useBriefText(cloudOn: boolean, facts: Bi[], key: string, lang: '
       } catch {
         /* storage blocked: the text still shows this visit */
       }
+      // the data may have moved on while the model was writing
+      setTick((n) => n + 1)
     })
-    return () => {
-      gone = true
-      setWriting(false)
-    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [cloudOn, localAiOn, key, lang, tick])
   // an AI brief is shown while it matches the data, or for a few minutes after; after that the plain facts win
