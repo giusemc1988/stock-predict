@@ -24,7 +24,11 @@
   - **Completion:** Config object with jarvisValidatorOn/RouterOn/LearnerOn (all OFF), localStorage persistence, tests: `vite build --ssr tests/jarvis-config.test.ts --outDir .learn/test-cfg && node .learn/test-cfg/jarvis-config.test.js` → PASS ✓ Jarvis config tests passed
   - **Commits:** adca17c (Jarvis feature toggles all default OFF)
 
-- [ ] Task 3: Unified Router Implementation
+- [x] Task 3: Unified Router Implementation
+  - **Completion:** JarvisRouter class with consensus voting (≥2/3 signals agree), momentum + volume signals, fallback to HOLD, tests: `vite build --ssr tests/router.test.ts --outDir .learn/test-router && node .learn/test-router/router.test.js` → PASS ✓ Router tests passed
+  - **Commits:** 6350556 (unified Jarvis router with consensus voting)
+
+- [ ] Task 4: Integrate Validator into Learner
 - [ ] Task 3: Unified Router Implementation
 - [ ] Task 4: Integrate Validator into Learner
 - [ ] Task 5: React Hook for Router
