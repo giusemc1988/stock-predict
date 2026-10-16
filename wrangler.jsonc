@@ -13,7 +13,8 @@
     "run_worker_first": ["/api/*"]
   },
   "kv_namespaces": [
-    { "binding": "PRACTICE" }
+    { "binding": "PRACTICE" },
+    { "binding": "SETTINGS" }
   ],
   "triggers": {
     "crons": ["0 */5 13-21 * 1-5"]

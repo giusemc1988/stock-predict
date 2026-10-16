@@ -2,7 +2,7 @@
  * Version and "What's new". Bump APP_VERSION and add an entry to the top of RELEASES
  * with each update. The banner shows once per version, then stays dismissed.
  */
-export const APP_VERSION = '1.12.0'
+export const APP_VERSION = '1.13.0'
 
 export interface Release {
   version: string
@@ -13,6 +13,16 @@ export interface Release {
 }
 
 export const RELEASES: Release[] = [
+  {
+    version: '1.13.0',
+    date: '2026-10-16',
+    changes: [
+      'Free AI keys in Settings: paste a free Gemini, Groq or NVIDIA key into a box, press Test, and Jarvis can use it. Keys are saved on the server (never in the browser), never shown again, and you can remove them any time. Toggle: Settings > AI rules > "Show the free AI key boxes".',
+    ],
+    changesVi: [
+      'Nhập khóa AI miễn phí trong Cài đặt: dán khóa Gemini, Groq hoặc NVIDIA vào ô, bấm Thử, Jarvis sẽ dùng được ngay. Khóa lưu trên máy chủ (không lưu trong trình duyệt), không bao giờ hiện lại, và bạn xóa được bất cứ lúc nào. Bật/tắt: Cài đặt > Quy tắc AI > "Hiện ô nhập khóa AI miễn phí".',
+    ],
+  },
   {
     version: '1.12.0',
     date: '2026-10-16',
