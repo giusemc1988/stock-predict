@@ -78,6 +78,10 @@ export interface AiRules {
   briefAi: boolean // a free AI helper writes the Jarvis Brief from the page's real data (once per scan)
   practiceCryptoMovers: boolean // practice also scans today's top crypto gainers and most-traded coins
   adjustableTimeRange: boolean // custom time range input on the Trading desk chart (beyond the preset 1D/1W/1M/1Y/All buttons)
+  localModelName: string // local LLM name: llama3.2, gemma4:e2b, qwen3-coder:30b (default: llama3.2)
+  localExplain: boolean // explain your trades using llama3.2 (browser only, no API)
+  localQA: boolean // answer questions about your trades using llama3.2 (browser only)
+  localVoiceNarrator: boolean // read explanations + answers aloud using browser speechSynthesis
   signalValidator: boolean // validate every signal path before showing (alerts, Brief, playbook)
   newsAnalysis: boolean // analyze market news sentiment for BUY/SELL bias
   preMarketAlerts: boolean // alerts before market open (pre-market movers and news)
