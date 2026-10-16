@@ -7,10 +7,12 @@
  *  - otherwise: a simulated book and tape, clearly marked.
  */
 import { useEffect, useState } from 'react'
-import type { BookLevel, Instrument, OrderFlow, TapeTrade } from '../types'
+import type { BookLevel, Candle, Instrument, OrderFlow, TapeTrade } from '../types'
 import { demoPrice } from '../data/demo'
 import type { ApiKeys } from '../data/providers'
 import { binanceDepth, binanceRecentTrades, binanceStream, finnhubTrades } from '../data/providers'
+import { estimateOrderFlow } from '../lib/orderflow'
+import { useAiRules } from '../lib/aiRules'
 
 const WINDOW_SEC = 300
 const TAPE = 60
@@ -28,8 +30,9 @@ const empty = (source: string): OrderFlow => ({
   live: false,
 })
 
-export function useOrderFlow(inst: Instrument, keys: ApiKeys): OrderFlow {
+export function useOrderFlow(inst: Instrument, keys: ApiKeys, candles: Candle[] = []): OrderFlow {
   const [flow, setFlow] = useState<OrderFlow>(() => empty('Connecting'))
+  const rules = useAiRules()
 
   useEffect(() => {
     let cancelled = false
@@ -115,7 +118,7 @@ export function useOrderFlow(inst: Instrument, keys: ApiKeys): OrderFlow {
         return
       }
       if (keys.finnhub) {
-        meta = { hasBook: false, estimated: true, source: 'Finnhub trades', live: false }
+        meta = { hasBook: false, estimated: false, source: 'Finnhub trades', live: false }
         let last = 0
         let seq = 0
         cleanups.push(
@@ -136,6 +139,14 @@ export function useOrderFlow(inst: Instrument, keys: ApiKeys): OrderFlow {
         )
         return
       }
+      // No Finnhub key: use estimation from candles if enabled, otherwise use demo
+      if (rules.orderFlowEstimate && candles.length > 0) {
+        const lastPrice = candles[candles.length - 1].close
+        const estimated = estimateOrderFlow(candles, lastPrice)
+        meta = { hasBook: false, estimated: true, source: 'Estimated from delayed data', live: false }
+        setFlow({ ...meta, bids: [], asks: [], trades: [], buyVolume: estimated.buyVolume, sellVolume: estimated.sellVolume, windowSec: WINDOW_SEC })
+        return
+      }
       startDemo('Simulated (add a Finnhub key for real trades)')
     })()
 
@@ -143,7 +154,7 @@ export function useOrderFlow(inst: Instrument, keys: ApiKeys): OrderFlow {
       cancelled = true
       cleanups.forEach((f) => f())
     }
-  }, [inst, keys.finnhub])
+  }, [inst, keys.finnhub, rules.orderFlowEstimate, candles])
 
   return flow
 }

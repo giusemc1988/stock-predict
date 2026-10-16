@@ -136,7 +136,8 @@ export default function App() {
   const market = useMarketData(inst, prefs.tf, keys, alpacaKeys)
   const quotes = useQuotes(chartUniverse, keys, alpacaKeys)
   const addInstrument = (i: Instrument) => setAdded((list) => (list.some((x) => x.symbol === i.symbol) ? list : [...list, i]))
-  const flow = useOrderFlow(inst, keys)
+  const marketCandles = market.key === `${inst.symbol}|${prefs.tf}` ? market.candles : NO_CANDLES
+  const flow = useOrderFlow(inst, keys, marketCandles)
   // 24/7 auto learning runs here so it keeps going whichever tab is open (off by default)
   const autoLearn = useAutoLearning(universe, keys, alpacaKeys, aiRules)
   const brokerApi = useBroker(prefs.brokerMode, alpacaKeys, prefs.equityPeriod)
