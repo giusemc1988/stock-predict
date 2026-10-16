@@ -35,6 +35,20 @@ export function PortfolioPage(p: Props) {
   useEffect(() => setDraft(p.alpacaKeys), [p.alpacaKeys])
   const [keyErr, setKeyErr] = useState<string | null>(null)
   const [keyNote, setKeyNote] = useState<string | null>(null)
+  // one box can hold "KEY:SECRET", "KEY SECRET" or the two on separate lines
+  const parseKeys = (d: AlpacaKeys) => {
+    const parts = d.keyId.split(/[\s:,;]+/).filter(Boolean)
+    return parts.length === 2 ? { keyId: parts[0], secret: parts[1] } : { keyId: parts.join(''), secret: d.secret.trim() }
+  }
+  // save as soon as a valid paper key and secret are pasted, so leaving the page never loses them
+  useEffect(() => {
+    const k = parseKeys(draft)
+    if (!k.secret || checkPaperKey(k.keyId) || [k.keyId, k.secret].some(looksLikeAlphaVantage)) return
+    if (k.keyId === p.alpacaKeys.keyId && k.secret === p.alpacaKeys.secret) return
+    setKeyErr(null)
+    p.onAlpacaKeys(k)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [draft])
   const open = orders.filter((o) => OPEN_STATUSES.includes(o.status))
   const done = orders.filter((o) => !OPEN_STATUSES.includes(o.status))
   const invested = positions.reduce((a, x) => a + x.marketValue, 0)
@@ -191,9 +205,7 @@ export function PortfolioPage(p: Props) {
                   className="btn-primary"
                   onClick={() => {
                     // an Alpha Vantage key is a stock-data key, not a brokerage key: store it where it works
-                    // one box can hold "KEY:SECRET", "KEY SECRET" or the two on separate lines
-                    const parts = draft.keyId.split(/[\s:,;]+/).filter(Boolean)
-                    const keys = parts.length === 2 ? { keyId: parts[0], secret: parts[1] } : { keyId: parts.join(''), secret: draft.secret.trim() }
+                    const keys = parseKeys(draft)
                     const av = [keys.keyId, keys.secret].find(looksLikeAlphaVantage)
                     if (av) {
                       p.onAlphaVantageKey(av)
@@ -213,7 +225,13 @@ export function PortfolioPage(p: Props) {
                 >
                   Save & connect
                 </button>
-                <p className="muted tiny">Keys are stored only in this browser.</p>
+                {p.alpacaKeys.keyId && p.alpacaKeys.secret ? (
+                  <p className="ticket-ok tiny">
+                    Saved in this browser: {p.alpacaKeys.keyId.slice(0, 2)}…{p.alpacaKeys.keyId.slice(-4)}, for {window.location.host}. Another web address needs the key entered again.
+                  </p>
+                ) : (
+                  <p className="muted tiny">Keys are stored only in this browser, for {window.location.host}.</p>
+                )}
               </div>
             )}
           </section>

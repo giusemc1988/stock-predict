@@ -20,11 +20,13 @@ export const RELEASES: Release[] = [
       'Top gainers, Top losers and Top volume now come from the whole market, live, refreshed every minute. Before, they only re-sorted your watchlist, so the same names (Tesla, Amazon, Apple and so on) always showed up.',
       'Stocks come from the Alpaca market screener and need an Alpaca paper key (Portfolio page). Crypto comes from every Binance USDT pair and needs no key. Thin pairs, stablecoins and leveraged tokens are skipped.',
       'Without a key, the list says so plainly instead of showing a fixed list. Tap any name to open its chart; it is added to your watchlist.',
+      'Alpaca keys now save the moment a valid Key and Secret are pasted, without pressing Save. The Portfolio page shows which key is saved and for which web address, because keys stay with that address.',
     ],
     changesVi: [
       'Tăng mạnh nhất, Giảm mạnh nhất và Khối lượng lớn nhất giờ lấy trực tiếp từ toàn thị trường, cập nhật mỗi phút. Trước đây nút này chỉ sắp xếp lại watchlist, nên lúc nào cũng thấy các mã quen như Tesla, Amazon, Apple.',
       'Cổ phiếu lấy từ bộ lọc thị trường của Alpaca, cần key Alpaca paper (trang Danh mục). Crypto lấy từ mọi cặp USDT trên Binance, không cần key. Bỏ qua cặp quá ít giao dịch, stablecoin và token đòn bẩy.',
       'Khi chưa có key, danh sách báo rõ là cần key thay vì hiện list cố định. Bấm vào mã để mở biểu đồ, mã đó sẽ được thêm vào watchlist.',
+      'Key Alpaca giờ tự lưu ngay khi dán đủ Key và Secret hợp lệ, không cần bấm Save. Trang Danh mục hiện key nào đã lưu và lưu cho địa chỉ web nào, vì key chỉ nằm ở địa chỉ đó.',
     ],
   },
   {
