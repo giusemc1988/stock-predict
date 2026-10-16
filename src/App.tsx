@@ -10,6 +10,8 @@ import { useMarketData } from './hooks/useMarketData'
 import { useQuotes } from './hooks/useQuotes'
 import { useBroker } from './hooks/useBroker'
 import { useOrderFlow } from './hooks/useOrderFlow'
+import { useJarvisRouter } from './hooks/useJarvisRouter'
+import { getJarvisConfig } from './lib/jarvisConfig'
 import { runStrategy } from './lib/strategy'
 import { blocking, riskGates } from './lib/riskGates'
 import { analyze } from './lib/analyst'
@@ -130,6 +132,8 @@ export default function App() {
   const autoLearn = useAutoLearning(universe, keys, alpacaKeys, aiRules)
   const brokerApi = useBroker(prefs.brokerMode, alpacaKeys, prefs.equityPeriod)
   const broker = brokerApi.state
+  const jarvisConfig = useMemo(() => getJarvisConfig(), [])
+  const jarvisRouter = useJarvisRouter(jarvisConfig.jarvisRouterOn)
 
   const toast = useCallback((t: Omit<Toast, 'id'>) => {
     const id = ++toastSeq
@@ -148,6 +152,16 @@ export default function App() {
   const closed = useMemo(() => runStrategy(candlesRef.current.slice(0, -1)), [closedKey])
   // The live prediction/forecast updates with every tick.
   const live = useMemo(() => (candles.length > 40 ? runStrategy(candles).prediction : null), [candles])
+
+  // Call Jarvis router when a bar closes
+  useEffect(() => {
+    if (candles.length > 1) {
+      const closedBar = candles[candles.length - 2]
+      const routerCandle = { ...closedBar, timestamp: closedBar.time }
+      const routerHistory = candles.slice(0, -1).map((c) => ({ ...c, timestamp: c.time }))
+      void jarvisRouter.onBarClose(routerCandle, routerHistory)
+    }
+  }, [closedKey, jarvisRouter])
 
   // Re-analyse at most once a second; order flow updates several times a second.
   const flowRef = useRef(flow)
