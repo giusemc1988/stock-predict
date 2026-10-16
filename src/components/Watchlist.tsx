@@ -34,7 +34,7 @@ interface Props {
   alpacaKeys: AlpacaDataKeys
 }
 
-type ListSort = 'gainers' | 'losers' | 'volume'
+type ListSort = 'gainers' | 'losers' | 'volume' | 'most_active' | 'new_highs'
 
 function listInstrument(r: MarketListRow): Instrument {
   const known = CATALOG.find((c) => c.symbol === r.symbol)
@@ -158,7 +158,7 @@ export function Watchlist({ aiActive, instruments, quotes, active, onSelect, onA
   const L = (en: string, vi: string) => (lang === 'vi' ? vi : en)
   const [filter, setFilter] = useState('')
   const [tab, setTab] = useState<'all' | 'crypto' | 'stock'>('all')
-  const [sort, setSort] = useState<'default' | 'gainers' | 'losers' | 'volume' | 'success'>('default')
+  const [sort, setSort] = useState<'default' | 'gainers' | 'losers' | 'volume' | 'most_active' | 'new_highs' | 'success'>('default')
   // last AI Picks scan, from browser storage; re-read whenever a new scan is saved
   const picks = useSyncExternalStore(
     (cb) => {
@@ -176,8 +176,9 @@ export function Watchlist({ aiActive, instruments, quotes, active, onSelect, onA
   const lists = useMarketLists(marketWide, alpacaKeys)
   const marketRows = useMemo(() => {
     if (!marketWide) return []
-    const metric = (r: MarketListRow) => (sort === 'gainers' ? r.changePct : sort === 'losers' ? -r.changePct : r.dollarVolume ?? 0)
-    const pick = (l: typeof lists.crypto) => (l ? l[sort] : [])
+    const metric = (r: MarketListRow) =>
+      sort === 'gainers' ? r.changePct : sort === 'losers' ? -r.changePct : sort === 'most_active' || sort === 'volume' ? r.dollarVolume ?? 0 : sort === 'new_highs' ? r.price : 0
+    const pick = (l: typeof lists.crypto) => (l && sort in l ? (l as Record<string, MarketListRow[]>)[sort] : [])
     const rows = [...(tab !== 'crypto' ? pick(lists.stocks) : []), ...(tab !== 'stock' ? pick(lists.crypto) : [])]
     const q = filter.toLowerCase()
     return rows.filter((r) => r.symbol.toLowerCase().includes(q)).sort((a, b) => metric(b) - metric(a)).slice(0, 25)
@@ -228,9 +229,21 @@ export function Watchlist({ aiActive, instruments, quotes, active, onSelect, onA
         ))}
       </div>
       <div className="seg small">
-        {(['default', 'gainers', 'losers', 'volume', 'success'] as const).map((s) => (
+        {(['default', 'gainers', 'losers', 'volume', 'most_active', 'new_highs', 'success'] as const).map((s) => (
           <button key={s} className={sort === s ? 'on' : ''} onClick={() => setSort(s)}>
-            {s === 'default' ? tx('sortDefault') : s === 'gainers' ? tx('sortGainers') : s === 'losers' ? tx('sortLosers') : s === 'volume' ? tx('sortVolume') : tx('sortSuccess')}
+            {s === 'default'
+              ? tx('sortDefault')
+              : s === 'gainers'
+                ? tx('sortGainers')
+                : s === 'losers'
+                  ? tx('sortLosers')
+                  : s === 'volume'
+                    ? tx('sortVolume')
+                    : s === 'most_active'
+                      ? L('Most active', 'Giao dịch nhất')
+                      : s === 'new_highs'
+                        ? L('New highs', 'Đỉnh mới')
+                        : tx('sortSuccess')}
           </button>
         ))}
       </div>
@@ -244,8 +257,8 @@ export function Watchlist({ aiActive, instruments, quotes, active, onSelect, onA
       {marketWide && (
         <div className="wl-market-note small">
           {lists.updatedAt && marketRows.length > 0 ? (
-            <span className="live-note">
-              ● {L('Live, whole market', 'Trực tiếp, toàn thị trường')} · {new Date(lists.updatedAt).toLocaleTimeString()}
+            <span className={lists.updatedAt === lists.staledAt && !lists.loading ? 'stale-note' : 'live-note'}>
+              {lists.updatedAt === lists.staledAt && !lists.loading ? '○' : '●'} {lists.updatedAt === lists.staledAt && !lists.loading ? L('Last session · market closed', 'Phiên trước · market đóng') : L('Live, whole market', 'Trực tiếp, toàn thị trường')} · {new Date(lists.updatedAt).toLocaleTimeString()}
             </span>
           ) : lists.loading ? (
             <span className="muted">{L('Loading the live market list…', 'Đang tải danh sách trực tiếp…')}</span>
