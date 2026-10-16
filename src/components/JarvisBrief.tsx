@@ -22,7 +22,7 @@ import { LocalAiQA } from './LocalAiQA'
 interface Props {
   rules: AiRules
   alpacaKeys: AlpacaDataKeys
-  flow: { symbol: string; buyShare: number | null; live: boolean; source: string }
+  flow: { symbol: string; buyShare: number | null; live: boolean; source: string; estimated: boolean }
   practice: PracticeState
   /** Live price of a market (0 when unknown), for the scoreboard's open P&L. */
   priceOf?: (symbol: string) => number

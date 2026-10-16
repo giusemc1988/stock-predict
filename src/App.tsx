@@ -601,7 +601,7 @@ export default function App() {
         <JarvisBrief
           rules={aiRules}
           alpacaKeys={alpacaKeys}
-          flow={{ symbol: inst.symbol, buyShare, live: flow.live, source: flow.source }}
+          flow={{ symbol: inst.symbol, buyShare, live: flow.live, source: flow.source, estimated: flow.estimated }}
           practice={practice.state}
           priceOf={practice.priceOf}
           scan={practice.scan}

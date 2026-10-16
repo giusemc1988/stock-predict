@@ -2,7 +2,7 @@
  * Version and "What's new". Bump APP_VERSION and add an entry to the top of RELEASES
  * with each update. The banner shows once per version, then stays dismissed.
  */
-export const APP_VERSION = '1.15.0'
+export const APP_VERSION = '1.16.0'
 
 export interface Release {
   version: string
@@ -13,6 +13,18 @@ export interface Release {
 }
 
 export const RELEASES: Release[] = [
+  {
+    version: '1.16.0',
+    date: '2026-10-16',
+    changes: [
+      'Estimated order flow: when live trade data is unavailable, the app estimates buyers vs. sellers from delayed candle data. Toggle in Settings > AI rules. Estimates are never used for trading signals.',
+      'Jarvis Brief now shows when order flow is estimated, so you know the data is delayed.',
+    ],
+    changesVi: [
+      'Dòng lệnh ước tính: khi không có dữ liệu lệnh trực tiếp, ứng dụng ước tính bên mua so với bên bán từ dữ liệu nến bị trễ. Tắt/bật trong Cài đặt > Quy tắc AI. Ước tính không bao giờ được dùng cho tín hiệu giao dịch.',
+      'Bản tin Jarvis giờ hiện khi dòng lệnh là ước tính, để bạn biết dữ liệu bị trễ.',
+    ],
+  },
   {
     version: '1.15.0',
     date: '2026-10-16',
