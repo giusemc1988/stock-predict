@@ -160,6 +160,18 @@ export interface PracticeState {
   audit?: AuditEntry[]
   /** End-of-day reports by trading day (YYYY-MM-DD), the last REPORT_DAYS kept. */
   reports?: Record<string, DailyReport>
+  /** Buy-and-hold yardstick over the same time (the server keeps it up to date). */
+  baseline?: Baseline
+}
+
+/** What $PRACTICE_START in one fund (SPY), bought when the account started and never sold, would be worth. */
+export interface Baseline {
+  symbol: string
+  /** Price at the bar the account started in. */
+  start: number
+  startAt: number // ms
+  last: number
+  lastAt: number // ms
 }
 
 /** One row of a stock-picker scan, small enough to save. */
@@ -178,6 +190,8 @@ export interface PracticeServerInfo {
   lastBars: Record<string, number>
   picks: PickRow[]
   failed: string[]
+  /** Last price the server saw for each open position, for the open P&L. */
+  prices?: Record<string, number>
 }
 
 export const emptyPractice = (): PracticeState => ({ v: 1, realized: 0, peak: PRACTICE_START, open: [], trades: [], events: [], curve: [{ t: Date.now(), equity: PRACTICE_START }] })
@@ -189,6 +203,52 @@ export function parsePractice(raw: unknown): PracticeState | null {
 }
 
 export const practiceEquity = (s: PracticeState) => PRACTICE_START + s.realized
+
+/**
+ * Moves the buy-and-hold yardstick forward with the latest bars. The start price is the close of the
+ * bar the account started in (or the first bar we have, if the account is older than the bars).
+ */
+export function nextBaseline(prev: Baseline | undefined, symbol: string, bars: Candle[], startAt: number): Baseline | undefined {
+  const last = bars[bars.length - 1]
+  if (!last) return prev
+  let start = prev && prev.symbol === symbol ? { price: prev.start, at: prev.startAt } : null
+  if (!start) {
+    const before = bars.filter((b) => b.time * 1000 <= startAt)
+    const b = before[before.length - 1] ?? bars[0]
+    start = { price: b.close, at: Math.max(startAt, b.time * 1000) }
+  }
+  return { symbol, start: start.price, startAt: start.at, last: last.close, lastAt: last.time * 1000 }
+}
+
+/** The scoreboard's numbers: closed and open P&L, and the account against buy-and-hold over the same time. */
+export function scoreboardNumbers(s: PracticeState, priceOf: (symbol: string) => number = () => 0) {
+  let unrealized = 0
+  let priced = 0
+  for (const p of s.open) {
+    const live = priceOf(p.symbol)
+    const price = live > 0 ? live : s.server?.prices?.[p.symbol] ?? 0
+    if (price <= 0) continue
+    unrealized += (price - p.entry) * p.qty
+    priced++
+  }
+  const total = s.realized + unrealized
+  const jarvisPct = (total / PRACTICE_START) * 100
+  const b = s.baseline
+  const basePct = b && b.start > 0 ? (b.last / b.start - 1) * 100 : null
+  return {
+    realized: s.realized,
+    unrealized,
+    open: s.open.length,
+    /** Open positions with a price; when fewer than `open`, the open P&L leaves some out. */
+    priced,
+    total,
+    jarvisPct,
+    baseline: b ?? null,
+    basePct,
+    /** Jarvis minus buy-and-hold, in percentage points; positive means Jarvis is ahead. */
+    edgePct: basePct == null ? null : jarvisPct - basePct,
+  }
+}
 /** Net P&L of the practice trades closed on this trading day (US Eastern). */
 export const todayRealized = (s: PracticeState, day: string) => s.trades.filter((t) => dayKey(t.closedAt) === day).reduce((x, t) => x + t.pnl, 0)
 

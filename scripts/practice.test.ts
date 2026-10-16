@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict'
-import { dayKey, emptyPractice, kindOf, lessons, onBarClose, onBars, onPrice, practiceEquity, practiceReport, sessionEnd, type EntryContext } from '../src/lib/practice'
+import { dayKey, emptyPractice, kindOf, lessons, onBarClose, onBars, onPrice, practiceEquity, practiceReport, sessionEnd, type EntryContext, nextBaseline, scoreboardNumbers } from '../src/lib/practice'
 import { practiceRows } from '../src/lib/practiceRows'
 import type { Analysis } from '../src/types'
 
@@ -132,4 +132,22 @@ assert.equal(pen.cost?.spreadBps, 20)
 assert.equal(pen.cost?.slippageBps, 10)
 const reg = onBarClose(emptyPractice(), ctx({ costs: { feeBps: 1, spreadBps: 4, slippageBps: 2 } })).open[0]
 assert.ok(!reg.info.penny && reg.cost?.spreadBps === 4, 'regular stocks keep normal costs')
+// scoreboard: open P&L from live or server prices, and the account against buy-and-hold SPY
+const bar = (t: number, close: number) => ({ time: t, open: close, high: close, low: close, close, volume: 1 })
+const tb = Date.UTC(2026, 9, 16, 14) / 1000
+const base = nextBaseline(undefined, 'SPY', [bar(tb - 900, 500), bar(tb, 502), bar(tb + 900, 505)], tb * 1000 + 60_000)!
+assert.equal(base.start, 502, 'starts at the bar the account started in')
+assert.equal(base.last, 505)
+assert.equal(nextBaseline(base, 'SPY', [bar(tb + 1800, 510)], 0)!.start, 502, 'the start price never moves')
+assert.equal(nextBaseline(base, 'SPY', [], 0), base, 'no bars keeps it as it was')
+const openSt = { ...emptyPractice(), realized: 50, open: [{ ...reg, symbol: 'AAA', entry: 10, qty: 10 }, { ...reg, symbol: 'BBB', entry: 20, qty: 5 }], baseline: { ...base, start: 500, last: 505 }, server: { lastRun: 0, lastBars: {}, picks: [], failed: [], prices: { AAA: 12 } } }
+const sbn = scoreboardNumbers(openSt, (s) => (s === 'BBB' ? 18 : 0))
+assert.equal(sbn.unrealized, 20 - 10, 'AAA +$20 from the server price, BBB -$10 from the live price')
+assert.equal(sbn.priced, 2)
+assert.ok(Math.abs(sbn.jarvisPct - 0.6) < 1e-9, '$60 on $10,000')
+assert.ok(Math.abs(sbn.basePct! - 1) < 1e-9, 'SPY +1%')
+assert.ok(Math.abs(sbn.edgePct! + 0.4) < 1e-9, 'Jarvis 0.4 points behind')
+const noBase = scoreboardNumbers({ ...openSt, baseline: undefined, server: undefined })
+assert.equal(noBase.priced, 0, 'no prices: open P&L left out, not guessed')
+assert.equal(noBase.edgePct, null)
 console.log('practice tests passed')

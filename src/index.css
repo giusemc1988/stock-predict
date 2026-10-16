@@ -1021,6 +1021,7 @@ body:has(.jfab) .toasts, body:has(.jfab) .jarvis-alert { bottom: 84px; }
 .bf-lesson { font-size: 12.5px; color: #c9d3e3; border-left: 2px solid var(--robot); padding-left: 10px; }
 
 /* Scoreboard styles */
+.scoreboard-vs { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; padding-bottom: 10px; margin-bottom: 10px; border-bottom: 1px solid var(--line-2); }
 .scoreboard-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin-bottom: 8px; }
 .score-metric { display: grid; gap: 4px; }
 .score-value { font-size: 18px; font-weight: 700; font-family: monospace; }

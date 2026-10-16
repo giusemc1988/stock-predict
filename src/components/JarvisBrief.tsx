@@ -24,6 +24,8 @@ interface Props {
   alpacaKeys: AlpacaDataKeys
   flow: { symbol: string; buyShare: number | null; live: boolean; source: string }
   practice: PracticeState
+  /** Live price of a market (0 when unknown), for the scoreboard's open P&L. */
+  priceOf?: (symbol: string) => number
   scan: PracticeScan
   serverMode: boolean
   learn: LearnState
@@ -207,7 +209,7 @@ export function JarvisBrief(p: Props) {
           )}
         </section>
 
-        <ScoreboardPanel practice={p.practice} />
+        <ScoreboardPanel practice={p.practice} baseline={p.rules.scoreboardBaseline} priceOf={p.priceOf} />
 
         <section className="bf-card">
           <header>

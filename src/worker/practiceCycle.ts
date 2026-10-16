@@ -9,9 +9,11 @@ import { DEFAULT_AI_RULES } from '../lib/aiRules'
 import { SKILLS, skillTag } from '../lib/skills'
 import { parseState } from '../lib/autoLearn'
 import type { JournalEntry } from '../lib/journal'
-import { emptyPractice, parsePractice, PENNY_MIN_PRICE, PENNY_PRICE, sessionEnd, type PracticeState } from '../lib/practice'
+import { emptyPractice, nextBaseline, parsePractice, PENNY_MIN_PRICE, PENNY_PRICE, sessionEnd, type PracticeState } from '../lib/practice'
 import { cryptoMovers, scanCycle, scanMarkets, withOpenMarkets, type Mover, type ScanMarket } from '../lib/practiceScan'
 
+/** Buy-and-hold yardstick for the scoreboard. */
+const BASELINE = 'SPY'
 const UA = { 'User-Agent': 'Mozilla/5.0 (arc-analyst practice)' }
 
 const yahooTicker = (symbol: string) => (symbol.includes('/') ? `${symbol.split('/')[0]}-USD` : symbol)
@@ -67,7 +69,6 @@ export interface WorkerEnv {
 }
 
 export async function practiceCycle(env: WorkerEnv): Promise<{ state: PracticeState; message: string }> {
-  const QUIET_WRITE_MS = 60 * 60_000
 
   let prev: PracticeState = emptyPractice()
   try {
@@ -93,6 +94,8 @@ export async function practiceCycle(env: WorkerEnv): Promise<{ state: PracticeSt
     rules.practiceCryptoMovers ? await coingeckoMovers().catch(() => []) : [],
   )
 
+  // the buy-and-hold yardstick for the scoreboard: one extra Yahoo call, kept as it was if it fails
+  const spy = yahoo15m(BASELINE).catch(() => [] as Candle[])
   const r = await scanCycle({
     markets: withOpenMarkets(markets, prev),
     fetchBars: (m) => yahoo15m(m.symbol),
@@ -112,15 +115,15 @@ export async function practiceCycle(env: WorkerEnv): Promise<{ state: PracticeSt
   }
 
   const next = r.apply(prev)
-  next.server = { lastRun: now, lastBars: r.lastBars, picks: r.picks, failed: r.failed }
+  const prices: Record<string, number> = {}
+  for (const p of next.open) if (r.prices[p.symbol] > 0) prices[p.symbol] = r.prices[p.symbol]
+  next.server = { lastRun: now, lastBars: r.lastBars, picks: r.picks, failed: r.failed, prices }
+  next.baseline = nextBaseline(prev.baseline, BASELINE, await spy, prev.curve[0]?.t ?? now)
 
-  const traded = JSON.stringify([next.open, next.trades.length, next.events[0]?.id]) !== JSON.stringify([prev.open, prev.trades.length, prev.events[0]?.id])
-  const quietFor = now - (prev.server?.lastRun ?? 0)
   const top = r.candidates.filter((c) => c.place != null).slice(0, 3).map((c) => `${c.place}. ${c.symbol}`)
 
-  if (traded || quietFor >= QUIET_WRITE_MS) {
-    await env.PRACTICE.put('state', JSON.stringify(next))
-  }
+  // written every run (about 108 KV writes a day; the free tier allows 1,000) so the last scan time, open P&L and the yardstick stay fresh
+  await env.PRACTICE.put('state', JSON.stringify(next))
 
   const msg = `scanned ${r.candidates.length} markets (${r.failed.length} failed); best: ${top.join(', ') || 'none'}; open ${next.open.length}, closed ${next.trades.length}, realized ${next.realized.toFixed(2)}`
   return { state: next, message: msg }
