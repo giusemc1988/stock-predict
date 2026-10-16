@@ -57,7 +57,30 @@ const bad = (async () => new Response('nope', { status: 401 })) as typeof fetch
 const r = await testProvider('nvidia', { NVIDIA_API_KEY: 'nvapi-secretsecretsecret123' }, bad)
 assert.equal(r.ok, false)
 assert.ok(!JSON.stringify(r).includes('nvapi'))
+assert.ok(r.error?.includes('HTTP 401'))
+// the provider's own message is shown, with a key-like string in it masked
+const echo = (async () => new Response(JSON.stringify({ error: { message: 'Invalid API Key nvapi-secretsecretsecret123' } }), { status: 401 })) as typeof fetch
+const r2 = await testProvider('nvidia', { NVIDIA_API_KEY: 'nvapi-secretsecretsecret123' }, echo)
+assert.ok(r2.error?.includes('Invalid API Key') && !r2.error.includes('secretsecret'))
 assert.equal((await testProvider('groq', {}, ok)).ok, false)
 assert.equal((await testProvider('nope', {}, ok)).ok, false)
+
+// a retired model falls through to the provider's next model
+const tried: string[] = []
+const retired = (async (_u: string, init?: RequestInit) => {
+  const model = JSON.parse(String(init?.body)).model as string
+  tried.push(model)
+  return tried.length === 1
+    ? new Response(JSON.stringify({ status: 410, detail: `The model '${model}' has reached its end of life` }), { status: 410 })
+    : new Response(JSON.stringify({ choices: [{ message: { content: 'pong' } }] }))
+}) as typeof fetch
+assert.deepEqual(await testProvider('nvidia', { NVIDIA_API_KEY: 'nvapi-secretsecretsecret123' }, retired), { ok: true })
+assert.equal(tried.length, 2)
+assert.notEqual(tried[0], tried[1])
+// a bad key is not retried on every model
+let calls = 0
+const denied = (async () => (calls++, new Response('{"error":{"message":"Invalid API Key"}}', { status: 401 }))) as typeof fetch
+assert.equal((await testProvider('groq', { GROQ_API_KEY: 'gsk_secretsecretsecretsecret' }, denied)).ok, false)
+assert.equal(calls, 1)
 
 console.log('brain keys tests passed')
