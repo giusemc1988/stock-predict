@@ -2,7 +2,7 @@
  * Version and "What's new". Bump APP_VERSION and add an entry to the top of RELEASES
  * with each update. The banner shows once per version, then stays dismissed.
  */
-export const APP_VERSION = '1.19.3'
+export const APP_VERSION = '1.20.0'
 
 export interface Release {
   version: string
@@ -13,6 +13,16 @@ export interface Release {
 }
 
 export const RELEASES: Release[] = [
+  {
+    version: '1.20.0',
+    date: '2026-10-16',
+    changes: [
+      'Scoreboard: signal quality metrics. The Jarvis scoreboard now shows expectancy per trade (the mathematical expected value of each trade after win rate, avg win and avg loss) and max drawdown (the worst peak-to-trough decline). Two new toggles in Settings > AI rules let you monitor these daily to assess whether signals have genuine edge or are trading underwater.',
+    ],
+    changesVi: [
+      'Bảng điểm: chỉ số chất lượng tín hiệu. Bảng điểm Jarvis giờ hiện kỳ vọng trên mỗi lệnh (giá trị kỳ vọng toán học sau khi xét tỉ lệ thắng, lãi trung bình và lỗ trung bình) và rủi ro tối đa (mức giảm tệ nhất từ đỉnh xuống). Hai công tắc mới trong Cài đặt > Quy tắc AI giúp theo dõi hàng ngày để đánh giá tín hiệu có cạnh thật hay đang giao dịch dưới nước.',
+    ],
+  },
   {
     version: '1.19.3',
     date: '2026-10-16',

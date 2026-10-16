@@ -249,6 +249,26 @@ export function scoreboardNumbers(s: PracticeState, priceOf: (symbol: string) =>
     edgePct: basePct == null ? null : jarvisPct - basePct,
   }
 }
+/** Calculate max drawdown from the equity curve: peak-to-trough. */
+export function maxDrawdown(s: PracticeState): number {
+  if (s.curve.length === 0) return 0
+  let peak = s.curve[0]?.equity ?? PRACTICE_START
+  let maxDD = 0
+  for (const point of s.curve) {
+    if (point.equity > peak) peak = point.equity
+    const dd = (peak - point.equity) / peak
+    if (dd > maxDD) maxDD = dd
+  }
+  return maxDD
+}
+
+/** Calculate expectancy per trade: (winRate * avgWin) - ((1 - winRate) * abs(avgLoss)). */
+export function expectancy(rep: ReturnType<typeof practiceReport>): number | null {
+  if (rep.winRate === null || rep.avgWin === null || rep.avgLoss === null) return null
+  const avgLossAbs = Math.abs(rep.avgLoss)
+  return rep.winRate * rep.avgWin - (1 - rep.winRate) * avgLossAbs
+}
+
 /** Net P&L of the practice trades closed on this trading day (US Eastern). */
 export const todayRealized = (s: PracticeState, day: string) => s.trades.filter((t) => dayKey(t.closedAt) === day).reduce((x, t) => x + t.pnl, 0)
 
