@@ -532,6 +532,8 @@ tr.pr-detail dd { margin: 0; overflow-wrap: anywhere; }
 .chart-tools { position: absolute; top: 40px; left: 12px; z-index: 4; display: flex; gap: 6px; flex-wrap: wrap; font-size: 11px; }
 .chart-tools > button { padding: 4px 9px; border-radius: 999px; border: 1px solid var(--line-2); background: rgba(22, 28, 38, 0.8); color: var(--muted); cursor: pointer; }
 .chart-tools > button.on { color: var(--text); border-color: var(--up); }
+.chart-custom-range { width: 45px; padding: 4px 6px; border-radius: 999px; border: 1px solid var(--line-2); background: rgba(22, 28, 38, 0.8); color: var(--text); font-size: 11px; text-align: center; }
+.chart-custom-range::placeholder { color: var(--muted); }
 .chart-settings { position: absolute; top: calc(100% + 6px); left: 0; width: 240px; padding: 12px; border-radius: 10px; background: #161c26; border: 1px solid var(--line-2); display: grid; gap: 8px; box-shadow: 0 12px 30px rgba(0, 0, 0, 0.45); }
 .chart-settings label { display: flex; justify-content: space-between; align-items: center; gap: 8px; color: var(--text); }
 .chart-settings input { width: 70px; background: #0d1219; color: var(--text); border: 1px solid var(--line-2); border-radius: 6px; padding: 4px 6px; }
@@ -1011,3 +1013,76 @@ body:has(.jfab) .toasts, body:has(.jfab) .jarvis-alert { bottom: 84px; }
   .bf-brief h1 { font-size: 22px; }
 }
 @media (prefers-reduced-motion: reduce) { .bf-wave.on i { animation: none; } }
+
+/* ---------- Signal Flow Explainer modal ---------- */
+.modal-overlay { position: fixed; inset: 0; background: rgba(0, 0, 0, 0.6); display: grid; place-items: center; z-index: 50; padding: 16px; }
+.modal-content { width: min(560px, 100%); max-height: 88vh; overflow-y: auto; background: var(--panel); border: 1px solid var(--line-2); border-radius: 12px; }
+.modal-content header { display: flex; justify-content: space-between; align-items: center; padding: 16px; border-bottom: 1px solid var(--line); }
+.modal-content h2 { margin: 0; font-size: 16px; font-weight: 600; }
+.modal-content .close { width: 24px; height: 24px; border-radius: 6px; border: none; background: none; color: var(--muted); cursor: pointer; font-size: 18px; display: grid; place-items: center; padding: 0; }
+.modal-content .close:hover { color: var(--text); background: var(--panel-2); }
+
+/* Signal flow explainer */
+.signal-summary { padding: 16px; border-bottom: 1px solid var(--line); }
+.signal-summary div { display: grid; gap: 6px; }
+.signal-summary b { font-size: 12px; font-weight: 600; color: var(--text); }
+.signal-summary p { margin: 0; font-size: 12px; line-height: 1.5; color: #b7bfcc; }
+
+.signal-steps { padding: 16px; display: grid; gap: 8px; }
+.step { padding: 12px; border-radius: 8px; border: 1px solid var(--line-2); background: var(--panel-2); }
+.step.pass { border-color: rgba(14, 203, 129, 0.35); background: rgba(14, 203, 129, 0.06); }
+.step.fail { border-color: rgba(246, 70, 93, 0.35); background: rgba(246, 70, 93, 0.06); }
+.step-header { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
+.step-num { width: 24px; height: 24px; border-radius: 50%; display: grid; place-items: center; font-weight: 600; font-size: 11px; background: var(--panel); color: var(--text); }
+.step.pass .step-num { background: rgba(14, 203, 129, 0.12); color: var(--up); }
+.step.fail .step-num { background: rgba(246, 70, 93, 0.12); color: var(--down); }
+.step-name { flex: 1; font-weight: 600; font-size: 12px; }
+.step-badge { font-size: 11px; color: var(--muted); }
+.step.pass .step-badge { color: var(--up); }
+.step.fail .step-badge { color: var(--down); }
+.step-desc { margin: 0; font-size: 12px; color: #b7bfcc; line-height: 1.4; }
+
+.signal-info { padding: 16px 16px 0; border-top: 1px solid var(--line); }
+.info-row { display: flex; justify-content: space-between; gap: 8px; padding: 8px 0; font-size: 12px; }
+.info-row .label { color: var(--muted); font-weight: 500; }
+.info-row .value { color: var(--text); }
+
+.modal-content footer { padding: 16px; border-top: 1px solid var(--line); display: flex; justify-content: flex-end; gap: 8px; }
+.modal-content .btn { padding: 8px 16px; border-radius: 8px; border: 1px solid var(--line-2); background: var(--panel-2); color: var(--text); cursor: pointer; font-weight: 500; transition: background 0.2s, border-color 0.2s; }
+.modal-content .btn:hover { background: var(--line-2); border-color: var(--robot); }
+
+/* Agent Readiness modal */
+.agent-readiness { width: min(540px, 100%); }
+.readiness-list { padding: 16px; display: grid; gap: 8px; }
+.readiness-intro { margin: 0 0 12px; font-size: 12px; color: var(--muted); font-weight: 500; }
+.agent-row { padding: 12px; border-radius: 10px; border: 1px solid var(--line-2); background: var(--panel-2); display: grid; gap: 6px; }
+.agent-row.status-green { background: rgba(14, 203, 129, 0.06); border-color: rgba(14, 203, 129, 0.25); }
+.agent-row.status-amber { background: rgba(240, 185, 11, 0.06); border-color: rgba(240, 185, 11, 0.25); }
+.agent-row.status-gray { background: var(--panel-2); border-color: var(--line-2); }
+.agent-header { display: flex; align-items: center; gap: 8px; }
+.agent-dot { width: 8px; height: 8px; border-radius: 50%; }
+.agent-dot.status-green { background: var(--up); }
+.agent-dot.status-amber { background: var(--gold); }
+.agent-dot.status-gray { background: var(--muted); }
+.agent-name { flex: 1; font-weight: 600; font-size: 12px; }
+.agent-status { font-size: 11px; padding: 2px 8px; border-radius: 4px; background: var(--panel); }
+.agent-row.status-green .agent-status { color: var(--up); }
+.agent-row.status-amber .agent-status { color: var(--gold); }
+.agent-row.status-gray .agent-status { color: var(--muted); }
+.agent-note { margin: 0; font-size: 12px; line-height: 1.4; color: #b7bfcc; }
+.agent-source { margin: 0; font-size: 10px; color: var(--muted); }
+.agent-load { height: 4px; border-radius: 2px; background: rgba(255, 255, 255, 0.08); overflow: hidden; margin-top: 4px; }
+.agent-row.status-green .agent-load { background: rgba(14, 203, 129, 0.2); }
+.agent-row.status-green .agent-load::after { content: ''; display: block; height: 100%; background: var(--up); border-radius: 2px; }
+.agent-row.status-amber .agent-load { background: rgba(240, 185, 11, 0.2); }
+.agent-row.status-amber .agent-load::after { content: ''; display: block; height: 100%; background: var(--gold); border-radius: 2px; }
+
+.readiness-tips { padding: 16px; border-top: 1px solid var(--line); }
+.readiness-tips h3 { margin: 0 0 12px; font-size: 13px; font-weight: 600; }
+.readiness-tips ul { margin: 0; padding-left: 18px; list-style: none; display: grid; gap: 6px; }
+.readiness-tips li { font-size: 12px; color: #b7bfcc; line-height: 1.4; }
+
+/* Signal row group (signal + info button) */
+.bf-row-group { display: grid; grid-template-columns: 1fr auto; gap: 6px; align-items: center; }
+.bf-info-btn { padding: 4px 8px; font-size: 14px; color: var(--muted); border: 1px solid var(--line); background: none; border-radius: 6px; cursor: pointer; transition: color 0.2s, border-color 0.2s; }
+.bf-info-btn:hover { color: var(--text); border-color: var(--robot); }

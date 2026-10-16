@@ -22,6 +22,7 @@ import { barBuyVolume, hasRealBuyVolume } from '../lib/orderflow'
 import { RobotIcon } from './RobotIcon'
 import { sma, stdev } from '../lib/indicators'
 import { loadChartConfig, saveChartConfig, type ChartConfig } from '../lib/chartConfig'
+import { useAiRules } from '../lib/aiRules'
 import { useT } from '../lib/i18n'
 import type { PracticeEvent } from '../lib/practice'
 import { JarvisAvatar } from './JarvisAvatar'
@@ -127,6 +128,7 @@ function NumField({ label, value, min, max, step, onCommit }: { label: string; v
 
 export function ChartPanel(props: Props) {
   const t = useT()
+  const rules = useAiRules()
   const { symbol, tf, candles, signals, prediction, emaFast, emaSlow, showEmas, showForecast, showRobots, practice, tour } = props
   const host = useRef<HTMLDivElement>(null)
   const overlay = useRef<HTMLDivElement>(null)
@@ -285,7 +287,12 @@ export function ChartPanel(props: Props) {
     // Filter candles by timeRange
     const now = last.time
     const getTimeRangeStart = () => {
-      const days = cfg.timeRange === '1d' ? 1 : cfg.timeRange === '1w' ? 7 : cfg.timeRange === '1m' ? 30 : cfg.timeRange === '1y' ? 365 : null
+      let days: number | null = null
+      if (cfg.timeRange === '1d') days = 1
+      else if (cfg.timeRange === '1w') days = 7
+      else if (cfg.timeRange === '1m') days = 30
+      else if (cfg.timeRange === '1y') days = 365
+      else if (cfg.timeRange === 'custom' && rules.adjustableTimeRange && cfg.customDays != null) days = cfg.customDays
       if (!days) return 0
       return now - days * 86400
     }
@@ -558,6 +565,25 @@ export function ChartPanel(props: Props) {
             {range === '1d' ? '1D' : range === '1w' ? '1W' : range === '1m' ? '1M' : range === '1y' ? '1Y' : 'All'}
           </button>
         ))}
+        {rules.adjustableTimeRange && (
+          <input
+            type="number"
+            min="1"
+            max="3650"
+            value={cfg.timeRange === 'custom' && cfg.customDays != null ? cfg.customDays : ''}
+            onChange={(e) => {
+              const n = e.target.value.trim() === '' ? null : Number(e.target.value)
+              if (n != null && Number.isFinite(n) && n >= 1 && n <= 3650) {
+                updateCfg({ ...cfg, timeRange: 'custom', customDays: n })
+              } else if (n == null) {
+                updateCfg({ ...cfg, timeRange: 'all', customDays: null })
+              }
+            }}
+            placeholder="days"
+            className="chart-custom-range"
+            title="Custom time range in days"
+          />
+        )}
         <span className="chart-tool-sep" />
         <button className={cfg.sma.on ? 'on' : ''} onClick={() => updateCfg({ ...cfg, sma: { ...cfg.sma, on: !cfg.sma.on } })}>
           SMA {cfg.sma.period}
