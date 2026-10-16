@@ -60,6 +60,7 @@ export function AiRulesModal({ onClose }: { onClose: () => void }) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ token: cleanToken, chatId: cleanChatId }),
       })
+      const data = (await res.json().catch(() => ({}))) as { error?: string; bot?: string }
       if (res.ok) {
         // Show preview of saved token
         if (cleanToken.length > 14) {
@@ -67,11 +68,12 @@ export function AiRulesModal({ onClose }: { onClose: () => void }) {
         } else {
           setSavedTokenPreview(cleanToken)
         }
+        if (data.bot) setSavedTokenPreview((p) => `${p} (@${data.bot})`)
         setTelegramSaved(true)
         setTelegramTestResult(null)
         setTimeout(() => setTelegramSaved(false), 3000)
       } else {
-        alert(vi ? 'Lỗi lưu Telegram config' : 'Error saving Telegram config')
+        alert(data.error ?? (vi ? 'Lỗi lưu Telegram config' : 'Error saving Telegram config'))
       }
     } catch (e) {
       alert(vi ? 'Lỗi kết nối' : 'Connection error')

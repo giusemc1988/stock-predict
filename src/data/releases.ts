@@ -2,7 +2,7 @@
  * Version and "What's new". Bump APP_VERSION and add an entry to the top of RELEASES
  * with each update. The banner shows once per version, then stays dismissed.
  */
-export const APP_VERSION = '1.19.0'
+export const APP_VERSION = '1.19.1'
 
 export interface Release {
   version: string
@@ -13,6 +13,16 @@ export interface Release {
 }
 
 export const RELEASES: Release[] = [
+  {
+    version: '1.19.1',
+    date: '2026-10-16',
+    changes: [
+      'Telegram Save now checks your token with Telegram first. A wrong or mistyped token is rejected with a clear message instead of failing later at Send test, and a good token shows your bot name.',
+    ],
+    changesVi: [
+      'Nút Lưu Telegram giờ kiểm tra token với Telegram trước. Token sai hoặc gõ nhầm sẽ báo lỗi rõ ràng ngay, không đợi tới lúc Gửi tin thử; token đúng sẽ hiện tên bot.',
+    ],
+  },
   {
     version: '1.19.0',
     date: '2026-10-16',
