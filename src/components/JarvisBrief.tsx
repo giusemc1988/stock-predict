@@ -6,8 +6,8 @@ import { briefFacts, briefKey, briefNodes, buyCalls, type BriefInputs, type Node
 import { fmtCompact, fmtPct, fmtUsd, tone } from '../lib/format'
 import { useLang } from '../lib/i18n'
 import { greeting } from '../lib/jarvis'
-import { dayKey, practiceEquity, practiceReport, PRACTICE_START, type PracticeState } from '../lib/practice'
-import { pickSourceLabel, type PracticeCandidate } from '../lib/practicePicks'
+import { dayKey, practiceEquity, practiceReport, PRACTICE_START, type PickRow, type PracticeState } from '../lib/practice'
+import { pickSourceLabel } from '../lib/practicePicks'
 import { canSpeak, loadVoicePrefs, speak } from '../lib/speech'
 import { useBriefText } from '../hooks/useBriefText'
 import { useLocalStorage } from '../hooks/useLocalStorage'
@@ -58,7 +58,7 @@ export function JarvisBrief(p: Props) {
   const [name] = useLocalStorage('arc.jarvisName.v1', 'Chanh')
   const lists = useMarketLists(true, p.alpacaKeys)
   const [moverTab, setMoverTab] = useState<'stock' | 'crypto'>(lists.stocksNeedKey ? 'crypto' : 'stock')
-  const [showSignalFlow, setShowSignalFlow] = useState<PracticeCandidate | null>(null)
+  const [showSignalFlow, setShowSignalFlow] = useState<PickRow | null>(null)
   const [showReadiness, setShowReadiness] = useState(false)
   const now = lists.updatedAt ?? 0
   const today = dayKey(Date.now())
@@ -97,7 +97,7 @@ export function JarvisBrief(p: Props) {
   const time = (ms: number | null) => (ms ? new Date(ms).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '—')
   const moverRows = moverTab === 'stock' ? lists.stocks : lists.crypto
   const openRow = (r: MarketListRow) => p.onSymbol(r.symbol, r.assetClass)
-  const openSignalFlow = (signal: PracticeCandidate) => setShowSignalFlow(signal)
+  const openSignalFlow = (signal: PickRow) => setShowSignalFlow(signal)
 
   return (
     <main className="brief-page">

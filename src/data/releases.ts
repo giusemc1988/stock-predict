@@ -2,7 +2,7 @@
  * Version and "What's new". Bump APP_VERSION and add an entry to the top of RELEASES
  * with each update. The banner shows once per version, then stays dismissed.
  */
-export const APP_VERSION = '1.10.1'
+export const APP_VERSION = '1.10.2'
 
 export interface Release {
   version: string
@@ -13,6 +13,16 @@ export interface Release {
 }
 
 export const RELEASES: Release[] = [
+  {
+    version: '1.10.2',
+    date: '2026-10-16',
+    changes: [
+      'Adjustable time range on the Trading desk chart: When enabled in Settings > AI rules > "Adjustable time range on Trading desk", a custom days input appears next to the preset time buttons (1D, 1W, 1M, 1Y, All). Type any number of days (1 to 3650) to zoom to that exact range. The chart remembers your custom range until you switch to a preset.',
+    ],
+    changesVi: [
+      'Khoảng thời gian điều chỉnh trên Bàn giao dịch: Khi bật trong Cài đặt > Quy tắc AI > "Khoảng thời gian điều chỉnh được trên Bàn giao dịch", một trường nhập ngày tùy chỉnh xuất hiện bên cạnh các nút sẵn (1D, 1W, 1M, 1Y, All). Gõ bất kỳ số ngày nào (1 đến 3650) để zoom đến khoảng chính xác đó. Chart nhớ khoảng tùy chỉnh của bạn cho tới khi bạn chuyển sang nút sẵn.',
+    ],
+  },
   {
     version: '1.10.1',
     date: '2026-10-16',

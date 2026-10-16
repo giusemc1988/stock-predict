@@ -2,13 +2,28 @@
  * Signal Flow Explainer: Shows the 6-step decision flow for why a signal passed.
  * Each step explains what was checked and whether it passed.
  */
-import type { PracticeCandidate } from '../lib/practicePicks'
-import { pickSourceLabel, pickWhy } from '../lib/practicePicks'
+import { pickSourceLabel } from '../lib/practicePicks'
 import { fmtPct } from '../lib/format'
 import { useLang } from '../lib/i18n'
 
+interface Signal {
+  symbol: string
+  source: 'watchlist' | 'gainer' | 'active'
+  gainPct: number | null
+  volVsAvg: number | null
+  tradeScore: number | null
+  place: number | null
+  analysis?: { score: number; verdict: 'BUY' | 'SELL' | 'HOLD' } | null
+  rank?: number
+  price?: number
+  dollarVol?: number
+  asset?: 'stock' | 'crypto'
+  probUp?: number | null
+  barTime?: number
+}
+
 interface Props {
-  signal: PracticeCandidate
+  signal: Signal
   of: number
   onClose: () => void
 }
@@ -17,7 +32,12 @@ export function SignalFlowExplainer({ signal, of, onClose }: Props) {
   const lang = useLang()
   const vi = lang === 'vi'
   const L = (b: { en: string; vi: string }) => (vi ? b.vi : b.en)
-  const why = pickWhy(signal, of)
+  const whyParts: { en: string; vi: string }[] = [{ en: `#${signal.place} of ${of} BUY calls`, vi: `hạng ${signal.place}/${of} lệnh MUA` }]
+  if (signal.gainPct != null) whyParts.push({ en: `${signal.gainPct >= 0 ? '+' : ''}${signal.gainPct.toFixed(1)}% today`, vi: `${signal.gainPct >= 0 ? '+' : ''}${signal.gainPct.toFixed(1)}% hôm nay` })
+  if (signal.volVsAvg != null) whyParts.push({ en: `volume ${signal.volVsAvg.toFixed(1)}x normal`, vi: `khối lượng ${signal.volVsAvg.toFixed(1)}x bình thường` })
+  if (signal.tradeScore != null) whyParts.push({ en: `Trade Score ${signal.tradeScore}`, vi: `Điểm GD ${signal.tradeScore}` })
+  whyParts.push({ en: `from ${L(pickSourceLabel[signal.source])}`, vi: `từ ${L(pickSourceLabel[signal.source])}` })
+  const why = { en: whyParts.map((p) => p.en).join(', '), vi: whyParts.map((p) => p.vi).join(', ') }
 
   const steps = [
     {
@@ -45,7 +65,7 @@ export function SignalFlowExplainer({ signal, of, onClose }: Props) {
         en: `Trade Score ${signal.tradeScore ?? '—'} (50%), volume ${signal.volVsAvg?.toFixed(1) ?? '—'}x (25%), gain ${fmtPct(signal.gainPct ?? 0)} (25%)`,
         vi: `Điểm GD ${signal.tradeScore ?? '—'} (50%), khối lượng ${signal.volVsAvg?.toFixed(1) ?? '—'}x (25%), lợi ${fmtPct(signal.gainPct ?? 0)} (25%)`,
       }),
-      pass: signal.rank >= 0,
+      pass: (signal.rank ?? 0) >= 0,
     },
     {
       num: 4,
@@ -60,8 +80,8 @@ export function SignalFlowExplainer({ signal, of, onClose }: Props) {
       num: 5,
       name: L({ en: 'Risk check', vi: 'Kiểm tra rủi ro' }),
       desc: L({
-        en: `Price $${signal.price.toFixed(2)}, liquidity $${(signal.dollarVol ?? 0).toLocaleString()}`,
-        vi: `Giá $${signal.price.toFixed(2)}, thanh khoản $${(signal.dollarVol ?? 0).toLocaleString()}`,
+        en: `Price $${(signal.price ?? 0).toFixed(2)}, liquidity $${(signal.dollarVol ?? 0).toLocaleString()}`,
+        vi: `Giá $${(signal.price ?? 0).toFixed(2)}, thanh khoản $${(signal.dollarVol ?? 0).toLocaleString()}`,
       }),
       pass: true,
     },
