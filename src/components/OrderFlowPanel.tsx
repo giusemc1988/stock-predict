@@ -46,6 +46,9 @@ export function OrderFlowPanel({ flow, last }: { flow: OrderFlow; last: number }
         <span className="up">{fmtCompact(flow.buyVolume)} bought</span>
         <span className="down">{fmtCompact(flow.sellVolume)} sold</span>
       </div>
+      {flow.estimated && flow.source === 'Estimated from delayed data' && (
+        <small className="muted">Estimated from delayed data</small>
+      )}
 
       {flow.hasBook ? (
         <>
