@@ -31,6 +31,8 @@ export function AiRulesModal({ onClose }: { onClose: () => void }) {
   const [telegramSaved, setTelegramSaved] = useState(false)
   const [telegramTestLoading, setTelegramTestLoading] = useState(false)
   const [telegramTestResult, setTelegramTestResult] = useState<{ ok: boolean; message?: string; error?: string } | null>(null)
+  const [showToken, setShowToken] = useState(false)
+  const [savedTokenPreview, setSavedTokenPreview] = useState<string>('')
 
   useEffect(() => {
     // Load Telegram config from server
@@ -59,9 +61,15 @@ export function AiRulesModal({ onClose }: { onClose: () => void }) {
         body: JSON.stringify({ token: cleanToken, chatId: cleanChatId }),
       })
       if (res.ok) {
+        // Show preview of saved token
+        if (cleanToken.length > 14) {
+          setSavedTokenPreview(`${cleanToken.substring(0, 10)}…${cleanToken.substring(cleanToken.length - 4)}`)
+        } else {
+          setSavedTokenPreview(cleanToken)
+        }
         setTelegramSaved(true)
         setTelegramTestResult(null)
-        setTimeout(() => setTelegramSaved(false), 2000)
+        setTimeout(() => setTelegramSaved(false), 3000)
       } else {
         alert(vi ? 'Lỗi lưu Telegram config' : 'Error saving Telegram config')
       }
@@ -136,12 +144,31 @@ export function AiRulesModal({ onClose }: { onClose: () => void }) {
             </p>
             <label className="field">
               <span>Telegram Bot Token</span>
-              <input
-                type="password"
-                value={telegramToken}
-                onChange={(e) => setTelegramToken(e.target.value)}
-                placeholder={vi ? 'Ví dụ: 123456:ABC-DEF...' : 'e.g., 123456:ABC-DEF...'}
-              />
+              <div style={{ display: 'flex', gap: '4px', alignItems: 'center' }}>
+                <input
+                  type={showToken ? 'text' : 'password'}
+                  value={telegramToken}
+                  onChange={(e) => setTelegramToken(e.target.value)}
+                  autoComplete="new-password"
+                  placeholder={vi ? 'Ví dụ: 123456:ABC-DEF...' : 'e.g., 123456:ABC-DEF...'}
+                  style={{ flex: 1 }}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowToken(!showToken)}
+                  style={{
+                    background: 'none',
+                    border: 'none',
+                    cursor: 'pointer',
+                    padding: '4px 8px',
+                    color: 'inherit',
+                    fontSize: '16px',
+                  }}
+                  title={vi ? 'Hiển thị/ẩn' : 'Show/hide'}
+                >
+                  {showToken ? '🙈' : '👁️'}
+                </button>
+              </div>
             </label>
             <label className="field">
               <span>{vi ? 'Chat ID của bạn' : 'Your Chat ID'}</span>
@@ -149,6 +176,7 @@ export function AiRulesModal({ onClose }: { onClose: () => void }) {
                 type="text"
                 value={telegramChatId}
                 onChange={(e) => setTelegramChatId(e.target.value)}
+                autoComplete="off"
                 placeholder={vi ? 'Ví dụ: 123456789' : 'e.g., 123456789'}
               />
             </label>
@@ -172,6 +200,12 @@ export function AiRulesModal({ onClose }: { onClose: () => void }) {
                 {telegramTestLoading ? (vi ? '⏳ Gửi tin...' : '⏳ Sending...') : vi ? 'Gửi tin thử' : 'Send test'}
               </button>
             </div>
+            {telegramSaved && savedTokenPreview && (
+              <p className="muted tiny" style={{ marginTop: '8px' }}>
+                {vi ? '✓ Token đã lưu: ' : '✓ Saved token: '}
+                <code>{savedTokenPreview}</code>
+              </p>
+            )}
             {telegramTestResult && (
               <p className={`muted tiny ${telegramTestResult.ok ? 'up' : 'down'}`} style={{ marginTop: '8px' }}>
                 {telegramTestResult.ok ? '✓ ' : '✗ '}
