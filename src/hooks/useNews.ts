@@ -21,9 +21,13 @@ export function useNews(symbols: string[], enabled: boolean): NewsItem[] {
   const [news, setNews] = useState<NewsItem[]>([]);
   const cacheRef = useRef<Map<string, NewsCacheEntry>>(new Map());
 
+  // callers often pass a new array each render: depend on the symbols themselves, or the effect loops forever
+  const key = enabled ? symbols.join(',') : '';
+
   useEffect(() => {
-    if (!enabled || !symbols || symbols.length === 0) {
-      setNews([]);
+    const list = key ? key.split(',') : [];
+    if (!list.length) {
+      setNews((n) => (n.length ? [] : n));
       return;
     }
 
@@ -31,7 +35,7 @@ export function useNews(symbols: string[], enabled: boolean): NewsItem[] {
       const results: NewsItem[] = [];
       const now = Date.now();
 
-      for (const symbol of symbols) {
+      for (const symbol of list) {
         const cached = cacheRef.current.get(symbol);
         if (cached && now - cached.fetchedAt < CACHE_TTL_MS) {
           // Use cached entry
@@ -55,7 +59,7 @@ export function useNews(symbols: string[], enabled: boolean): NewsItem[] {
     };
 
     fetchNews();
-  }, [symbols, enabled]);
+  }, [key]);
 
   return news;
 }

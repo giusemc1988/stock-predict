@@ -2,7 +2,7 @@
  * Version and "What's new". Bump APP_VERSION and add an entry to the top of RELEASES
  * with each update. The banner shows once per version, then stays dismissed.
  */
-export const APP_VERSION = '1.21.0'
+export const APP_VERSION = '1.21.1'
 
 export interface Release {
   version: string
@@ -13,6 +13,18 @@ export interface Release {
 }
 
 export const RELEASES: Release[] = [
+  {
+    version: '1.21.1',
+    date: '2026-10-16',
+    changes: [
+      'No more black screen: if one part of the app (chart, watchlist, positions, a right-hand tab) hits an error, only that part shows the error with a "Try again" button; the rest keeps working. Picking another stock retries it on its own.',
+      'Fixed an endless refresh loop in the Brief news box that could freeze the page.',
+    ],
+    changesVi: [
+      'Hết màn hình đen: nếu một phần của app (biểu đồ, watchlist, bảng vị thế, tab bên phải) bị lỗi, chỉ phần đó hiện lỗi với nút "Thử lại", phần còn lại vẫn chạy. Chọn mã khác thì nó tự thử lại.',
+      'Sửa vòng lặp làm mới vô tận trong ô tin tức của Bản tin, có thể làm treo trang.',
+    ],
+  },
   {
     version: '1.21.0',
     date: '2026-10-16',

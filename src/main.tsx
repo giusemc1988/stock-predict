@@ -2,10 +2,13 @@ import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import './index.css'
 import App from './App.tsx'
+import { PanelGuard } from './components/PanelGuard'
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <App />
+    <PanelGuard name="App">
+      <App />
+    </PanelGuard>
   </StrictMode>,
 )
 
