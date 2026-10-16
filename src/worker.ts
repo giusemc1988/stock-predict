@@ -145,9 +145,8 @@ export default {
         })
         const tgData = (await tgRes.json().catch(() => ({}))) as Record<string, unknown>
         if (!tgRes.ok) {
-          const errorMsg = tgData.description
-            ? `${String(tgData.description)} (HTTP ${tgRes.status})`
-            : `HTTP ${tgRes.status}`
+          const description = tgData.description ? String(tgData.description) : 'Error'
+          const errorMsg = `Telegram: ${description} (HTTP ${tgRes.status})`
           return json({ error: errorMsg }, 400)
         }
         return json({ ok: true, message: 'Test message sent successfully' })
