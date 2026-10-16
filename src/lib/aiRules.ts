@@ -87,6 +87,7 @@ export interface AiRules {
   autoRangeTf: boolean // chart range buttons also pick the bar size, like Webull
   localVoiceNarrator: boolean // read explanations + answers aloud using browser speechSynthesis
   signalValidator: boolean // validate every signal path before showing (alerts, Brief, playbook)
+  newsEnabled: boolean // show latest news for watched symbols in Jarvis Brief
   newsAnalysis: boolean // analyze market news sentiment for BUY/SELL bias
   preMarketAlerts: boolean // alerts before market open (pre-market movers and news)
   cryptoMoversThrottleHrs: number // max frequency to scan crypto movers (0 = always, >0 = hours between scans)
@@ -181,6 +182,7 @@ export const DEFAULT_AI_RULES: AiRules = {
   autoRangeTf: true,
   localVoiceNarrator: false,
   signalValidator: true,
+  newsEnabled: false,
   newsAnalysis: false,
   preMarketAlerts: false,
   cryptoMoversThrottleHrs: 1,
@@ -289,6 +291,7 @@ export const RULE_FIELDS: RuleField[] = [
   { group: 'modules', key: 'autoRangeTf', en: 'Chart ranges pick the bar size (1D = 5-minute bars, 5D = 15m, 1M = 1h, 3M = 4h, 1Y and All = daily)', vi: 'Khoảng biểu đồ tự chọn cỡ nến (1D = nến 5 phút, 5D = 15p, 1M = 1 giờ, 3M = 4 giờ, 1Y và All = ngày)' },
   { group: 'modules', key: 'adjustableTimeRange', en: 'Adjustable time range on Trading desk (custom days input beyond preset buttons)', vi: 'Khoảng thời gian điều chỉnh được trên Bàn giao dịch (nhập ngày tùy chỉnh ngoài các nút sẵn)' },
   { group: 'modules', key: 'signalValidator', en: 'Validate every signal path before showing (alerts, Brief, playbook)', vi: 'Kiểm tra mọi đường dẫn tín hiệu trước khi hiển thị (cảnh báo, Bản tin, Sổ tay)' },
+  { group: 'jarvis', key: 'newsEnabled', en: 'Show latest news for watched symbols in Jarvis Brief', vi: 'Hiện tin tức mới nhất cho các mã theo dõi trong Jarvis Brief' },
   { group: 'modules', key: 'newsAnalysis', en: 'Analyze market news sentiment for BUY/SELL bias', vi: 'Phân tích độ dốc tin tức thị trường cho thiên vị MUA/BÁN' },
   { group: 'modules', key: 'preMarketAlerts', en: 'Alerts before market open (pre-market movers and news)', vi: 'Cảnh báo trước khi mở cửa thị trường (mã tăng trước giờ và tin tức)' },
   { group: 'modules', key: 'cryptoMoversThrottleHrs', en: 'Crypto movers scan frequency (0 = always, >0 = max hours between scans)', vi: 'Tần suất quét crypto tăng (0 = luôn luôn, >0 = giờ tối đa giữa các lần quét)', min: 0, max: 24, step: 1, unit: 'hours' },

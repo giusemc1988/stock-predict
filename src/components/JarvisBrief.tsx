@@ -18,6 +18,8 @@ import { ScoreboardPanel } from './ScoreboardPanel'
 import { SignalFlowExplainer } from './SignalFlowExplainer'
 import { AgentReadiness } from './AgentReadiness'
 import { LocalAiQA } from './LocalAiQA'
+import { NewsBox } from './NewsBox'
+import { useNews } from '../hooks/useNews'
 
 interface Props {
   rules: AiRules
@@ -102,6 +104,8 @@ export function JarvisBrief(p: Props) {
   const moverRows = moverTab === 'stock' ? lists.stocks : lists.crypto
   const openRow = (r: MarketListRow) => p.onSymbol(r.symbol, r.assetClass)
   const openSignalFlow = (signal: PickRow) => setShowSignalFlow(signal)
+  const watchedSymbols = useMemo(() => buys.map((b) => b.symbol), [buys])
+  const news = useNews(watchedSymbols, p.rules.newsEnabled)
 
   return (
     <main className="brief-page">
@@ -210,6 +214,10 @@ export function JarvisBrief(p: Props) {
         </section>
 
         <ScoreboardPanel practice={p.practice} baseline={p.rules.scoreboardBaseline} priceOf={p.priceOf} />
+
+        <section className="bf-card">
+          <NewsBox news={news} enabled={p.rules.newsEnabled} />
+        </section>
 
         <section className="bf-card">
           <header>
