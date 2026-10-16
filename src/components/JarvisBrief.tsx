@@ -160,7 +160,7 @@ export function JarvisBrief(p: Props) {
             <span className="muted small">{time(p.scan.at)}</span>
           </header>
           <p className="bf-source">
-            {vi ? 'Nguồn' : 'Source'}: {p.serverMode ? (vi ? 'máy chủ luyện tập, quét mã biến động hôm nay' : 'server practice scan of today's movers') : vi ? 'quét luyện tập trong trình duyệt' : 'practice scan in this browser'}
+            {vi ? "Nguồn" : "Source"}: {p.serverMode ? (vi ? "máy chủ luyện tập, quét mã biến động hôm nay" : "server practice scan of today's movers") : vi ? "quét luyện tập trong trình duyệt" : "practice scan in this browser"}
           </p>
           {!inputs.scan.on && <p className="warn">{vi ? 'Quét luyện tập đang tắt (Cài đặt > Quy tắc AI).' : 'The practice scan is off (Settings > AI rules).'}</p>}
           {inputs.scan.on && !p.scan.at && <p className="muted">{p.scan.busy ? (vi ? 'Đang quét…' : 'Scanning…') : vi ? 'Chưa có lần quét nào.' : 'No scan yet.'}</p>}
