@@ -1026,6 +1026,7 @@ body:has(.jfab) .toasts, body:has(.jfab) .jarvis-alert { bottom: 84px; }
 .qa-input-group button:disabled { opacity: 0.5; cursor: not-allowed; }
 .qa-answer { margin: 0; font-size: 13px; line-height: 1.6; color: #d7deea; padding: 10px; background: rgba(255, 255, 255, 0.03); border-left: 2px solid var(--robot); border-radius: 4px; }
 .qa-answer.error { border-color: var(--down); color: #f64655; }
+.bf-qa-hero { padding: 12px 0; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); margin: 12px 0; }
 
 /* ---------- Signal Flow Explainer modal ---------- */
 .modal-overlay { position: fixed; inset: 0; background: rgba(0, 0, 0, 0.6); display: grid; place-items: center; z-index: 50; padding: 16px; }

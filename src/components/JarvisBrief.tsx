@@ -134,6 +134,11 @@ export function JarvisBrief(p: Props) {
             </button>
           </div>
           {spoke && <p className="muted small">{spoke}</p>}
+          {p.rules.localQA && (
+            <div className="bf-qa-hero">
+              <LocalAiQA rules={p.rules} practice={p.practice} />
+            </div>
+          )}
           <div className="bf-mood">
             <div>
               <b className="mono">{buys.length}</b>
@@ -233,12 +238,6 @@ export function JarvisBrief(p: Props) {
           {p.learn.latest && <p className="bf-lesson">“{L(p.learn.latest)}”</p>}
           {rep.n < 30 && <p className="muted small">{vi ? 'Dưới 30 lệnh: tỉ lệ thắng chưa đáng tin.' : 'Under 30 trades: the win rate is not reliable yet.'}</p>}
         </section>
-
-        {p.rules.localQA && (
-          <section className="bf-card">
-            <LocalAiQA rules={p.rules} practice={p.practice} />
-          </section>
-        )}
       </div>
 
       {showSignalFlow && (
