@@ -94,7 +94,7 @@ export function usePractice({ rules, symbol, asset, tf, candles, analysis, liveS
       fetch(`/api/practice/state?t=${Date.now()}`, { cache: 'no-store' })
         .then((r) => (r.ok ? r.json() : null))
         .then((json) => {
-          const raw = json?.state
+          const raw = (json as { state?: unknown } | null)?.state
           const s = parsePractice(raw)
           setPullNow(Date.now())
           if (s?.server) setServer((cur) => (cur && cur.server && cur.server.lastRun >= s.server!.lastRun ? cur : s))
