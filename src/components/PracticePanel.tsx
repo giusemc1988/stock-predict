@@ -270,6 +270,7 @@ export function PracticePanel({ state, rules, symbol, priceOf, onReset, scan, on
               <p className="muted al-note">
                 {scan.at ? `${L('Last scan', 'Lần quét cuối')} ${when(scan.at)}${serverMode ? L(' on the server', ' trên máy chủ') : ''}` : L('First scan is running…', 'Đang quét lần đầu…')}
                 {scan.failed.length > 0 && ` · ${L('no data for', 'không có dữ liệu cho')} ${scan.failed.join(', ')}`}
+                {rules.practiceMovers && !serverMode && L(' · Top gainers require Alpaca keys on Portfolio page', ' · Mã tăng mạnh cần key Alpaca trên trang Danh mục')}
               </p>
               {scan.noStockData && (
                 <p className="muted al-note">
