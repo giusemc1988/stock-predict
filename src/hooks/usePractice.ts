@@ -5,9 +5,9 @@ import { costsFrom } from '../lib/costs'
 import { stampData } from '../lib/dataGuard'
 import { baseRate, decide, type JournalEntry } from '../lib/journal'
 import { emptyPractice, onBarClose, PENNY_MIN_PRICE, PENNY_PRICE, onPrice, parsePractice, type PickRow, type PracticeEvent, type PracticeState } from '../lib/practice'
-import { PICK_TF, scanCycle, withOpenMarkets, type ScanMarket } from '../lib/practiceScan'
+import { cryptoMovers, PICK_TF, scanCycle, scanMarkets, withOpenMarkets, type Mover, type ScanMarket } from '../lib/practiceScan'
 import { dollarVolume } from '../lib/practicePicks'
-import { alpacaMovers, hasAlpacaData, type AlpacaDataKeys, type ApiKeys, type MarketMover } from '../data/providers'
+import { alpacaMovers, binanceMarketLists, hasAlpacaData, type AlpacaDataKeys, type ApiKeys, type MarketMover } from '../data/providers'
 import { candlesFor } from '../data/series'
 
 const KEY = 'arc.practice.v1'
@@ -232,6 +232,7 @@ export function usePractice({ rules, symbol, asset, tf, candles, analysis, liveS
   const lastBars = useRef(loadBars())
   const scanPrices = useRef(new Map<string, number>())
   const movers = useRef<{ at: number; list: MarketMover[] }>({ at: 0, list: [] })
+  const coins = useRef<{ at: number; list: Mover[] }>({ at: 0, list: [] })
   const running = useRef(false)
   const runScan = useCallback(async () => {
     if (running.current) return
@@ -242,9 +243,14 @@ export function usePractice({ rules, symbol, asset, tf, candles, analysis, liveS
     try {
       if (c.rules.practiceMovers && hasAlpacaData(c.alpacaKeys) && Date.now() - movers.current.at > MOVERS_MS)
         movers.current = { at: Date.now(), list: await alpacaMovers(c.alpacaKeys, 10, c.rules.practicePenny ? PENNY_MIN_PRICE : PENNY_PRICE).catch(() => movers.current.list) }
-      const markets: ScanMarket[] = c.universe.filter((i) => i.assetClass === 'crypto' || stockData).map((i) => ({ symbol: i.symbol, asset: i.assetClass, source: 'watchlist' as const }))
-      if (c.rules.practiceMovers) for (const m of movers.current.list) if (!markets.some((x) => x.symbol === m.symbol)) markets.push({ symbol: m.symbol, asset: 'stock', source: m.source })
-      const instFor = (m: ScanMarket): Instrument => c.universe.find((i) => i.symbol === m.symbol) ?? { symbol: m.symbol, name: m.symbol, assetClass: m.asset, feedId: m.symbol, demoPrice: 100, demoVol: 0.4 }
+      if (c.rules.practiceCryptoMovers && Date.now() - coins.current.at > MOVERS_MS)
+        coins.current = { at: Date.now(), list: await binanceMarketLists(15).then((l) => cryptoMovers(l)).catch(() => coins.current.list) }
+      const markets: ScanMarket[] = scanMarkets(
+        c.universe.filter((i) => i.assetClass === 'crypto' || stockData),
+        c.rules.practiceMovers ? movers.current.list.map((m) => ({ symbol: m.symbol, source: m.source })) : [],
+        c.rules.practiceCryptoMovers ? coins.current.list : [],
+      )
+      const instFor = (m: ScanMarket): Instrument => c.universe.find((i) => i.symbol === m.symbol) ?? { symbol: m.symbol, name: m.symbol, assetClass: m.asset, feedId: m.asset === 'crypto' ? m.symbol.replace('/', '') : m.symbol, demoPrice: 100, demoVol: 0.4 }
       const r = await scanCycle({
         markets: withOpenMarkets(markets, c.state).filter((m) => m.asset === 'crypto' || stockData),
         fetchBars: (m) => candlesFor(instFor(m), PICK_TF, c.keys, c.alpacaKeys, 300),

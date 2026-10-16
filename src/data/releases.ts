@@ -2,7 +2,7 @@
  * Version and "What's new". Bump APP_VERSION and add an entry to the top of RELEASES
  * with each update. The banner shows once per version, then stays dismissed.
  */
-export const APP_VERSION = '1.9.2'
+export const APP_VERSION = '1.10.0'
 
 export interface Release {
   version: string
@@ -13,6 +13,28 @@ export interface Release {
 }
 
 export const RELEASES: Release[] = [
+  {
+    version: '1.10.0',
+    date: '2026-10-16',
+    changes: [
+      'New home page: Jarvis Brief. In the middle is Jarvis\'s "second brain", a turning sphere of memories, with six helpers around it: Scanner, Order flow and News feed data in; Signals, Learner and Risk guard carry results out.',
+      'Everything on it is real. Each helper shows its live data (for example "buyers 61% on BTC/USDT"), goes grey and says what is missing when there is no data, and opens the screen with the details when tapped. News is not connected yet and says so.',
+      'Fresh picks every day from the whole market: the practice scan now also takes today\'s top crypto gainers and most-traded coins (Binance in the app, CoinGecko on the server), on top of the top US stock gainers and most-traded stocks. Your watchlist is only added on top.',
+      'AI Picks can scan "The market" (today\'s live movers, stocks and crypto) or "My list".',
+      'The brief at the top is written by your free AI helpers from the page\'s real data, once per scan, and saved until the data changes. If every AI key fails, a plain summary of the same data is shown.',
+      'Uses less data: the Brief, the watchlist and AI Picks share one market-list download, nothing refreshes while the tab is hidden, and stock lists pause outside US market hours.',
+      'The old screen is now the Trading desk tab, unchanged. Switch the home page off in Settings > AI rules > "Jarvis Brief as the home page". The AI-written brief and the crypto movers have their own switches too.',
+    ],
+    changesVi: [
+      'Trang chủ mới: Jarvis Brief. Ở giữa là "bộ não thứ hai" của Jarvis, một quả cầu ký ức xoay chậm, có sáu trợ lý xung quanh: Máy quét, Dòng lệnh và Tin tức đưa dữ liệu vào; Tín hiệu, Tự học và Bảo vệ rủi ro đưa kết quả ra.',
+      'Mọi thứ trên trang đều là dữ liệu thật. Mỗi trợ lý hiện dữ liệu trực tiếp (ví dụ "bên mua 61% ở BTC/USDT"), chuyển xám và nói rõ thiếu gì khi chưa có dữ liệu, và bấm vào sẽ mở màn hình chi tiết. Tin tức chưa kết nối và ghi rõ như vậy.',
+      'Lựa chọn mới mỗi ngày từ toàn thị trường: quét luyện tập giờ lấy thêm crypto tăng mạnh và giao dịch nhiều nhất hôm nay (Binance trong ứng dụng, CoinGecko trên máy chủ), bên cạnh cổ phiếu Mỹ tăng mạnh và giao dịch nhiều nhất. Watchlist chỉ được thêm vào, không còn là nguồn duy nhất.',
+      'AI Picks có thể quét "Toàn thị trường" (mã biến động trực tiếp hôm nay, cổ phiếu và crypto) hoặc "Danh sách của tôi".',
+      'Bản tin ở đầu trang do AI miễn phí của bạn viết từ dữ liệu thật trên trang, mỗi lần quét một lần, và được lưu lại tới khi dữ liệu đổi. Nếu mọi key AI đều lỗi, trang hiện bản tóm tắt thường từ cùng dữ liệu.',
+      'Tốn ít dữ liệu hơn: Brief, watchlist và AI Picks dùng chung một lần tải danh sách thị trường, không cập nhật khi tab bị ẩn, và danh sách cổ phiếu tạm dừng ngoài giờ thị trường Mỹ.',
+      'Màn hình cũ giờ là tab Bàn giao dịch, giữ nguyên. Tắt trang chủ mới trong Cài đặt > Quy tắc AI > "Jarvis Brief là trang chủ". Bản tin do AI viết và crypto biến động cũng có công tắc riêng.',
+    ],
+  },
   {
     version: '1.9.2',
     date: '2026-10-16',

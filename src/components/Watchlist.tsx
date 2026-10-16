@@ -32,6 +32,8 @@ interface Props {
   onAdd: (inst: Instrument) => void
   activeSignal: Signal | null
   alpacaKeys: AlpacaDataKeys
+  /** Bumped to open the live Top gainers list (from the Jarvis Brief scanner). */
+  sortRequest?: number
 }
 
 type ListSort = 'gainers' | 'losers' | 'volume' | 'most_active' | 'new_highs'
@@ -152,13 +154,16 @@ function AiActive({ rows, quotes, active, onSelect }: { rows: AiActiveRow[]; quo
   )
 }
 
-export function Watchlist({ aiActive, instruments, quotes, active, onSelect, onAdd, activeSignal, alpacaKeys }: Props) {
+export function Watchlist({ aiActive, instruments, quotes, active, onSelect, onAdd, activeSignal, alpacaKeys, sortRequest = 0 }: Props) {
   const tx = useT()
   const lang = useLang()
   const L = (en: string, vi: string) => (lang === 'vi' ? vi : en)
   const [filter, setFilter] = useState('')
   const [tab, setTab] = useState<'all' | 'crypto' | 'stock'>('all')
-  const [sort, setSort] = useState<'default' | 'gainers' | 'losers' | 'volume' | 'most_active' | 'new_highs' | 'success'>('default')
+  const [sort, setSort] = useState<'default' | 'gainers' | 'losers' | 'volume' | 'most_active' | 'new_highs' | 'success'>(sortRequest ? 'gainers' : 'default')
+  useEffect(() => {
+    if (sortRequest) setSort('gainers')
+  }, [sortRequest])
   // last AI Picks scan, from browser storage; re-read whenever a new scan is saved
   const picks = useSyncExternalStore(
     (cb) => {
@@ -171,14 +176,14 @@ export function Watchlist({ aiActive, instruments, quotes, active, onSelect, onA
   const filtered = instruments.filter(
     (i) => (tab === 'all' || i.assetClass === tab) && (i.symbol + i.name).toLowerCase().includes(filter.toLowerCase()),
   )
-  const marketWide = sort === 'gainers' || sort === 'losers' || sort === 'volume'
+  const marketWide = sort === 'gainers' || sort === 'losers' || sort === 'volume' || sort === 'most_active' || sort === 'new_highs'
   // top gainers / losers / volume come from the whole market, never from the watchlist
   const lists = useMarketLists(marketWide, alpacaKeys)
   const marketRows = useMemo(() => {
     if (!marketWide) return []
     const metric = (r: MarketListRow) =>
       sort === 'gainers' ? r.changePct : sort === 'losers' ? -r.changePct : sort === 'most_active' || sort === 'volume' ? r.dollarVolume ?? 0 : sort === 'new_highs' ? r.price : 0
-    const pick = (l: typeof lists.crypto) => (l && sort in l ? (l as Record<string, MarketListRow[]>)[sort] : [])
+    const pick = (l: typeof lists.crypto) => (l && marketWide ? (l[sort] ?? []) : [])
     const rows = [...(tab !== 'crypto' ? pick(lists.stocks) : []), ...(tab !== 'stock' ? pick(lists.crypto) : [])]
     const q = filter.toLowerCase()
     return rows.filter((r) => r.symbol.toLowerCase().includes(q)).sort((a, b) => metric(b) - metric(a)).slice(0, 25)

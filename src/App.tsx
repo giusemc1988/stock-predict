@@ -16,7 +16,9 @@ import { runStrategy } from './lib/strategy'
 import { blocking, riskGates } from './lib/riskGates'
 import { analyze } from './lib/analyst'
 import { fmtPrice, fmtUsd } from './lib/format'
-import { TopBar } from './components/TopBar'
+import { TopBar, type Page } from './components/TopBar'
+import { JarvisBrief } from './components/JarvisBrief'
+import type { NodeId } from './lib/brief'
 import { Watchlist } from './components/Watchlist'
 import { ChartPanel } from './components/ChartPanel'
 import { OrderTicket } from './components/OrderTicket'
@@ -98,7 +100,11 @@ export default function App() {
   const skillFails = useMemo(() => new Set(runSkillTests().filter((t) => !t.ok).map((t) => t.id)), [])
   const aiRules = useMemo(() => effectiveRules(rawRules, skillStatuses, skillFails), [rawRules, skillStatuses, skillFails])
   const skillTags = useMemo(() => approvedTags(rawRules, skillStatuses, skillFails), [rawRules, skillStatuses, skillFails])
-  const [page, setPage] = useState<'trade' | 'portfolio'>('trade')
+  const [page, setPageRaw] = useState<Page>(() => (rawRules.briefHome && rawRules.jarvisOn ? 'brief' : 'trade'))
+  const briefOn = aiRules.briefHome && aiRules.jarvisOn
+  const shownPage: Page = page === 'brief' && !briefOn ? 'trade' : page
+  const setPage = setPageRaw
+  const [sortRequest, setSortRequest] = useState(0)
   const [rightTab, setRightTab] = useState<'ai' | 'flow' | 'trade' | 'learn' | 'picks' | 'practice' | 'brain'>('ai')
   const lang = useLang()
   // the Brain tab disappears when Jarvis is switched off
@@ -500,8 +506,22 @@ export default function App() {
     : undefined
   const showAnalysis = showMeOn && analysis && candles.length ? () => startTour(analysisTour(analysis, inst.symbol, candles[candles.length - 1].time)) : undefined
 
+  // Jarvis Brief: each node opens the screen that holds its data
+  const openNode = (id: NodeId) => {
+    if (id === 'risk') return setPage('portfolio')
+    if (id === 'news') return setAiRulesOpen(true)
+    setPage('trade')
+    if (id === 'scanner') setSortRequest((n) => n + 1)
+    else setRightTab(id === 'flow' ? 'flow' : id === 'signals' ? 'practice' : aiRules.jarvisOn ? 'brain' : 'learn')
+  }
+  const openSymbol = (symbol: string, assetClass: 'stock' | 'crypto') => {
+    if (!chartUniverse.some((i) => i.symbol === symbol)) addInstrument({ symbol, name: symbol, assetClass, feedId: assetClass === 'crypto' ? symbol.replace('/', '') : symbol, demoPrice: 100, demoVol: 0.4 })
+    select(symbol)
+    setPage('trade')
+  }
+
   return (
-    <div className={`app page-${page}`}>
+    <div className={`app page-${shownPage}`}>
       <WhatsNew />
       {aiRules.jarvisOn && aiRules.jarvisFab && (
         <JarvisFab state={practice.state} rules={aiRules} journal={autoLearn.state.journal} learn={autoLearn.state} killSwitch={prefs.killSwitch} priceOf={practice.priceOf} known={chartUniverse} watchlist={universe.map((i) => i.symbol)} onAskStock={askStock} onShowTrade={showTrade} onReplay={showReplay} onAction={jarvisAct} symbol={inst.symbol} />
@@ -542,12 +562,14 @@ export default function App() {
           setPage('trade')
           setRightTab('ai')
         }}
-        page={page}
+        page={shownPage}
         onPage={setPage}
+        brief={briefOn}
         equity={broker.account.equity}
         dayPL={broker.account.dayPL}
       />
-      <Watchlist
+      {shownPage !== 'brief' && <Watchlist
+        sortRequest={sortRequest}
         aiActive={aiRules.practiceMode && aiRules.practiceWatchlist ? aiActive : null}
         instruments={universe}
         quotes={quotes}
@@ -559,8 +581,25 @@ export default function App() {
         onAdd={addInstrument}
         activeSignal={lastSignal}
         alpacaKeys={alpacaKeys}
-      />
-      {page === 'trade' ? (
+      />}
+      {shownPage === 'brief' ? (
+        <JarvisBrief
+          rules={aiRules}
+          alpacaKeys={alpacaKeys}
+          flow={{ symbol: inst.symbol, buyShare, live: flow.live, source: flow.source }}
+          practice={practice.state}
+          scan={practice.scan}
+          serverMode={practice.serverMode}
+          learn={autoLearn.state}
+          dayPL={broker.account.dayPL}
+          lossLimit={prefs.lossLimit}
+          lossLimitOn={prefs.lossLimitOn}
+          killSwitch={prefs.killSwitch}
+          onNode={openNode}
+          onSymbol={openSymbol}
+          onDesk={() => setPage('trade')}
+        />
+      ) : shownPage === 'trade' ? (
         <>
           <main className="center">
             <section className="panel chart-panel">
@@ -639,7 +678,7 @@ export default function App() {
                   keys={keys}
                   alpacaKeys={alpacaKeys}
                   onOpen={(symbol) => {
-                    select(symbol)
+                    openSymbol(symbol, symbol.includes('/') ? 'crypto' : 'stock')
                     setRightTab('ai')
                   }}
                 />

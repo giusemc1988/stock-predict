@@ -5,7 +5,7 @@ import { fmtCompact, fmtPct, fmtPrice, fmtSigned, fmtUsd, tone } from '../lib/fo
 import { ArcLogo } from './ArcLogo'
 import { APP_VERSION } from '../data/releases'
 import { RobotIcon } from './RobotIcon'
-import { useT } from '../lib/i18n'
+import { useLang, useT } from '../lib/i18n'
 
 interface Props {
   inst: Instrument
@@ -22,16 +22,21 @@ interface Props {
   analysis: Analysis | null
   buyShare: number | null
   onAnalyst: () => void
-  page: 'trade' | 'portfolio'
-  onPage: (p: 'trade' | 'portfolio') => void
+  page: Page
+  onPage: (p: Page) => void
+  /** Show the Jarvis Brief tab (home page). */
+  brief: boolean
   equity: number
   dayPL: number
 }
 
+export type Page = 'brief' | 'trade' | 'portfolio'
+
 const STATUS_LABEL: Record<FeedStatus, string> = { connecting: 'Connecting', live: 'Live', polling: 'Delayed', demo: 'Simulated', error: 'Error' }
 
-export function TopBar({ inst, quote, lastPrice, tf, onTf, status, source, error, toggles, onToggle, onSettings, analysis, buyShare, onAnalyst, page, onPage, equity, dayPL }: Props) {
+export function TopBar({ inst, quote, lastPrice, tf, onTf, status, source, error, toggles, onToggle, onSettings, analysis, buyShare, onAnalyst, page, onPage, equity, dayPL, brief }: Props) {
   const t = useT()
+  const vi = useLang() === 'vi'
   const chg = quote?.change ?? 0
   return (
     <header className="topbar">
@@ -45,8 +50,13 @@ export function TopBar({ inst, quote, lastPrice, tf, onTf, status, source, error
         </div>
       </div>
       <nav className="nav">
+        {brief && (
+          <button className={page === 'brief' ? 'on' : ''} onClick={() => onPage('brief')}>
+            Jarvis Brief
+          </button>
+        )}
         <button className={page === 'trade' ? 'on' : ''} onClick={() => onPage('trade')}>
-          {t('trade')}
+          {brief ? (vi ? 'Bàn giao dịch' : 'Trading desk') : t('trade')}
         </button>
         <button className={page === 'portfolio' ? 'on' : ''} onClick={() => onPage('portfolio')}>
           {t('portfolio')}
