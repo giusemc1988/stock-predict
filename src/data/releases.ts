@@ -2,7 +2,7 @@
  * Version and "What's new". Bump APP_VERSION and add an entry to the top of RELEASES
  * with each update. The banner shows once per version, then stays dismissed.
  */
-export const APP_VERSION = '1.14.0'
+export const APP_VERSION = '1.14.1'
 
 export interface Release {
   version: string
@@ -13,6 +13,18 @@ export interface Release {
 }
 
 export const RELEASES: Release[] = [
+  {
+    version: '1.14.1',
+    date: '2026-10-16',
+    changes: [
+      'Free AI keys: the Test button now shows what the AI service actually said (for example "HTTP 401: Invalid API Key") and what to do next, instead of one general message.',
+      'Fixed: NVIDIA keys always failed because NVIDIA retired the model the app used (Llama 3.3 70B, end of life 2026-08-26). Each AI helper now has backup models and moves to the next one when a model is retired.',
+    ],
+    changesVi: [
+      'Khóa AI miễn phí: nút Thử giờ hiện đúng câu trả lời của dịch vụ AI (ví dụ "HTTP 401: Invalid API Key") và việc cần làm tiếp, thay vì một câu báo lỗi chung.',
+      'Đã sửa: khóa NVIDIA luôn báo lỗi vì NVIDIA đã ngừng mẫu AI mà app dùng (Llama 3.3 70B, ngừng từ 26/08/2026). Mỗi dịch vụ AI giờ có mẫu dự phòng và tự chuyển sang mẫu kế tiếp khi một mẫu bị ngừng.',
+    ],
+  },
   {
     version: '1.14.0',
     date: '2026-10-16',

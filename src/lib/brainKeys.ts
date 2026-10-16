@@ -3,7 +3,16 @@
  * the repo), merged over any server secrets, and are never sent back: the app only learns
  * whether a helper is on and where its key came from.
  */
-import { PROVIDERS, systemPrompt, type BrainEnv } from './brainServer'
+import { callHelper, PROVIDERS, systemPrompt, type BrainEnv } from './brainServer'
+
+/** Plain next step for the usual refusals. */
+function hint(why: string): string {
+  if (/HTTP 40[13]/.test(why)) return 'The key is wrong, expired or not allowed for this model: make a new one.'
+  if (/HTTP 429/.test(why)) return 'Free limit used up for now: try again later.'
+  if (/HTTP 404/.test(why)) return 'The AI model name is not available for this key.'
+  if (/HTTP 400/.test(why)) return 'The helper rejected the request.'
+  return ''
+}
 
 export interface KeyStore {
   get(key: string): Promise<string | null>
@@ -70,10 +79,14 @@ export async function testProvider(id: string, env: BrainEnv, f: typeof fetch = 
   const key = p?.key(env)
   if (!p || !isSlot(id)) return { ok: false, error: 'Unknown helper' }
   if (!key) return { ok: false, error: 'No key saved for this helper' }
+  let why = ''
   try {
-    const text = await p.call(key, undefined, systemPrompt('en'), 'Reply with the single word: pong', f)
-    return text?.trim() ? { ok: true } : { ok: false, error: 'The helper did not accept the key, or its free limit is used up' }
-  } catch {
-    return { ok: false, error: 'Could not reach the helper' }
+    const text = await callHelper(p, key, env, systemPrompt('en'), 'Reply with the single word: pong', f, (status, reason) => {
+      why = `${status ? `HTTP ${status}` : ''}${reason ? `${status ? ': ' : ''}${reason}` : ''}`
+    })
+    if (text?.trim()) return { ok: true }
+    return { ok: false, error: `${p.name} refused${why ? ` (${why})` : ''}. ${hint(why)}`.trim() }
+  } catch (e) {
+    return { ok: false, error: `Could not reach ${p.name} (${String((e as Error)?.message ?? e).slice(0, 120)})` }
   }
 }
