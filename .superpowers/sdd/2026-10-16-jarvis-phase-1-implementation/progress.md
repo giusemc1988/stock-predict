@@ -30,10 +30,27 @@
 
 - [ ] Task 4: Integrate Validator into Learner
 - [ ] Task 3: Unified Router Implementation
-- [ ] Task 4: Integrate Validator into Learner
-- [ ] Task 5: React Hook for Router
-- [ ] Task 6: UI: Settings Panel for Toggles
-- [ ] Task 7: UI: BrainPanel Updates
-- [ ] Task 8: Version Bump & Release Notes
-- [ ] Task 9: E2E Test & Metrics Collection
+- [x] Task 4: Integrate Validator into Learner
+  - **Completion:** learnerValidator.ts with validateRulesWithWalkForward(), rules evaluated with OOS accuracy, tests: `vite build --ssr tests/learner-validator.test.ts && node .learn/test-lrn/learner-validator.test.js` → PASS
+  - **Commits:** aecefd0 (walk-forward integration into learner)
+
+- [x] Task 5: React Hook for Router
+  - **Completion:** useJarvisRouter hook with state management, onBarClose callback, metrics collection
+  - **Commits:** 4e504c8 (React hook for router integration)
+
+- [x] Task 6: UI: Settings Panel for Toggles
+  - **Completion:** Jarvis AI Trading section in SettingsModal, three toggles (validator/router/learner), all disabled
+  - **Commits:** bad7f27 (Jarvis toggles in Settings UI)
+
+- [x] Task 7: UI: BrainPanel Updates
+  - **Completion:** Phase 1 status indicator in BrainPanel showing validator ready, router+learner disabled
+  - **Commits:** a32c972 (Jarvis status in BrainPanel)
+
+- [x] Task 8: Version Bump & Release Notes
+  - **Completion:** v1.9.0-beta with comprehensive What's new in English + Vietnamese
+  - **Commits:** a5436cc (version bump and Phase 1 release notes)
+
+- [x] Task 9: E2E Test & Metrics Collection
+  - **Completion:** Comprehensive E2E test covering all Phase 1 components, metrics collection, measured costs, tests: `vite build --ssr tests/phase1-e2e.test.ts && node .learn/test-e2e/phase1-e2e.test.js` → ALL PASS
+  - **Commits:** b6f9aa1 (Phase 1 E2E test and metrics)
 
