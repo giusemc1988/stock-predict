@@ -17,6 +17,6 @@
     { "binding": "SETTINGS" }
   ],
   "triggers": {
-    "crons": ["0 */5 13-21 * 1-5"]
+    "crons": ["*/5 13-21 * * 1-5"]
   }
 }

@@ -2,11 +2,11 @@ import { useMemo, useState } from 'react'
 import type { AlpacaDataKeys, MarketListRow } from '../data/providers'
 import type { AiRules } from '../lib/aiRules'
 import type { LearnState } from '../lib/autoLearn'
-import { briefFacts, briefKey, briefNodes, buyCalls, type BriefInputs, type NodeId } from '../lib/brief'
+import { briefFacts, briefKey, briefNodes, buyCalls, hhmm, type BriefInputs, type NodeId } from '../lib/brief'
 import { fmtCompact, fmtPct, fmtUsd, tone } from '../lib/format'
 import { useLang } from '../lib/i18n'
 import { greeting } from '../lib/jarvis'
-import { dayKey, practiceEquity, practiceReport, PRACTICE_START, type PickRow, type PracticeState } from '../lib/practice'
+import { dayKey, practiceEquity, PRACTICE_START, type PickRow, type PracticeState } from '../lib/practice'
 import { pickSourceLabel } from '../lib/practicePicks'
 import { canSpeak, loadVoicePrefs, speak } from '../lib/speech'
 import { useBriefText } from '../hooks/useBriefText'
@@ -14,6 +14,7 @@ import { useLocalStorage } from '../hooks/useLocalStorage'
 import { useMarketLists } from '../hooks/useMarketLists'
 import type { PracticeScan } from '../hooks/usePractice'
 import { BrainCore } from './BrainCore'
+import { ScoreboardPanel } from './ScoreboardPanel'
 import { SignalFlowExplainer } from './SignalFlowExplainer'
 import { AgentReadiness } from './AgentReadiness'
 import { LocalAiQA } from './LocalAiQA'
@@ -88,7 +89,6 @@ export function JarvisBrief(p: Props) {
   const brief = useBriefText(p.rules.briefAi && p.rules.jarvisCloudAi && ready, stableFacts, key, lang, p.rules.localAiOn && ready)
   const hello = greeting(name, p.practice, p.killSwitch)
   const buys = buyCalls(p.scan.candidates)
-  const rep = practiceReport(p.practice)
   const memory = p.learn.journal.length + p.practice.trades.length + p.learn.log.length
   const [spoke, setSpoke] = useState<string | null>(null)
   const listen = () => {
@@ -96,7 +96,7 @@ export function JarvisBrief(p: Props) {
     setSpoke(null)
     void speak(brief.text, loadVoicePrefs(), lang, speechSynthesis.getVoices())
   }
-  const time = (ms: number | null) => (ms ? new Date(ms).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '—')
+  const time = (ms: number | null) => (ms ? hhmm(ms) : '—')
   const moverRows = moverTab === 'stock' ? lists.stocks : lists.crypto
   const openRow = (r: MarketListRow) => p.onSymbol(r.symbol, r.assetClass)
   const openSignalFlow = (signal: PickRow) => setShowSignalFlow(signal)
@@ -159,7 +159,7 @@ export function JarvisBrief(p: Props) {
             <span className="muted small">{time(p.scan.at)}</span>
           </header>
           <p className="bf-source">
-            {vi ? 'Nguồn' : 'Source'}: {p.serverMode ? (vi ? 'máy chủ luyện tập, quét mã biến động hôm nay' : 'server practice scan of today’s movers') : vi ? 'quét luyện tập trong trình duyệt' : 'practice scan in this browser'}
+            {vi ? "Nguồn" : "Source"}: {p.serverMode ? (vi ? "máy chủ luyện tập, quét mã biến động hôm nay" : "server practice scan of today's movers") : vi ? "quét luyện tập trong trình duyệt" : "practice scan in this browser"}
           </p>
           {!inputs.scan.on && <p className="warn">{vi ? 'Quét luyện tập đang tắt (Cài đặt > Quy tắc AI).' : 'The practice scan is off (Settings > AI rules).'}</p>}
           {inputs.scan.on && !p.scan.at && <p className="muted">{p.scan.busy ? (vi ? 'Đang quét…' : 'Scanning…') : vi ? 'Chưa có lần quét nào.' : 'No scan yet.'}</p>}
@@ -207,31 +207,28 @@ export function JarvisBrief(p: Props) {
           )}
         </section>
 
+        <ScoreboardPanel practice={p.practice} />
+
         <section className="bf-card">
           <header>
-            <h3>{vi ? 'Tiến bộ' : 'Progress'}</h3>
+            <h3>{vi ? "Tự học" : "Learner"}</h3>
           </header>
-          <p className="bf-source">{vi ? 'Nguồn: tài khoản luyện tập và bộ tự học' : 'Source: practice account and auto learner'}</p>
+          <p className="bf-source">{vi ? "Nguồn: bộ tự học" : "Source: auto learner"}</p>
           <div className="bf-stats">
             <div>
-              <b className={`mono ${tone(rep.pnl)}`}>{fmtUsd(rep.pnl)}</b>
-              <span>{vi ? 'Lãi/lỗ luyện tập' : 'Practice P&L'}</span>
-            </div>
-            <div>
-              <b className="mono">{rep.winRate != null ? `${Math.round(rep.winRate * 100)}%` : '—'}</b>
-              <span>{vi ? `Tỉ lệ thắng (${rep.n} lệnh)` : `Win rate (${rep.n} trades)`}</span>
-            </div>
-            <div>
-              <b className="mono">{learnIn.right + learnIn.wrong ? `${Math.round((learnIn.right / (learnIn.right + learnIn.wrong)) * 100)}%` : '—'}</b>
-              <span>{vi ? `Tự học đúng (${learnIn.right + learnIn.wrong} lần)` : `Learner right (${learnIn.right + learnIn.wrong} calls)`}</span>
+              <b className="mono">{learnIn.right + learnIn.wrong ? `${Math.round((learnIn.right / (learnIn.right + learnIn.wrong)) * 100)}%` : "—"}</b>
+              <span>{vi ? `Đúng (${learnIn.right + learnIn.wrong} lần)` : `Right (${learnIn.right + learnIn.wrong} calls)`}</span>
             </div>
             <div>
               <b className="mono">{learnIn.lessonsToday}</b>
-              <span>{vi ? 'Bài học hôm nay' : 'Lessons today'}</span>
+              <span>{vi ? "Bài học hôm nay" : "Lessons today"}</span>
+            </div>
+            <div>
+              <b className="mono">{learnIn.cycles}</b>
+              <span>{vi ? "Chu kỳ học" : "Learn cycles"}</span>
             </div>
           </div>
-          {p.learn.latest && <p className="bf-lesson">“{L(p.learn.latest)}”</p>}
-          {rep.n < 30 && <p className="muted small">{vi ? 'Dưới 30 lệnh: tỉ lệ thắng chưa đáng tin.' : 'Under 30 trades: the win rate is not reliable yet.'}</p>}
+          {p.learn.latest && <p className="bf-lesson">"{L(p.learn.latest)}"</p>}
         </section>
 
         {p.rules.localQA && (

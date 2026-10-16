@@ -82,6 +82,8 @@ export interface AiRules {
   localModelName: string // local LLM name: llama3.2, gemma4:e2b, qwen3-coder:30b (default: llama3.2)
   localExplain: boolean // explain your trades using llama3.2 (browser only, no API)
   localQA: boolean // answer questions about your trades using llama3.2 (browser only)
+  resizePanels: boolean // drag the side lists and bottom bar to resize them
+  autoRangeTf: boolean // chart range buttons also pick the bar size, like Webull
   localVoiceNarrator: boolean // read explanations + answers aloud using browser speechSynthesis
   signalValidator: boolean // validate every signal path before showing (alerts, Brief, playbook)
   newsAnalysis: boolean // analyze market news sentiment for BUY/SELL bias
@@ -169,6 +171,8 @@ export const DEFAULT_AI_RULES: AiRules = {
   localModelName: 'llama3.2',
   localExplain: false,
   localQA: false,
+  resizePanels: true,
+  autoRangeTf: true,
   localVoiceNarrator: false,
   signalValidator: true,
   newsAnalysis: false,
@@ -241,6 +245,7 @@ export const RULE_FIELDS: RuleField[] = [
   { group: 'modules', key: 'dataGuardOn', en: 'Block AI buys on simulated or stale price data', vi: 'Chặn AI mua khi dữ liệu giá là giả lập hoặc đã cũ' },
   { group: 'modules', key: 'costsOn', en: 'Realistic fills (fees, spread and slippage)', vi: 'Khớp lệnh thực tế (phí, chênh lệch và trượt giá)' },
   { group: 'modules', key: 'auditOn', en: 'Decision log (every accepted and rejected AI decision, with its data)', vi: 'Nhật ký quyết định (mọi quyết định AI được chấp nhận và bị từ chối, kèm dữ liệu)' },
+  { group: 'modules', key: 'resizePanels', en: 'Resizable panels (drag the edges of the side lists and bottom bar; double-click to reset)', vi: 'Kéo đổi kích thước khung (kéo mép danh sách hai bên và thanh dưới; nhấp đúp để đặt lại)' },
   { group: 'modules', key: 'reviewOn', en: 'Trade review: good process vs. luck', vi: 'Đánh giá lệnh: quy trình tốt hay may mắn' },
   { group: 'modules', key: 'dailyReportOn', en: 'Daily practice report', vi: 'Báo cáo luyện tập hằng ngày' },
   { group: 'modules', key: 'skillRegistryOn', en: 'Skill registry (only approved skills feed signals)', vi: 'Danh sách kỹ năng (chỉ kỹ năng được duyệt mới tạo tín hiệu)' },
@@ -270,6 +275,7 @@ export const RULE_FIELDS: RuleField[] = [
   { group: 'jarvis', key: 'localVoiceNarrator', en: 'Local AI reads explanations and answers aloud (browser voice)', vi: 'AI cục bộ đọc giải thích và câu trả lời to (giọng trình duyệt)' },
   { group: 'jarvis', key: 'jarvisListen', en: 'Ask Jarvis by voice (microphone; Chrome, Edge or Safari)', vi: 'Hỏi Jarvis bằng giọng nói (micro; Chrome, Edge hoặc Safari)' },
   { group: 'jarvis', key: 'jarvisSpeech', en: "Jarvis speaks (reads briefings and answers aloud with your device's voices; pick the voice in the Brain tab)", vi: 'Jarvis nói (đọc to bản tin và câu trả lời bằng giọng có sẵn trên thiết bị; chọn giọng trong tab Bộ não)' },
+  { group: 'modules', key: 'autoRangeTf', en: 'Chart ranges pick the bar size (1D = 5-minute bars, 5D = 15m, 1M = 1h, 3M = 4h, 1Y and All = daily)', vi: 'Khoảng biểu đồ tự chọn cỡ nến (1D = nến 5 phút, 5D = 15p, 1M = 1 giờ, 3M = 4 giờ, 1Y và All = ngày)' },
   { group: 'modules', key: 'adjustableTimeRange', en: 'Adjustable time range on Trading desk (custom days input beyond preset buttons)', vi: 'Khoảng thời gian điều chỉnh được trên Bàn giao dịch (nhập ngày tùy chỉnh ngoài các nút sẵn)' },
   { group: 'modules', key: 'signalValidator', en: 'Validate every signal path before showing (alerts, Brief, playbook)', vi: 'Kiểm tra mọi đường dẫn tín hiệu trước khi hiển thị (cảnh báo, Bản tin, Sổ tay)' },
   { group: 'modules', key: 'newsAnalysis', en: 'Analyze market news sentiment for BUY/SELL bias', vi: 'Phân tích độ dốc tin tức thị trường cho thiên vị MUA/BÁN' },

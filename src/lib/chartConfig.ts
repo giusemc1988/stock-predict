@@ -1,9 +1,20 @@
+import type { Timeframe } from '../types'
+
+export type ChartRange = '1d' | '5d' | '1m' | '3m' | '1y' | 'all'
+export const CHART_RANGES: ChartRange[] = ['1d', '5d', '1m', '3m', '1y', 'all']
+/** Bar size picked for each range, like Webull: enough bars to fill the range, within the 1,000-bar fetch. */
+export const RANGE_TF: Record<ChartRange, Timeframe> = { '1d': '5m', '5d': '15m', '1m': '1h', '3m': '4h', '1y': '1d', all: '1d' }
+/** Calendar days a range covers; 5D is five trading days for stocks (a week) and five days for 24/7 crypto. */
+export function rangeDays(r: ChartRange, crypto: boolean): number | null {
+  return r === '1d' ? 1 : r === '5d' ? (crypto ? 5 : 7) : r === '1m' ? 30 : r === '3m' ? 91 : r === '1y' ? 365 : null
+}
+
 /** Which chart overlays are on, and their settings. Saved per browser only. */
 export interface ChartConfig {
   sma: { on: boolean; period: number }
   bollinger: { on: boolean; period: number; mult: number }
   volume: boolean
-  timeRange: '1d' | '1w' | '1m' | '1y' | 'all' | 'custom'
+  timeRange: ChartRange | 'custom'
   customDays: number | null
 }
 
@@ -26,7 +37,8 @@ export function loadChartConfig(): ChartConfig {
   try {
     const raw = JSON.parse(localStorage.getItem(KEY) ?? 'null')
     if (!raw) return DEFAULT_CHART_CONFIG
-    const timeRange = raw.timeRange && ['1d', '1w', '1m', '1y', 'all', 'custom'].includes(raw.timeRange) ? raw.timeRange : DEFAULT_CHART_CONFIG.timeRange
+    const saved = raw.timeRange === '1w' ? '5d' : raw.timeRange
+    const timeRange = saved && [...CHART_RANGES, 'custom'].includes(saved) ? saved : DEFAULT_CHART_CONFIG.timeRange
     const customDays = timeRange === 'custom' ? clampInt(raw.customDays, 1, 3650, 30) : null
     return {
       sma: {

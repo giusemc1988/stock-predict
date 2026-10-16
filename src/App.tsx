@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from 'react'
 import type { Candle, Instrument, Timeframe } from './types'
 import { TIMEFRAMES } from './types'
 import { INSTRUMENTS } from './data/instruments'
@@ -6,6 +6,7 @@ import type { ApiKeys } from './data/providers'
 import type { BrokerMode, BrokerOrder, OrderRequest } from './broker/types'
 import type { AlpacaKeys } from './broker/alpaca'
 import { useLocalStorage } from './hooks/useLocalStorage'
+import { ResizeHandle } from './components/ResizeHandle'
 import { useMarketData } from './hooks/useMarketData'
 import { useQuotes } from './hooks/useQuotes'
 import { useBroker } from './hooks/useBroker'
@@ -112,6 +113,8 @@ export default function App() {
   const [toasts, setToasts] = useState<Toast[]>([])
   // Tickers added from the search box persist in this browser and join the built-in watchlist.
   const [added, setAdded] = useLocalStorage<Instrument[]>('bluechip.added', [])
+  // panel sizes the user dragged to, as % of the window so they scale with it; null = auto size
+  const [panes, setPanes] = useLocalStorage<{ left: number | null; right: number | null; bottom: number | null }>('arc.panes.v2', { left: null, right: null, bottom: null })
   const universe = useMemo(() => [...INSTRUMENTS, ...added.filter((a) => !INSTRUMENTS.some((i) => i.symbol === a.symbol))], [added])
   // markets practice mode is watching or trading join the chart and quotes (not your saved watchlist)
   const [aiSymbols, setAiSymbols] = useState<string[]>([])
@@ -521,7 +524,18 @@ export default function App() {
   }
 
   return (
-    <div className={`app page-${shownPage}`}>
+    <div
+      className={`app page-${shownPage}`}
+      style={
+        aiRules.resizePanels
+          ? ({
+              ...(panes.left != null && { '--left-w': `max(170px, ${panes.left}vw)` }),
+              ...(panes.right != null && { '--right-w': `max(260px, ${panes.right}vw)` }),
+              ...(panes.bottom != null && { '--bottom-h': `max(120px, ${panes.bottom}vh)` }),
+            } as CSSProperties)
+          : undefined
+      }
+    >
       <WhatsNew />
       {aiRules.jarvisOn && aiRules.jarvisFab && (
         <JarvisFab state={practice.state} rules={aiRules} journal={autoLearn.state.journal} learn={autoLearn.state} killSwitch={prefs.killSwitch} priceOf={practice.priceOf} known={chartUniverse} watchlist={universe.map((i) => i.symbol)} onAskStock={askStock} onShowTrade={showTrade} onReplay={showReplay} onAction={jarvisAct} symbol={inst.symbol} />
@@ -606,6 +620,7 @@ export default function App() {
               <ChartPanel
                 symbol={inst.symbol}
                 tf={prefs.tf}
+                onTf={(tf) => setPrefs((p) => ({ ...p, tf }))}
                 candles={candles}
                 signals={closed.signals}
                 prediction={prefs.forecast ? live : null}
@@ -634,7 +649,46 @@ export default function App() {
               onPortfolio={() => setPage('portfolio')}
               practice={panelPractice}
             />
+            {aiRules.resizePanels && (
+              <ResizeHandle
+                axis="y"
+                className="rz-bottom"
+                label={lang === 'vi' ? 'Kéo để đổi chiều cao (nhấp đúp: tự động)' : 'Drag to resize (double-click: auto)'}
+                measure={() => document.querySelector('.panel.bottom')?.getBoundingClientRect().height ?? 236}
+                dir={-1}
+                min={120}
+                max={() => window.innerHeight * 0.65}
+                onSize={(px) => setPanes((p) => ({ ...p, bottom: +((px / window.innerHeight) * 100).toFixed(2) }))}
+                onReset={() => setPanes((p) => ({ ...p, bottom: null }))}
+              />
+            )}
           </main>
+          {aiRules.resizePanels && (
+            <>
+              <ResizeHandle
+                axis="x"
+                className="rz-left"
+                label={lang === 'vi' ? 'Kéo để đổi độ rộng (nhấp đúp: tự động)' : 'Drag to resize (double-click: auto)'}
+                measure={() => document.querySelector('.watchlist')?.getBoundingClientRect().width ?? 252}
+                dir={1}
+                min={170}
+                max={() => window.innerWidth * 0.3}
+                onSize={(px) => setPanes((p) => ({ ...p, left: +((px / window.innerWidth) * 100).toFixed(2) }))}
+                onReset={() => setPanes((p) => ({ ...p, left: null }))}
+              />
+              <ResizeHandle
+                axis="x"
+                className="rz-right"
+                label={lang === 'vi' ? 'Kéo để đổi độ rộng (nhấp đúp: tự động)' : 'Drag to resize (double-click: auto)'}
+                measure={() => document.querySelector('.panel.right')?.getBoundingClientRect().width ?? 340}
+                dir={-1}
+                min={260}
+                max={() => window.innerWidth * 0.45}
+                onSize={(px) => setPanes((p) => ({ ...p, right: +((px / window.innerWidth) * 100).toFixed(2) }))}
+                onReset={() => setPanes((p) => ({ ...p, right: null }))}
+              />
+            </>
+          )}
           <aside className="panel right">
             <div className={`right-tabs${aiRules.jarvisOn ? ' has-brain' : ''}`}>
               {aiRules.jarvisOn && (

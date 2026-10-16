@@ -34,7 +34,12 @@ export interface BriefInputs {
 
 const clamp = (x: number) => Math.max(0, Math.min(1, x))
 const pct = (x: number) => `${x >= 0 ? '+' : ''}${x.toFixed(1)}%`
-const hhmm = (ms: number) => new Date(ms).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+/** Clock time, with the date in front when it is not today, so an old scan never reads as fresh. */
+export const hhmm = (ms: number, now = Date.now()) => {
+  const d = new Date(ms)
+  const t = d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+  return d.toDateString() === new Date(now).toDateString() ? t : `${d.toLocaleDateString([], { month: 'short', day: 'numeric' })}, ${t}`
+}
 
 export const buyCalls = (c: PickRow[]) => c.filter((x) => x.place != null).sort((a, b) => (a.place ?? 99) - (b.place ?? 99))
 
@@ -88,7 +93,7 @@ export function briefNodes(d: BriefInputs): BriefNode[] {
     note: !scan.on
       ? { en: 'practice scan is off', vi: 'quét luyện tập đang tắt' }
       : scan.at
-        ? { en: `${buys.length} BUY ${buys.length === 1 ? 'call' : 'calls'} · ${hhmm(scan.at)}`, vi: `${buys.length} lệnh MUA · ${hhmm(scan.at)}` }
+        ? { en: `${buys.length} BUY ${buys.length === 1 ? 'call' : 'calls'} · ${hhmm(scan.at, d.now)}`, vi: `${buys.length} lệnh MUA · ${hhmm(scan.at, d.now)}` }
         : scan.busy
           ? { en: 'scanning the market', vi: 'đang quét thị trường' }
           : { en: 'waiting for the first scan', vi: 'đang chờ lần quét đầu' },
@@ -134,10 +139,10 @@ export function briefFacts(d: BriefInputs): Bi[] {
   if (!d.scan.on) out.push({ en: 'The practice scan is off, so there are no new BUY calls.', vi: 'Quét luyện tập đang tắt nên chưa có lệnh MUA mới.' })
   else if (buys.length)
     out.push({
-      en: `Latest scan at ${hhmm(d.scan.at ?? d.now)} ranked ${buys.length} BUY ${buys.length === 1 ? 'call' : 'calls'}: ${buys.slice(0, 3).map((b) => `${b.symbol} (from ${pickSourceLabel[b.source].en}${b.tradeScore != null ? `, Trade Score ${Math.round(b.tradeScore)}` : ''})`).join(', ')}.`,
-      vi: `Lần quét lúc ${hhmm(d.scan.at ?? d.now)} xếp hạng ${buys.length} lệnh MUA: ${buys.slice(0, 3).map((b) => `${b.symbol} (từ ${pickSourceLabel[b.source].vi}${b.tradeScore != null ? `, Điểm GD ${Math.round(b.tradeScore)}` : ''})`).join(', ')}.`,
+      en: `Latest scan at ${hhmm(d.scan.at ?? d.now, d.now)} ranked ${buys.length} BUY ${buys.length === 1 ? 'call' : 'calls'}: ${buys.slice(0, 3).map((b) => `${b.symbol} (from ${pickSourceLabel[b.source].en}${b.tradeScore != null ? `, Trade Score ${Math.round(b.tradeScore)}` : ''})`).join(', ')}.`,
+      vi: `Lần quét lúc ${hhmm(d.scan.at ?? d.now, d.now)} xếp hạng ${buys.length} lệnh MUA: ${buys.slice(0, 3).map((b) => `${b.symbol} (từ ${pickSourceLabel[b.source].vi}${b.tradeScore != null ? `, Điểm GD ${Math.round(b.tradeScore)}` : ''})`).join(', ')}.`,
     })
-  else if (d.scan.at) out.push({ en: `Latest scan at ${hhmm(d.scan.at)} found no BUY calls that pass the rules.`, vi: `Lần quét lúc ${hhmm(d.scan.at)} không có lệnh MUA nào đạt quy tắc.` })
+  else if (d.scan.at) out.push({ en: `Latest scan at ${hhmm(d.scan.at, d.now)} found no BUY calls that pass the rules.`, vi: `Lần quét lúc ${hhmm(d.scan.at, d.now)} không có lệnh MUA nào đạt quy tắc.` })
   else out.push({ en: 'The first market scan has not finished yet.', vi: 'Lần quét thị trường đầu tiên chưa xong.' })
   if (d.lists.stocks) out.push({ en: `Top US stock gainers now: ${top(d.lists.stocks.gainers, 3)}. Most traded: ${top(d.lists.stocks.volume, 3, true)}.`, vi: `Cổ phiếu Mỹ tăng mạnh nhất: ${top(d.lists.stocks.gainers, 3)}. Giao dịch nhiều nhất: ${top(d.lists.stocks.volume, 3, true)}.` })
   else if (d.lists.stocksNeedKey) out.push({ en: 'No live US stock list: an Alpaca paper key is needed (Portfolio page).', vi: 'Chưa có danh sách cổ phiếu Mỹ trực tiếp: cần key Alpaca paper (trang Danh mục).' })

@@ -21,7 +21,7 @@ import { fmtCompact, fmtPrice, fmtTime, tone } from '../lib/format'
 import { barBuyVolume, hasRealBuyVolume } from '../lib/orderflow'
 import { RobotIcon } from './RobotIcon'
 import { sma, stdev } from '../lib/indicators'
-import { loadChartConfig, saveChartConfig, type ChartConfig } from '../lib/chartConfig'
+import { CHART_RANGES, loadChartConfig, RANGE_TF, rangeDays, saveChartConfig, type ChartConfig, type ChartRange } from '../lib/chartConfig'
 import { useAiRules } from '../lib/aiRules'
 import { useT } from '../lib/i18n'
 import type { PracticeEvent } from '../lib/practice'
@@ -80,9 +80,13 @@ interface Props {
   showRobots: boolean
   practice?: PracticeOverlay | null
   tour?: ChartTour | null
+  /** Change the bar size (the range buttons pick one when the rule is on). */
+  onTf?: (tf: Timeframe) => void
 }
 
 const ts = (t: number) => t as UTCTimestamp
+const RANGE_LABEL: Record<ChartRange, string> = { '1d': '1D', '5d': '5D', '1m': '1M', '3m': '3M', '1y': '1Y', all: 'All' }
+const TF_LABEL: Record<Timeframe, string> = { '1m': '1-minute', '5m': '5-minute', '15m': '15-minute', '1h': '1-hour', '4h': '4-hour', '1d': 'daily' }
 
 /** Caption revealed word by word like a HUD readout. Pure CSS opacity (no layout per frame); instant when motion is off. */
 function TypedText({ text, motion }: { text: string; motion: boolean }) {
@@ -159,6 +163,15 @@ export function ChartPanel(props: Props) {
     setCfg(next)
     saveChartConfig(next)
   }
+  // picking a different bar size by hand leaves the range, so 1Y on 1-minute bars can't hide the chart
+  useEffect(() => {
+    setCfg((c) => {
+      if (!rules.autoRangeTf || c.timeRange === 'all' || c.timeRange === 'custom' || RANGE_TF[c.timeRange] === tf) return c
+      const next = { ...c, timeRange: 'all' as const }
+      saveChartConfig(next)
+      return next
+    })
+  }, [tf, rules.autoRangeTf])
 
   // create chart once
   useEffect(() => {
@@ -278,27 +291,20 @@ export function ChartPanel(props: Props) {
       loaded.current = { key: '', len: 0, first: 0 }
       return
     }
-    const key = `${symbol}|${tf}`
+    const key = `${symbol}|${tf}|${cfg.timeRange}|${cfg.customDays}`
     const L = loaded.current
     const last = candles[candles.length - 1]
     const vol = (c: Candle) => ({ time: ts(c.time), value: c.volume })
     const buy = (c: Candle) => ({ time: ts(c.time), value: barBuyVolume(c) })
 
-    // Filter candles by timeRange
+    // a range zooms the time axis to that window (all bars stay loaded so you can scroll back, like Webull)
     const now = last.time
-    const getTimeRangeStart = () => {
-      let days: number | null = null
-      if (cfg.timeRange === '1d') days = 1
-      else if (cfg.timeRange === '1w') days = 7
-      else if (cfg.timeRange === '1m') days = 30
-      else if (cfg.timeRange === '1y') days = 365
-      else if (cfg.timeRange === 'custom' && rules.adjustableTimeRange && cfg.customDays != null) days = cfg.customDays
-      if (!days) return 0
-      return now - days * 86400
-    }
-    const timeRangeStart = getTimeRangeStart()
-    const displayCandles = timeRangeStart === 0 ? candles : candles.filter((c) => c.time >= timeRangeStart)
-    const displayLast = displayCandles[displayCandles.length - 1] ?? last
+    const rangeStart = (() => {
+      const days = cfg.timeRange === 'custom' ? (rules.adjustableTimeRange ? cfg.customDays : null) : rangeDays(cfg.timeRange, symbol.includes('/'))
+      return days ? now - days * 86400 : 0
+    })()
+    const displayCandles = candles
+    const displayLast = last
 
     if (L.key === key && L.first === displayCandles[0]?.time && (displayCandles.length === L.len || displayCandles.length === L.len + 1)) {
       s.candle.update({ time: ts(displayLast.time), open: displayLast.open, high: displayLast.high, low: displayLast.low, close: displayLast.close })
@@ -311,11 +317,14 @@ export function ChartPanel(props: Props) {
       const d = displayLast.close < 1 ? 6 : displayLast.close < 10 ? 4 : 2
       s.candle.applyOptions({ priceFormat: { type: 'price', precision: d, minMove: 1 / 10 ** d } })
       if (L.key !== key) {
-        chart.current?.timeScale().setVisibleLogicalRange({ from: Math.max(0, displayCandles.length - 160), to: displayCandles.length + 14 })
+        const firstIn = rangeStart ? displayCandles.findIndex((c) => c.time >= rangeStart) : -1
+        const from = firstIn >= 0 ? firstIn : Math.max(0, displayCandles.length - 160)
+        const n = displayCandles.length - from
+        chart.current?.timeScale().setVisibleLogicalRange({ from, to: displayCandles.length + Math.max(3, Math.round(n * 0.05)) })
       }
     }
     loaded.current = { key, len: displayCandles.length, first: displayCandles[0]?.time ?? 0 }
-  }, [candles, symbol, tf, cfg.timeRange])
+  }, [candles, symbol, tf, cfg.timeRange, cfg.customDays])
 
   // overlays: EMAs, forecast cone, arrow markers (practice markers compared by value, not identity)
   const marksKey = JSON.stringify([...(practice?.markers ?? []), ...(tour?.marker ? [{ ...tour.marker, tour: true }] : [])])
@@ -556,13 +565,17 @@ export function ChartPanel(props: Props) {
         ))}
       </div>
       <div className="chart-tools">
-        {(['1d', '1w', '1m', '1y', 'all'] as const).map((range) => (
+        {CHART_RANGES.map((range) => (
           <button
             key={range}
             className={cfg.timeRange === range ? 'on' : ''}
-            onClick={() => updateCfg({ ...cfg, timeRange: range })}
+            title={rules.autoRangeTf && props.onTf ? `${RANGE_LABEL[range]} · ${TF_LABEL[RANGE_TF[range]]} bars` : RANGE_LABEL[range]}
+            onClick={() => {
+              updateCfg({ ...cfg, timeRange: range })
+              if (rules.autoRangeTf && props.onTf && RANGE_TF[range] !== tf) props.onTf(RANGE_TF[range])
+            }}
           >
-            {range === '1d' ? '1D' : range === '1w' ? '1W' : range === '1m' ? '1M' : range === '1y' ? '1Y' : 'All'}
+            {RANGE_LABEL[range]}
           </button>
         ))}
         {rules.adjustableTimeRange && (
