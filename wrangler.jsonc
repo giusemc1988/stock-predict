@@ -14,5 +14,8 @@
   },
   "kv_namespaces": [
     { "binding": "PRACTICE", "id": "", "preview_id": "" }
-  ]
+  ],
+  "triggers": {
+    "crons": ["0 */5 13-21 * 1-5"]
+  }
 }
