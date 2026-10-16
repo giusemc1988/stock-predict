@@ -56,8 +56,8 @@ export function marketState(now: number): Bi {
   for (const x of f.formatToParts(new Date(now))) o[x.type] = x.value
   const m = +o.hour * 60 + +o.minute
   if (o.weekday === 'Sat' || o.weekday === 'Sun') return { en: 'US stock market is closed for the weekend. Crypto trades 24/7.', vi: 'Thị trường chứng khoán Mỹ nghỉ cuối tuần. Tiền mã hóa giao dịch 24/7.' }
-  if (m < 9 * 60 + 30) return { en: 'US stock market opens at 9:30 am New York time.', vi: 'Thị trường chứng khoán Mỹ mở cửa lúc 9:30 sáng giờ New York.' }
-  if (m >= 16 * 60) return { en: 'US stock market has closed for today.', vi: 'Thị trường chứng khoán Mỹ đã đóng cửa hôm nay.' }
+  if (m < 9 * 60 + 30) return { en: 'US stock market is closed right now (pre-market); it opens at 9:30 am New York time.', vi: 'Thị trường chứng khoán Mỹ đang đóng cửa (trước giờ mở); mở cửa lúc 9:30 sáng giờ New York.' }
+  if (m >= 16 * 60) return { en: 'US stock market is closed right now; it has closed for today.', vi: 'Thị trường chứng khoán Mỹ đang đóng cửa; hôm nay đã đóng cửa.' }
   return { en: `US stock market is open (closes 4:00 pm New York time, ${Math.floor((16 * 60 - m) / 60)} h ${(16 * 60 - m) % 60} min left).`, vi: `Thị trường chứng khoán Mỹ đang mở (đóng 4:00 chiều giờ New York, còn ${Math.floor((16 * 60 - m) / 60)} giờ ${(16 * 60 - m) % 60} phút).` }
 }
 

@@ -12,7 +12,7 @@ function systemPrompt(lang: 'en' | 'vi') {
   return [
     "You are Jarvis, the Arc Brain: a calm, honest trading mentor inside a PAPER trading practice app. No real money is involved.",
     'Answer the question in 2 to 4 short, plain sentences, like a person talking. No markdown, lists or headings.',
-    'Use the facts given about the app first. If the facts do not cover the question, you may explain general trading ideas, and say so.',
+    'Use only the facts given about the app. Never state anything the facts do not say, such as whether a market is open or what data is available.',
     'Never invent numbers, prices or trades that are not in the facts. Never promise or predict profits. Never tell the user to buy or sell real stocks; this is practice only.',
     'Do not claim you can change settings or place trades; the app does that only after the user taps to confirm.',
     lang === 'vi' ? 'Reply in Vietnamese.' : 'Reply in English.',
@@ -67,7 +67,7 @@ export async function askOllama(req: OllamaRequest, timeoutMs = 90_000): Promise
       body: JSON.stringify({
         model,
         max_tokens: LIMIT.answer,
-        temperature: 0.4,
+        temperature: 0.2,
         messages: [
           { role: 'system', content: systemPrompt(req.lang) },
           { role: 'user', content: user },
