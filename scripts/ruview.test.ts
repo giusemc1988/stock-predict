@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict'
 import { BOARDS, boardFromChip, flashCommand, mergeNodes, newer, nextNodeId, presenceOf, RUVIEW, RUVIEW_IMAGE } from '../src/lib/ruview'
+import { DEMO_STATUS, demoLatest } from '../src/lib/demoData'
 import { configLine, helloLine, makeNonce, parseConfigReply, parseHello } from '../src/lib/ruviewSerial'
 // @ts-expect-error plain JS module, run by the GitHub Action
 import { bump, latestRelease } from './ruview-update.mjs'
@@ -74,5 +75,10 @@ assert.equal(bad({}), null)
 assert.deepEqual(parseConfigReply(`RUVIEW_CONFIG_OK_V1 nonce=${nonce} node_id=3 rebooting=1`), { ok: true, nodeId: 3 })
 assert.deepEqual(parseConfigReply(`RUVIEW_CONFIG_ERR_V1 nonce=${nonce} reason=claim_expired`), { ok: false, reason: 'claim_expired' })
 assert.equal(parseConfigReply('boot: ok'), null)
+
+// sample data walks through all three room states and is always labelled as sample
+const states = [0, 20_000, 40_000].map((ms) => presenceOf(demoLatest(ms)))
+assert.deepEqual(states, ['absent', 'still', 'moving'])
+assert.ok(demoLatest(5).source === 'sample' && DEMO_STATUS.source === 'sample')
 
 console.log('ruview tests passed')

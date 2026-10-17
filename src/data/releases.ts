@@ -2,7 +2,7 @@
  * Version and "What's new". Bump APP_VERSION and add an entry to the top of RELEASES
  * with each update. The banner shows once per version, then stays dismissed.
  */
-export const APP_VERSION = '1.25.0'
+export const APP_VERSION = '1.25.1'
 
 export interface Release {
   version: string
@@ -13,6 +13,16 @@ export interface Release {
 }
 
 export const RELEASES: Release[] = [
+  {
+    version: '1.25.1',
+    date: '2026-10-17',
+    changes: [
+      'New: "Try it with sample data" on the Wi-Fi and RuView pages. When the home PC is not connected, you can still see how each page works, on your phone, from anywhere. The page says clearly that the data is made up, and "Leave sample" goes back.',
+    ],
+    changesVi: [
+      'Mới: nút "Xem thử với dữ liệu mẫu" trên trang Wi-Fi và trang RuView. Khi chưa kết nối máy nhà, anh vẫn xem được trang chạy thế nào, trên điện thoại, ở đâu cũng được. Trang ghi rõ đây là dữ liệu mẫu, bấm "Thoát dữ liệu mẫu" để quay lại.',
+    ],
+  },
   {
     version: '1.25.0',
     date: '2026-10-17',
