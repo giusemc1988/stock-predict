@@ -75,22 +75,6 @@ export function JarvisBrief(p: Props) {
     right: p.learn.score.right,
     wrong: p.learn.score.wrong,
   }
-  const inputs: BriefInputs = {
-    now: Date.now(),
-    lists,
-    flow: p.flow,
-    scan: { on: p.rules.practiceMode && (p.rules.practiceAutoPick || p.serverMode), at: p.scan.at, busy: p.scan.busy, candidates: p.scan.candidates, noStockData: p.scan.noStockData, server: p.serverMode },
-    learn: learnIn,
-    risk: { dayPL: p.dayPL, lossLimit: p.lossLimit, lossLimitOn: p.lossLimitOn, killSwitch: p.killSwitch },
-  }
-  const nodes = briefNodes(inputs)
-  const facts = briefFacts(inputs)
-  const key = briefKey(inputs, lang)
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  const stableFacts = useMemo(() => facts, [key, now])
-  // the AI waits for the first market lists, so it is not asked about an empty page
-  const ready = lists.updatedAt != null
-  const brief = useBriefText(p.rules.briefAi && p.rules.jarvisCloudAi && ready, stableFacts, key, lang, p.rules.localAiOn && ready)
   const hello = greeting(name, p.practice, p.killSwitch)
   const buys = buyCalls(p.scan.candidates)
   const memory = p.learn.journal.length + p.practice.trades.length + p.learn.log.length
@@ -106,6 +90,23 @@ export function JarvisBrief(p: Props) {
   const openSignalFlow = (signal: PickRow) => setShowSignalFlow(signal)
   const watchedSymbols = useMemo(() => buys.map((b) => b.symbol), [buys])
   const news = useNews(watchedSymbols, p.rules.newsEnabled)
+  const inputs: BriefInputs = {
+    now: Date.now(),
+    lists,
+    flow: p.flow,
+    scan: { on: p.rules.practiceMode && (p.rules.practiceAutoPick || p.serverMode), at: p.scan.at, busy: p.scan.busy, candidates: p.scan.candidates, noStockData: p.scan.noStockData, server: p.serverMode },
+    learn: learnIn,
+    risk: { dayPL: p.dayPL, lossLimit: p.lossLimit, lossLimitOn: p.lossLimitOn, killSwitch: p.killSwitch },
+    news: { items: news, enabled: p.rules.newsEnabled },
+  }
+  const nodes = briefNodes(inputs)
+  const facts = briefFacts(inputs)
+  const key = briefKey(inputs, lang)
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const stableFacts = useMemo(() => facts, [key, now])
+  // the AI waits for the first market lists, so it is not asked about an empty page
+  const ready = lists.updatedAt != null
+  const brief = useBriefText(p.rules.briefAi && p.rules.jarvisCloudAi && ready, stableFacts, key, lang, p.rules.localAiOn && ready)
 
   return (
     <main className="brief-page">

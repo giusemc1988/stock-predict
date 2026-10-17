@@ -30,6 +30,7 @@ export interface BriefInputs {
   scan: { on: boolean; at: number | null; busy: boolean; candidates: PickRow[]; noStockData: boolean; server: boolean }
   learn: { cycles: number; lastCycle: number | null; lessonsToday: number; right: number; wrong: number }
   risk: { dayPL: number; lossLimit: number; lossLimitOn: boolean; killSwitch: boolean }
+  news: { items: Array<{ id: string; headline: string; created_at: string; url: string }>; enabled: boolean }
 }
 
 const clamp = (x: number) => Math.max(0, Math.min(1, x))
@@ -44,7 +45,7 @@ export const hhmm = (ms: number, now = Date.now()) => {
 export const buyCalls = (c: PickRow[]) => c.filter((x) => x.place != null).sort((a, b) => (a.place ?? 99) - (b.place ?? 99))
 
 export function briefNodes(d: BriefInputs): BriefNode[] {
-  const { lists, flow, scan, learn, risk } = d
+  const { lists, flow, scan, learn, risk, news } = d
   const names = new Set<string>()
   for (const l of [lists.stocks, lists.crypto]) if (l) for (const r of [...l.gainers, ...l.volume, ...l.losers]) names.add(r.symbol)
   const feeds = (lists.crypto ? 1 : 0) + (lists.stocks ? 1 : 0)
@@ -76,14 +77,18 @@ export function briefNodes(d: BriefInputs): BriefNode[] {
     load: flow.buyShare ?? 0,
     note: flowEstimatedNote || flowNote,
   }
-  const news: BriefNode = {
+  const newsNode: BriefNode = {
     id: 'news',
     name: { en: 'News', vi: 'Tin tức' },
     inbound: true,
-    source: 'No news source is connected yet',
-    status: 'off',
-    load: 0,
-    note: { en: 'not connected yet', vi: 'chưa kết nối' },
+    source: 'Alpaca News API for watched symbols',
+    status: !news.enabled ? 'off' : news.items.length > 0 ? 'live' : 'missing',
+    load: clamp(news.items.length / 10),
+    note: !news.enabled
+      ? { en: 'news is off', vi: 'tin tức đang tắt' }
+      : news.items.length > 0
+        ? { en: `${news.items.length} latest article${news.items.length === 1 ? '' : 's'}`, vi: `${news.items.length} bài báo mới nhất` }
+        : { en: 'loading news', vi: 'đang tải tin tức' },
   }
   const buys = buyCalls(scan.candidates)
   const signals: BriefNode = {
@@ -129,7 +134,7 @@ export function briefNodes(d: BriefInputs): BriefNode[] {
         ? { en: `${Math.round(used * 100)}% of daily loss limit`, vi: `đã dùng ${Math.round(used * 100)}% giới hạn lỗ` }
         : { en: 'no daily loss limit set', vi: 'chưa đặt giới hạn lỗ ngày' },
   }
-  return [scanner, flowNode, news, signals, learner, riskNode]
+  return [scanner, flowNode, newsNode, signals, learner, riskNode]
 }
 
 const top = (rows: MarketListRow[] | undefined, n: number, vol = false) =>

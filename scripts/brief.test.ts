@@ -19,6 +19,7 @@ const empty: BriefInputs = {
   scan: { on: true, at: null, busy: false, candidates: [], noStockData: true, server: false },
   learn: { cycles: 0, lastCycle: null, lessonsToday: 0, right: 0, wrong: 0 },
   risk: { dayPL: 0, lossLimit: 1000, lossLimitOn: true, killSwitch: false },
+  news: { items: [], enabled: false },
 }
 const n0 = briefNodes(empty)
 assert.deepEqual(n0.map((n) => n.id), ['scanner', 'flow', 'news', 'signals', 'learner', 'risk'])
