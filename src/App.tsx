@@ -27,6 +27,7 @@ import { AnalystPanel } from './components/AnalystPanel'
 import { OrderFlowPanel } from './components/OrderFlowPanel'
 import { BottomPanel } from './components/BottomPanel'
 import { PortfolioPage } from './components/PortfolioPage'
+import { NetPage } from './components/NetPage'
 import { AutoLearnPanel } from './components/AutoLearnPanel'
 import { useAutoLearning } from './hooks/useAutoLearning'
 import { useMigrateKeysToCloud } from './hooks/useMigrateKeysToCloud'
@@ -107,7 +108,7 @@ export default function App() {
   const skillTags = useMemo(() => approvedTags(rawRules, skillStatuses, skillFails), [rawRules, skillStatuses, skillFails])
   const [page, setPageRaw] = useState<Page>(() => (rawRules.briefHome && rawRules.jarvisOn ? 'brief' : 'trade'))
   const briefOn = aiRules.briefHome && aiRules.jarvisOn
-  const shownPage: Page = page === 'brief' && !briefOn ? 'trade' : page
+  const shownPage: Page = (page === 'brief' && !briefOn) || (page === 'net' && !aiRules.netTools) ? 'trade' : page
   const setPage = setPageRaw
   const [sortRequest, setSortRequest] = useState(0)
   const [rightTab, setRightTab] = useState<'ai' | 'flow' | 'trade' | 'learn' | 'picks' | 'practice' | 'brain'>('ai')
@@ -597,7 +598,7 @@ export default function App() {
         equity={broker.account.equity}
         dayPL={broker.account.dayPL}
       />
-      {shownPage !== 'brief' && <PanelGuard name="Watchlist"><Watchlist
+      {shownPage !== 'brief' && shownPage !== 'net' && <PanelGuard name="Watchlist"><Watchlist
         sortRequest={sortRequest}
         aiActive={aiRules.practiceMode && aiRules.practiceWatchlist ? aiActive : null}
         instruments={universe}
@@ -632,7 +633,12 @@ export default function App() {
           onNode={openNode}
           onSymbol={openSymbol}
           onDesk={() => setPage('trade')}
+          onNet={aiRules.netTools ? () => setPage('net') : undefined}
         />
+        </PanelGuard>
+      ) : shownPage === 'net' ? (
+        <PanelGuard name="Wi-Fi">
+          <NetPage onBack={() => setPage(briefOn ? 'brief' : 'trade')} />
         </PanelGuard>
       ) : shownPage === 'trade' ? (
         <>

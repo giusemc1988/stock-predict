@@ -22,7 +22,19 @@ interface Env extends BrainEnv, PracticeEnv {
   ALPHA_VANTAGE_KEY?: string
   FINNHUB_KEY?: string
   TELEGRAM_BOT_TOKEN?: string
+  /** Home agent (agent/jarvis-agent.ts) reached through a Cloudflare Tunnel, e.g. https://home.example.com. */
+  HOME_AGENT_URL?: string
+  /** The token the home agent prints on start (Worker secret). */
+  HOME_AGENT_TOKEN?: string
+  /** Cloudflare Access service token for the tunnel hostname (Worker secrets), so only this Worker can reach the agent. */
+  HOME_ACCESS_CLIENT_ID?: string
+  HOME_ACCESS_CLIENT_SECRET?: string
 }
+
+/** Paths the Wi-Fi page may ask the home agent for. */
+const HOME_PATHS = new Set(['health', 'devices', 'wifi', 'ping', 'ports', 'wol', 'speed'])
+/** Home agent answers kept in KV so the page can show the last scan while the PC is off. */
+const HOME_SNAPSHOT = new Set(['devices', 'wifi'])
 
 const json = (data: unknown, status = 200) => new Response(JSON.stringify(data), { status, headers: { 'content-type': 'application/json', 'cache-control': 'no-store' } })
 
@@ -442,6 +454,31 @@ export default {
       } catch (e) {
         console.error('Practice state error:', e)
         return json({ error: String(e) }, 500)
+      }
+    }
+    if (pathname.startsWith('/api/home/')) {
+      const sub = pathname.slice('/api/home/'.length)
+      if (!HOME_PATHS.has(sub)) return json({ error: 'not found' }, 404)
+      const snapKey = `home:last:${sub}`
+      const fallback = async (why: string) => {
+        const snap = HOME_SNAPSHOT.has(sub) && req.method === 'GET' ? await env.SETTINGS?.get(snapKey).catch(() => null) : null
+        return json({ offline: true, why, snapshot: snap ? JSON.parse(snap) : null }, 200)
+      }
+      if (!env.HOME_AGENT_URL || !env.HOME_AGENT_TOKEN) return fallback('not set up')
+      const headers: Record<string, string> = { authorization: `Bearer ${env.HOME_AGENT_TOKEN}`, 'content-type': 'application/json' }
+      if (env.HOME_ACCESS_CLIENT_ID && env.HOME_ACCESS_CLIENT_SECRET) {
+        headers['CF-Access-Client-Id'] = env.HOME_ACCESS_CLIENT_ID
+        headers['CF-Access-Client-Secret'] = env.HOME_ACCESS_CLIENT_SECRET
+      }
+      try {
+        const target = `${env.HOME_AGENT_URL.replace(/\/$/, '')}/api/${sub}${new URL(req.url).search}`
+        const r = await fetch(target, { method: req.method === 'POST' ? 'POST' : 'GET', headers, body: req.method === 'POST' ? await req.text() : undefined, signal: AbortSignal.timeout(sub === 'speed' ? 60000 : 20000) })
+        if (!r.ok && r.status >= 500) return fallback(`agent error ${r.status}`)
+        const text = await r.text()
+        if (r.ok && HOME_SNAPSHOT.has(sub) && req.method === 'GET') await env.SETTINGS?.put(snapKey, JSON.stringify({ at: Date.now(), data: JSON.parse(text) })).catch(() => {})
+        return new Response(text, { status: r.status, headers: { 'content-type': 'application/json', 'cache-control': 'no-store' } })
+      } catch (e) {
+        return fallback(e instanceof Error ? e.message : String(e))
       }
     }
     if (pathname.startsWith('/api/news/')) {

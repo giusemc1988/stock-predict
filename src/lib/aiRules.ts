@@ -82,6 +82,7 @@ export interface AiRules {
   aiKeyBoxes: boolean // Settings shows boxes to type the free AI keys (saved on the server, never in the browser)
   jarvisCloudAi: boolean // when Jarvis doesn't understand, ask a free AI helper (keys live on the server)
   briefHome: boolean // Jarvis Brief is the home page; off opens the Trading desk as before
+  netTools: boolean // Wi-Fi & Bluetooth page for your own network (needs the home agent for scans)
   hubLayout: boolean // the home page uses the Hub layout: best pick next to the sphere, prediction board, Studio and devices
   briefAi: boolean // a free AI helper writes the Jarvis Brief from the page's real data (once per scan)
   practiceCryptoMovers: boolean // practice also scans today's top crypto gainers and most-traded coins
@@ -186,6 +187,7 @@ export const DEFAULT_AI_RULES: AiRules = {
   jarvisCloudAi: true,
   briefHome: true,
   hubLayout: true,
+  netTools: true,
   briefAi: true,
   practiceCryptoMovers: true,
   adjustableTimeRange: true,
@@ -302,6 +304,7 @@ export const RULE_FIELDS: RuleField[] = [
   { group: 'jarvis', key: 'jarvisFabTalk', en: 'The floating brain answers out loud (male voice by default; change it in the Brain tab)', vi: 'Bộ não nổi trả lời thành tiếng (mặc định giọng nam; đổi trong tab Bộ não)' },
   { group: 'jarvis', key: 'jarvisCloudAi', en: "Free AI helper: when Jarvis doesn't understand you, he asks a free AI (Gemini, Groq, Grok or NVIDIA) using his own facts. Only works after a key is added (type it in Settings, or set it as a server secret)", vi: 'Trợ lý AI miễn phí: khi Jarvis không hiểu, Jarvis hỏi một AI miễn phí (Gemini, Groq, Grok hoặc NVIDIA) kèm dữ liệu của mình. Chỉ hoạt động sau khi thêm khóa (nhập trong Cài đặt, hoặc đặt làm secret trên máy chủ)' },
   { group: 'jarvis', key: 'aiKeyBoxes', en: 'Show the free AI key boxes in Settings (Gemini, Groq, NVIDIA)', vi: 'Hiện ô nhập khóa AI miễn phí trong Cài đặt (Gemini, Groq, NVIDIA)' },
+  { group: 'jarvis', key: 'netTools', en: 'Wi-Fi & Bluetooth page: devices on your network, Wi-Fi channels, ping, port check, Wake-on-LAN, speed test (your own network only; scans need the home agent)', vi: 'Trang Wi-Fi và Bluetooth: thiết bị trong mạng, kênh Wi-Fi, ping, kiểm tra cổng, đánh thức máy, đo tốc độ (chỉ mạng của anh; quét cần chương trình trên máy nhà)' },
   { group: 'jarvis', key: 'hubLayout', en: 'Hub home page: best pick next to the sphere, prediction board with 6 agent dots, Studio and devices (off: the old Jarvis Brief layout)', vi: 'Trang chủ Hub: mã tốt nhất cạnh quả cầu, bảng dự đoán có 6 chấm agent, Studio và thiết bị (tắt: giao diện Jarvis Brief cũ)' },
   { group: 'jarvis', key: 'briefHome', en: 'Jarvis Brief as the home page (off: open the Trading desk first)', vi: 'Jarvis Brief là trang chủ (tắt: mở Bàn giao dịch trước)' },
   { group: 'jarvis', key: 'briefAi', en: 'Free AI writes the Jarvis Brief from real data (once per scan; plain text if every AI key fails)', vi: 'AI miễn phí viết Jarvis Brief từ dữ liệu thật (mỗi lần quét một lần; nếu mọi key AI lỗi thì dùng văn bản thường)' },

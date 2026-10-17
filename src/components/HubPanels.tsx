@@ -173,16 +173,16 @@ export function HubStudio() {
   )
 }
 
-const DEVICES: { k: string; t: HubKey | null; name?: string; d: HubKey; agent?: boolean }[] = [
+const DEVICES: { k: string; t: HubKey | null; name?: string; d: HubKey; agent?: boolean; net?: boolean }[] = [
   { k: 'esp32', t: 'esp32', d: 'esp32Note' },
   { k: 'bay', t: null, name: 'BayReady', d: 'bayNote', agent: true },
-  { k: 'net', t: 'homeNet', d: 'homeNetNote' },
-  { k: 'ble', t: 'ble', d: 'bleNote' },
+  { k: 'net', t: 'homeNet', d: 'homeNetNote', net: true },
+  { k: 'ble', t: 'ble', d: 'bleNote', net: true },
   { k: 'ruview', t: 'ruview', d: 'ruviewNote', agent: true },
 ]
 
-/** Projects, devices and home network: what the hub will connect to. Each one is set up in a later step. */
-export function HubDevices() {
+/** Projects, devices and home network: what the hub connects to. Home network and Bluetooth open the Wi-Fi page; the rest come in later steps. */
+export function HubDevices({ onNet }: { onNet?: () => void }) {
   const t = useHubT()
   return (
     <section className="bf-card hub-devices" id="hub-devices">
@@ -190,16 +190,24 @@ export function HubDevices() {
         <h3>{t('devices')}</h3>
         <span className="muted small">{t('yoursOnly')}</span>
       </header>
-      {DEVICES.map((d) => (
-        <div key={d.k} className={`hub-dev${d.agent ? ' agent' : ''}`}>
-          <i className="led" />
-          <div>
-            <b>{d.t ? t(d.t) : d.name}</b>
-            <span>{t(d.d)}</span>
-          </div>
-          <em>{t('soon')}</em>
-        </div>
-      ))}
+      {DEVICES.map((d) => {
+        const open = d.net && onNet
+        const inner = (
+          <>
+            <i className={`led${open ? ' on' : ''}`} />
+            <div>
+              <b>{d.t ? t(d.t) : d.name}</b>
+              <span>{t(d.d)}</span>
+            </div>
+            <em>{open ? t('openTool') : t('soon')}</em>
+          </>
+        )
+        return open ? (
+          <button key={d.k} className="hub-dev live" onClick={onNet}>{inner}</button>
+        ) : (
+          <div key={d.k} className={`hub-dev${d.agent ? ' agent' : ''}`}>{inner}</div>
+        )
+      })}
       <p className="bf-source">{t('devicesNote')}</p>
     </section>
   )

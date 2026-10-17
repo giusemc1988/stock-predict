@@ -42,6 +42,8 @@ interface Props {
   /** Open a market's chart on the Trading desk. */
   onSymbol: (symbol: string, asset: 'stock' | 'crypto') => void
   onDesk: () => void
+  /** Open the Wi-Fi & Bluetooth page (undefined when it is switched off). */
+  onNet?: () => void
 }
 
 function Movers({ title, rows, vol, onPick }: { title: string; rows: MarketListRow[]; vol?: boolean; onPick: (r: MarketListRow) => void }) {
@@ -284,7 +286,7 @@ export function JarvisBrief(p: Props) {
           </div>
           <aside className="hub-side">
             <HubStudio />
-            <HubDevices />
+            <HubDevices onNet={p.onNet} />
           </aside>
         </div>
         <HubTabbar onDesk={p.onDesk} />

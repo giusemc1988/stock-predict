@@ -32,3 +32,4 @@ dist-ssr
 # local Worker secrets for wrangler dev
 .dev.vars
 .wrangler
+.agent

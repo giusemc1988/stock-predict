@@ -26,6 +26,7 @@ export const HUB_TEXT = {
   studio: { en: 'Studio', vi: 'Studio' },
   comingSoon: { en: 'coming soon', vi: 'sắp có' },
   soon: { en: 'Soon', vi: 'Sắp có' },
+  openTool: { en: 'Open →', vi: 'Mở →' },
   mediaLab: { en: 'Media Lab', vi: 'Media Lab' },
   mediaLabNote: { en: 'AI or real?', vi: 'AI hay thật?' },
   imageEdit: { en: 'Image edit', vi: 'Sửa hình' },
