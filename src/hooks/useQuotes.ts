@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import type { Instrument, Quote } from '../types'
 import { demoHistory, demoPrice, demoSessionOpen, demoTick } from '../data/demo'
 import type { AlpacaDataKeys, ApiKeys } from '../data/providers'
-import { alpacaSnapshots, binanceKlines, binanceStream, binanceTickers, finnhubQuote, hasAlpacaData } from '../data/providers'
+import { binanceKlines, binanceStream, binanceTickers, finnhubQuote, hasAlpacaData } from '../data/providers'
 
 const mkQuote = (symbol: string, price: number, open: number, high: number, low: number, volume: number, spark: number[], live: boolean): Quote => ({
   symbol,
@@ -100,9 +100,17 @@ export function useQuotes(instruments: Instrument[], keys: ApiKeys, alpaca: Alpa
         if (busy) return
         busy = true
         try {
-          let snaps: Awaited<ReturnType<typeof alpacaSnapshots>> = {}
+          let snaps: Record<string, { last: number; open: number; high: number; low: number; volume: number }> = {}
           try {
-            snaps = await alpacaSnapshots(stocks.map((s) => s.feedId), alpaca)
+            const res = await fetch('/api/market/stock/snapshot', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ symbols: stocks.map((s) => s.feedId) }),
+            })
+            if (res.ok) {
+              const data = (await res.json()) as { snapshots: Record<string, { last: number; open: number; high: number; low: number; volume: number }> }
+              snaps = data.snapshots
+            }
           } catch {
             /* every symbol falls back below */
           }

@@ -2,7 +2,7 @@
  * Version and "What's new". Bump APP_VERSION and add an entry to the top of RELEASES
  * with each update. The banner shows once per version, then stays dismissed.
  */
-export const APP_VERSION = '1.21.11'
+export const APP_VERSION = '1.21.12'
 
 export interface Release {
   version: string
@@ -13,6 +13,16 @@ export interface Release {
 }
 
 export const RELEASES: Release[] = [
+  {
+    version: '1.21.12',
+    date: '2026-10-17',
+    changes: [
+      'Fixed: Settings now validates Alpaca paper keys (PK prefix only) before saving, preventing live keys from being stored.',
+    ],
+    changesVi: [
+      'Sửa: Cài đặt giờ xác thực key Alpaca paper (chỉ prefix PK) trước lưu, ngăn chặn key live bị lưu.',
+    ],
+  },
   {
     version: '1.21.11',
     date: '2026-10-17',

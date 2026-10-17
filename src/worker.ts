@@ -26,6 +26,162 @@ interface Env extends BrainEnv, PracticeEnv {
 
 const json = (data: unknown, status = 200) => new Response(JSON.stringify(data), { status, headers: { 'content-type': 'application/json', 'cache-control': 'no-store' } })
 
+interface AlpacaDataKeys {
+  keyId: string
+  secret: string
+}
+
+interface Candle {
+  time: number
+  open: number
+  high: number
+  low: number
+  close: number
+  volume: number
+}
+
+interface MarketListRow {
+  symbol: string
+  assetClass: 'stock' | 'crypto'
+  price: number
+  changePct: number
+  dollarVolume?: number
+}
+
+interface MarketLists {
+  gainers: MarketListRow[]
+  losers: MarketListRow[]
+  volume: MarketListRow[]
+  most_active: MarketListRow[]
+  new_highs: MarketListRow[]
+}
+
+async function fetchJson(url: string, opts: { headers?: Record<string, string>; timeoutMs?: number } = {}): Promise<unknown> {
+  const ctrl = new AbortController()
+  const t = setTimeout(() => ctrl.abort(), opts.timeoutMs ?? 8000)
+  try {
+    const res = await fetch(url, { signal: ctrl.signal, headers: opts.headers })
+    if (!res.ok) throw new Error(`${res.status} ${res.statusText}`)
+    return await res.json()
+  } finally {
+    clearTimeout(t)
+  }
+}
+
+async function alpacaData<T>(k: AlpacaDataKeys, path: string): Promise<T> {
+  const ctrl = new AbortController()
+  const t = setTimeout(() => ctrl.abort(), 10000)
+  try {
+    const res = await fetch('https://data.alpaca.markets' + path, {
+      signal: ctrl.signal,
+      headers: { 'APCA-API-KEY-ID': k.keyId, 'APCA-API-SECRET-KEY': k.secret },
+    })
+    const body = (await res.json().catch(() => ({}))) as Record<string, unknown>
+    if (res.status === 401 || res.status === 403) throw new Error('Alpaca rejected the paper key (check key ID and secret)')
+    if (!res.ok) throw new Error((body.message as string) || `Alpaca data error ${res.status}`)
+    return body as T
+  } finally {
+    clearTimeout(t)
+  }
+}
+
+async function alpacaStockCandles(symbol: string, tf: string, k: AlpacaDataKeys): Promise<Candle[]> {
+  const TF: Record<string, string> = { '1m': '1Min', '5m': '5Min', '15m': '15Min', '1h': '1Hour', '4h': '4Hour', '1d': '1Day' }
+  const LOOKBACK_DAYS: Record<string, number> = { '1m': 7, '5m': 30, '15m': 60, '1h': 200, '4h': 600, '1d': 1500 }
+  const start = new Date(Date.now() - (LOOKBACK_DAYS[tf] ?? 7) * 86400_000).toISOString()
+  const q = `timeframe=${TF[tf] ?? tf}&start=${start}&limit=1000&sort=desc&feed=iex&adjustment=split`
+  const json = (await alpacaData<{ bars?: Array<{ t: string; o: number; h: number; l: number; c: number; v: number }> }>(k, `/v2/stocks/${encodeURIComponent(symbol)}/bars?${q}`)) as {
+    bars?: Array<{ t: string; o: number; h: number; l: number; c: number; v: number }>
+  }
+  const rows = (json.bars ?? [])
+    .map((b) => ({ time: Math.floor(Date.parse(b.t) / 1000), open: b.o, high: b.h, low: b.l, close: b.c, volume: b.v }))
+    .reverse()
+  if (!rows.length) throw new Error(`Alpaca: no bars for ${symbol}`)
+  return rows
+}
+
+async function alpacaSnapshots(symbols: string[], k: AlpacaDataKeys) {
+  const json = (await alpacaData<Record<string, { latestTrade?: { p: number }; dailyBar?: { o: number; h: number; l: number; c: number; v: number }; prevDailyBar?: { c: number } }>>(
+    k,
+    `/v2/stocks/snapshots?symbols=${symbols.map(encodeURIComponent).join(',')}&feed=iex`,
+  )) as Record<string, { latestTrade?: { p: number }; dailyBar?: { o: number; h: number; l: number; c: number; v: number }; prevDailyBar?: { c: number } }>
+  const out: Record<string, { last: number; open: number; high: number; low: number; volume: number }> = {}
+  for (const [sym, s] of Object.entries(json)) {
+    const last = s.latestTrade?.p ?? s.dailyBar?.c
+    if (!last) continue
+    out[sym] = { last, open: s.prevDailyBar?.c ?? s.dailyBar?.o ?? last, high: s.dailyBar?.h ?? last, low: s.dailyBar?.l ?? last, volume: s.dailyBar?.v ?? 0 }
+  }
+  return out
+}
+
+async function alpacaMarketLists(k: AlpacaDataKeys, top = 15): Promise<MarketLists> {
+  const plain = (s: string) => /^[A-Z]{1,5}$/.test(s)
+  type Move = { symbol: string; percent_change: number; price: number }
+  const [mv, act] = await Promise.all([
+    alpacaData<{ gainers?: Move[]; losers?: Move[] }>(k, `/v1beta1/screener/stocks/movers?top=50`),
+    alpacaData<{ most_actives?: { symbol: string; volume: number }[] }>(k, `/v1beta1/screener/stocks/most-actives?by=volume&top=${top * 2}`),
+  ])
+  const moves = (list: Move[] = []) =>
+    list
+      .filter((g) => plain(g.symbol) && g.price >= 1)
+      .slice(0, top)
+      .map((g) => ({ symbol: g.symbol, assetClass: 'stock' as const, price: g.price, changePct: g.percent_change }))
+  const activeSyms = (act.most_actives ?? []).map((a) => a.symbol).filter(plain).slice(0, top)
+  const snaps = activeSyms.length ? await alpacaSnapshots(activeSyms, k) : {}
+  const volume = activeSyms
+    .filter((s) => snaps[s])
+    .map((s) => {
+      const q = snaps[s]
+      return { symbol: s, assetClass: 'stock' as const, price: q.last, changePct: ((q.last - q.open) / q.open) * 100, dollarVolume: q.volume * q.last }
+    })
+  const most_active = [...volume].sort((a, b) => (b.dollarVolume ?? 0) - (a.dollarVolume ?? 0)).slice(0, top)
+  const new_highs = [...volume].sort((a, b) => b.price - a.price).slice(0, top)
+  return { gainers: moves(mv.gainers), losers: moves(mv.losers), volume, most_active, new_highs }
+}
+
+async function alphaVantageCandles(symbol: string, tf: string, key: string): Promise<Candle[]> {
+  const avError = (json: any, symbol: string) => {
+    if (json.Note) return `Alpha Vantage daily limit reached`
+    if (json.Information) return `Alpha Vantage: ${json.Information}`
+    return `Alpha Vantage: no data for ${symbol}`
+  }
+  const easternToUnix = (ts: string) => {
+    const [date, time] = ts.split(' ')
+    const [y, m, d] = date.split('-')
+    const [h, min] = time.split(':')
+    return Math.floor(new Date(`${y}-${m}-${d}T${h}:${String(+min).padStart(2, '0')}:00Z`).getTime() / 1000)
+  }
+  const interval = { '1m': '1min', '5m': '5min', '15m': '15min', '1h': '60min' }[tf] || null
+  const get = (size: 'full' | 'compact') =>
+    fetchJson(
+      interval
+        ? `https://www.alphavantage.co/query?function=TIME_SERIES_INTRADAY&symbol=${symbol}&interval=${interval}&outputsize=${size}&apikey=${key}`
+        : `https://www.alphavantage.co/query?function=TIME_SERIES_DAILY&symbol=${symbol}&outputsize=compact&apikey=${key}`,
+      { timeoutMs: 15000 },
+    )
+  let json = (await get('full')) as Record<string, unknown>
+  if (interval && !Object.keys(json).some((k) => k.startsWith('Time Series')) && /premium/i.test(json.Information as string)) json = (await get('compact')) as Record<string, unknown>
+  const seriesKey = Object.keys(json).find((k) => k.startsWith('Time Series'))
+  if (!seriesKey) throw new Error(avError(json, symbol))
+  const rows = Object.entries(json[seriesKey] as Record<string, Record<string, string>>)
+    .map(([ts, v]) => ({
+      time: interval ? easternToUnix(ts) : Math.floor(Date.parse(ts + 'T00:00:00Z') / 1000),
+      open: +v['1. open'],
+      high: +v['2. high'],
+      low: +v['3. low'],
+      close: +v['4. close'],
+      volume: +v['5. volume'],
+    }))
+    .sort((a, b) => a.time - b.time)
+  return rows
+}
+
+async function finnhubQuote(symbol: string, key: string) {
+  const q = (await fetchJson(`https://finnhub.io/api/v1/quote?symbol=${symbol}&token=${key}`)) as { c?: number; pc?: number; h?: number; l?: number }
+  if (!q || !q.c) throw new Error('Finnhub: no quote')
+  return { last: q.c, open: q.pc ?? q.c, high: q.h ?? q.c, low: q.l ?? q.c }
+}
+
 export default {
   async fetch(req: Request, env: Env): Promise<Response> {
     const { pathname } = new URL(req.url)
@@ -282,6 +438,93 @@ export default {
         return json({ ok: true, message: 'Test message sent successfully' })
       } catch (e) {
         console.error('Telegram test error:', e)
+        return json({ error: String(e) }, 500)
+      }
+    }
+    if (pathname === '/api/market/stocks') {
+      if (req.method !== 'GET') return json({ error: 'GET only' }, 405)
+      try {
+        if (!env.SETTINGS) return json({ error: 'Settings storage not available' }, 501)
+        const alpacaKeyStr = await env.SETTINGS.get(storeKey('alpaca_paper' as any))
+        if (!alpacaKeyStr) return json({ error: 'Alpaca paper key not configured' }, 400)
+        const alpacaKeys = JSON.parse(alpacaKeyStr)
+        const result = await alpacaMarketLists(alpacaKeys)
+        return json(result)
+      } catch (e) {
+        console.error('Market stocks error:', e)
+        return json({ error: String(e) }, 500)
+      }
+    }
+    if (pathname === '/api/market/stock/candles') {
+      if (req.method !== 'GET') return json({ error: 'GET only' }, 405)
+      try {
+        const url = new URL(req.url)
+        const symbol = url.searchParams.get('symbol')
+        const tf = url.searchParams.get('tf') as any
+        if (!symbol || !tf) return json({ error: 'symbol and tf required' }, 400)
+        if (!env.SETTINGS) return json({ error: 'Settings storage not available' }, 501)
+        const alpacaKeyStr = await env.SETTINGS.get(storeKey('alpaca_paper' as any))
+        const avKeyStr = await env.SETTINGS.get(storeKey('alpha_vantage' as any))
+        const alpacaKeys = alpacaKeyStr ? JSON.parse(alpacaKeyStr) : { keyId: '', secret: '' }
+        const avKey = avKeyStr ? String(avKeyStr) : ''
+        let candles = null
+        if (alpacaKeys.keyId && alpacaKeys.secret) {
+          try {
+            candles = await alpacaStockCandles(symbol, tf, alpacaKeys)
+          } catch (e) {
+            if (!avKey) throw e
+          }
+        }
+        if (!candles && avKey) {
+          const avCandles = await alphaVantageCandles(symbol, tf, avKey)
+          candles = avCandles
+        }
+        if (!candles) return json({ error: 'No data source available for candles' }, 400)
+        return json({ candles })
+      } catch (e) {
+        console.error('Candles error:', e)
+        return json({ error: String(e) }, 500)
+      }
+    }
+    if (pathname === '/api/market/stock/snapshot') {
+      if (req.method !== 'GET' && req.method !== 'POST') return json({ error: 'GET or POST only' }, 405)
+      try {
+        const url = new URL(req.url)
+        let symbols: string[] = []
+        if (req.method === 'GET') {
+          const s = url.searchParams.get('symbols')
+          symbols = s ? JSON.parse(s) : []
+        } else {
+          const body = (await req.json().catch(() => null)) as { symbols?: unknown } | null
+          symbols = Array.isArray(body?.symbols) ? body.symbols.map(String) : []
+        }
+        if (!symbols.length) return json({ error: 'symbols required' }, 400)
+        if (!env.SETTINGS) return json({ error: 'Settings storage not available' }, 501)
+        const alpacaKeyStr = await env.SETTINGS.get(storeKey('alpaca_paper' as any))
+        const fhKeyStr = await env.SETTINGS.get(storeKey('finnhub' as any))
+        const alpacaKeys = alpacaKeyStr ? JSON.parse(alpacaKeyStr) : { keyId: '', secret: '' }
+        const fhKey = fhKeyStr ? String(fhKeyStr) : ''
+        let snapshots: Record<string, { last: number; open: number; high: number; low: number; volume: number }> = {}
+        if (alpacaKeys.keyId && alpacaKeys.secret) {
+          try {
+            snapshots = await alpacaSnapshots(symbols, alpacaKeys)
+          } catch (e) {
+            if (!fhKey) throw e
+          }
+        }
+        if (!Object.keys(snapshots).length && fhKey) {
+          for (const symbol of symbols) {
+            try {
+              const q = await finnhubQuote(symbol, fhKey)
+              snapshots[symbol] = { last: q.last, open: q.open, high: q.high, low: q.low, volume: 0 }
+            } catch {
+              /* skip this symbol */
+            }
+          }
+        }
+        return json({ snapshots })
+      } catch (e) {
+        console.error('Snapshot error:', e)
         return json({ error: String(e) }, 500)
       }
     }

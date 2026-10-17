@@ -3,7 +3,7 @@ import type { Candle, FeedStatus, Instrument, Timeframe } from '../types'
 import { tfSeconds } from '../types'
 import { demoHistory, demoTick } from '../data/demo'
 import type { AlpacaDataKeys, ApiKeys } from '../data/providers'
-import { AV_CACHE_MS, alpacaStockCandles, alphaVantageCandlesCached, binanceKlines, binanceStream, finnhubTrades, hasAlpacaData } from '../data/providers'
+import { binanceKlines, binanceStream, finnhubTrades, hasAlpacaData } from '../data/providers'
 
 export interface MarketData {
   candles: Candle[]
@@ -94,22 +94,27 @@ export function useMarketData(inst: Instrument, tf: Timeframe, keys: ApiKeys, al
             ),
           )
         }
+        // Fetch candles from Worker endpoint (handles Alpaca primary, Alpha Vantage fallback)
         let candles: Candle[] | null = null
-        if (useAlpaca) {
-          try {
-            candles = await alpacaStockCandles(inst.feedId, tf, alpacaRef.current)
-          } catch (e) {
-            // a configured Alpha Vantage key is the fallback; without one, show the Alpaca error
-            if (!k.alphaVantage) throw e
+        try {
+          const res = await fetch(`/api/market/stock/candles?symbol=${encodeURIComponent(inst.feedId)}&tf=${tf}`)
+          if (res.ok) {
+            const data = (await res.json()) as { candles: Candle[] }
+            candles = data.candles
           }
-          if (cancelled) return
+        } catch {
+          /* fetch failed, will fall back to demo */
         }
+        if (cancelled) return
         if (candles) {
           set({ candles, status: 'polling', source: 'Alpaca (IEX)', error: null })
           const id = setInterval(async () => {
             try {
-              const fresh = await alpacaStockCandles(inst.feedId, tf, alpacaRef.current)
-              set({ candles: fresh })
+              const res = await fetch(`/api/market/stock/candles?symbol=${encodeURIComponent(inst.feedId)}&tf=${tf}`)
+              if (res.ok) {
+                const data = (await res.json()) as { candles: Candle[] }
+                set({ candles: data.candles })
+              }
             } catch {
               /* keep last good data */
             }
@@ -118,25 +123,7 @@ export function useMarketData(inst: Instrument, tf: Timeframe, keys: ApiKeys, al
           addFinnhub('Alpaca (IEX)', 'polling')
           return
         }
-        if (k.alphaVantage) {
-          const first = await alphaVantageCandlesCached(inst.feedId, tf, k.alphaVantage)
-          if (cancelled) return
-          // delayed data: the free plan allows 25 requests a day, so refresh only when the cache expires
-          const source = (stale: string | null) => (stale ? 'Alpha Vantage (saved, not updating)' : 'Alpha Vantage (delayed)')
-          set({ candles: first.candles, status: 'polling', source: source(first.stale), error: first.stale })
-          const id = setInterval(async () => {
-            try {
-              const fresh = await alphaVantageCandlesCached(inst.feedId, tf, keysRef.current.alphaVantage)
-              set({ candles: fresh.candles, source: source(fresh.stale), error: fresh.stale })
-            } catch {
-              /* keep last good data */
-            }
-          }, AV_CACHE_MS)
-          cleanups.push(() => clearInterval(id))
-          addFinnhub('Alpha Vantage', 'polling')
-          return
-        }
-        startDemo(k.finnhub ? 'Add an Alpha Vantage key for stock history' : null)
+        startDemo(k.finnhub ? 'Add an Alpha Vantage key for stock history' : 'No live data available')
       } catch (e) {
         if (!cancelled) startDemo(e instanceof Error ? e.message : String(e))
       }
