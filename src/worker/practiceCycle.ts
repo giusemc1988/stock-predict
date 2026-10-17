@@ -149,7 +149,7 @@ export async function practiceCycle(env: WorkerEnv): Promise<{ state: PracticeSt
   const now = Date.now()
   const markets: ScanMarket[] = scanMarkets(
     INSTRUMENTS,
-    rules.practiceMovers ? (await yahooMovers(10, rules.practicePenny ? PENNY_MIN_PRICE : PENNY_PRICE)).map((m) => ({ symbol: m.symbol, source: m.source as Mover['source'] })) : [],
+    rules.practiceMovers ? (await yahooMovers(10, rules.practicePenny ? PENNY_MIN_PRICE : PENNY_PRICE).catch(() => [])).map((m) => ({ symbol: m.symbol, source: m.source as Mover['source'] })) : [],
     rules.practiceCryptoMovers ? await coingeckoMovers().catch(() => []) : [],
   )
 
