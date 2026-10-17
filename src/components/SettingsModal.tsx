@@ -224,7 +224,15 @@ export function SettingsModal({ keys, onSave, onClose, onOpenAiRules, alpacaKeys
               setSavingKeys(true)
               try {
                 await saveDataKeys()
-                onSave(draft)
+                // Wait for KV sync, then reload keys from server to ensure they persisted
+                await new Promise(resolve => setTimeout(resolve, 500))
+                const resp = await fetch('/api/data/keys', { method: 'POST' })
+                if (resp.ok) {
+                  const loaded = (await resp.json()) as ApiKeys
+                  onSave(loaded)
+                } else {
+                  onSave(draft)
+                }
                 onClose()
               } finally {
                 setSavingKeys(false)
