@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
+import { DEMO_REGISTRY, DEMO_STATUS, DEMO_VITALS, demoLatest, demoNodes } from '../lib/demoData'
 import { BOARDS, boardFromChip, boardOf, CSI_PORT, flashCommand, mergeNodes, nextNodeId, presenceOf, RUVIEW, RUVIEW_IMAGE, RUVIEW_RELEASE_URL, type BoardId, type LiveNode, type RegistryNode, type SensingLatest, type Vitals } from '../lib/ruview'
 import { configLine, helloLine, makeNonce, NodeLink, parseConfigReply, parseHello, serialApi, type Hello } from '../lib/ruviewSerial'
 import { useRuviewT, type RuviewKey } from '../lib/ruviewText'
@@ -186,6 +187,7 @@ export function RuViewPage({ onBack }: { onBack: () => void }) {
   const [me, setMe] = useState<string[]>([])
   const [adding, setAdding] = useState(false)
   const [note, setNote] = useState<string | null>(null)
+  const [demo, setDemo] = useState(false)
 
   const load = useCallback(async () => {
     try {
@@ -214,9 +216,36 @@ export function RuViewPage({ onBack }: { onBack: () => void }) {
     return () => clearTimeout(id)
   }, [load])
 
+  // sample data: the room changes every 20 s so the page can be seen working away from home
+  useEffect(() => {
+    if (!demo) return
+    const tick = () => {
+      setLatest(demoLatest(Date.now()))
+      setLive(demoNodes(Date.now()))
+    }
+    tick()
+    const id = setInterval(tick, 3000)
+    return () => clearInterval(id)
+  }, [demo])
+  const startDemo = () => {
+    setStatus(DEMO_STATUS)
+    setReg(DEMO_REGISTRY)
+    setVitals(DEMO_VITALS)
+    setDemo(true)
+  }
+  const stopDemo = () => {
+    setDemo(false)
+    setStatus(null)
+    setLatest(null)
+    setLive([])
+    setVitals(null)
+    setReg([])
+    void load()
+  }
+
   // live feed: room state every 3 s, nodes and vitals every 15 s, paused while the tab is hidden
   useEffect(() => {
-    if (!status?.up) return
+    if (!status?.up || demo) return
     let n = 0
     const tick = async () => {
       if (document.hidden) return
@@ -229,7 +258,7 @@ export function RuViewPage({ onBack }: { onBack: () => void }) {
     void tick()
     const id = setInterval(() => void tick(), 3000)
     return () => clearInterval(id)
-  }, [status?.up])
+  }, [status?.up, demo])
 
   const saveNode = async (node: RegistryNode) => {
     await call('registry', { method: 'POST', body: JSON.stringify({ node }) })
@@ -243,9 +272,9 @@ export function RuViewPage({ onBack }: { onBack: () => void }) {
   const p = presenceOf(latest)
   const pKey: Record<typeof p, RuviewKey> = { absent: 'pAbsent', still: 'pStill', moving: 'pMoving', stale: 'pStale', waiting: 'pWaiting' }
   const rows = mergeNodes(reg, live)
-  const head = off ? (off.why === 'not set up' ? t('agentNotSetUp') : t('agentOff')) : status?.up ? t('live') : status ? t('serverDown') : '…'
+  const head = demo ? t('demoOn') : off ? (off.why === 'not set up' ? t('agentNotSetUp') : t('agentOff')) : status?.up ? t('live') : status ? t('serverDown') : '…'
   const vs = vitals?.authority === 'explicit_calibration' ? vitals.vital_signs : null
-  const sim = /simulat/i.test(status?.source ?? latest?.source ?? '')
+  const sim = demo || /simulat/i.test(status?.source ?? latest?.source ?? '')
   const behind = !!status?.image && status.image !== RUVIEW_IMAGE
 
   return (
@@ -264,19 +293,31 @@ export function RuViewPage({ onBack }: { onBack: () => void }) {
 
       <p className="rv-privacy small">{t('privacy')}</p>
 
-      {off && (
+      {demo && (
+        <p className="net-demo small">
+          <span>{t('demoNote')}</span>
+          <button className="btn" onClick={stopDemo}>{t('demoExit')}</button>
+        </p>
+      )}
+      {off && !demo && (
         <section className="bf-card net-setup">
           <header><h3>{t('setupAgentTitle')}</h3></header>
           <p className="muted">{t('setupAgentWhy')}</p>
-          <a className="btn prime" href={GUIDE} target="_blank" rel="noreferrer noopener">{t('setupGuide')}</a>
+          <div className="bf-acts">
+            <a className="btn prime" href={GUIDE} target="_blank" rel="noreferrer noopener">{t('setupGuide')}</a>
+            <button className="btn" onClick={startDemo}>{t('demoTry')}</button>
+          </div>
         </section>
       )}
-      {status && !status.up && (
+      {status && !status.up && !demo && (
         <section className="bf-card net-setup">
           <header><h3>{t('setupServerTitle')}</h3></header>
           <p className="muted">{t('setupServerWhy')}</p>
           <CopyLine text={START_SIM} />
-          <a className="btn" href={GUIDE} target="_blank" rel="noreferrer noopener">{t('setupGuide')}</a>
+          <div className="bf-acts">
+            <a className="btn" href={GUIDE} target="_blank" rel="noreferrer noopener">{t('setupGuide')}</a>
+            <button className="btn" onClick={startDemo}>{t('demoTry')}</button>
+          </div>
         </section>
       )}
       {note && <p className="net-note" role="status">{t('error', { msg: note })}</p>}
@@ -286,7 +327,7 @@ export function RuViewPage({ onBack }: { onBack: () => void }) {
           <section className={`bf-card rv-room p-${p}`}>
             <header>
               <h3>{t('room')}</h3>
-              {sim && <em className="flag">{t('practiceData')}</em>}
+              {sim && <em className="flag">{demo ? t('demoOn') : t('practiceData')}</em>}
             </header>
             <div className="rv-big"><i />{t(pKey[p])}</div>
             <p className="small muted">
@@ -315,7 +356,7 @@ export function RuViewPage({ onBack }: { onBack: () => void }) {
         <section className="bf-card rv-nodes">
           <header>
             <h3>{t('nodes')}</h3>
-            {!off && !adding && <button className="btn" onClick={() => setAdding(true)}>{t('addNode')}</button>}
+            {!off && !demo && !adding && <button className="btn" onClick={() => setAdding(true)}>{t('addNode')}</button>}
           </header>
           {!rows.length && <p className="muted">{t('noNodes')}</p>}
           {rows.map((r) => (
@@ -329,7 +370,7 @@ export function RuViewPage({ onBack }: { onBack: () => void }) {
                 {r.live?.rssi_dbm != null && ` · ${r.live.rssi_dbm} dBm`}
               </span>
               <span className="net-flags">{r.behind && <em className="flag new">{t('nodeBehind')}</em>}</span>
-              <span className="net-acts">{r.added > 0 && !off && <button onClick={() => void removeNode(r.id)}>{t('remove')}</button>}</span>
+              <span className="net-acts">{r.added > 0 && !off && !demo && <button onClick={() => void removeNode(r.id)}>{t('remove')}</button>}</span>
             </div>
           ))}
         </section>
@@ -341,7 +382,7 @@ export function RuViewPage({ onBack }: { onBack: () => void }) {
           {(
             [
               ['cUsb', 'cUsbNote', serialApi() ? 'ready' : 'notYet'],
-              ['cWifi', 'cWifiNote', status?.up ? 'ready' : 'notYet'],
+              ['cWifi', 'cWifiNote', status?.up && !demo ? 'ready' : 'notYet'],
               ['cMqtt', 'cMqttNote', 'optional'],
               ['cWebUsb', 'cWebUsbNote', 'notNeeded'],
               ['cBle', 'cBleNote', 'notYet'],

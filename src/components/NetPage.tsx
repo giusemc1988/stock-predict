@@ -1,5 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import { hhmm } from '../lib/brief'
+import { DEMO_DEVICES, DEMO_WIFI } from '../lib/demoData'
+import { browserSpeedTest } from '../lib/speedTest'
 import { channelTip, isPrivateIPv4, type WifiNetwork } from '../lib/netParse'
 import { useNetT, type NetKey } from '../lib/netText'
 import { LangSwitch } from './HubPanels'
@@ -71,6 +73,7 @@ export function NetPage({ onBack }: { onBack: () => void }) {
   const [note, setNote] = useState<string | null>(null)
   const [speed, setSpeed] = useState<{ downMbps: number; upMbps: number; pingMs: number } | null>(null)
   const [ble, setBle] = useState<string | null>(null)
+  const [demo, setDemo] = useState(false)
 
   const say = (k: NetKey, v?: Record<string, string | number>) => setNote(t(k, v))
   const fail = (e: unknown) => say('error', { msg: e instanceof Error ? e.message : String(e) })
@@ -142,10 +145,11 @@ export function NetPage({ onBack }: { onBack: () => void }) {
   const runSpeed = async () => {
     setBusy(true)
     try {
-      const r = await call<{ downMbps: number; upMbps: number; pingMs: number }>('speed')
-      if (isOffline(r)) return say('needAgent')
+      // with the home agent the PC measures the home line; without it this phone or computer measures its own Wi-Fi
+      const viaAgent = live && !demo ? await call<{ downMbps: number; upMbps: number; pingMs: number }>('speed') : null
+      const r = viaAgent && !isOffline(viaAgent) ? viaAgent : await browserSpeedTest()
       setSpeed(r)
-      say('speedResult', { down: r.downMbps, up: r.upMbps, ping: r.pingMs })
+      say(viaAgent && !isOffline(viaAgent) ? 'speedResult' : 'speedHere', { down: r.downMbps, up: r.upMbps, ping: r.pingMs })
     } catch (e) {
       fail(e)
     } finally {
@@ -185,7 +189,19 @@ export function NetPage({ onBack }: { onBack: () => void }) {
   const list = devs?.devices ?? []
   const nets = wifi?.networks ?? []
   const tip = nets.length ? channelTip(nets, wifi?.ssid ?? null) : null
-  const status = off ? (off.why === 'not set up' ? t('agentNotSetUp') : t('agentOff')) : t('agentLive')
+  const status = demo ? t('demoOn') : off ? (off.why === 'not set up' ? t('agentNotSetUp') : t('agentOff')) : t('agentLive')
+  const shown = live || !!off?.snapshot || demo
+  const startDemo = () => {
+    setDevs(DEMO_DEVICES)
+    setWifi(DEMO_WIFI)
+    setDemo(true)
+  }
+  const stopDemo = () => {
+    setDemo(false)
+    setDevs(null)
+    setWifi(null)
+    void scan(false)
+  }
 
   return (
     <main className="net-page">
@@ -201,16 +217,26 @@ export function NetPage({ onBack }: { onBack: () => void }) {
         </div>
       </div>
 
-      {off && (
+      {demo && (
+        <p className="net-demo small">
+          <span>{t('demoNote')}</span>
+          <button className="btn" onClick={stopDemo}>{t('demoExit')}</button>
+        </p>
+      )}
+
+      {off && !demo && (
         <section className="bf-card net-setup">
           <header><h3>{t('setupTitle')}</h3></header>
           <p className="muted">{t('setupWhy')}</p>
           {off.snapshot && <p className="small">{t('lastScan', { when: hhmm(off.snapshot.at) })}</p>}
-          <a className="btn prime" href={GUIDE} target="_blank" rel="noreferrer noopener">{t('setupGuide')}</a>
+          <div className="bf-acts">
+            <a className="btn prime" href={GUIDE} target="_blank" rel="noreferrer noopener">{t('setupGuide')}</a>
+            {!off.snapshot && <button className="btn" onClick={startDemo}>{t('demoTry')}</button>}
+          </div>
         </section>
       )}
 
-      {(live || off?.snapshot) && (
+      {shown && (
       <section className="net-sum">
         <div className="net-wifi-name">
           <b>{wifi?.ssid ?? '—'}</b>
@@ -226,8 +252,8 @@ export function NetPage({ onBack }: { onBack: () => void }) {
 
       {note && <p className="net-note" role="status">{note}</p>}
 
-      <div className={`net-grid${live || off?.snapshot ? "" : " bare"}`}>
-        {(live || off?.snapshot) && (
+      <div className={`net-grid${shown ? "" : " bare"}`}>
+        {shown && (
         <section className="bf-card net-devices">
           <header><h3>{t('devices')}</h3></header>
           {!list.length && <p className="muted">{t('noDevices')}</p>}
@@ -272,7 +298,7 @@ export function NetPage({ onBack }: { onBack: () => void }) {
 
         )}
 
-        {(live || off?.snapshot) && (
+        {shown && (
         <section className="bf-card net-analyzer">
           <header><h3>{t('analyzer')}</h3></header>
           {wifi && !wifi.supported && <p className="muted">{t('wifiUnsupported')}</p>}
@@ -302,7 +328,7 @@ export function NetPage({ onBack }: { onBack: () => void }) {
         <section className="bf-card net-tools">
           <header><h3>{t('tools')}</h3></header>
           <div className="net-tg">
-            <button disabled={busy} onClick={() => void runSpeed()}><b>{t('speedTest')}</b><small>{live ? t('speedNote') : t('needAgent')}</small></button>
+            <button disabled={busy} onClick={() => void runSpeed()}><b>{t('speedTest')}</b><small>{live && !demo ? t('speedNote') : t('speedNoteHere')}</small></button>
             <button onClick={() => void dns()}><b>{t('dns')}</b><small>{t('dnsNote')}</small></button>
             <button onClick={() => askIp('ipPrompt', (ip) => void pingIp(ip))}><b>{t('pingTool')}</b><small>{live ? t('pingNote') : t('needAgent')}</small></button>
             <button onClick={() => askIp('ipPrompt', (ip) => void portsIp(ip))}><b>{t('portsTool')}</b><small>{live ? t('portsNote') : t('needAgent')}</small></button>

@@ -112,6 +112,10 @@ export const RUVIEW_TEXT = {
   acc3: { en: 'Breathing and heart: experimental, needs calibration, not medical.', vi: 'Nhịp thở và tim: thử nghiệm, cần hiệu chỉnh, không phải y tế.' },
   acc4: { en: 'One node gives rough results; RF interference can cause false alarms.', vi: 'Một node cho kết quả thô; nhiễu sóng có thể báo nhầm.' },
   source: { en: 'Source: RuView by rUv (MIT), run unchanged.', vi: 'Nguồn: RuView của rUv (MIT), chạy nguyên bản.' },
+  demoTry: { en: 'Try it with sample data', vi: 'Xem thử với dữ liệu mẫu' },
+  demoOn: { en: 'Sample data', vi: 'Dữ liệu mẫu' },
+  demoNote: { en: 'Showing made-up sample data so you can see how the page works. Real sensing needs RuView on the home PC.', vi: 'Đang hiện dữ liệu mẫu (không có thật) để anh xem trang chạy thế nào. Cảm biến thật cần RuView trên máy nhà.' },
+  demoExit: { en: 'Leave sample', vi: 'Thoát dữ liệu mẫu' },
   error: { en: 'Something went wrong: {msg}', vi: 'Có lỗi: {msg}' },
 } satisfies Record<string, Bi>
 

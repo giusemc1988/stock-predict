@@ -56,6 +56,8 @@ export const NET_TEXT = {
   speedTest: { en: 'Speed test', vi: 'Đo tốc độ' },
   speedNote: { en: 'Download, upload, ping', vi: 'Tải xuống, tải lên, ping' },
   speedResult: { en: '{down} Mbps down · {up} Mbps up · {ping} ms', vi: 'Tải xuống {down} Mbps · tải lên {up} Mbps · {ping} ms' },
+  speedHere: { en: 'This device: {down} Mbps down · {up} Mbps up · {ping} ms', vi: 'Máy này: tải xuống {down} Mbps · tải lên {up} Mbps · {ping} ms' },
+  speedNoteHere: { en: 'Runs on this device, any Wi-Fi', vi: 'Chạy ngay trên máy này, Wi-Fi nào cũng được' },
   dns: { en: 'DNS lookup', vi: 'Tra DNS' },
   dnsNote: { en: 'Where a domain points', vi: 'Tên miền trỏ về đâu' },
   dnsPrompt: { en: 'Domain to look up', vi: 'Tên miền cần tra' },
@@ -75,6 +77,10 @@ export const NET_TEXT = {
   setupWhy: { en: 'A website cannot scan Wi-Fi. A small program on your PC does the scanning and the app reads it through a private Cloudflare link only you can open.', vi: 'Trang web không quét Wi-Fi được. Một chương trình nhỏ trên máy anh làm việc quét, rồi app đọc qua một link Cloudflare riêng chỉ anh mở được.' },
   setupGuide: { en: 'Step-by-step guide (PowerShell)', vi: 'Hướng dẫn từng bước (PowerShell)' },
   privateOnly: { en: 'Only addresses on your home network (192.168.x.x, 10.x.x.x, 172.16-31.x.x).', vi: 'Chỉ địa chỉ trong mạng nhà (192.168.x.x, 10.x.x.x, 172.16-31.x.x).' },
+  demoTry: { en: 'Try it with sample data', vi: 'Xem thử với dữ liệu mẫu' },
+  demoOn: { en: 'Sample data', vi: 'Dữ liệu mẫu' },
+  demoNote: { en: 'Showing made-up sample data so you can see how the page works. Real scans need the home agent.', vi: 'Đang hiện dữ liệu mẫu (không có thật) để anh xem trang chạy thế nào. Quét thật cần chương trình trên máy nhà.' },
+  demoExit: { en: 'Leave sample', vi: 'Thoát dữ liệu mẫu' },
   error: { en: 'Something went wrong: {msg}', vi: 'Có lỗi: {msg}' },
 } satisfies Record<string, Bi>
 
