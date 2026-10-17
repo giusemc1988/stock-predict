@@ -189,9 +189,6 @@ export default {
       } catch (e) {
         console.error('Telegram test error:', e)
         return json({ error: String(e) }, 500)
-=======
-        return json({ news: [], error: String(e) })
->>>>>>> 2609828 (feat: Add Alpaca news endpoint with correct API version and error visibility)
       }
     }
     return env.ASSETS.fetch(req)

@@ -355,9 +355,7 @@ export const RELEASES: Release[] = [
       'Đã kiểm tra tour "Show me" hoạt động.',
     ],
   },
-
   {
-=======
     version: '1.21.4',
     date: '2026-10-17',
     changes: [
@@ -368,7 +366,6 @@ export const RELEASES: Release[] = [
     ],
   },
   {
->>>>>>> 2609828 (feat: Add Alpaca news endpoint with correct API version and error visibility)
     version: '1.9.0-beta',
     date: '2026-10-16',
     changes: [
