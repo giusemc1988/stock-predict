@@ -2,7 +2,7 @@
  * Version and "What's new". Bump APP_VERSION and add an entry to the top of RELEASES
  * with each update. The banner shows once per version, then stays dismissed.
  */
-export const APP_VERSION = '1.21.12'
+export const APP_VERSION = '1.22.0'
 
 export interface Release {
   version: string
@@ -13,6 +13,22 @@ export interface Release {
 }
 
 export const RELEASES: Release[] = [
+  {
+    version: '1.22.0',
+    date: '2026-10-17',
+    changes: [
+      'New: Hub home page. Today\'s best pick sits next to the 6-agent sphere, with what each agent thinks of it (agrees, disagrees or no data). The prediction board shows 6 colored dots per pick, one per agent.',
+      'New: Studio (Media Lab, image and video editing, coming soon, plus links to the best outside tools) and "Projects, devices & home network" (ESP32, BayReady, home network, Bluetooth, RuView, coming in the next updates).',
+      'New: VI/EN switch at the top of the home page, and a bottom tab bar on phones (Predict, Trading, Studio, Devices).',
+      'Signals are still not proven (Jarvis has not beaten SPY). Paper trading only. Turn the Hub off in Settings > AI rules to get the old Jarvis Brief layout (on by default).',
+    ],
+    changesVi: [
+      'Mới: Trang chủ Hub. Mã tốt nhất hôm nay nằm cạnh quả cầu 6 agent, kèm ý kiến của từng agent (đồng ý, không đồng ý hoặc chưa có dữ liệu). Bảng dự đoán có 6 chấm màu cho mỗi mã, mỗi chấm là một agent.',
+      'Mới: Studio (Media Lab, sửa hình, sửa video sắp có, cùng link tới các tool tốt nhất bên ngoài) và "Dự án, thiết bị và mạng nhà" (ESP32, BayReady, mạng nhà, Bluetooth, RuView, sẽ có ở các bản sau).',
+      'Mới: Nút VI/EN ở đầu trang chủ, và thanh dưới trên điện thoại (Dự đoán, Trading, Studio, Thiết bị).',
+      'Tín hiệu vẫn chưa được chứng minh (Jarvis chưa thắng SPY). Chỉ giao dịch tiền ảo. Tắt Hub trong Cài đặt > Quy tắc AI để dùng lại giao diện Jarvis Brief cũ (bật sẵn).',
+    ],
+  },
   {
     version: '1.21.12',
     date: '2026-10-17',

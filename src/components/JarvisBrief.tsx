@@ -19,6 +19,8 @@ import { SignalFlowExplainer } from './SignalFlowExplainer'
 import { AgentReadiness } from './AgentReadiness'
 import { LocalAiQA } from './LocalAiQA'
 import { NewsBox } from './NewsBox'
+import { HubBestPick, HubBoard, HubDevices, HubStudio, HubTabbar, LangSwitch } from './HubPanels'
+import type { VoteContext } from '../lib/hub'
 import { useNews } from '../hooks/useNews'
 
 interface Props {
@@ -108,9 +110,7 @@ export function JarvisBrief(p: Props) {
   const ready = lists.updatedAt != null
   const brief = useBriefText(p.rules.briefAi && p.rules.jarvisCloudAi && ready, stableFacts, key, lang, p.rules.localAiOn && ready)
 
-  return (
-    <main className="brief-page">
-      <section className="bf-hero">
+  const briefBlock = (
         <div className="bf-brief">
           <div className="bf-status">
             <span className={`bf-wave${p.scan.busy || brief.writing ? ' on' : ''}`} aria-hidden="true">
@@ -156,10 +156,11 @@ export function JarvisBrief(p: Props) {
             </div>
           </div>
         </div>
+  )
+  const core = (
         <BrainCore nodes={nodes} memory={memory} thinking={p.scan.busy || brief.writing} motion={p.rules.jarvisMotion} onNode={p.onNode} />
-      </section>
-
-      <div className="bf-grid">
+  )
+  const picksCard = (
         <section className="bf-card">
           <header>
             <h3>{vi ? 'Lựa chọn hôm nay' : "Today's picks"}</h3>
@@ -187,7 +188,8 @@ export function JarvisBrief(p: Props) {
             </div>
           ))}
         </section>
-
+  )
+  const moversCard = (
         <section className="bf-card">
           <header>
             <h3>{vi ? 'Biến động thị trường' : 'Market movers'}</h3>
@@ -213,13 +215,16 @@ export function JarvisBrief(p: Props) {
             </div>
           )}
         </section>
-
+  )
+  const scoreCard = (
         <ScoreboardPanel practice={p.practice} baseline={p.rules.scoreboardBaseline} priceOf={p.priceOf} />
-
+  )
+  const newsCard = (
         <section className="bf-card">
           <NewsBox news={news} enabled={p.rules.newsEnabled} />
         </section>
-
+  )
+  const learnerCard = (
         <section className="bf-card">
           <header>
             <h3>{vi ? "Tự học" : "Learner"}</h3>
@@ -241,12 +246,67 @@ export function JarvisBrief(p: Props) {
           </div>
           {p.learn.latest && <p className="bf-lesson">"{L(p.learn.latest)}"</p>}
         </section>
-
-        {p.rules.localQA && (
+  )
+  const qaCard = p.rules.localQA ? (
           <section className="bf-card">
             <LocalAiQA rules={p.rules} practice={p.practice} />
           </section>
-        )}
+  ) : null
+
+  const hub = p.rules.hubLayout
+  const voteCtx: VoteContext = { flow: { symbol: p.flow.symbol, buyShare: p.flow.buyShare }, headlines: news.map((n) => n.headline), learner: { right: learnIn.right, wrong: learnIn.wrong }, risk: { killSwitch: p.killSwitch, dayPL: p.dayPL, lossLimit: p.lossLimit, lossLimitOn: p.lossLimitOn } }
+  const openPick = (b: PickRow) => p.onSymbol(b.symbol, b.symbol.includes('/') ? 'crypto' : 'stock')
+
+  if (hub)
+    return (
+      <main className="brief-page hub">
+        <div className="hub-head" id="hub-top">
+          <span className="hub-hello">{L(hello).split('. ')[0]}.</span>
+          <LangSwitch />
+        </div>
+        <section className="bf-hero hub-hero">
+        <BrainCore nodes={nodes} memory={memory} thinking={p.scan.busy || brief.writing} motion={p.rules.jarvisMotion} onNode={p.onNode} />
+          <HubBestPick picks={buys} ctx={voteCtx} nodes={nodes} scanOn={inputs.scan.on} onOpen={openPick} onWhy={openSignalFlow} onDesk={p.onDesk} />
+        </section>
+        <div className="hub-cols">
+          <div className="hub-main">
+            <HubBoard picks={buys} ctx={voteCtx} nodes={nodes} onOpen={openPick} onWhy={openSignalFlow} />
+            {scoreCard}
+            {briefBlock}
+            <div className="hub-pair">
+              {moversCard}
+              {newsCard}
+            </div>
+            <div className="hub-pair">
+              {learnerCard}
+              {qaCard}
+            </div>
+          </div>
+          <aside className="hub-side">
+            <HubStudio />
+            <HubDevices />
+          </aside>
+        </div>
+        <HubTabbar onDesk={p.onDesk} />
+        {showSignalFlow && <SignalFlowExplainer signal={showSignalFlow} of={buys.length} onClose={() => setShowSignalFlow(null)} />}
+        {showReadiness && <AgentReadiness nodes={nodes} onClose={() => setShowReadiness(false)} />}
+      </main>
+    )
+
+  return (
+    <main className="brief-page">
+      <section className="bf-hero">
+        {briefBlock}
+        {core}
+      </section>
+
+      <div className="bf-grid">
+        {picksCard}
+        {moversCard}
+        {scoreCard}
+        {newsCard}
+        {learnerCard}
+        {qaCard}
       </div>
 
       {showSignalFlow && (
