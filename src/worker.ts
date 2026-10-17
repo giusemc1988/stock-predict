@@ -114,11 +114,66 @@ async function alpacaSnapshots(symbols: string[], k: AlpacaDataKeys) {
   return out
 }
 
+function checkPaperKey(keyId: string): string | null {
+  if (!keyId) return 'Alpaca paper key not configured'
+  if (/^AK/i.test(keyId)) return 'That looks like a LIVE key (starts with AK). Only paper keys (start with PK) are allowed here.'
+  if (!/^PK/i.test(keyId)) return 'Alpaca paper key IDs start with PK. Check that you copied the Key ID from the Paper account on app.alpaca.markets.'
+  return null
+}
+
+async function getAlpacaKeys(env: Env): Promise<AlpacaDataKeys> {
+  let alpacaKeys: AlpacaDataKeys = { keyId: '', secret: '' }
+  if (env.SETTINGS) {
+    try {
+      const alpacaKeyStr = await env.SETTINGS.get(storeKey('alpaca_paper' as any))
+      if (alpacaKeyStr) {
+        const parsed = JSON.parse(alpacaKeyStr)
+        alpacaKeys = typeof parsed === 'object' ? parsed : { keyId: alpacaKeyStr, secret: '' }
+      }
+    } catch {
+      /* fallthrough to Worker secrets */
+    }
+  }
+  if (!alpacaKeys.keyId && env.ALPACA_PAPER_KEY) {
+    const parsed = env.ALPACA_PAPER_KEY.includes(':') ? env.ALPACA_PAPER_KEY.split(':') : []
+    if (parsed.length === 2) alpacaKeys = { keyId: parsed[0], secret: parsed[1] }
+  }
+  return alpacaKeys
+}
+
+async function getAlphaVantageKey(env: Env): Promise<string> {
+  if (env.SETTINGS) {
+    try {
+      const avKeyStr = await env.SETTINGS.get(storeKey('alpha_vantage' as any))
+      if (avKeyStr) return String(avKeyStr)
+    } catch {
+      /* fallthrough */
+    }
+  }
+  return env.ALPHA_VANTAGE_KEY ?? ''
+}
+
+async function getFinnhubKey(env: Env): Promise<string> {
+  if (env.SETTINGS) {
+    try {
+      const fhKeyStr = await env.SETTINGS.get(storeKey('finnhub' as any))
+      if (fhKeyStr) return String(fhKeyStr)
+    } catch {
+      /* fallthrough */
+    }
+  }
+  return env.FINNHUB_KEY ?? ''
+}
+
 async function alpacaTradingCall<T = unknown>(path: string, k: AlpacaDataKeys, opts: { method?: string; body?: string; timeoutMs?: number } = {}): Promise<T> {
+  const keyError = checkPaperKey(k.keyId)
+  if (keyError) throw new Error(keyError)
+  if (!k.secret) throw new Error('Alpaca secret key not configured')
+
   const ctrl = new AbortController()
   const t = setTimeout(() => ctrl.abort(), opts.timeoutMs ?? 8000)
   try {
-    const res = await fetch('https://api.alpaca.markets' + path, {
+    const res = await fetch('https://paper-api.alpaca.markets' + path, {
       signal: ctrl.signal,
       method: opts.method || 'GET',
       headers: { 'APCA-API-KEY-ID': k.keyId, 'APCA-API-SECRET-KEY': k.secret },
@@ -472,10 +527,8 @@ export default {
     if (pathname === '/api/market/stocks') {
       if (req.method !== 'GET') return json({ error: 'GET only' }, 405)
       try {
-        if (!env.SETTINGS) return json({ error: 'Settings storage not available' }, 501)
-        const alpacaKeyStr = await env.SETTINGS.get(storeKey('alpaca_paper' as any))
-        if (!alpacaKeyStr) return json({ error: 'Alpaca paper key not configured' }, 400)
-        const alpacaKeys = JSON.parse(alpacaKeyStr)
+        const alpacaKeys = await getAlpacaKeys(env)
+        if (!alpacaKeys.keyId) return json({ error: 'Alpaca paper key not configured' }, 400)
         const result = await alpacaMarketLists(alpacaKeys)
         return json(result)
       } catch (e) {
@@ -490,11 +543,8 @@ export default {
         const symbol = url.searchParams.get('symbol')
         const tf = url.searchParams.get('tf') as any
         if (!symbol || !tf) return json({ error: 'symbol and tf required' }, 400)
-        if (!env.SETTINGS) return json({ error: 'Settings storage not available' }, 501)
-        const alpacaKeyStr = await env.SETTINGS.get(storeKey('alpaca_paper' as any))
-        const avKeyStr = await env.SETTINGS.get(storeKey('alpha_vantage' as any))
-        const alpacaKeys = alpacaKeyStr ? JSON.parse(alpacaKeyStr) : { keyId: '', secret: '' }
-        const avKey = avKeyStr ? String(avKeyStr) : ''
+        const alpacaKeys = await getAlpacaKeys(env)
+        const avKey = await getAlphaVantageKey(env)
         let candles = null
         if (alpacaKeys.keyId && alpacaKeys.secret) {
           try {
@@ -521,17 +571,18 @@ export default {
         let symbols: string[] = []
         if (req.method === 'GET') {
           const s = url.searchParams.get('symbols')
-          symbols = s ? JSON.parse(s) : []
+          try {
+            symbols = s ? JSON.parse(s) : []
+          } catch {
+            return json({ error: 'Invalid symbols JSON' }, 400)
+          }
         } else {
           const body = (await req.json().catch(() => null)) as { symbols?: unknown } | null
           symbols = Array.isArray(body?.symbols) ? body.symbols.map(String) : []
         }
         if (!symbols.length) return json({ error: 'symbols required' }, 400)
-        if (!env.SETTINGS) return json({ error: 'Settings storage not available' }, 501)
-        const alpacaKeyStr = await env.SETTINGS.get(storeKey('alpaca_paper' as any))
-        const fhKeyStr = await env.SETTINGS.get(storeKey('finnhub' as any))
-        const alpacaKeys = alpacaKeyStr ? JSON.parse(alpacaKeyStr) : { keyId: '', secret: '' }
-        const fhKey = fhKeyStr ? String(fhKeyStr) : ''
+        const alpacaKeys = await getAlpacaKeys(env)
+        const fhKey = await getFinnhubKey(env)
         let snapshots: Record<string, { last: number; open: number; high: number; low: number; volume: number }> = {}
         if (alpacaKeys.keyId && alpacaKeys.secret) {
           try {
@@ -559,10 +610,9 @@ export default {
     if (pathname === '/api/broker/snapshot') {
       if (req.method !== 'GET') return json({ error: 'GET only' }, 405)
       try {
-        if (!env.SETTINGS) return json({ error: 'Settings storage not available' }, 501)
-        const alpacaKeyStr = await env.SETTINGS.get(storeKey('alpaca_paper' as any))
-        if (!alpacaKeyStr) return json({ error: 'Alpaca paper key not configured' }, 400)
-        const alpacaKeys = JSON.parse(alpacaKeyStr)
+        const alpacaKeys = await getAlpacaKeys(env)
+        if (!alpacaKeys.keyId) return json({ error: 'Alpaca paper key not configured' }, 400)
+
         const [acct, pos, orders] = await Promise.all([
           alpacaTradingCall<Record<string, string>>('/v2/account', alpacaKeys),
           alpacaTradingCall<Record<string, string>[]>('/v2/positions', alpacaKeys),
@@ -594,10 +644,8 @@ export default {
     if (pathname === '/api/broker/history') {
       if (req.method !== 'GET') return json({ error: 'GET only' }, 405)
       try {
-        if (!env.SETTINGS) return json({ error: 'Settings storage not available' }, 501)
-        const alpacaKeyStr = await env.SETTINGS.get(storeKey('alpaca_paper' as any))
-        if (!alpacaKeyStr) return json({ error: 'Alpaca paper key not configured' }, 400)
-        const alpacaKeys = JSON.parse(alpacaKeyStr)
+        const alpacaKeys = await getAlpacaKeys(env)
+        if (!alpacaKeys.keyId) return json({ error: 'Alpaca paper key not configured' }, 400)
         const url = new URL(req.url)
         const period = (url.searchParams.get('period') ?? '1D') as '1D' | '1M' | '3M'
         const tf = period === '1D' ? '5Min' : '1D'
@@ -612,10 +660,8 @@ export default {
     if (pathname === '/api/broker/place') {
       if (req.method !== 'POST') return json({ error: 'POST only' }, 405)
       try {
-        if (!env.SETTINGS) return json({ error: 'Settings storage not available' }, 501)
-        const alpacaKeyStr = await env.SETTINGS.get(storeKey('alpaca_paper' as any))
-        if (!alpacaKeyStr) return json({ error: 'Alpaca paper key not configured' }, 400)
-        const alpacaKeys = JSON.parse(alpacaKeyStr)
+        const alpacaKeys = await getAlpacaKeys(env)
+        if (!alpacaKeys.keyId) return json({ error: 'Alpaca paper key not configured' }, 400)
         const body = (await req.json().catch(() => null)) as any
         if (!body) return json({ error: 'Invalid request body' }, 400)
         const result = await alpacaTradingCall('/v2/orders', alpacaKeys, { method: 'POST', body: JSON.stringify(body) })
@@ -628,13 +674,11 @@ export default {
     if (pathname === '/api/broker/cancel') {
       if (req.method !== 'POST') return json({ error: 'POST only' }, 405)
       try {
-        if (!env.SETTINGS) return json({ error: 'Settings storage not available' }, 501)
-        const alpacaKeyStr = await env.SETTINGS.get(storeKey('alpaca_paper' as any))
-        if (!alpacaKeyStr) return json({ error: 'Alpaca paper key not configured' }, 400)
-        const alpacaKeys = JSON.parse(alpacaKeyStr)
+        const alpacaKeys = await getAlpacaKeys(env)
+        if (!alpacaKeys.keyId) return json({ error: 'Alpaca paper key not configured' }, 400)
         const body = (await req.json().catch(() => null)) as { id?: string } | null
         if (!body?.id) return json({ error: 'id required' }, 400)
-        await alpacaTradingCall(`/v2/orders/${body.id}`, alpacaKeys, { method: 'DELETE' })
+        await alpacaTradingCall(`/v2/orders/${encodeURIComponent(body.id)}`, alpacaKeys, { method: 'DELETE' })
         return json({ ok: true })
       } catch (e) {
         console.error('Broker cancel error:', e)
@@ -644,10 +688,8 @@ export default {
     if (pathname === '/api/broker/close') {
       if (req.method !== 'POST') return json({ error: 'POST only' }, 405)
       try {
-        if (!env.SETTINGS) return json({ error: 'Settings storage not available' }, 501)
-        const alpacaKeyStr = await env.SETTINGS.get(storeKey('alpaca_paper' as any))
-        if (!alpacaKeyStr) return json({ error: 'Alpaca paper key not configured' }, 400)
-        const alpacaKeys = JSON.parse(alpacaKeyStr)
+        const alpacaKeys = await getAlpacaKeys(env)
+        if (!alpacaKeys.keyId) return json({ error: 'Alpaca paper key not configured' }, 400)
         const body = (await req.json().catch(() => null)) as { symbol?: string } | null
         if (!body?.symbol) return json({ error: 'symbol required' }, 400)
         const result = await alpacaTradingCall(`/v2/positions/${encodeURIComponent(body.symbol.replace('/', ''))}`, alpacaKeys, { method: 'DELETE' })
@@ -660,10 +702,8 @@ export default {
     if (pathname === '/api/practice/movers') {
       if (req.method !== 'GET') return json({ error: 'GET only' }, 405)
       try {
-        if (!env.SETTINGS) return json({ error: 'Settings storage not available' }, 501)
-        const alpacaKeyStr = await env.SETTINGS.get(storeKey('alpaca_paper' as any))
-        if (!alpacaKeyStr) return json({ error: 'Alpaca paper key not configured' }, 400)
-        const alpacaKeys = JSON.parse(alpacaKeyStr)
+        const alpacaKeys = await getAlpacaKeys(env)
+        if (!alpacaKeys.keyId) return json({ error: 'Alpaca paper key not configured' }, 400)
         const url = new URL(req.url)
         const limit = parseInt(url.searchParams.get('limit') ?? '10', 10)
         const threshold = parseFloat(url.searchParams.get('threshold') ?? '2')
