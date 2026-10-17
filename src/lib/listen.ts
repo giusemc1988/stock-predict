@@ -31,7 +31,7 @@ export function matchQuestion(text: string): Heard {
   const t = text.toLowerCase()
   if (/replay|today'?s trades|walk me through|xem lại|tua lại/.test(t)) return 'replay'
   if (/who are you|what are you|bạn là ai/.test(t)) return 'who'
-  if (/skill|kỹ năng/.test(t)) return 'skills'
+  if (/skill|kỹ năng|nâng cấp|upgrade|config/.test(t)) return 'skills'
   if (/decision|decide|\blog\b|nhật ký|quyết định/.test(t)) return 'log'
   if (/review|grade|graded|chấm|đánh giá/.test(t)) return 'reviews'
   if (/learner|bộ học/.test(t)) return 'learning'
