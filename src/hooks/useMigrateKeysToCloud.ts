@@ -45,7 +45,9 @@ export function useMigrateKeysToCloud(keys: ApiKeys, alpacaKeys: AlpacaKeys) {
             headers: { 'content-type': 'application/json' },
             body: JSON.stringify({ id: 'alpha_vantage', key: keys.alphaVantage }),
           })
-          if (!res.ok) {
+          if (res.ok) {
+            console.log('Migration: Alpha Vantage key uploaded to cloud')
+          } else {
             const err = await res.json().catch(() => ({}))
             console.warn('Migration: Alpha Vantage key upload failed:', err)
           }
@@ -58,7 +60,9 @@ export function useMigrateKeysToCloud(keys: ApiKeys, alpacaKeys: AlpacaKeys) {
             headers: { 'content-type': 'application/json' },
             body: JSON.stringify({ id: 'finnhub', key: keys.finnhub }),
           })
-          if (!res.ok) {
+          if (res.ok) {
+            console.log('Migration: Finnhub key uploaded to cloud')
+          } else {
             const err = await res.json().catch(() => ({}))
             console.warn('Migration: Finnhub key upload failed:', err)
           }

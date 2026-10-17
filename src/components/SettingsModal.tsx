@@ -64,22 +64,32 @@ export function SettingsModal({ keys, onSave, onClose, onOpenAiRules, alpacaKeys
     try {
       // Save Alpha Vantage key if provided
       if (draft.alphaVantage) {
-        await fetch('/api/data/key', {
+        const avResp = await fetch('/api/data/key', {
           method: 'PUT',
           headers: { 'content-type': 'application/json' },
           body: JSON.stringify({ id: 'alpha_vantage', key: draft.alphaVantage }),
         })
+        if (!avResp.ok) {
+          const err = await avResp.json().catch(() => ({}))
+          throw new Error(`Alpha Vantage: ${err.error || avResp.statusText}`)
+        }
       }
       // Save Finnhub key if provided
       if (draft.finnhub) {
-        await fetch('/api/data/key', {
+        const fhResp = await fetch('/api/data/key', {
           method: 'PUT',
           headers: { 'content-type': 'application/json' },
           body: JSON.stringify({ id: 'finnhub', key: draft.finnhub }),
         })
+        if (!fhResp.ok) {
+          const err = await fhResp.json().catch(() => ({}))
+          throw new Error(`Finnhub: ${err.error || fhResp.statusText}`)
+        }
       }
     } catch (e) {
-      console.error('Error saving data keys:', e)
+      const msg = String((e as Error)?.message ?? e)
+      alert(`Error saving: ${msg}`)
+      throw e
     }
   }
 

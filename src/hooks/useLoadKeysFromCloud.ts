@@ -27,7 +27,6 @@ export function useLoadKeysFromCloud(
           alpaca_paper?: { keyId: string; secret: string } | null
           alpha_vantage?: string | null
           finnhub?: string | null
-          telegram?: string | null
         }
 
         if (!data.kv_available) return

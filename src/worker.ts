@@ -343,13 +343,11 @@ export default {
         const alpacaStr = await env.SETTINGS.get(storeKey('alpaca_paper' as any))
         const avStr = await env.SETTINGS.get(storeKey('alpha_vantage' as any))
         const fhStr = await env.SETTINGS.get(storeKey('finnhub' as any))
-        const telegramStr = await env.SETTINGS.get('TELEGRAM_BOT_TOKEN')
         return json({
           kv_available: true,
           alpaca_paper: alpacaStr ? JSON.parse(alpacaStr) : null,
           alpha_vantage: avStr || null,
           finnhub: fhStr || null,
-          telegram: telegramStr || null,
         })
       } catch (e) {
         return json({ error: String(e), kv_available: false })
@@ -377,7 +375,18 @@ export default {
           .then((test) => ({ id: k.id, name: k.name, ok: test.ok, status: test.ok ? 'OK' : undefined, error: test.error }))
           .catch((e) => ({ id: k.id, name: k.name, ok: false, error: String(e?.message ?? e) === 'timeout' ? 'Timeout (took too long)' : String(e?.message ?? e) })),
       )
+      // Check Telegram separately (stored in PRACTICE, not SETTINGS)
+      let telegramStatus: { id: string; name: string; ok: boolean; error?: string } | null = null
+      try {
+        const telegramConfigStr = await env.PRACTICE.get('telegramConfig').catch(() => null)
+        const telegramConfig = telegramConfigStr ? JSON.parse(telegramConfigStr) : null
+        const ok = !!(telegramConfig?.token && telegramConfig?.chatId)
+        telegramStatus = { id: 'telegram', name: 'Telegram', ok, error: ok ? undefined : 'Not set' }
+      } catch {
+        telegramStatus = { id: 'telegram', name: 'Telegram', ok: false, error: 'Not set' }
+      }
       const results = await Promise.all(promises)
+      if (telegramStatus) results.push(telegramStatus)
       return json({ keys: results })
     }
     if (pathname === '/api/ai-rules') {
