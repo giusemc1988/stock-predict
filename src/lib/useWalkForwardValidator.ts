@@ -92,12 +92,6 @@ export function useWalkForwardValidator(
 
     // Run walk-forward validation
     const validator = new WalkForwardValidator()
-    const folds = validator.split({
-      candles: [], // not used for validation; we only need trades
-      trainSize,
-      testSize,
-      step,
-    })
 
     // For each fold, evaluate which trades pass validation
     let foldIdx = 0
