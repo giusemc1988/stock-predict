@@ -2,7 +2,7 @@
  * Version and "What's new". Bump APP_VERSION and add an entry to the top of RELEASES
  * with each update. The banner shows once per version, then stays dismissed.
  */
-export const APP_VERSION = '1.23.0'
+export const APP_VERSION = '1.24.0'
 
 export interface Release {
   version: string
@@ -13,6 +13,22 @@ export interface Release {
 }
 
 export const RELEASES: Release[] = [
+  {
+    version: '1.24.0',
+    date: '2026-10-17',
+    changes: [
+      'New: Wi-Fi & Bluetooth page (tap "Home network" on the Hub). Devices on your network with new-device flags, names and trust, Wi-Fi channel chart with a "which channel is quieter" tip, ping, open-port check, Wake-on-LAN, speed test and DNS lookup.',
+      'Scans run through a small home agent on your PC (npm run agent; guide in agent/README.md). Online it is reached through a private Cloudflare link; when the PC is off the page shows the last scan.',
+      'Bluetooth: pick a nearby device in Chrome or Edge. The full nearby list and lost-device finder come with the ESP32 step.',
+      'Your own network only: no tools to attack Wi-Fi, crack passwords or watch other people. Switch it off in Settings > AI rules (on by default).',
+    ],
+    changesVi: [
+      'Mới: trang Wi-Fi và Bluetooth (bấm "Mạng nhà" trên Hub). Thiết bị trong mạng có đánh dấu thiết bị mới, đặt tên và tin cậy, biểu đồ kênh Wi-Fi kèm gợi ý kênh nào vắng hơn, ping, kiểm tra cổng mở, đánh thức máy, đo tốc độ và tra DNS.',
+      'Việc quét chạy qua một chương trình nhỏ trên máy nhà (npm run agent; hướng dẫn trong agent/README.md). Khi dùng online thì đi qua một link Cloudflare riêng; khi máy nhà tắt, trang hiện lần quét gần nhất.',
+      'Bluetooth: chọn một thiết bị gần đây trong Chrome hoặc Edge. Danh sách đầy đủ và tìm đồ bị lạc sẽ có ở bước ESP32.',
+      'Chỉ dùng cho mạng của anh: không có công cụ phá Wi-Fi, bẻ mật khẩu hay theo dõi người khác. Tắt trong Cài đặt > Quy tắc AI (bật sẵn).',
+    ],
+  },
   {
     version: '1.23.0',
     date: '2026-10-17',

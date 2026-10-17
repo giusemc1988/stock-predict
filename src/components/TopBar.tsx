@@ -30,7 +30,7 @@ interface Props {
   dayPL: number
 }
 
-export type Page = 'brief' | 'trade' | 'portfolio'
+export type Page = 'brief' | 'trade' | 'portfolio' | 'net'
 
 const STATUS_KEY = { connecting: 'feedConnecting', live: 'feedLive', polling: 'feedDelayed', demo: 'feedSimulated', error: 'feedError' } as const satisfies Record<FeedStatus, string>
 const CONF_KEY = { Low: 'confLow', Medium: 'confMedium', High: 'confHigh' } as const
