@@ -16,7 +16,9 @@ const memStore = (init: Record<string, string> = {}): KeyStore & { data: Record<
 assert.equal(cleanKey('  AIzaSyDUMMYDUMMYDUMMYDUMMY1234567890  '), 'AIzaSyDUMMYDUMMYDUMMYDUMMY1234567890')
 assert.equal(cleanKey('short'), null)
 assert.equal(cleanKey('has space inside the key value 123456'), null)
-assert.equal(cleanKey('x'.repeat(500)), null)
+assert.equal(cleanKey('x'.repeat(1001)), null, '1001 chars rejected (> 1000 max)')
+assert.equal(cleanKey('x'.repeat(500)), 'x'.repeat(500), '500 chars accepted')
+assert.equal(cleanKey('N4XXFD14JZYY0VLU'), 'N4XXFD14JZYY0VLU', '16-char Alpha Vantage key accepted')
 assert.equal(cleanKey(42), null)
 assert.equal(cleanKey('<script>alert(1)</script>aaaaaaaa'), null)
 
@@ -35,7 +37,6 @@ assert.deepEqual(src, [
   { id: 'groq', name: 'Groq', on: false, source: 'none' },
   { id: 'nvidia', name: 'NVIDIA NIM', on: true, source: 'server' },
   { id: 'xai', name: 'Grok', on: false, source: 'none' },
-  { id: 'telegram', name: 'Telegram', on: false, source: 'none' },
   { id: 'alpaca_paper', name: 'Alpaca (paper)', on: false, source: 'none' },
   { id: 'alpha_vantage', name: 'Alpha Vantage', on: false, source: 'none' },
   { id: 'finnhub', name: 'Finnhub', on: false, source: 'none' },
