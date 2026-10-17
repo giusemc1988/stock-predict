@@ -108,4 +108,44 @@ const noTelegramConfig = noTelegramConfigStr ? JSON.parse(noTelegramConfigStr) :
 const noTelegramOk = !!(noTelegramConfig?.token && noTelegramConfig?.chatId)
 assert.equal(noTelegramOk, false, 'Telegram config checker returns false when config missing')
 
+// Data provider key formats should pass cleanKey validation
+assert.ok(cleanKey('GDZHC3FC433DN0RG'), 'Alpha Vantage 16-char key format accepted')
+assert.ok(cleanKey('N4XXFD14JZYY0VLU'), 'Alpha Vantage key example accepted')
+assert.ok(cleanKey('db43061r01qucqglei7gdb43061r01qucqglei80'), 'Finnhub long key format accepted')
+assert.ok(cleanKey('c1234567890abcdef1234567890abcdef'), 'Generic data provider key format accepted')
+
+// Alpha Vantage test with mock success response (no Note/Information error)
+const avSuccessMock = async (_u: string) => new Response(JSON.stringify({ bestMatches: [] }), { status: 200 })
+const avResult = await testProvider('alpha_vantage', { ALPHA_VANTAGE_KEY: 'N4XXFD14JZYY0VLU' }, avSuccessMock as typeof fetch)
+assert.equal(avResult.ok, true, 'Alpha Vantage test accepts successful API response')
+
+// Alpha Vantage test with rate limit response (has Note field)
+const avRateLimitMock = async (_u: string) => new Response(JSON.stringify({ Note: 'Thank you for using Alpha Vantage! Our standard API call frequency is 5 calls per minute.' }), { status: 200 })
+const avRateLimitResult = await testProvider('alpha_vantage', { ALPHA_VANTAGE_KEY: 'N4XXFD14JZYY0VLU' }, avRateLimitMock as typeof fetch)
+assert.equal(avRateLimitResult.ok, false, 'Alpha Vantage test rejects rate limit response')
+assert.ok(avRateLimitResult.error?.includes('Thank you for using'), 'Alpha Vantage error shows rate limit message')
+
+// Alpha Vantage test with HTTP error
+const avHttpErrorMock = async (_u: string) => new Response('Not Found', { status: 404 })
+const avHttpResult = await testProvider('alpha_vantage', { ALPHA_VANTAGE_KEY: 'N4XXFD14JZYY0VLU' }, avHttpErrorMock as typeof fetch)
+assert.equal(avHttpResult.ok, false, 'Alpha Vantage test rejects HTTP 404')
+assert.ok(avHttpResult.error?.includes('404'), 'Alpha Vantage error shows HTTP status')
+
+// Finnhub test with mock success response (no error field)
+const fhSuccessMock = async (_u: string) => new Response(JSON.stringify({ c: 150.5, h: 151.2, l: 149.8, o: 150.1 }), { status: 200 })
+const fhResult = await testProvider('finnhub', { FINNHUB_KEY: 'db43061r01qucqglei7gdb43061r01qucqglei80' }, fhSuccessMock as typeof fetch)
+assert.equal(fhResult.ok, true, 'Finnhub test accepts successful API response')
+
+// Finnhub test with API error response (has error field)
+const fhApiErrorMock = async (_u: string) => new Response(JSON.stringify({ error: 'Invalid API key' }), { status: 200 })
+const fhApiErrorResult = await testProvider('finnhub', { FINNHUB_KEY: 'invalid_key' }, fhApiErrorMock as typeof fetch)
+assert.equal(fhApiErrorResult.ok, false, 'Finnhub test rejects API error response')
+assert.ok(fhApiErrorResult.error?.includes('Invalid'), 'Finnhub error shows API error message')
+
+// Finnhub test with HTTP error
+const fhHttpErrorMock = async (_u: string) => new Response('Unauthorized', { status: 401 })
+const fhHttpResult = await testProvider('finnhub', { FINNHUB_KEY: 'wrong_key' }, fhHttpErrorMock as typeof fetch)
+assert.equal(fhHttpResult.ok, false, 'Finnhub test rejects HTTP 401')
+assert.ok(fhHttpResult.error?.includes('401'), 'Finnhub error shows HTTP status')
+
 console.log('brain keys tests passed')
