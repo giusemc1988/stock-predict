@@ -18,9 +18,11 @@ export const RELEASES: Release[] = [
     date: '2026-10-17',
     changes: [
       'New: "Try it with sample data" on the Wi-Fi and RuView pages. When the home PC is not connected, you can still see how each page works, on your phone, from anywhere. The page says clearly that the data is made up, and "Leave sample" goes back.',
+      'New: the speed test now runs on your phone or computer when the home PC is not connected, so it measures whatever Wi-Fi you are on, at any shop or house.',
     ],
     changesVi: [
       'Mới: nút "Xem thử với dữ liệu mẫu" trên trang Wi-Fi và trang RuView. Khi chưa kết nối máy nhà, anh vẫn xem được trang chạy thế nào, trên điện thoại, ở đâu cũng được. Trang ghi rõ đây là dữ liệu mẫu, bấm "Thoát dữ liệu mẫu" để quay lại.',
+      'Mới: khi chưa kết nối máy nhà, đo tốc độ chạy ngay trên điện thoại hoặc máy tính, đo đúng Wi-Fi anh đang dùng, ở tiệm hay nhà nào cũng được.',
     ],
   },
   {

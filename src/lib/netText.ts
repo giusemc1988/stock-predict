@@ -56,6 +56,8 @@ export const NET_TEXT = {
   speedTest: { en: 'Speed test', vi: 'Đo tốc độ' },
   speedNote: { en: 'Download, upload, ping', vi: 'Tải xuống, tải lên, ping' },
   speedResult: { en: '{down} Mbps down · {up} Mbps up · {ping} ms', vi: 'Tải xuống {down} Mbps · tải lên {up} Mbps · {ping} ms' },
+  speedHere: { en: 'This device: {down} Mbps down · {up} Mbps up · {ping} ms', vi: 'Máy này: tải xuống {down} Mbps · tải lên {up} Mbps · {ping} ms' },
+  speedNoteHere: { en: 'Runs on this device, any Wi-Fi', vi: 'Chạy ngay trên máy này, Wi-Fi nào cũng được' },
   dns: { en: 'DNS lookup', vi: 'Tra DNS' },
   dnsNote: { en: 'Where a domain points', vi: 'Tên miền trỏ về đâu' },
   dnsPrompt: { en: 'Domain to look up', vi: 'Tên miền cần tra' },

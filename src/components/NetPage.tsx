@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import { hhmm } from '../lib/brief'
 import { DEMO_DEVICES, DEMO_WIFI } from '../lib/demoData'
+import { browserSpeedTest } from '../lib/speedTest'
 import { channelTip, isPrivateIPv4, type WifiNetwork } from '../lib/netParse'
 import { useNetT, type NetKey } from '../lib/netText'
 import { LangSwitch } from './HubPanels'
@@ -144,10 +145,11 @@ export function NetPage({ onBack }: { onBack: () => void }) {
   const runSpeed = async () => {
     setBusy(true)
     try {
-      const r = await call<{ downMbps: number; upMbps: number; pingMs: number }>('speed')
-      if (isOffline(r)) return say('needAgent')
+      // with the home agent the PC measures the home line; without it this phone or computer measures its own Wi-Fi
+      const viaAgent = live && !demo ? await call<{ downMbps: number; upMbps: number; pingMs: number }>('speed') : null
+      const r = viaAgent && !isOffline(viaAgent) ? viaAgent : await browserSpeedTest()
       setSpeed(r)
-      say('speedResult', { down: r.downMbps, up: r.upMbps, ping: r.pingMs })
+      say(viaAgent && !isOffline(viaAgent) ? 'speedResult' : 'speedHere', { down: r.downMbps, up: r.upMbps, ping: r.pingMs })
     } catch (e) {
       fail(e)
     } finally {
@@ -326,7 +328,7 @@ export function NetPage({ onBack }: { onBack: () => void }) {
         <section className="bf-card net-tools">
           <header><h3>{t('tools')}</h3></header>
           <div className="net-tg">
-            <button disabled={busy} onClick={() => void runSpeed()}><b>{t('speedTest')}</b><small>{live ? t('speedNote') : t('needAgent')}</small></button>
+            <button disabled={busy} onClick={() => void runSpeed()}><b>{t('speedTest')}</b><small>{live && !demo ? t('speedNote') : t('speedNoteHere')}</small></button>
             <button onClick={() => void dns()}><b>{t('dns')}</b><small>{t('dnsNote')}</small></button>
             <button onClick={() => askIp('ipPrompt', (ip) => void pingIp(ip))}><b>{t('pingTool')}</b><small>{live ? t('pingNote') : t('needAgent')}</small></button>
             <button onClick={() => askIp('ipPrompt', (ip) => void portsIp(ip))}><b>{t('portsTool')}</b><small>{live ? t('portsNote') : t('needAgent')}</small></button>
