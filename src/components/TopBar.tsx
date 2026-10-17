@@ -32,7 +32,8 @@ interface Props {
 
 export type Page = 'brief' | 'trade' | 'portfolio'
 
-const STATUS_LABEL: Record<FeedStatus, string> = { connecting: 'Connecting', live: 'Live', polling: 'Delayed', demo: 'Simulated', error: 'Error' }
+const STATUS_KEY = { connecting: 'feedConnecting', live: 'feedLive', polling: 'feedDelayed', demo: 'feedSimulated', error: 'feedError' } as const satisfies Record<FeedStatus, string>
+const CONF_KEY = { Low: 'confLow', Medium: 'confMedium', High: 'confHigh' } as const
 
 export function TopBar({ inst, quote, lastPrice, tf, onTf, status, source, error, toggles, onToggle, onSettings, analysis, buyShare, onAnalyst, page, onPage, equity, dayPL, brief }: Props) {
   const t = useT()
@@ -45,7 +46,7 @@ export function TopBar({ inst, quote, lastPrice, tf, onTf, status, source, error
         <div>
           <b>Arc Analyst</b>
           <span>
-            Research, not promises · <i className="app-ver">v{APP_VERSION}</i>
+            {t('tagline')} · <i className="app-ver">v{APP_VERSION}</i>
           </span>
         </div>
       </div>
@@ -87,15 +88,15 @@ export function TopBar({ inst, quote, lastPrice, tf, onTf, status, source, error
       {analysis && (
         <button className={`ai-chip v-${analysis.verdict.toLowerCase()}`} onClick={onAnalyst} title={analysis.headline}>
           <RobotIcon size={18} side={analysis.verdict === 'BUY' ? 'buy' : analysis.verdict === 'SELL' ? 'sell' : undefined} />
-          <span>AI says</span>
+          <span>{t('aiSays')}</span>
           <b>{analysis.verdict}</b>
-          <em>{analysis.confidenceLabel} confidence</em>
+          <em>{t(CONF_KEY[analysis.confidenceLabel])}</em>
         </button>
       )}
       {buyShare != null && (
-        <div className="mini-pressure" title="Share of the last 5 minutes of traded volume that came from buyers">
+        <div className="mini-pressure" title={t('buyersTitle')}>
           <span>
-            <b className="up">{Math.round(buyShare * 100)}%</b> buyers
+            <b className="up">{Math.round(buyShare * 100)}%</b> {t('buyers')}
           </span>
           <div>
             <i style={{ width: `${buyShare * 100}%` }} />
@@ -110,23 +111,23 @@ export function TopBar({ inst, quote, lastPrice, tf, onTf, status, source, error
         ))}
       </div>
       <div className="seg toggles">
-        <button className={toggles.robots ? 'on' : ''} onClick={() => onToggle('robots')} title="Robot signal markers">
-          🤖 Robots
+        <button className={toggles.robots ? 'on' : ''} onClick={() => onToggle('robots')} title={t('robotsTitle')}>
+          🤖 {t('robots')}
         </button>
-        <button className={toggles.forecast ? 'on' : ''} onClick={() => onToggle('forecast')} title="AI forecast cone">
-          Forecast
+        <button className={toggles.forecast ? 'on' : ''} onClick={() => onToggle('forecast')} title={t('forecastTitle')}>
+          {t('forecast')}
         </button>
         <button className={toggles.emas ? 'on' : ''} onClick={() => onToggle('emas')} title="EMA 9 / 21">
-          Averages
+          {t('averages')}
         </button>
       </div>
       <div className={`feed feed-${status}`} title={error ?? source}>
         <i />
-        <span>{STATUS_LABEL[status]}</span>
+        <span>{t(STATUS_KEY[status])}</span>
         <em>{source}</em>
-        {source && <em className={`data-label ${labelForSource(source)}`}>{DATA_LABEL[labelForSource(source)].en}</em>}
+        {source && <em className={`data-label ${labelForSource(source)}`}>{DATA_LABEL[labelForSource(source)][vi ? 'vi' : 'en']}</em>}
       </div>
-      <button className="icon-btn" onClick={onSettings} title="Data sources & API keys" aria-label="Settings">
+      <button className="icon-btn" onClick={onSettings} title={t('dataSourcesTitle')} aria-label={t('settings')}>
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
           <circle cx="12" cy="12" r="3" />
           <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
