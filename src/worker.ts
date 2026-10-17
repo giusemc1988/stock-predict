@@ -50,6 +50,49 @@ export default {
       await env.SETTINGS.put(storeKey(body.id), key)
       return json({ keys: await keySources(env, env.SETTINGS) })
     }
+    if (pathname === '/api/data/key') {
+      if (req.method !== 'GET' && req.method !== 'PUT' && req.method !== 'DELETE') return json({ error: 'GET, PUT or DELETE only' }, 405)
+      if (!sameOrigin(req)) return json({ error: 'Not allowed' }, 403)
+      if (!env.SETTINGS) return json({ error: 'Key storage is not set up on this server yet' }, 501)
+
+      // GET: Check which data keys are set (never return values)
+      if (req.method === 'GET') {
+        const ids = ['alpaca_paper', 'alpha_vantage', 'finnhub'] as const
+        const status: Record<string, boolean> = {}
+        for (const id of ids) {
+          const val = await env.SETTINGS.get(storeKey(id as any)).catch(() => null)
+          status[id] = !!val
+        }
+        return json(status)
+      }
+
+      if (req.method === 'DELETE') {
+        const id = new URL(req.url).searchParams.get('id')
+        const validIds = ['alpaca_paper', 'alpha_vantage', 'finnhub']
+        if (!validIds.includes(id ?? '')) return json({ error: 'Unknown provider' }, 400)
+        await env.SETTINGS.delete(storeKey(id as any))
+        return json({ ok: true })
+      }
+      const body = (await req.json().catch(() => null)) as { id?: unknown; key?: unknown; keyId?: unknown; secret?: unknown } | null
+      const id = body?.id as string | undefined
+      const validIds = ['alpaca_paper', 'alpha_vantage', 'finnhub']
+      if (!validIds.includes(id ?? '')) return json({ error: 'Unknown provider' }, 400)
+
+      // Handle Alpaca paper keys (two-part: keyId + secret)
+      if (id === 'alpaca_paper') {
+        const keyId = String(body?.keyId ?? '').trim()
+        const secret = String(body?.secret ?? '').trim()
+        if (!keyId || !secret) return json({ error: 'Alpaca requires key ID and secret' }, 400)
+        await env.SETTINGS.put(storeKey('alpaca_paper' as any), JSON.stringify({ keyId, secret }))
+        return json({ ok: true })
+      }
+
+      // Handle single-string keys (Alpha Vantage, Finnhub)
+      const key = cleanKey(body?.key)
+      if (!key) return json({ error: 'That does not look like an API key' }, 400)
+      await env.SETTINGS.put(storeKey(id as any), key)
+      return json({ ok: true })
+    }
     if (pathname === '/api/brain/test') {
       if (req.method !== 'POST') return json({ error: 'POST only' }, 405)
       if (!sameOrigin(req)) return json({ error: 'Not allowed' }, 403)
