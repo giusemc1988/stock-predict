@@ -2,7 +2,7 @@
  * Version and "What's new". Bump APP_VERSION and add an entry to the top of RELEASES
  * with each update. The banner shows once per version, then stays dismissed.
  */
-export const APP_VERSION = '1.21.2'
+export const APP_VERSION = '1.21.3'
 
 export interface Release {
   version: string
@@ -13,6 +13,16 @@ export interface Release {
 }
 
 export const RELEASES: Release[] = [
+  {
+    version: '1.21.3',
+    date: '2026-10-17',
+    changes: [
+      'Fixed: Alpaca news feed now displays after you add your API key ID and secret as Worker secrets.',
+    ],
+    changesVi: [
+      'Đã sửa: nguồn tin Alpaca giờ hiện sau khi bạn thêm key ID và secret vào Worker secrets.',
+    ],
+  },
   {
     version: '1.21.2',
     date: '2026-10-16',
