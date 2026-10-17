@@ -2,7 +2,7 @@
  * Version and "What's new". Bump APP_VERSION and add an entry to the top of RELEASES
  * with each update. The banner shows once per version, then stays dismissed.
  */
-export const APP_VERSION = '1.22.0'
+export const APP_VERSION = '1.23.0'
 
 export interface Release {
   version: string
@@ -13,6 +13,18 @@ export interface Release {
 }
 
 export const RELEASES: Release[] = [
+  {
+    version: '1.23.0',
+    date: '2026-10-17',
+    changes: [
+      'New: the top bar speaks Vietnamese too (feed status, "AI says", confidence, buyers, chart switches, data label). Every Hub label now lives in one English and Vietnamese list, and a test fails if a translation is missing.',
+      'New: on first visit the app picks Vietnamese when your browser is set to Vietnamese. The VI/EN switch on the Hub and Settings > Language still change it any time.',
+    ],
+    changesVi: [
+      'Mới: thanh trên cùng cũng có tiếng Việt (trạng thái dữ liệu, "AI nói", độ tin cậy, người mua, các nút biểu đồ, nhãn dữ liệu). Mọi chữ trên Hub giờ nằm trong một danh sách Anh và Việt, và có test báo lỗi nếu thiếu bản dịch.',
+      'Mới: lần đầu mở app, nếu trình duyệt đang dùng tiếng Việt thì app tự chọn tiếng Việt. Nút VI/EN trên Hub và Cài đặt > Ngôn ngữ vẫn đổi được bất cứ lúc nào.',
+    ],
+  },
   {
     version: '1.22.0',
     date: '2026-10-17',

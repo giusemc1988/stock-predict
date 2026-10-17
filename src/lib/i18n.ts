@@ -100,6 +100,24 @@ const en = {
   stopAndScale: 'AI stop loss and scaling',
   stopLoss: 'Stop loss',
   scaleNote: '% is the share of the planned position. Open order ticket fills the stop and the 2R take-profit; scale-ins and partial exits you place yourself. Not financial advice.',
+  feedConnecting: 'Connecting',
+  feedLive: 'Live',
+  feedDelayed: 'Delayed',
+  feedSimulated: 'Simulated',
+  feedError: 'Error',
+  tagline: 'Research, not promises',
+  aiSays: 'AI says',
+  confLow: 'Low confidence',
+  confMedium: 'Medium confidence',
+  confHigh: 'High confidence',
+  buyers: 'buyers',
+  buyersTitle: 'Share of the last 5 minutes of traded volume that came from buyers',
+  robots: 'Robots',
+  robotsTitle: 'Robot signal markers',
+  forecast: 'Forecast',
+  forecastTitle: 'AI forecast cone',
+  averages: 'Averages',
+  dataSourcesTitle: 'Data sources & API keys',
 } as const
 
 export type Key = keyof typeof en
@@ -198,13 +216,34 @@ const vi: Record<Key, string> = {
   stopAndScale: 'Cắt lỗ và chia lệnh của AI',
   stopLoss: 'Cắt lỗ',
   scaleNote: '% là tỷ lệ của vị thế dự kiến. Mở phiếu lệnh sẽ điền sẵn cắt lỗ và chốt lời 2R; các lệnh mua thêm và chốt từng phần bạn tự đặt. Không phải lời khuyên đầu tư.',
+  feedConnecting: 'Đang kết nối',
+  feedLive: 'Trực tiếp',
+  feedDelayed: 'Trễ',
+  feedSimulated: 'Giả lập',
+  feedError: 'Lỗi',
+  tagline: 'Nghiên cứu, không hứa hẹn',
+  aiSays: 'AI nói',
+  confLow: 'Độ tin cậy thấp',
+  confMedium: 'Độ tin cậy vừa',
+  confHigh: 'Độ tin cậy cao',
+  buyers: 'người mua',
+  buyersTitle: 'Tỷ lệ khối lượng giao dịch trong 5 phút gần nhất đến từ người mua',
+  robots: 'Robot',
+  robotsTitle: 'Dấu tín hiệu của robot',
+  forecast: 'Dự báo',
+  forecastTitle: 'Vùng dự báo của AI',
+  averages: 'Trung bình',
+  dataSourcesTitle: 'Nguồn dữ liệu và khóa API',
 }
 
 const DICT: Record<Lang, Record<Key, string>> = { en, vi }
+
+/** Keys whose Vietnamese label is missing or empty (scripts/i18n.test.ts keeps this empty). */
+export const missingVi = (): Key[] => (Object.keys(en) as Key[]).filter((k) => !vi[k]?.trim())
 const EVENT = 'bluechip:lang'
 
 // Kept in memory too, so the choice still applies for this visit when storage is blocked
-let memLang: Lang = 'en'
+let memLang: Lang = typeof navigator !== 'undefined' && /^vi\b/i.test(navigator.language ?? '') ? 'vi' : 'en'
 
 export function getLang(): Lang {
   try {
