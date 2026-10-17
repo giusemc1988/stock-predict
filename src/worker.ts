@@ -104,11 +104,18 @@ export default {
       if (!sameOrigin(req)) return json({ error: 'Not allowed' }, 403)
       const e = await withSavedKeys(env, env.SETTINGS)
       const keys = await keySources(e, env.SETTINGS)
-      const results: Array<{ id: string; name: string; ok: boolean; status?: string; error?: string }> = []
-      for (const k of keys) {
-        const test = await testProvider(k.id, e)
-        results.push({ id: k.id, name: k.name, ok: test.ok, status: test.ok ? 'OK' : undefined, error: test.error })
-      }
+      // Run all checks in parallel with 8s timeout per check
+      const promises = keys.map((k) =>
+        Promise.race([
+          testProvider(k.id, e),
+          new Promise<{ ok: boolean; error: string }>((_, reject) =>
+            setTimeout(() => reject(new Error('timeout')), 8000),
+          ),
+        ])
+          .then((test) => ({ id: k.id, name: k.name, ok: test.ok, status: test.ok ? 'OK' : undefined, error: test.error }))
+          .catch((e) => ({ id: k.id, name: k.name, ok: false, error: String(e?.message ?? e) === 'timeout' ? 'Timeout (took too long)' : String(e?.message ?? e) })),
+      )
+      const results = await Promise.all(promises)
       return json({ keys: results })
     }
     if (pathname === '/api/ai-rules') {

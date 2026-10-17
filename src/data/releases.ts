@@ -2,7 +2,7 @@
  * Version and "What's new". Bump APP_VERSION and add an entry to the top of RELEASES
  * with each update. The banner shows once per version, then stays dismissed.
  */
-export const APP_VERSION = '1.21.8'
+export const APP_VERSION = '1.21.9'
 
 export interface Release {
   version: string
@@ -13,6 +13,16 @@ export interface Release {
 }
 
 export const RELEASES: Release[] = [
+  {
+    version: '1.21.9',
+    date: '2026-10-17',
+    changes: [
+      'Fixed: "Check all keys" now runs all provider checks in parallel and finishes in under 10 seconds instead of hanging. Timeouts are now shown for any provider that takes too long.',
+    ],
+    changesVi: [
+      'Sửa: "Kiểm tra tất cả key" giờ chạy tất cả provider check song song và kết thúc trong 10 giây thay vì bị treo. Các timeout giờ hiển thị cho provider nào mất quá lâu.',
+    ],
+  },
   {
     version: '1.21.8',
     date: '2026-10-17',
