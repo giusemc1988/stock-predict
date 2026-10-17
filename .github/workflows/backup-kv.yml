@@ -1,0 +1,48 @@
+name: Backup KV Data
+
+on:
+  schedule:
+    # Daily at 20:00 UTC (16:00 US Eastern)
+    - cron: "0 20 * * *"
+  workflow_dispatch:
+    inputs:
+      note:
+        description: "Backup note (optional)"
+        required: false
+
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      - name: Backup KV namespaces
+        run: node scripts/backup-kv.js --output-dir ./kv-backups
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+
+      - name: Upload backup artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: kv-backup-${{ github.run_number }}
+          path: ./kv-backups/
+          retention-days: 90
+
+      - name: Archive backup to repo (optional - comment out if backups get too large)
+        run: |
+          mkdir -p backups
+          cp -r kv-backups/backup-* backups/
+          git config user.email "backup@stock-predict"
+          git config user.name "Backup Bot"
+          git add backups/ || true
+          git diff --cached --quiet || git commit -m "backup: KV data snapshot $(date -u +%Y-%m-%d)" || true
+          git pull --rebase origin main || true
+          git push origin HEAD:backups || echo "Backup branch push skipped"
+        if: always()
