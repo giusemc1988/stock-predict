@@ -1,9 +1,8 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
+import { AGENT_COLORS as COLORS } from '../lib/hub'
 import type { BriefNode, NodeId } from '../lib/brief'
 import { useLang } from '../lib/i18n'
 
-/** Node colors, in briefNodes order: scanner, order flow, news, signals, learner, risk guard. */
-const COLORS: [number, number, number][] = [[89, 214, 255], [55, 215, 156], [255, 138, 107], [242, 196, 90], [165, 139, 255], [255, 107, 181]]
 const GREY: [number, number, number] = [110, 124, 148]
 const CORE: [number, number, number] = [255, 226, 170]
 /** Where each node sits on the orbit, degrees (inputs on the left, outputs on the right). */
