@@ -6,7 +6,6 @@ import { useCallback, useEffect, useReducer, useRef, useState } from 'react'
 import type { BrokerMode, BrokerOrder, BrokerPosition, BrokerState, EquityPoint, OrderRequest } from '../broker/types'
 import { freshSim, simEquity, simReducer, type SimState } from '../broker/sim'
 import type { AlpacaKeys } from '../broker/alpaca'
-import { alpacaCancel, alpacaClose, alpacaHistory, alpacaPlace, alpacaSnapshot } from '../broker/alpaca'
 
 const SIM_KEY = 'bluechip.sim.v2'
 
@@ -53,7 +52,10 @@ export function useBroker(mode: BrokerMode, keys: AlpacaKeys, historyPeriod: '1D
   const refresh = useCallback(async () => {
     const my = ++reqSeq.current
     try {
-      const snap = await alpacaSnapshot(keysRef.current)
+      const res = await fetch('/api/broker/snapshot')
+      if (!res.ok) throw new Error(`HTTP ${res.status}`)
+      const snap = (await res.json()) as { account: any; positions: any; orders: any; status: string; error?: string }
+      if (snap.error) throw new Error(snap.error)
       if (my !== reqSeq.current) return
       setRemote({ connected: snap.status === 'ACTIVE', error: null, account: snap.account, positions: snap.positions, orders: snap.orders })
       setRemoteError(null)
@@ -88,7 +90,17 @@ export function useBroker(mode: BrokerMode, keys: AlpacaKeys, historyPeriod: '1D
 
   useEffect(() => {
     if (!alpaca) return
-    const load = () => alpacaHistory(keysRef.current, historyPeriod).then(setRemoteHistory).catch(() => {})
+    const load = async () => {
+      try {
+        const res = await fetch(`/api/broker/history?period=${historyPeriod}`)
+        if (res.ok) {
+          const data = (await res.json()) as { history: any[]; error?: string }
+          if (!data.error) setRemoteHistory(data.history)
+        }
+      } catch {
+        /* ignore errors */
+      }
+    }
     load()
     const id = setInterval(load, 60_000)
     return () => clearInterval(id)
@@ -101,7 +113,28 @@ export function useBroker(mode: BrokerMode, keys: AlpacaKeys, historyPeriod: '1D
         return { ok: true, message: 'Sent to simulator' }
       }
       try {
-        await alpacaPlace(keysRef.current, req)
+        const crypto = req.symbol.includes('/')
+        const body: Record<string, unknown> = {
+          symbol: req.symbol,
+          qty: String(+req.qty.toFixed(crypto ? 8 : 4)),
+          side: req.side,
+          type: req.type,
+          time_in_force: crypto ? 'gtc' : req.tif,
+          client_order_id: req.clientOrderId ?? `${req.source}-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 6)}`,
+        }
+        const px = (p: number) => (crypto ? String(+p.toPrecision(8)) : p.toFixed(p >= 1 ? 2 : 4))
+        if (req.limitPrice != null && (req.type === 'limit' || req.type === 'stop_limit')) body.limit_price = px(req.limitPrice)
+        if (req.stopPrice != null && (req.type === 'stop' || req.type === 'stop_limit')) body.stop_price = px(req.stopPrice)
+        if (req.bracket) {
+          if (crypto) throw new Error('Alpaca does not support bracket orders for crypto')
+          body.order_class = 'bracket'
+          body.take_profit = { limit_price: px(req.bracket.takeProfit) }
+          body.stop_loss = { stop_price: px(req.bracket.stopLoss) }
+        }
+        const res = await fetch('/api/broker/place', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) })
+        if (!res.ok) throw new Error(`HTTP ${res.status}`)
+        const data = (await res.json()) as any
+        if (data.error) throw new Error(data.error)
         refresh()
         return { ok: true, message: 'Sent to Alpaca paper' }
       } catch (e) {
@@ -114,8 +147,12 @@ export function useBroker(mode: BrokerMode, keys: AlpacaKeys, historyPeriod: '1D
   const cancel = useCallback(
     async (id: string) => {
       if (!alpaca) return dispatch({ type: 'cancel', id })
-      await alpacaCancel(keysRef.current, id).catch(() => {})
-      refresh()
+      try {
+        const res = await fetch('/api/broker/cancel', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id }) })
+        if (res.ok) refresh()
+      } catch {
+        /* ignore errors */
+      }
     },
     [alpaca, refresh],
   )
@@ -123,8 +160,13 @@ export function useBroker(mode: BrokerMode, keys: AlpacaKeys, historyPeriod: '1D
   const closePosition = useCallback(
     async (symbol: string, last: number) => {
       if (alpaca) {
-        await alpacaClose(keysRef.current, symbol).catch(() => {})
-        return refresh()
+        try {
+          const res = await fetch('/api/broker/close', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ symbol }) })
+          if (res.ok) refresh()
+        } catch {
+          /* ignore errors */
+        }
+        return
       }
       const p = sim.positions[symbol]
       if (p) dispatch({ type: 'place', req: { symbol, side: 'sell', type: 'market', qty: p.qty, tif: 'day', source: 'manual' }, last })

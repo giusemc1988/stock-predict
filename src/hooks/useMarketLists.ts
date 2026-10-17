@@ -1,5 +1,5 @@
 import { useEffect, useSyncExternalStore } from 'react'
-import { alpacaMarketLists, binanceMarketLists, hasAlpacaData, type AlpacaDataKeys, type MarketLists } from '../data/providers'
+import { binanceMarketLists, type AlpacaDataKeys, type MarketLists } from '../data/providers'
 
 const REFRESH_MS = 60_000
 
@@ -75,11 +75,17 @@ async function run(force = false) {
   // a hidden tab costs nothing: it refreshes when it is shown again
   if (typeof document !== 'undefined' && document.hidden && !force) return
   const k = keys
-  const needKey = !hasAlpacaData(k)
   // outside market hours stock lists don't change, so the last one is kept
-  const stocksDue = !needKey && (!state.stocks || !stocksAt || usMarketOpen(Date.now()) || Date.now() - stocksAt > 6 * 3600_000)
+  const stocksDue = !state.stocks || !stocksAt || usMarketOpen(Date.now()) || Date.now() - stocksAt > 6 * 3600_000
   set({ loading: true })
-  const [crypto, stocks] = await Promise.allSettled([binanceMarketLists(), stocksDue ? alpacaMarketLists(k) : Promise.resolve(null)])
+  const fetchStocks = stocksDue
+    ? fetch('/api/market/stocks')
+        .then((r) => {
+          if (!r.ok) throw new Error(`HTTP ${r.status}`)
+          return r.json() as Promise<MarketLists>
+        })
+    : Promise.resolve(null)
+  const [crypto, stocks] = await Promise.allSettled([binanceMarketLists(), fetchStocks])
   if (k !== keys) return
   const newCrypto = crypto.status === 'fulfilled' ? crypto.value : null
   const newStocks = stocks.status === 'fulfilled' ? stocks.value : null
@@ -91,7 +97,7 @@ async function run(force = false) {
   const now = Date.now()
   set({
     crypto: newCrypto ?? state.crypto,
-    stocks: needKey ? null : (newStocks ?? state.stocks),
+    stocks: newStocks ?? state.stocks,
     cryptoError: msg(crypto),
     stockError: stocksDue ? msg(stocks) : state.stockError,
     updatedAt: newCrypto || newStocks ? now : state.updatedAt,
@@ -106,7 +112,7 @@ const onVisible = () => {
 
 function start() {
   if (timer) return
-  if (Date.now() - (state.updatedAt ?? 0) > REFRESH_MS || (!stocksAt && hasAlpacaData(keys))) void run(true)
+  if (Date.now() - (state.updatedAt ?? 0) > REFRESH_MS || !stocksAt) void run(true)
   timer = setInterval(run, REFRESH_MS)
   document.addEventListener('visibilitychange', onVisible)
 }
@@ -142,5 +148,7 @@ export function useMarketLists(enabled: boolean, alpacaKeys: AlpacaDataKeys): Ma
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [enabled, alpacaKeys.keyId, alpacaKeys.secret])
-  return { ...snap, stocksNeedKey: !hasAlpacaData(alpacaKeys) }
+  // stocksNeedKey is true if we don't have stocks and the error indicates a missing key
+  const stocksNeedKey = !snap.stocks && (snap.stockError?.includes('key') || snap.stockError?.includes('configured') || false)
+  return { ...snap, stocksNeedKey }
 }
