@@ -111,6 +111,33 @@ export default {
       }
       return json({ keys: results })
     }
+    if (pathname === '/api/ai-rules') {
+      if (req.method === 'GET') {
+        if (!env.SETTINGS) return json({ error: 'Settings storage not available' }, 501)
+        try {
+          const stored = await env.SETTINGS.get('aiRules')
+          const rules = stored ? JSON.parse(stored) : null
+          return json(rules || {})
+        } catch (e) {
+          console.error('AI rules fetch error:', e)
+          return json({})
+        }
+      }
+      if (req.method === 'PUT') {
+        if (!sameOrigin(req)) return json({ error: 'Not allowed' }, 403)
+        if (!env.SETTINGS) return json({ error: 'Settings storage not available' }, 501)
+        try {
+          const body = await req.json().catch(() => null)
+          if (!body || typeof body !== 'object') return json({ error: 'Invalid rules object' }, 400)
+          await env.SETTINGS.put('aiRules', JSON.stringify(body))
+          return json({ ok: true })
+        } catch (e) {
+          console.error('AI rules save error:', e)
+          return json({ error: String(e) }, 500)
+        }
+      }
+      return json({ error: 'GET or PUT only' }, 405)
+    }
     if (pathname === '/api/brain') {
       if (req.method !== 'POST') return json({ error: 'POST only' }, 405)
       const ask = cleanAsk(await req.json().catch(() => null))

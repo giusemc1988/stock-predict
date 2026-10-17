@@ -2,7 +2,7 @@
  * Version and "What's new". Bump APP_VERSION and add an entry to the top of RELEASES
  * with each update. The banner shows once per version, then stays dismissed.
  */
-export const APP_VERSION = '1.21.7'
+export const APP_VERSION = '1.21.8'
 
 export interface Release {
   version: string
@@ -13,6 +13,22 @@ export interface Release {
 }
 
 export const RELEASES: Release[] = [
+  {
+    version: '1.21.8',
+    date: '2026-10-17',
+    changes: [
+      'New: Settings for Jarvis and AI rules now save to Cloudflare, so they stay the same after every build and sync across your devices.',
+      'New: More features are on by default now: Jarvis speaks your briefing aloud, chart follows your practice trades, Jarvis Brief has free AI help.',
+      'New: Voice narration for trade explanations (browser voice, no API key needed).',
+      'New: Telegram alerts work when you add your bot token in Settings.',
+    ],
+    changesVi: [
+      'Mới: Cài đặt Jarvis và quy tắc AI giờ lưu vào Cloudflare, nên chúng ở lại sau mỗi build và đồng bộ giữa các thiết bị.',
+      'Mới: Nhiều tính năng bật sẵn giờ: Jarvis nói bản tin của bạn to, biểu đồ theo lệnh luyện tập, Jarvis Brief có AI miễn phí.',
+      'Mới: Đọc to giải thích lệnh (giọng trình duyệt, không cần key API).',
+      'Mới: Cảnh báo Telegram hoạt động khi bạn thêm token bot trong Cài đặt.',
+    ],
+  },
   {
     version: '1.21.7',
     date: '2026-10-17',
