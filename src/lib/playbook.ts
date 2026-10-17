@@ -136,6 +136,12 @@ export const PLAYBOOK: PlaybookRule[] = [
       return !h.some((t) => t.id !== p.id && t.symbol === p.symbol && t.exitReason === 'stop' && t.closedAt <= p.openedAt && et(t.closedAt).day === day)
     },
   },
+  {
+    id: 'newsSentiment',
+    en: { name: 'Recent news is positive (sentiment ≥ +0.2)', why: 'Positive headlines suggest market approval; tend to sustain moves.' },
+    vi: { name: 'Tin tức gần đây tích cực (sentiment ≥ +0.2)', why: 'Tiêu đề tích cực cho thấy thị trường đồng ý; xu hướng kéo dài.' },
+    check: (p) => (p.info.newsSentiment == null ? null : p.info.newsSentiment >= 0.2),
+  },
 ]
 
 export const ruleById = (id: string) => PLAYBOOK.find((r) => r.id === id)

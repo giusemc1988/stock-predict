@@ -9,6 +9,8 @@ import { cryptoMovers, PICK_TF, scanCycle, scanMarkets, withOpenMarkets, type Mo
 import { dollarVolume } from '../lib/practicePicks'
 import { binanceMarketLists, hasAlpacaData, type AlpacaDataKeys, type ApiKeys, type MarketMover } from '../data/providers'
 import { candlesFor } from '../data/series'
+import { fetchAlpacaNews } from '../lib/newsProvider'
+import { analyzeSentiment } from '../lib/newsSentiment'
 
 const KEY = 'arc.practice.v1'
 const SEEN_KEY = 'arc.practice.seen.v1'
@@ -172,6 +174,35 @@ export function usePractice({ rules, symbol, asset, tf, candles, analysis, liveS
   const n = candles.length
   const closed = n > 1 ? candles[n - 2] : null
   const seen = useRef('')
+  const [newsSentiment, setNewsSentiment] = useState<number | null>(null)
+
+  // fetch news sentiment for the current symbol (stocks only)
+  useEffect(() => {
+    if (asset !== 'stock') {
+      setNewsSentiment(null)
+      return
+    }
+    let cancelled = false
+    const fetchSentiment = async () => {
+      try {
+        const news = await fetchAlpacaNews(symbol)
+        if (!cancelled && news.length > 0) {
+          const headlines = news.map(n => n.headline)
+          const sentiment = analyzeSentiment(headlines).sentiment
+          setNewsSentiment(sentiment)
+        } else if (!cancelled) {
+          setNewsSentiment(null)
+        }
+      } catch {
+        if (!cancelled) setNewsSentiment(null)
+      }
+    }
+    fetchSentiment()
+    return () => {
+      cancelled = true
+    }
+  }, [symbol, asset])
+
   useEffect(() => {
     if (!closed) return
     const key = `${symbol}|${tf}`
@@ -222,9 +253,10 @@ export function usePractice({ rules, symbol, asset, tf, candles, analysis, liveS
         playbookMin: c.rules.minSample,
         playbookMargin: c.rules.learnEdgeMarginPct / 100,
         skills: c.skills,
+        newsSentiment,
       }),
     )
-  }, [closed, symbol, tf, on])
+  }, [closed, symbol, tf, on, newsSentiment])
 
   // the stock picker: scan the watchlist and today's movers, rank BUY calls, trade the best
   const [scan, setScan] = useState<PracticeScan>({ at: null, busy: false, candidates: [], failed: [], noStockData: false })
