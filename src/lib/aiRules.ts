@@ -103,6 +103,7 @@ export interface AiRules {
   telegramNotifications: boolean // send trade notifications to Telegram
   telegramToken: string // Telegram bot token (stored on server, never in browser)
   walkForwardValidatorOn: boolean // validate signals on data the ranking was not tuned on; mark as "Proven" only when win rate > 50% out-of-sample
+  potentialListOn: boolean // show a "Potential" list of stocks with good BUY signals in the watchlist
 }
 
 export const DEFAULT_AI_RULES: AiRules = {
@@ -204,6 +205,7 @@ export const DEFAULT_AI_RULES: AiRules = {
   telegramNotifications: true,
   telegramToken: '',
   walkForwardValidatorOn: true,
+  potentialListOn: true,
 }
 
 type NumKey = { [K in keyof AiRules]: AiRules[K] extends number ? K : never }[keyof AiRules]
@@ -318,6 +320,7 @@ export const RULE_FIELDS: RuleField[] = [
   { group: 'modules', key: 'orderFlowEstimate', en: 'Show estimated order flow when live data unavailable', vi: 'Hiện dòng lệnh ước tính khi không có dữ liệu trực tiếp' },
   { group: 'modules', key: 'practiceTradeNotifications', en: 'Notify before placing a practice trade (symbol, side, entry, stop, target, reason)', vi: 'Báo trước khi đặt lệnh luyện tập (mã, mua/bán, vào, cắt lỗ, chốt lời, lý do)' },
   { group: 'jarvis', key: 'telegramNotifications', en: 'Send practice trades to Telegram bot (instant notifications, requires token)', vi: 'Gửi giao dịch luyện tập vào Telegram (thông báo ngay lập tức, cần token)' },
+  { group: 'modules', key: 'potentialListOn', en: 'Show "Potential" list (stocks with good BUY signals from the scanner)', vi: 'Hiện danh sách "Tiềm năng" (cổ phiếu có tín hiệu MUA tốt từ máy quét)' },
 ]
 
 const KEY = 'arc.aiRules.v1'
