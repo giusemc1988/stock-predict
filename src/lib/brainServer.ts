@@ -70,7 +70,7 @@ const openAiStyle = (url: string) => async (key: string, model: string | undefin
   }
   const j = (await r.json()) as { choices?: { message?: { content?: string } }[] }
   const text = j.choices?.[0]?.message?.content ?? null
-  if (!text?.trim()) onFail?.(r.status, 'answered with no text')
+  if (!text?.trim()) onFail?.(429, 'quota or rate limit exceeded (empty response)')
   return text
 }
 
