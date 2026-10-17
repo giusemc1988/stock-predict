@@ -11,12 +11,17 @@ import type { PracticeState } from './lib/practice'
 
 interface Env extends BrainEnv, PracticeEnv {
   ASSETS: { fetch: (r: Request) => Promise<Response> }
-  /** KV that holds the AI keys typed into Settings. */
+  /** KV that holds the keys typed into Settings. */
   SETTINGS?: KeyStore
   /** Alpaca API key ID for news endpoint (Worker secret via wrangler secret put) */
   ALPACA_API_KEY_ID?: string
   /** Alpaca API secret key for news endpoint (Worker secret via wrangler secret put) */
   ALPACA_API_SECRET_KEY?: string
+  /** Trading data keys can also be Worker secrets or stored in KV SETTINGS. */
+  ALPACA_PAPER_KEY?: string
+  ALPHA_VANTAGE_KEY?: string
+  FINNHUB_KEY?: string
+  TELEGRAM_BOT_TOKEN?: string
 }
 
 const json = (data: unknown, status = 200) => new Response(JSON.stringify(data), { status, headers: { 'content-type': 'application/json', 'cache-control': 'no-store' } })
@@ -50,6 +55,18 @@ export default {
       if (!sameOrigin(req)) return json({ error: 'Not allowed' }, 403)
       const body = (await req.json().catch(() => null)) as { id?: unknown } | null
       return json(await testProvider(String(body?.id ?? ''), await withSavedKeys(env, env.SETTINGS)))
+    }
+    if (pathname === '/api/keys/status') {
+      if (req.method !== 'POST') return json({ error: 'POST only' }, 405)
+      if (!sameOrigin(req)) return json({ error: 'Not allowed' }, 403)
+      const e = await withSavedKeys(env, env.SETTINGS)
+      const keys = await keySources(e, env.SETTINGS)
+      const results: Array<{ id: string; name: string; ok: boolean; status?: string; error?: string }> = []
+      for (const k of keys) {
+        const test = await testProvider(k.id, e)
+        results.push({ id: k.id, name: k.name, ok: test.ok, status: test.ok ? 'OK' : undefined, error: test.error })
+      }
+      return json({ keys: results })
     }
     if (pathname === '/api/brain') {
       if (req.method !== 'POST') return json({ error: 'POST only' }, 405)
