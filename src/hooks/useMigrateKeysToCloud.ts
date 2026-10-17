@@ -17,38 +17,54 @@ export function useMigrateKeysToCloud(keys: ApiKeys, alpacaKeys: AlpacaKeys) {
       try {
         // Check which keys exist in the cloud
         const statusResp = await fetch('/api/data/key', { method: 'GET' })
-        if (!statusResp.ok) return
+        if (!statusResp.ok) {
+          console.warn('Migration: cannot check cloud status, KV may not be available')
+          migrated.current = true
+          return
+        }
 
         const status = (await statusResp.json()) as Record<string, boolean>
 
         // Migrate Alpaca paper key if it exists locally and not in cloud
         if (alpacaKeys.keyId && alpacaKeys.secret && !status.alpaca_paper) {
-          await fetch('/api/data/key', {
+          const res = await fetch('/api/data/key', {
             method: 'PUT',
             headers: { 'content-type': 'application/json' },
             body: JSON.stringify({ id: 'alpaca_paper', keyId: alpacaKeys.keyId, secret: alpacaKeys.secret }),
           })
+          if (!res.ok) {
+            const err = await res.json().catch(() => ({}))
+            console.warn('Migration: Alpaca paper key upload failed:', err)
+          }
         }
 
         // Migrate Alpha Vantage key if it exists locally and not in cloud
         if (keys.alphaVantage && !status.alpha_vantage) {
-          await fetch('/api/data/key', {
+          const res = await fetch('/api/data/key', {
             method: 'PUT',
             headers: { 'content-type': 'application/json' },
             body: JSON.stringify({ id: 'alpha_vantage', key: keys.alphaVantage }),
           })
+          if (!res.ok) {
+            const err = await res.json().catch(() => ({}))
+            console.warn('Migration: Alpha Vantage key upload failed:', err)
+          }
         }
 
         // Migrate Finnhub key if it exists locally and not in cloud
         if (keys.finnhub && !status.finnhub) {
-          await fetch('/api/data/key', {
+          const res = await fetch('/api/data/key', {
             method: 'PUT',
             headers: { 'content-type': 'application/json' },
             body: JSON.stringify({ id: 'finnhub', key: keys.finnhub }),
           })
+          if (!res.ok) {
+            const err = await res.json().catch(() => ({}))
+            console.warn('Migration: Finnhub key upload failed:', err)
+          }
         }
-      } catch {
-        // Silent fail: if migration fails, user can still manually save keys
+      } catch (e) {
+        console.warn('Migration error:', e)
       }
 
       migrated.current = true
