@@ -296,7 +296,7 @@ export default {
 
       // GET: Check which data keys are set (never return values)
       if (req.method === 'GET') {
-        const ids = ['alpaca_paper', 'alpha_vantage', 'finnhub'] as const
+        const ids = ['alpaca_paper', 'alpha_vantage', 'finnhub', 'telegram'] as const
         const status: Record<string, boolean> = {}
         for (const id of ids) {
           const val = await env.SETTINGS.get(storeKey(id as any)).catch(() => null)
@@ -307,14 +307,14 @@ export default {
 
       if (req.method === 'DELETE') {
         const id = new URL(req.url).searchParams.get('id')
-        const validIds = ['alpaca_paper', 'alpha_vantage', 'finnhub']
+        const validIds = ['alpaca_paper', 'alpha_vantage', 'finnhub', 'telegram']
         if (!validIds.includes(id ?? '')) return json({ error: 'Unknown provider' }, 400)
         await env.SETTINGS.delete(storeKey(id as any))
         return json({ ok: true })
       }
       const body = (await req.json().catch(() => null)) as { id?: unknown; key?: unknown; keyId?: unknown; secret?: unknown } | null
       const id = body?.id as string | undefined
-      const validIds = ['alpaca_paper', 'alpha_vantage', 'finnhub']
+      const validIds = ['alpaca_paper', 'alpha_vantage', 'finnhub', 'telegram']
       if (!validIds.includes(id ?? '')) return json({ error: 'Unknown provider' }, 400)
 
       // Handle Alpaca paper keys (two-part: keyId + secret)
@@ -343,7 +343,7 @@ export default {
         const alpacaStr = await env.SETTINGS.get(storeKey('alpaca_paper' as any))
         const avStr = await env.SETTINGS.get(storeKey('alpha_vantage' as any))
         const fhStr = await env.SETTINGS.get(storeKey('finnhub' as any))
-        const telegramStr = await env.SETTINGS.get('TELEGRAM_BOT_TOKEN')
+        const telegramStr = await env.SETTINGS.get(storeKey('telegram' as any))
         return json({
           kv_available: true,
           alpaca_paper: alpacaStr ? JSON.parse(alpacaStr) : null,

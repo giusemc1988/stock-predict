@@ -41,7 +41,9 @@ export const storeKey = (id: KeySlotId) => `brainkey:${id}`
 export function cleanKey(v: unknown): string | null {
   if (typeof v !== 'string') return null
   const k = v.trim()
-  return /^[A-Za-z0-9_\-.:]{20,200}$/.test(k) ? k : null
+  if (k.length < 10 || k.length > 1000) return null
+  if (/[\s<>"{}|\\^`]/.test(k)) return null
+  return k
 }
 
 /** Saved keys win over server secrets, so a key typed in Settings takes effect right away. */
