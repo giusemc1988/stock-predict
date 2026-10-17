@@ -25,7 +25,6 @@ export const KEY_SLOTS = [
   { id: 'groq', env: 'GROQ_API_KEY', category: 'ai' as const },
   { id: 'nvidia', env: 'NVIDIA_API_KEY', category: 'ai' as const },
   { id: 'xai', env: 'XAI_API_KEY', category: 'ai' as const },
-  { id: 'telegram', env: 'TELEGRAM_BOT_TOKEN', category: 'ai' as const },
   // Trading data providers
   { id: 'alpaca_paper', env: 'ALPACA_PAPER_KEY', category: 'data' as const },
   { id: 'alpha_vantage', env: 'ALPHA_VANTAGE_KEY', category: 'data' as const },
@@ -66,7 +65,7 @@ export interface KeyStatus {
 
 const NAMES: Record<string, string> = {
   gemini: 'Gemini', groq: 'Groq', nvidia: 'NVIDIA NIM', xai: 'Grok',
-  telegram: 'Telegram', alpaca_paper: 'Alpaca (paper)', alpha_vantage: 'Alpha Vantage', finnhub: 'Finnhub',
+  alpaca_paper: 'Alpaca (paper)', alpha_vantage: 'Alpha Vantage', finnhub: 'Finnhub',
 }
 
 export async function keySources(env: BrainEnv & any, store?: KeyStore): Promise<KeyStatus[]> {
@@ -88,13 +87,6 @@ export function sameOrigin(req: Request): boolean {
 
 /** Test an AI provider with a tiny call. Never returns the key or the answer. */
 export async function testAiProvider(id: string, env: BrainEnv, f: typeof fetch = fetch): Promise<{ ok: boolean; model?: string; error?: string }> {
-  // Telegram is not an AI model; just check if it's configured
-  if (id === 'telegram') {
-    const key = env.TELEGRAM_BOT_TOKEN
-    if (!key) return { ok: false, error: 'No key saved' }
-    return { ok: true }
-  }
-
   const p = PROVIDERS.find((x) => x.id === id)
   const key = p?.key(env)
   if (!p || !isSlot(id) || KEY_SLOTS.find(s => s.id === id)?.category !== 'ai') return { ok: false, error: 'Unknown helper' }
