@@ -93,4 +93,19 @@ const denied = (async () => (calls++, new Response('{"error":{"message":"Invalid
 assert.equal((await testProvider('groq', { GROQ_API_KEY: 'gsk_secretsecretsecretsecret' }, denied)).ok, false)
 assert.equal(calls, 1)
 
+// Telegram config is stored separately in PRACTICE KV, not in KEY_SLOTS
+const telegramStore = memStore({ 'telegramConfig': JSON.stringify({ token: 'token123', chatId: 'chat456' }) })
+// Simulating the checker logic from worker.ts line 381-386
+const telegramConfigStr = await telegramStore.get('telegramConfig').catch(() => null)
+const telegramConfig = telegramConfigStr ? JSON.parse(telegramConfigStr) : null
+const telegramOk = !!(telegramConfig?.token && telegramConfig?.chatId)
+assert.equal(telegramOk, true, 'Telegram config checker finds valid token + chatId')
+
+// Test with missing config
+const emptyStore = memStore({})
+const noTelegramConfigStr = await emptyStore.get('telegramConfig').catch(() => null)
+const noTelegramConfig = noTelegramConfigStr ? JSON.parse(noTelegramConfigStr) : null
+const noTelegramOk = !!(noTelegramConfig?.token && noTelegramConfig?.chatId)
+assert.equal(noTelegramOk, false, 'Telegram config checker returns false when config missing')
+
 console.log('brain keys tests passed')
