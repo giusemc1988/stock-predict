@@ -317,7 +317,7 @@ export const RULE_FIELDS: RuleField[] = [
   { group: 'jarvis', key: 'localAiOn', en: 'Use local AI: Ollama on your computer writes the Brief with a model you have installed (works only when this app runs on that computer; falls back to Gemini if Brief AI is on)', vi: 'Dùng AI cục bộ: Ollama trên máy bạn viết bản tin bằng mô hình đã cài (chỉ hoạt động khi ứng dụng chạy trên máy đó; dự phòng Gemini nếu AI viết bản tin đang bật)' },
   { group: 'modules', key: 'orderFlowEstimate', en: 'Show estimated order flow when live data unavailable', vi: 'Hiện dòng lệnh ước tính khi không có dữ liệu trực tiếp' },
   { group: 'modules', key: 'practiceTradeNotifications', en: 'Notify before placing a practice trade (symbol, side, entry, stop, target, reason)', vi: 'Báo trước khi đặt lệnh luyện tập (mã, mua/bán, vào, cắt lỗ, chốt lời, lý do)' },
-  { group: 'jarvis', key: 'telegramNotifications', en: 'Send trade alerts to Telegram (instant notification, requires bot token)', vi: 'Gửi cảnh báo giao dịch vào Telegram (thông báo ngay lập tức, cần token bot)' },
+  { group: 'jarvis', key: 'telegramNotifications', en: 'Send practice trades to Telegram bot (instant notifications, requires token)', vi: 'Gửi giao dịch luyện tập vào Telegram (thông báo ngay lập tức, cần token)' },
 ]
 
 const KEY = 'arc.aiRules.v1'

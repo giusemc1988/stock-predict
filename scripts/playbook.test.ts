@@ -155,7 +155,7 @@ const high = chatReply('Bạn có biết là bạn mua nó ở giá cao không',
 assert.match(high, /HIMS giá 31\.400/)
 assert.match(high, /9\.2%.*không đuổi giá/)
 assert.match(chatReply('did you buy it too high?', deps).text.map((x) => x.en).join(' '), /2\.0 times the risk/)
-assert.match(chatReply('blah blah', deps).text[0].en, /stock on screen/)
+assert.match(chatReply('blah blah', deps).text[0].en, /what's happening with HIMS/)
 assert.match(chatReply('hi jarvis', deps).text[0].en, /Chanh/)
 assert.ok(chatReply('pause practice', deps).action)
 assert.equal(chatReply('why TSLA?', deps).stock, 'TSLA')
