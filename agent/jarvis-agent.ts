@@ -8,6 +8,7 @@
  *   - lists the Wi-Fi networks your PC already sees, with channels (Windows netsh, Linux nmcli)
  *   - ping, open-port check and Wake-on-LAN, only for private addresses (192.168.x.x, 10.x, 172.16-31.x)
  *   - a download/upload speed test against speed.cloudflare.com
+ *   - RuView sensing: passes a few read-only calls to the RuView server on this PC (npm run ruview) and keeps the node list
  * It never captures traffic, never joins or attacks other networks, and only listens on 127.0.0.1.
  * Reach it from the app through a Cloudflare Tunnel behind Cloudflare Access (see agent/README.md).
  */
@@ -20,8 +21,9 @@ import net from 'node:net'
 import os from 'node:os'
 import { join } from 'node:path'
 import { isPrivateIPv4, parseArp, parseNetsh, parseNmcli, type LanDevice } from '../src/lib/netParse'
+import { boardOf, RUVIEW_IMAGE, type RegistryNode } from '../src/lib/ruview'
 
-const VERSION = '1.0.0'
+const VERSION = '1.1.0'
 const PORT = Number(process.env.AGENT_PORT ?? 8787)
 const HOME = process.env.AGENT_HOME ?? join(os.homedir(), '.jarvis-agent')
 const ORIGINS = (process.env.AGENT_ORIGINS ?? 'https://stock-predict.chanhmn1011.workers.dev,http://localhost:5173').split(',').map((s) => s.trim())
@@ -156,6 +158,58 @@ async function speed() {
   return { downMbps: Math.round(((bytes * 8) / ((t1 - t0) / 1000) / 1e6) * 10) / 10, upMbps: Math.round(((up.length * 8) / ((t2 - t1) / 1000) / 1e6) * 10) / 10, pingMs: Math.round(latency) }
 }
 
+const RUVIEW_URL = process.env.RUVIEW_URL ?? `http://127.0.0.1:${process.env.RUVIEW_PORT ?? 3000}`
+/** Read-only RuView calls the page may make, and where they go upstream. */
+const RUVIEW_ROUTES: Record<string, string> = {
+  latest: '/api/v1/sensing/latest',
+  nodes: '/api/v1/nodes',
+  vitals: '/api/v1/vital-signs',
+}
+
+/** RuView's API token: written by npm run ruview to ~/.jarvis-agent/ruview-token. */
+function ruviewToken(): string {
+  if (process.env.RUVIEW_API_TOKEN) return process.env.RUVIEW_API_TOKEN
+  try {
+    return readFileSync(join(HOME, 'ruview-token'), 'utf8').trim()
+  } catch {
+    return ''
+  }
+}
+
+async function ruviewGet(path: string): Promise<unknown> {
+  const r = await fetch(`${RUVIEW_URL}${path}`, { headers: { authorization: `Bearer ${ruviewToken()}` }, signal: AbortSignal.timeout(5000) })
+  if (!r.ok) throw new Error(`RuView ${r.status}`)
+  return r.json()
+}
+
+/** Is the RuView server up, which version, and is the container on the pinned image? */
+async function ruviewStatus() {
+  const image = (await run('docker', ['inspect', '-f', '{{.Config.Image}}', 'jarvis-ruview'], 8000)).trim() || null
+  try {
+    const [ready, ver] = (await Promise.all([ruviewGet('/health/ready'), ruviewGet('/health/version')])) as [Record<string, unknown>, Record<string, unknown>]
+    return { up: true, source: ready.source ?? null, waiting: !!ready.waiting_for_frames, version: ver.version ?? null, image, pinned: RUVIEW_IMAGE }
+  } catch (e) {
+    return { up: false, why: e instanceof Error ? e.message : String(e), image, pinned: RUVIEW_IMAGE }
+  }
+}
+
+function saveNode(b: Record<string, unknown>) {
+  const reg = loadJson<RegistryNode[]>('ruview-nodes.json', [])
+  if (typeof b.remove === 'number') return saveJson('ruview-nodes.json', reg.filter((n) => n.id !== b.remove))
+  const n = b.node as Partial<RegistryNode> | undefined
+  const id = Number(n?.id)
+  if (!n || !Number.isInteger(id) || id < 1 || id > 255) throw new Error('node id must be 1-255')
+  const clean: RegistryNode = {
+    id,
+    room: String(n.room ?? '').slice(0, 40),
+    board: boardOf(String(n.board))?.id ?? 's3-8mb',
+    antenna: n.antenna === 'external' ? 'external' : 'internal',
+    firmware: n.firmware ? String(n.firmware).slice(0, 20) : undefined,
+    added: Number(n.added) || Date.now(),
+  }
+  saveJson('ruview-nodes.json', [...reg.filter((x) => x.id !== id), clean].sort((a, c) => a.id - c.id))
+}
+
 async function body(req: http.IncomingMessage): Promise<Record<string, unknown>> {
   let s = ''
   for await (const c of req) {
@@ -204,6 +258,21 @@ export function start() {
         return send(200, { ok: true })
       }
       if (url.pathname === '/api/speed') return send(200, await speed())
+      if (url.pathname === '/api/ruview/status') return send(200, await ruviewStatus())
+      if (url.pathname === '/api/ruview/registry' && req.method === 'GET') return send(200, { nodes: loadJson<RegistryNode[]>('ruview-nodes.json', []), me: myIps() })
+      if (url.pathname === '/api/ruview/registry' && req.method === 'POST') {
+        try {
+          saveNode(await body(req))
+        } catch (e) {
+          return send(400, { error: e instanceof Error ? e.message : String(e) })
+        }
+        return send(200, { ok: true })
+      }
+      const up = RUVIEW_ROUTES[url.pathname.replace('/api/ruview/', '')]
+      if (url.pathname.startsWith('/api/ruview/') && up && req.method === 'GET') {
+        // RuView being off is not an agent failure: answer 200 so the page can tell the two apart
+        return send(200, await ruviewGet(up).catch((e: unknown) => ({ down: true, why: e instanceof Error ? e.message : String(e) })))
+      }
       return send(404, { error: 'not found' })
     } catch (e) {
       return send(500, { error: e instanceof Error ? e.message : String(e) })

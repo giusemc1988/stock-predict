@@ -6,6 +6,8 @@ Nó không bắt gói tin, không tấn công mạng khác, và chỉ nghe ở `
 
 The Wi-Fi page needs this small program on your home PC, because a website cannot scan Wi-Fi. It only works on your own network, never captures traffic, and only listens on `127.0.0.1`.
 
+> Nếu `git pull` báo lỗi gộp (merge), dừng lại và nhắn Claude trong project. Đừng tự xóa hay reset.
+
 ## Cách 1: dùng trên máy nhà (dễ nhất, không cần cài thêm)
 
 Mở **PowerShell** rồi chạy từng dòng:
@@ -55,6 +57,33 @@ Cần làm Cách 1 trước, và để `npm run agent` chạy.
 
 Xong, mở trang web như bình thường. Khi máy nhà tắt, trang hiện lần quét gần nhất.
 
+## RuView
+
+Cảm biến bằng sóng Wi-Fi.
+
+Trang **RuView cảm biến** chạy [RuView](https://github.com/ruvnet/ruview) (MIT, của rUv) nguyên bản trong Docker trên máy nhà.
+Bản được chọn nằm trong `ruview.versions.json`. Trang đọc RuView qua chương trình máy nhà ở trên, nên không cần mở thêm link Cloudflare nào.
+
+1. Cài **Docker Desktop** (docker.com), mở nó lên một lần.
+2. Để `npm run agent` chạy (Cách 1).
+3. Mở thêm một cửa sổ PowerShell, thử với dữ liệu tập (chưa cần ESP32):
+   ```powershell
+   cd C:\Users\chanh\stock-predict; npm run ruview -- sim
+   ```
+4. Mở trang **RuView cảm biến** trên Hub. Thấy "Trong phòng lúc này" là chạy được.
+5. Khi có board ESP32-S3 (hoặc C6): chạy `npm run ruview -- esp32`. Windows có thể hỏi cho phép mạng: chọn **Private networks** (mạng riêng). Rồi bấm **+ Thêm node** trên trang.
+
+Các lệnh khác:
+- `npm run ruview` : bật lại, hoặc lên bản mới sau khi anh merge PR cập nhật RuView.
+- `npm run ruview -- status` : xem đang chạy bản nào.
+- `npm run ruview -- stop` : tắt RuView.
+- `npm run ruview -- esp32 --mqtt 192.168.1.50` : gửi thêm sang Home Assistant (MQTT).
+
+An toàn: RuView chỉ nghe trên `127.0.0.1:3000`, có token riêng (`%USERPROFILE%\.jarvis-agent\ruview-token`). Cổng UDP 5005 chỉ mở ở chế độ esp32 và chỉ nhận từ mạng nhà.
+RuView cảm nhận được người qua tường: chỉ dùng trong nhà anh và để mọi người trong nhà biết.
+
+Trước khi nạp firmware cho board, gửi Claude ảnh chụp nắp kim loại trên module (N4, N8 hoặc N16R8) để chọn đúng file.
+
 ## An toàn
 
 - Token mới được tạo lần chạy đầu, lưu ở `%USERPROFILE%\.jarvis-agent\token`. Muốn đổi thì xóa file đó rồi chạy lại.
@@ -65,3 +94,4 @@ Xong, mở trang web như bình thường. Khi máy nhà tắt, trang hiện l�
 ## Chi phí
 
 $0. Cloudflare Tunnel và Access miễn phí cho cá nhân. Máy nhà phải mở thì mới quét được (tốn tiền điện).
+RuView và Docker Desktop miễn phí cho cá nhân. Board ESP32-S3 khoảng $9 một cái (RuView khuyên từ 2 cái), C6 khoảng $6-10, anten ngoài vài đô.

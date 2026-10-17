@@ -31,10 +31,10 @@ interface Env extends BrainEnv, PracticeEnv {
   HOME_ACCESS_CLIENT_SECRET?: string
 }
 
-/** Paths the Wi-Fi page may ask the home agent for. */
-const HOME_PATHS = new Set(['health', 'devices', 'wifi', 'ping', 'ports', 'wol', 'speed'])
-/** Home agent answers kept in KV so the page can show the last scan while the PC is off. */
-const HOME_SNAPSHOT = new Set(['devices', 'wifi'])
+/** Paths the Wi-Fi and RuView pages may ask the home agent for. */
+const HOME_PATHS = new Set(['health', 'devices', 'wifi', 'ping', 'ports', 'wol', 'speed', 'ruview/status', 'ruview/latest', 'ruview/nodes', 'ruview/vitals', 'ruview/registry'])
+/** Home agent answers kept in KV so the page can show the last scan while the PC is off (not the live RuView feed: it polls every few seconds). */
+const HOME_SNAPSHOT = new Set(['devices', 'wifi', 'ruview/registry'])
 
 const json = (data: unknown, status = 200) => new Response(JSON.stringify(data), { status, headers: { 'content-type': 'application/json', 'cache-control': 'no-store' } })
 

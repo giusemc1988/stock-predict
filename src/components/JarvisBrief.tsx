@@ -44,6 +44,7 @@ interface Props {
   onDesk: () => void
   /** Open the Wi-Fi & Bluetooth page (undefined when it is switched off). */
   onNet?: () => void
+  onRuview?: () => void
 }
 
 function Movers({ title, rows, vol, onPick }: { title: string; rows: MarketListRow[]; vol?: boolean; onPick: (r: MarketListRow) => void }) {
@@ -286,7 +287,7 @@ export function JarvisBrief(p: Props) {
           </div>
           <aside className="hub-side">
             <HubStudio />
-            <HubDevices onNet={p.onNet} />
+            <HubDevices onNet={p.onNet} onRuview={p.onRuview} />
           </aside>
         </div>
         <HubTabbar onDesk={p.onDesk} />

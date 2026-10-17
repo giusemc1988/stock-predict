@@ -2,13 +2,14 @@ import assert from 'node:assert/strict'
 import { missingVi } from '../src/lib/i18n'
 import { HUB_TEXT, hubText } from '../src/lib/hubText'
 import { NET_TEXT } from '../src/lib/netText'
+import { RUVIEW_TEXT } from '../src/lib/ruviewText'
 import { RELEASES } from '../src/data/releases'
 
 // every app label has a Vietnamese version
 assert.deepEqual(missingVi(), [])
 
 // every hub label has both languages, and the same {slots} in each
-for (const [k, b] of [...Object.entries(HUB_TEXT), ...Object.entries(NET_TEXT)]) {
+for (const [k, b] of [...Object.entries(HUB_TEXT), ...Object.entries(NET_TEXT), ...Object.entries(RUVIEW_TEXT)]) {
   assert.ok(b.en.trim() && b.vi.trim(), `hub label ${k} is missing a language`)
   const slots = (s: string) => (s.match(/\{\w+\}/g) ?? []).sort().join()
   assert.equal(slots(b.en), slots(b.vi), `hub label ${k} has different {slots}`)

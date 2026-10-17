@@ -173,16 +173,16 @@ export function HubStudio() {
   )
 }
 
-const DEVICES: { k: string; t: HubKey | null; name?: string; d: HubKey; agent?: boolean; net?: boolean }[] = [
+const DEVICES: { k: string; t: HubKey | null; name?: string; d: HubKey; agent?: boolean; net?: boolean; rv?: boolean }[] = [
   { k: 'esp32', t: 'esp32', d: 'esp32Note' },
   { k: 'bay', t: null, name: 'BayReady', d: 'bayNote', agent: true },
   { k: 'net', t: 'homeNet', d: 'homeNetNote', net: true },
   { k: 'ble', t: 'ble', d: 'bleNote', net: true },
-  { k: 'ruview', t: 'ruview', d: 'ruviewNote', agent: true },
+  { k: 'ruview', t: 'ruview', d: 'ruviewNote', rv: true },
 ]
 
-/** Projects, devices and home network: what the hub connects to. Home network and Bluetooth open the Wi-Fi page; the rest come in later steps. */
-export function HubDevices({ onNet }: { onNet?: () => void }) {
+/** Projects, devices and home network: what the hub connects to. Home network and Bluetooth open the Wi-Fi page, RuView its own page; the rest come in later steps. */
+export function HubDevices({ onNet, onRuview }: { onNet?: () => void; onRuview?: () => void }) {
   const t = useHubT()
   return (
     <section className="bf-card hub-devices" id="hub-devices">
@@ -191,7 +191,7 @@ export function HubDevices({ onNet }: { onNet?: () => void }) {
         <span className="muted small">{t('yoursOnly')}</span>
       </header>
       {DEVICES.map((d) => {
-        const open = d.net && onNet
+        const open = d.net ? onNet : d.rv ? onRuview : undefined
         const inner = (
           <>
             <i className={`led${open ? ' on' : ''}`} />
@@ -203,7 +203,7 @@ export function HubDevices({ onNet }: { onNet?: () => void }) {
           </>
         )
         return open ? (
-          <button key={d.k} className="hub-dev live" onClick={onNet}>{inner}</button>
+          <button key={d.k} className="hub-dev live" onClick={open}>{inner}</button>
         ) : (
           <div key={d.k} className={`hub-dev${d.agent ? ' agent' : ''}`}>{inner}</div>
         )
