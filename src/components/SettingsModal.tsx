@@ -42,6 +42,25 @@ export function SettingsModal({ keys, onSave, onClose, onOpenAiRules, alpacaKeys
   const lang = useLang()
   const rules = useAiRules()
   const [draft, setDraft] = useState(keys)
+  const [checkingKeys, setCheckingKeys] = useState(false)
+  const [keyResults, setKeyResults] = useState<Array<{ id: string; name: string; ok: boolean; status?: string; error?: string }> | null>(null)
+
+  const checkAllKeys = async () => {
+    setCheckingKeys(true)
+    try {
+      const resp = await fetch('/api/keys/status', { method: 'POST' })
+      if (resp.ok) {
+        const { keys: results } = (await resp.json()) as { keys: Array<{ id: string; name: string; ok: boolean; status?: string; error?: string }> }
+        setKeyResults(results)
+      } else {
+        setKeyResults([{ id: 'error', name: 'Error', ok: false, error: 'Failed to check keys' }])
+      }
+    } catch (e) {
+      setKeyResults([{ id: 'error', name: 'Error', ok: false, error: String(e) }])
+    } finally {
+      setCheckingKeys(false)
+    }
+  }
   return (
     <div className="modal-back" onClick={onClose}>
       <div className="modal" onClick={(e) => e.stopPropagation()}>
@@ -72,6 +91,19 @@ export function SettingsModal({ keys, onSave, onClose, onOpenAiRules, alpacaKeys
           (Paper account, then API Keys), and paste it here or on the <b>Portfolio</b> page.
         </p>
         <AlpacaKeyField value={alpacaKeys} onSave={onAlpacaKeys} />
+        <div className="field">
+          <button onClick={checkAllKeys} disabled={checkingKeys}>{checkingKeys ? 'Checking...' : 'Check all keys'}</button>
+          {keyResults && (
+            <div className="key-check-results">
+              {keyResults.map((k) => (
+                <div key={k.id} className={`key-result ${k.ok ? 'ok' : 'fail'}`}>
+                  <span>{k.name}</span>
+                  <span className={k.ok ? 'up' : 'warn'}>{k.ok ? '✓ OK' : `✗ ${k.error || 'No key'}`}</span>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
         <p className="muted">The keys below are optional extras. Alpha Vantage's free plan allows only 25 requests a day. Keys stay in this browser's localStorage for this origin ({window.location.origin}). They are separate from keys on other sites or if you access from a different URL.</p>
         <label className="field">
           <span>

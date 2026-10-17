@@ -2,7 +2,7 @@
  * Version and "What's new". Bump APP_VERSION and add an entry to the top of RELEASES
  * with each update. The banner shows once per version, then stays dismissed.
  */
-export const APP_VERSION = '1.21.4'
+export const APP_VERSION = '1.21.5'
 
 export interface Release {
   version: string
@@ -13,6 +13,16 @@ export interface Release {
 }
 
 export const RELEASES: Release[] = [
+  {
+    version: '1.21.5',
+    date: '2026-10-17',
+    changes: [
+      'New: Check all API keys button in Settings. Shows which keys are set and which ones work, so you know which data sources are ready to go.',
+    ],
+    changesVi: [
+      'Mới: nút kiểm tra hết key API trong Cài đặt. Hiện key nào được set và key nào work, để bạn biết nguồn dữ liệu nào đã sẵn sàng.',
+    ],
+  },
   {
     version: '1.21.4',
     date: '2026-10-17',

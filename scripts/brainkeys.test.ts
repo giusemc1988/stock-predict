@@ -34,6 +34,11 @@ assert.deepEqual(src, [
   { id: 'gemini', name: 'Gemini', on: true, source: 'saved' },
   { id: 'groq', name: 'Groq', on: false, source: 'none' },
   { id: 'nvidia', name: 'NVIDIA NIM', on: true, source: 'server' },
+  { id: 'xai', name: 'Grok', on: false, source: 'none' },
+  { id: 'telegram', name: 'Telegram', on: false, source: 'none' },
+  { id: 'alpaca_paper', name: 'Alpaca (paper)', on: false, source: 'none' },
+  { id: 'alpha_vantage', name: 'Alpha Vantage', on: false, source: 'none' },
+  { id: 'finnhub', name: 'Finnhub', on: false, source: 'none' },
 ])
 assert.ok(!JSON.stringify(src).includes('AIza'))
 assert.ok(!JSON.stringify(src).includes('nvapi'))
