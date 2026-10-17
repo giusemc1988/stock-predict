@@ -102,6 +102,7 @@ export interface AiRules {
   practiceTradeNotifications: boolean // notify before Jarvis places a practice trade
   telegramNotifications: boolean // send trade notifications to Telegram
   telegramToken: string // Telegram bot token (stored on server, never in browser)
+  walkForwardValidatorOn: boolean // validate signals on data the ranking was not tuned on; mark as "Proven" only when win rate > 50% out-of-sample
 }
 
 export const DEFAULT_AI_RULES: AiRules = {
@@ -202,6 +203,7 @@ export const DEFAULT_AI_RULES: AiRules = {
   practiceTradeNotifications: true,
   telegramNotifications: false,
   telegramToken: '',
+  walkForwardValidatorOn: true,
 }
 
 type NumKey = { [K in keyof AiRules]: AiRules[K] extends number ? K : never }[keyof AiRules]
@@ -306,6 +308,7 @@ export const RULE_FIELDS: RuleField[] = [
   { group: 'modules', key: 'autoRangeTf', en: 'Chart ranges pick the bar size (1D = 5-minute bars, 5D = 15m, 1M = 1h, 3M = 4h, 1Y and All = daily)', vi: 'Khoảng biểu đồ tự chọn cỡ nến (1D = nến 5 phút, 5D = 15p, 1M = 1 giờ, 3M = 4 giờ, 1Y và All = ngày)' },
   { group: 'modules', key: 'adjustableTimeRange', en: 'Adjustable time range on Trading desk (custom days input beyond preset buttons)', vi: 'Khoảng thời gian điều chỉnh được trên Bàn giao dịch (nhập ngày tùy chỉnh ngoài các nút sẵn)' },
   { group: 'modules', key: 'signalValidator', en: 'Validate every signal path before showing (alerts, Brief, playbook)', vi: 'Kiểm tra mọi đường dẫn tín hiệu trước khi hiển thị (cảnh báo, Bản tin, Sổ tay)' },
+  { group: 'modules', key: 'walkForwardValidatorOn', en: 'Walk-forward validator (mark signals "Proven" only after 50%+ win rate on unseen data)', vi: 'Bộ xác thực quay lại (đánh dấu tín hiệu "Đã chứng minh" chỉ sau 50%+ tỉ lệ thắng trên dữ liệu chưa biết)' },
   { group: 'jarvis', key: 'newsEnabled', en: 'Show latest news for watched symbols in Jarvis Brief', vi: 'Hiện tin tức mới nhất cho các mã theo dõi trong Jarvis Brief' },
   { group: 'modules', key: 'newsAnalysis', en: 'Analyze market news sentiment for BUY/SELL bias', vi: 'Phân tích độ dốc tin tức thị trường cho thiên vị MUA/BÁN' },
   { group: 'modules', key: 'preMarketAlerts', en: 'Alerts before market open (pre-market movers and news)', vi: 'Cảnh báo trước khi mở cửa thị trường (mã tăng trước giờ và tin tức)' },
