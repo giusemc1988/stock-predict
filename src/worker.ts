@@ -322,6 +322,8 @@ export default {
         const keyId = String(body?.keyId ?? '').trim()
         const secret = String(body?.secret ?? '').trim()
         if (!keyId || !secret) return json({ error: 'Alpaca requires key ID and secret' }, 400)
+        const paperKeyError = checkPaperKey(keyId)
+        if (paperKeyError) return json({ error: paperKeyError }, 400)
         await env.SETTINGS.put(storeKey('alpaca_paper' as any), JSON.stringify({ keyId, secret }))
         return json({ ok: true })
       }
