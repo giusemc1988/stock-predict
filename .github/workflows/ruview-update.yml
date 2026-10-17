@@ -1,0 +1,48 @@
+name: RuView update check
+
+# Once a day: if RuView published a newer release, open a PR that moves ruview.versions.json to it.
+# Nothing updates by itself; merging the PR is the approval.
+on:
+  schedule:
+    - cron: '17 14 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+  issues: write
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - id: check
+        run: node scripts/ruview-update.mjs
+      - if: steps.check.outputs.release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          NEW: ${{ steps.check.outputs.release }}
+          OLD: ${{ steps.check.outputs.old }}
+        run: |
+          branch="ruview-update/$NEW"
+          if git ls-remote --exit-code --heads origin "$branch" >/dev/null; then echo "PR branch already exists"; exit 0; fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898299+github-actions[bot]@users.noreply.github.com"
+          git checkout -b "$branch"
+          git commit -am "RuView $OLD -> $NEW"
+          git push origin "$branch"
+          body="RuView published $NEW (pinned: $OLD).
+
+          Release notes: https://github.com/ruvnet/ruview/releases/tag/$NEW
+          Changelog: https://github.com/ruvnet/ruview/blob/main/CHANGELOG.md
+
+          After merging, run \`npm run ruview\` on the home PC to move the server to $NEW. Nodes show \"firmware update ready\" on the RuView page."
+          # creating PRs needs Settings > Actions > General > "Allow GitHub Actions to create and approve pull requests"; fall back to an issue
+          gh pr create --title "RuView update: $NEW" --body "$body" --head "$branch" \
+            || gh issue create --title "RuView update ready: $NEW" --body "$body
+
+          Branch with the change: $branch"

@@ -2,7 +2,7 @@
  * Version and "What's new". Bump APP_VERSION and add an entry to the top of RELEASES
  * with each update. The banner shows once per version, then stays dismissed.
  */
-export const APP_VERSION = '1.24.0'
+export const APP_VERSION = '1.25.0'
 
 export interface Release {
   version: string
@@ -13,6 +13,24 @@ export interface Release {
 }
 
 export const RELEASES: Release[] = [
+  {
+    version: '1.25.0',
+    date: '2026-10-17',
+    changes: [
+      'New: RuView sensing page (tap "RuView sensing" on the Hub). Shows whether someone is in the room from Wi-Fi signals, no camera, using RuView by rUv run unchanged on your home PC.',
+      'Try it without any ESP32: "npm run ruview -- sim" starts RuView with practice data. Switch to "esp32" when your boards arrive. Guide in agent/README.md.',
+      'Add a node by USB cable in Chrome or Edge: pick the board, install the pinned RuView firmware, then save Wi-Fi and node number to the board. ESP32-S3 and C6 are supported; the external antenna is listed for the Seeed XIAO C6.',
+      'Updates stay in your hands: the RuView version is pinned, a daily check opens a pull request when RuView ships a new one, and you merge it.',
+      'Honest numbers on the page: presence about 82% right, pose not usable yet, breathing and heart experimental and not medical. Use it only in your own home with everyone there knowing. Switch it off in Settings > AI rules (on by default).',
+    ],
+    changesVi: [
+      'Mới: trang RuView cảm biến (bấm "RuView cảm biến" trên Hub). Cho biết có người trong phòng hay không bằng sóng Wi-Fi, không cần camera, dùng RuView của rUv chạy nguyên bản trên máy nhà.',
+      'Thử ngay không cần ESP32: "npm run ruview -- sim" bật RuView với dữ liệu tập. Khi có board thì đổi sang "esp32". Hướng dẫn trong agent/README.md.',
+      'Thêm node qua cáp USB trong Chrome hoặc Edge: chọn board, cài firmware RuView đã chọn, rồi lưu Wi-Fi và số node vào board. Hỗ trợ ESP32-S3 và C6; anten ngoài có cho Seeed XIAO C6.',
+      'Cập nhật do anh quyết: bản RuView được giữ cố định, mỗi ngày có kiểm tra và mở pull request khi RuView ra bản mới, anh merge thì mới lên.',
+      'Số liệu thật trên trang: biết có người đúng khoảng 82%, tư thế chưa dùng được, nhịp thở và tim còn thử nghiệm, không phải y tế. Chỉ dùng trong nhà anh và mọi người trong nhà đều biết. Tắt trong Cài đặt > Quy tắc AI (bật sẵn).',
+    ],
+  },
   {
     version: '1.24.0',
     date: '2026-10-17',

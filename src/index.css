@@ -1324,3 +1324,44 @@ body:has(.jfab) .toasts, body:has(.jfab) .jarvis-alert { bottom: 84px; }
 .net-grid.bare { grid-template-columns: minmax(0, 1fr); grid-template-areas: "ble" "tools"; }
 .net-back { white-space: nowrap; }
 @media (max-width: 699px) { .net-page .hub-head { flex-wrap: wrap; } .net-status > span.small { display: none; } .net-title .hub-hello { font-size: 16px; } }
+
+/* RuView sensing page (shares the Wi-Fi page frame) */
+.rv-page .net-grid { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); grid-template-areas: none; }
+.rv-page .rv-nodes, .rv-page .rv-wiz, .rv-page .rv-acc { grid-column: 1 / -1; }
+.rv-beta { font-style: normal; font-size: 11px; padding: 2px 7px; border-radius: 999px; color: var(--gold); background: rgba(240, 185, 11, 0.12); vertical-align: middle; }
+.rv-privacy { margin: 0; padding: 8px 12px; border-radius: 10px; border: 1px solid rgba(165, 139, 255, 0.35); background: rgba(165, 139, 255, 0.07); color: #cfc4ff; }
+.rv-page header .flag, .rv-conn .flag { font-style: normal; font-size: 10.5px; padding: 2px 7px; border-radius: 999px; color: var(--muted); background: rgba(255, 255, 255, 0.05); }
+.rv-conn .flag.ok { color: var(--up); background: var(--up-bg); }
+.rv-big { display: flex; align-items: center; gap: 12px; font-size: 26px; font-weight: 600; letter-spacing: -0.01em; }
+.rv-big i { width: 14px; height: 14px; border-radius: 50%; background: var(--muted); transition: background 0.4s, box-shadow 0.4s; }
+.rv-room.p-still .rv-big i { background: var(--robot); box-shadow: 0 0 0 6px rgba(79, 209, 255, 0.12); }
+.rv-room.p-moving .rv-big i { background: var(--up); box-shadow: 0 0 0 6px rgba(14, 203, 129, 0.14); animation: rv-pulse 1.6s ease-in-out infinite; }
+.rv-room.p-stale .rv-big i, .rv-room.p-waiting .rv-big i { background: var(--gold); }
+@keyframes rv-pulse { 50% { box-shadow: 0 0 0 11px rgba(14, 203, 129, 0.04); } }
+@media (prefers-reduced-motion: reduce) { .rv-room.p-moving .rv-big i { animation: none; } }
+.rv-kv { display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); gap: 8px; }
+.rv-kv div { display: grid; gap: 2px; padding: 8px 10px; border-radius: 10px; background: var(--panel-2); }
+.rv-kv span { color: var(--muted); font-size: 11.5px; }
+.rv-kv b { font-size: 18px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.rv-kv b small { font-size: 11px; color: var(--muted); margin-left: 2px; }
+.rv-conn { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 2px 8px; padding: 7px 10px; border-radius: 10px; background: var(--panel-2); }
+.rv-conn b { font-size: 13px; font-weight: 600; }
+.rv-conn small { grid-column: 1 / -1; font-size: 11.5px; }
+.rv-warn { margin: 0; padding: 8px 10px; border-radius: 10px; background: rgba(240, 185, 11, 0.08); border: 1px solid rgba(240, 185, 11, 0.3); color: #f5d77a; }
+.rv-cmd { display: flex; gap: 8px; align-items: center; padding: 8px 10px; border-radius: 10px; background: #071226; border: 1px solid var(--line); min-width: 0; }
+.rv-cmd code { flex: 1; min-width: 0; font: 12px var(--mono); color: #cde3ff; overflow-x: auto; white-space: nowrap; scrollbar-width: thin; }
+.rv-cmd .btn, .rv-page .bf-card > header .btn, .rv-wiz .btn { padding: 5px 12px; border-radius: 999px; border: 1px solid var(--line-2); font-size: 12px; text-decoration: none; }
+.rv-wiz .btn.prime, .net-setup .rv-cmd + .btn { justify-self: start; }
+.rv-wiz .btn.prime { padding: 8px 16px; background: var(--robot); color: #04111c; font-weight: 600; border: 0; }
+.rv-wiz .btn:disabled { opacity: 0.6; }
+.rv-wiz h4 { margin: 6px 0 0; font-size: 13px; font-weight: 600; color: #dce6f5; }
+.rv-boards { display: flex; flex-wrap: wrap; gap: 6px; }
+.rv-boards button { padding: 6px 12px; border-radius: 999px; border: 1px solid var(--line-2); font-size: 12px; color: #c9d3e3; transition: border-color 0.2s, background 0.2s; }
+.rv-boards button.on { border-color: var(--robot); background: rgba(79, 209, 255, 0.1); color: var(--text); }
+.rv-boards button.no { opacity: 0.4; text-decoration: line-through; cursor: default; }
+.rv-form { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 8px; }
+.rv-form label { display: grid; gap: 4px; font-size: 11.5px; color: var(--muted); }
+.rv-form input, .rv-form select { padding: 7px 9px; border-radius: 8px; border: 1px solid var(--line-2); background: var(--panel-2); color: var(--text); font-size: 13px; min-width: 0; }
+.rv-acc ul { margin: 0; padding-left: 18px; display: grid; gap: 4px; }
+@media (max-width: 699px) { .rv-page .net-grid { grid-template-columns: minmax(0, 1fr); } }
+@media (max-width: 400px) { .rv-kv b { font-size: 15px; } }

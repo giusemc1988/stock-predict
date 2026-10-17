@@ -1,7 +1,7 @@
 {
   "name": "stock-predict",
   "private": true,
-  "version": "1.24.0",
+  "version": "1.25.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -11,9 +11,10 @@
     "learn:build": "vite build --ssr scripts/learn-cycle.ts --outDir .learn --emptyOutDir --logLevel warn",
     "practice": "vite build --ssr scripts/practice-cycle.ts --outDir .practice --emptyOutDir --logLevel warn && node .practice/practice-cycle.js",
     "learn": "npm run learn:build && node .learn/learn-cycle.js",
-    "test": "node scripts/journal.test.ts && npm run t -- practice && npm run t -- practice-picks && npm run t -- brief && npm run t -- hub && npm run t -- i18n && npm run t -- netparse && npm run t -- playbook && npm run t -- upgrade && npm run t -- telegram-text && npm run t -- brainkeys && npm run learn:build && node .learn/learn-cycle.js --demo --cycles 3 --out .learn/demo.json",
+    "test": "node scripts/journal.test.ts && npm run t -- practice && npm run t -- practice-picks && npm run t -- brief && npm run t -- hub && npm run t -- i18n && npm run t -- netparse && npm run t -- ruview && npm run t -- playbook && npm run t -- upgrade && npm run t -- telegram-text && npm run t -- brainkeys && npm run learn:build && node .learn/learn-cycle.js --demo --cycles 3 --out .learn/demo.json",
     "t": "f() { vite build --ssr scripts/$1.test.ts --outDir .learn/test --emptyOutDir --logLevel warn && node .learn/test/$1.test.js; }; f",
-    "agent": "vite build --ssr agent/jarvis-agent.ts --outDir .agent --emptyOutDir --logLevel warn && node .agent/jarvis-agent.js"
+    "agent": "vite build --ssr agent/jarvis-agent.ts --outDir .agent --emptyOutDir --logLevel warn && node .agent/jarvis-agent.js",
+    "ruview": "vite build --ssr agent/ruview-docker.ts --outDir .agent/ruview --emptyOutDir --logLevel warn && node .agent/ruview/ruview-docker.js"
   },
   "dependencies": {
     "lightweight-charts": "^5.2.1",
