@@ -228,7 +228,8 @@ export function SettingsModal({ keys, onSave, onClose, onOpenAiRules, alpacaKeys
                 await new Promise(resolve => setTimeout(resolve, 500))
                 const resp = await fetch('/api/data/keys', { method: 'POST' })
                 if (resp.ok) {
-                  const loaded = (await resp.json()) as ApiKeys
+                  const raw = (await resp.json()) as { alpha_vantage?: string | null; finnhub?: string | null }
+                  const loaded: ApiKeys = { alphaVantage: raw.alpha_vantage || '', finnhub: raw.finnhub || '' }
                   onSave(loaded)
                 } else {
                   onSave(draft)
