@@ -117,13 +117,13 @@ async function main() {
     const avgSharpe = (allMetrics.reduce((sum, m) => sum + m.sharpe, 0) / allMetrics.length).toFixed(2)
     const avgVsSpy = (allMetrics.reduce((sum, m) => sum + m.vsSpy, 0) / allMetrics.length).toFixed(2)
 
-    console.log(`  ✅ Folds with proven edge: ${provenFolds}/${allMetrics.length}`)
-    console.log(`  📈 Avg win rate: ${avgWinRate}%`)
+    console.log(`  ✅ Folds with proven edge (>50% winRate): ${provenFolds}/${allMetrics.length}`)
+    console.log(`  📈 Avg win rate (across all folds): ${avgWinRate}%`)
     console.log(`  💰 Avg return per trade: ${perTradeAvgReturn}%`)
     console.log(`  💰 Summed return (all test trades): ${summedReturn}%`)
     console.log(`  📊 Avg Sharpe: ${avgSharpe}`)
     console.log(`  🆚 vs SPY (avg per fold): ${avgVsSpy}%`)
-    console.log(`  ✔️  Trades marked "Proven": ${totalProvenTrades}/${totalTestTrades}`)
+    console.log(`  ✔️  Trades from proven folds: ${totalProvenTrades}/${totalTestTrades}`)
   }
 
   console.log(`\n✨ Backtest complete`)
