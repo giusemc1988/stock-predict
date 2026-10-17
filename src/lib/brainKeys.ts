@@ -86,6 +86,13 @@ export function sameOrigin(req: Request): boolean {
 
 /** Test an AI provider with a tiny call. Never returns the key or the answer. */
 export async function testAiProvider(id: string, env: BrainEnv, f: typeof fetch = fetch): Promise<{ ok: boolean; model?: string; error?: string }> {
+  // Telegram is not an AI model; just check if it's configured
+  if (id === 'telegram') {
+    const key = env.TELEGRAM_BOT_TOKEN
+    if (!key) return { ok: false, error: 'No key saved' }
+    return { ok: true }
+  }
+
   const p = PROVIDERS.find((x) => x.id === id)
   const key = p?.key(env)
   if (!p || !isSlot(id) || KEY_SLOTS.find(s => s.id === id)?.category !== 'ai') return { ok: false, error: 'Unknown helper' }
@@ -124,8 +131,21 @@ export async function testDataProvider(id: string, env: any, f: typeof fetch = f
   try {
     switch (id) {
       case 'alpaca_paper': {
+        // Parse JSON {keyId, secret} format
+        let keyId = '', secret = ''
+        try {
+          const parsed = typeof key === 'string' ? JSON.parse(key) : key
+          if (typeof parsed === 'object' && parsed.keyId && parsed.secret) {
+            keyId = parsed.keyId
+            secret = parsed.secret
+          }
+        } catch {
+          return { ok: false, error: 'Alpaca key format error (expected JSON with keyId and secret)' }
+        }
+        if (!keyId || !secret) return { ok: false, error: 'Alpaca key incomplete' }
+
         const r = await f('https://paper-api.alpaca.markets/v2/account', {
-          headers: { Authorization: `Bearer ${key}` },
+          headers: { 'APCA-API-KEY-ID': keyId, 'APCA-API-SECRET-KEY': secret },
           signal: AbortSignal.timeout(5000),
         })
         if (r.ok) return { ok: true }
