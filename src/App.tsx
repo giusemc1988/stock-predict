@@ -30,6 +30,7 @@ import { PortfolioPage } from './components/PortfolioPage'
 import { AutoLearnPanel } from './components/AutoLearnPanel'
 import { useAutoLearning } from './hooks/useAutoLearning'
 import { useMigrateKeysToCloud } from './hooks/useMigrateKeysToCloud'
+import { useLoadKeysFromCloud } from './hooks/useLoadKeysFromCloud'
 import { usePractice } from './hooks/usePractice'
 import { PracticePanel } from './components/PracticePanel'
 import { BrainPanel } from './components/BrainPanel'
@@ -138,6 +139,8 @@ export default function App() {
   const inst = useMemo(() => chartUniverse.find((i) => i.symbol === prefs.symbol) ?? INSTRUMENTS[0], [chartUniverse, prefs.symbol])
   // Auto-migrate keys from localStorage to Cloudflare on first load
   useMigrateKeysToCloud(keys, alpacaKeys)
+  // Load keys from Cloudflare KV if localStorage is empty
+  useLoadKeysFromCloud(setKeys, setAlpacaKeys)
 
   const market = useMarketData(inst, prefs.tf, keys, alpacaKeys)
   const quotes = useQuotes(chartUniverse, keys, alpacaKeys)

@@ -334,6 +334,27 @@ export default {
       await env.SETTINGS.put(storeKey(id as any), key)
       return json({ ok: true })
     }
+    if (pathname === '/api/data/keys') {
+      if (req.method !== 'POST') return json({ error: 'POST only' }, 405)
+      if (!sameOrigin(req)) return json({ error: 'Not allowed' }, 403)
+      if (!env.SETTINGS) return json({ error: 'Key storage not available', kv_available: false })
+      // Return actual key values so app can load them from cloud on startup
+      try {
+        const alpacaStr = await env.SETTINGS.get(storeKey('alpaca_paper' as any))
+        const avStr = await env.SETTINGS.get(storeKey('alpha_vantage' as any))
+        const fhStr = await env.SETTINGS.get(storeKey('finnhub' as any))
+        const telegramStr = await env.SETTINGS.get('TELEGRAM_BOT_TOKEN')
+        return json({
+          kv_available: true,
+          alpaca_paper: alpacaStr ? JSON.parse(alpacaStr) : null,
+          alpha_vantage: avStr || null,
+          finnhub: fhStr || null,
+          telegram: telegramStr || null,
+        })
+      } catch (e) {
+        return json({ error: String(e), kv_available: false })
+      }
+    }
     if (pathname === '/api/brain/test') {
       if (req.method !== 'POST') return json({ error: 'POST only' }, 405)
       if (!sameOrigin(req)) return json({ error: 'Not allowed' }, 403)
