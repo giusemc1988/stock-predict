@@ -48,12 +48,12 @@ export function chatReply(text: string, d: ChatDeps): ChatReply {
   const cmd = d.canAct ? parseCommand(text, d.known) : null
   if (cmd) {
     const what = describeAction(cmd)
-    if (alreadySo(cmd, ctx.rules, ctx.killSwitch, d.watchlist)) return { text: [{ en: `No need: "${what.en}" is already the case.`, vi: `Không cần: "${what.vi}" đã như vậy rồi.` }] }
-    return { text: [{ en: `I can ${what.en.charAt(0).toLowerCase()}${what.en.slice(1)}. Tap Do it to confirm.`, vi: `Tôi có thể: ${what.vi}. Bấm Làm đi để xác nhận.` }], action: cmd }
+    if (alreadySo(cmd, ctx.rules, ctx.killSwitch, d.watchlist)) return { text: [{ en: `Already set: ${what.en}.`, vi: `Rồi: ${what.vi}.` }] }
+    return { text: [{ en: `OK, I can ${what.en.charAt(0).toLowerCase()}${what.en.slice(1)}. Want me to do it?`, vi: `Được, em có thể ${what.vi}. Bạn muốn em làm không?` }], action: cmd }
   }
   const u = understand(text, d.known)
-  if (u?.kind === 'stock' && d.canStock) return { text: [...stockMemory(u.symbol, ctx.state), { en: `Opening ${u.symbol} now; I'll walk you through it on the chart.`, vi: `Đang mở ${u.symbol}; tôi sẽ giải thích trên biểu đồ.` }], stock: u.symbol }
-  if (u?.kind === 'replay' && d.canReplay) return { text: [{ en: "Let's replay today's practice trades on the chart.", vi: 'Cùng xem lại các lệnh luyện tập hôm nay trên biểu đồ.' }], replay: true }
+  if (u?.kind === 'stock' && d.canStock) return { text: [...stockMemory(u.symbol, ctx.state), { en: `Here's ${u.symbol} on the chart. Let me explain what I see.`, vi: `Đây là ${u.symbol}. Em sẽ giải thích gì đang xảy ra.` }], stock: u.symbol }
+  if (u?.kind === 'replay' && d.canReplay) return { text: [{ en: "Let me show you today's trades on the chart.", vi: 'Em sẽ hiển thị các lệnh hôm nay trên biểu đồ.' }], replay: true }
   if (u?.kind === 'ask') {
     const lines = ask(u.id, ctx)
     const last = [...ctx.state.open, ...ctx.state.trades].sort((a, b) => b.openedAt - a.openedAt)[0]
@@ -65,17 +65,17 @@ export function chatReply(text: string, d: ChatDeps): ChatReply {
     return {
       unsure: true,
       text: [
-        { en: `I'm not sure I understood, so here's what I know about ${ctx.symbol}, the stock on screen.`, vi: `Tôi chưa chắc đã hiểu, nên đây là điều tôi biết về ${ctx.symbol}, mã đang xem.` },
+        { en: `I'm not 100% sure what you asked, but here's what's happening with ${ctx.symbol}:`, vi: `Em không chắc lắm những bạn hỏi gì, nhưng đây là gì đang xảy ra với ${ctx.symbol}:` },
         ...ask('thisStock', ctx),
-        { en: 'You can also ask "did you buy it too high?", "what\'s my risk" or "why TSLA?".', vi: 'Bạn cũng có thể hỏi "bạn có mua giá cao không?", "rủi ro" hoặc "vì sao TSLA?".' },
+        { en: 'Or you could ask things like "did I mess up?" or "where are we in the bigger picture?"', vi: 'Hay bạn có thể hỏi "em lỗi không?" hoặc "chúng ta ở đâu?"' },
       ],
     }
   return {
     unsure: true,
     text: [
       {
-        en: 'I didn\'t catch that. Try a stock ("why AAPL?"), "what\'s my risk", "what have you learned", "pause practice" or "replay today".',
-        vi: 'Tôi chưa hiểu. Thử hỏi một mã ("vì sao AAPL?"), "rủi ro", "bạn học được gì", "tạm dừng luyện tập" hoặc "xem lại hôm nay".',
+        en: 'Not sure what you meant. Try asking about a stock, your risk, what I learned, or ask me to replay today.',
+        vi: 'Em không chắc. Thử hỏi về một mã, rủi ro, những gì em học, hoặc "xem lại hôm nay".',
       },
     ],
   }

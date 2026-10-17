@@ -111,15 +111,18 @@ async function main() {
 
     // Report results
     const avgWinRate = (allMetrics.reduce((sum, m) => sum + m.winRate, 0) / allMetrics.length * 100).toFixed(1)
-    const avgReturn = (allMetrics.reduce((sum, m) => sum + m.totalReturn, 0) / allMetrics.length).toFixed(2)
+    // totalReturn is sum of all trades in a test window; divide by test count for per-trade avg
+    const perTradeAvgReturn = (allMetrics.reduce((sum, m) => sum + m.totalReturn, 0) / totalTestTrades).toFixed(2)
+    const summedReturn = (allMetrics.reduce((sum, m) => sum + m.totalReturn, 0)).toFixed(2)
     const avgSharpe = (allMetrics.reduce((sum, m) => sum + m.sharpe, 0) / allMetrics.length).toFixed(2)
-    const vsSpy = (allMetrics.reduce((sum, m) => sum + m.vsSpy, 0) / allMetrics.length).toFixed(2)
+    const avgVsSpy = (allMetrics.reduce((sum, m) => sum + m.vsSpy, 0) / allMetrics.length).toFixed(2)
 
     console.log(`  ✅ Folds with proven edge: ${provenFolds}/${allMetrics.length}`)
     console.log(`  📈 Avg win rate: ${avgWinRate}%`)
-    console.log(`  💰 Avg return: ${avgReturn}%`)
+    console.log(`  💰 Avg return per trade: ${perTradeAvgReturn}%`)
+    console.log(`  💰 Summed return (all test trades): ${summedReturn}%`)
     console.log(`  📊 Avg Sharpe: ${avgSharpe}`)
-    console.log(`  🆚 vs SPY: ${vsSpy}%`)
+    console.log(`  🆚 vs SPY (avg per fold): ${avgVsSpy}%`)
     console.log(`  ✔️  Trades marked "Proven": ${totalProvenTrades}/${totalTestTrades}`)
   }
 
