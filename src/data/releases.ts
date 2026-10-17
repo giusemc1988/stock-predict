@@ -2,7 +2,7 @@
  * Version and "What's new". Bump APP_VERSION and add an entry to the top of RELEASES
  * with each update. The banner shows once per version, then stays dismissed.
  */
-export const APP_VERSION = '1.21.6'
+export const APP_VERSION = '1.21.7'
 
 export interface Release {
   version: string
@@ -13,6 +13,16 @@ export interface Release {
 }
 
 export const RELEASES: Release[] = [
+  {
+    version: '1.21.7',
+    date: '2026-10-17',
+    changes: [
+      'Auto-migrate: Alpaca paper, Alpha Vantage, and Finnhub keys stored in your browser are now automatically uploaded to Cloudflare on first load, so you only need to open the app once on each computer.',
+    ],
+    changesVi: [
+      'Tự động di chuyển: key Alpaca paper, Alpha Vantage, và Finnhub lưu trong trình duyệt giờ tự động tải lên Cloudflare lần đầu tiên, nên bạn chỉ cần mở app một lần trên mỗi máy tính.',
+    ],
+  },
   {
     version: '1.21.6',
     date: '2026-10-17',
