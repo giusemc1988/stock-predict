@@ -40,16 +40,17 @@ export function useMigrateKeysToCloud(keys: ApiKeys, alpacaKeys: AlpacaKeys) {
 
         // Migrate Alpha Vantage key if it exists locally and not in cloud
         if (keys.alphaVantage && !status.alpha_vantage) {
+          console.log('Migration: Found Alpha Vantage key in localStorage, attempting upload. Key length:', keys.alphaVantage.length)
           const res = await fetch('/api/data/key', {
             method: 'PUT',
             headers: { 'content-type': 'application/json' },
             body: JSON.stringify({ id: 'alpha_vantage', key: keys.alphaVantage }),
           })
           if (res.ok) {
-            console.log('Migration: Alpha Vantage key uploaded to cloud')
+            console.log('Migration: Alpha Vantage key uploaded to cloud successfully')
           } else {
             const err = await res.json().catch(() => ({}))
-            console.warn('Migration: Alpha Vantage key upload failed:', err)
+            console.warn('Migration: Alpha Vantage key upload failed (HTTP', res.status, '):', err)
           }
         }
 

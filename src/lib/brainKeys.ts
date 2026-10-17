@@ -36,7 +36,8 @@ export type KeySlotId = (typeof KEY_SLOTS)[number]['id']
 export const isSlot = (id: unknown): id is KeySlotId => KEY_SLOTS.some((s) => s.id === id)
 export const storeKey = (id: KeySlotId) => `brainkey:${id}`
 
-/** A pasted key, trimmed; null when it can't be an API key (spaces, markup, too short or long). */
+/** A pasted key, trimmed; null when it can't be an API key (spaces, markup, too short or long).
+ * Accepts 10-1000 chars without whitespace or markup (e.g., Alpha Vantage 16-char keys like GDZHC3FC433DN0RG). */
 export function cleanKey(v: unknown): string | null {
   if (typeof v !== 'string') return null
   const k = v.trim()
