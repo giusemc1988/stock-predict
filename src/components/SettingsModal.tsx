@@ -14,14 +14,28 @@ function AlpacaKeyField({ value, onSave }: { value: AlpacaKeys; onSave: (k: Alpa
   const vi = useLang() === 'vi'
   const [d, setD] = useState(value)
   const [msg, setMsg] = useState<string | null>(null)
+  const [saving, setSaving] = useState(false)
   const saved = !!(value.keyId && value.secret)
-  const save = () => {
+  const save = async () => {
     // Key and Secret pasted together in the first box also work
     const parts = d.keyId.split(/[\s:,;]+/).filter(Boolean)
     const k = parts.length === 2 ? { keyId: parts[0], secret: parts[1] } : { keyId: parts.join(''), secret: d.secret.trim() }
     const bad = checkPaperKey(k.keyId) ?? ([k.keyId, k.secret].some(looksLikeAlphaVantage) ? 'That looks like an Alpha Vantage key; put it in the box below.' : k.secret ? null : 'Enter the paper secret key too.')
     setMsg(bad ?? (vi ? 'Đã lưu. Dữ liệu cổ phiếu thật sẽ tải ngay.' : 'Saved. Real stock data loads now.'))
-    if (!bad) onSave(k)
+    if (!bad) {
+      setSaving(true)
+      try {
+        // Save to Cloudflare KV
+        await fetch('/api/data/key', {
+          method: 'PUT',
+          headers: { 'content-type': 'application/json' },
+          body: JSON.stringify({ id: 'alpaca_paper', keyId: k.keyId, secret: k.secret }),
+        })
+        onSave(k)
+      } finally {
+        setSaving(false)
+      }
+    }
   }
   return (
     <div className="field">
@@ -31,7 +45,7 @@ function AlpacaKeyField({ value, onSave }: { value: AlpacaKeys; onSave: (k: Alpa
       </span>
       <input className="mono" value={d.keyId} onChange={(e) => setD({ ...d, keyId: e.target.value })} placeholder="PK… (Key ID)" />
       <input className="mono" type="password" value={d.secret} onChange={(e) => setD({ ...d, secret: e.target.value.trim() })} placeholder="Secret" />
-      <button onClick={save}>{vi ? 'Lưu key' : 'Save key'}</button>
+      <button onClick={save} disabled={saving}>{saving ? (vi ? 'Đang lưu...' : 'Saving...') : (vi ? 'Lưu key' : 'Save key')}</button>
       {msg && <small className={msg.startsWith('Saved') || msg.startsWith('Đã') ? 'up' : 'warn'}>{msg}</small>}
     </div>
   )
@@ -44,6 +58,30 @@ export function SettingsModal({ keys, onSave, onClose, onOpenAiRules, alpacaKeys
   const [draft, setDraft] = useState(keys)
   const [checkingKeys, setCheckingKeys] = useState(false)
   const [keyResults, setKeyResults] = useState<Array<{ id: string; name: string; ok: boolean; status?: string; error?: string }> | null>(null)
+  const [savingKeys, setSavingKeys] = useState(false)
+
+  const saveDataKeys = async () => {
+    try {
+      // Save Alpha Vantage key if provided
+      if (draft.alphaVantage) {
+        await fetch('/api/data/key', {
+          method: 'PUT',
+          headers: { 'content-type': 'application/json' },
+          body: JSON.stringify({ id: 'alpha_vantage', key: draft.alphaVantage }),
+        })
+      }
+      // Save Finnhub key if provided
+      if (draft.finnhub) {
+        await fetch('/api/data/key', {
+          method: 'PUT',
+          headers: { 'content-type': 'application/json' },
+          body: JSON.stringify({ id: 'finnhub', key: draft.finnhub }),
+        })
+      }
+    } catch (e) {
+      console.error('Error saving data keys:', e)
+    }
+  }
 
   const checkAllKeys = async () => {
     setCheckingKeys(true)
@@ -104,7 +142,7 @@ export function SettingsModal({ keys, onSave, onClose, onOpenAiRules, alpacaKeys
             </div>
           )}
         </div>
-        <p className="muted">The keys below are optional extras. Alpha Vantage's free plan allows only 25 requests a day. Keys stay in this browser's localStorage for this origin ({window.location.origin}). They are separate from keys on other sites or if you access from a different URL.</p>
+        <p className="muted">The keys below are optional extras. Alpha Vantage's free plan allows only 25 requests a day. Keys are saved to Cloudflare so they sync across devices.</p>
         <label className="field">
           <span>
             Alpha Vantage key (optional){' '}
@@ -169,12 +207,19 @@ export function SettingsModal({ keys, onSave, onClose, onOpenAiRules, alpacaKeys
           <button onClick={onClose}>Cancel</button>
           <button
             className="primary"
-            onClick={() => {
-              onSave(draft)
-              onClose()
+            disabled={savingKeys}
+            onClick={async () => {
+              setSavingKeys(true)
+              try {
+                await saveDataKeys()
+                onSave(draft)
+                onClose()
+              } finally {
+                setSavingKeys(false)
+              }
             }}
           >
-            Save
+            {savingKeys ? 'Saving...' : 'Save'}
           </button>
         </div>
       </div>
