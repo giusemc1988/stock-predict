@@ -7,7 +7,7 @@ import { baseRate, decide, type JournalEntry } from '../lib/journal'
 import { emptyPractice, onBarClose, PENNY_MIN_PRICE, PENNY_PRICE, onPrice, parsePractice, type PickRow, type PracticeEvent, type PracticeState } from '../lib/practice'
 import { cryptoMovers, PICK_TF, scanCycle, scanMarkets, withOpenMarkets, type Mover, type ScanMarket } from '../lib/practiceScan'
 import { dollarVolume } from '../lib/practicePicks'
-import { alpacaMovers, binanceMarketLists, hasAlpacaData, type AlpacaDataKeys, type ApiKeys, type MarketMover } from '../data/providers'
+import { binanceMarketLists, hasAlpacaData, type AlpacaDataKeys, type ApiKeys, type MarketMover } from '../data/providers'
 import { candlesFor } from '../data/series'
 
 const KEY = 'arc.practice.v1'
@@ -242,8 +242,17 @@ export function usePractice({ rules, symbol, asset, tf, candles, analysis, liveS
     const c = scanCtx.current
     const stockData = hasAlpacaData(c.alpacaKeys) || !!c.keys.alphaVantage
     try {
-      if (c.rules.practiceMovers && hasAlpacaData(c.alpacaKeys) && Date.now() - movers.current.at > MOVERS_MS)
-        movers.current = { at: Date.now(), list: await alpacaMovers(c.alpacaKeys, 10, c.rules.practicePenny ? PENNY_MIN_PRICE : PENNY_PRICE).catch(() => movers.current.list) }
+      if (c.rules.practiceMovers && hasAlpacaData(c.alpacaKeys) && Date.now() - movers.current.at > MOVERS_MS) {
+        try {
+          const res = await fetch(`/api/practice/movers?limit=10&threshold=${c.rules.practicePenny ? PENNY_MIN_PRICE : PENNY_PRICE}`)
+          if (res.ok) {
+            const data = (await res.json()) as { movers: any[]; error?: string }
+            if (!data.error) movers.current = { at: Date.now(), list: data.movers }
+          }
+        } catch {
+          /* keep previous movers */
+        }
+      }
       if (c.rules.practiceCryptoMovers) {
         const throttleMs = c.rules.cryptoMoversThrottleHrs === 0 ? MOVERS_MS : c.rules.cryptoMoversThrottleHrs * 3_600_000
         if (Date.now() - coins.current.at > throttleMs)

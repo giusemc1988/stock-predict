@@ -114,6 +114,34 @@ async function alpacaSnapshots(symbols: string[], k: AlpacaDataKeys) {
   return out
 }
 
+async function alpacaTradingCall<T = unknown>(path: string, k: AlpacaDataKeys, opts: { method?: string; body?: string; timeoutMs?: number } = {}): Promise<T> {
+  const ctrl = new AbortController()
+  const t = setTimeout(() => ctrl.abort(), opts.timeoutMs ?? 8000)
+  try {
+    const res = await fetch('https://api.alpaca.markets' + path, {
+      signal: ctrl.signal,
+      method: opts.method || 'GET',
+      headers: { 'APCA-API-KEY-ID': k.keyId, 'APCA-API-SECRET-KEY': k.secret },
+      body: opts.body,
+    })
+    const body = (await res.json().catch(() => ({}))) as Record<string, unknown>
+    if (res.status === 401 || res.status === 403) throw new Error('Alpaca rejected the paper key (check key ID and secret)')
+    if (!res.ok) throw new Error((body.message as string) || `Alpaca error ${res.status}`)
+    return body as T
+  } finally {
+    clearTimeout(t)
+  }
+}
+
+async function alpacaMovers(k: AlpacaDataKeys, limit: number, minPrice: number): Promise<Array<{ symbol: string; source: string }>> {
+  const plain = (s: string) => /^[A-Z]{1,5}$/.test(s)
+  type Move = { symbol: string; percent_change: number; price: number }
+  const mv = (await alpacaData<{ gainers?: Move[]; losers?: Move[] }>(k, `/v1beta1/screener/stocks/movers?top=50`)) as any
+  const gainers = (mv.gainers ?? []).filter((g: Move) => plain(g.symbol) && g.price >= minPrice).slice(0, limit).map((g: Move) => ({ symbol: g.symbol, source: `+${g.percent_change.toFixed(1)}%` }))
+  const losers = (mv.losers ?? []).filter((l: Move) => plain(l.symbol) && l.price >= minPrice).slice(0, limit).map((l: Move) => ({ symbol: l.symbol, source: `${l.percent_change.toFixed(1)}%` }))
+  return [...gainers, ...losers].slice(0, limit * 2)
+}
+
 async function alpacaMarketLists(k: AlpacaDataKeys, top = 15): Promise<MarketLists> {
   const plain = (s: string) => /^[A-Z]{1,5}$/.test(s)
   type Move = { symbol: string; percent_change: number; price: number }
@@ -525,6 +553,124 @@ export default {
         return json({ snapshots })
       } catch (e) {
         console.error('Snapshot error:', e)
+        return json({ error: String(e) }, 500)
+      }
+    }
+    if (pathname === '/api/broker/snapshot') {
+      if (req.method !== 'GET') return json({ error: 'GET only' }, 405)
+      try {
+        if (!env.SETTINGS) return json({ error: 'Settings storage not available' }, 501)
+        const alpacaKeyStr = await env.SETTINGS.get(storeKey('alpaca_paper' as any))
+        if (!alpacaKeyStr) return json({ error: 'Alpaca paper key not configured' }, 400)
+        const alpacaKeys = JSON.parse(alpacaKeyStr)
+        const [acct, pos, orders] = await Promise.all([
+          alpacaTradingCall<Record<string, string>>('/v2/account', alpacaKeys),
+          alpacaTradingCall<Record<string, string>[]>('/v2/positions', alpacaKeys),
+          alpacaTradingCall<any[]>('/v2/orders?status=all&limit=100&nested=true&direction=desc', alpacaKeys),
+        ])
+        const account = {
+          equity: +acct.equity,
+          cash: +acct.cash,
+          buyingPower: +acct.buying_power,
+          dayPL: +acct.equity - +acct.last_equity,
+          dayPLPct: +acct.last_equity ? ((+acct.equity - +acct.last_equity) / +acct.last_equity) * 100 : 0,
+          totalPL: null,
+        }
+        const positions = pos.map((p: any) => ({
+          symbol: p.symbol,
+          qty: +p.qty,
+          avgCost: +p.avg_entry_price,
+          last: +p.current_price,
+          marketValue: +p.market_value,
+          unrealized: +p.unrealized_pl,
+          unrealizedPct: +p.unrealized_plpc * 100,
+        }))
+        return json({ account, positions, orders, status: acct.status })
+      } catch (e) {
+        console.error('Broker snapshot error:', e)
+        return json({ error: String(e) }, 500)
+      }
+    }
+    if (pathname === '/api/broker/history') {
+      if (req.method !== 'GET') return json({ error: 'GET only' }, 405)
+      try {
+        if (!env.SETTINGS) return json({ error: 'Settings storage not available' }, 501)
+        const alpacaKeyStr = await env.SETTINGS.get(storeKey('alpaca_paper' as any))
+        if (!alpacaKeyStr) return json({ error: 'Alpaca paper key not configured' }, 400)
+        const alpacaKeys = JSON.parse(alpacaKeyStr)
+        const url = new URL(req.url)
+        const period = (url.searchParams.get('period') ?? '1D') as '1D' | '1M' | '3M'
+        const tf = period === '1D' ? '5Min' : '1D'
+        const h = await alpacaTradingCall<{ timestamp: number[]; equity: (number | null)[] }>(`/v2/account/portfolio/history?period=${period}&timeframe=${tf}&extended_hours=true`, alpacaKeys)
+        const history = h.timestamp.flatMap((t, i) => (h.equity[i] != null && h.equity[i]! > 0 ? [{ time: t, equity: h.equity[i]! }] : []))
+        return json({ history })
+      } catch (e) {
+        console.error('Broker history error:', e)
+        return json({ error: String(e) }, 500)
+      }
+    }
+    if (pathname === '/api/broker/place') {
+      if (req.method !== 'POST') return json({ error: 'POST only' }, 405)
+      try {
+        if (!env.SETTINGS) return json({ error: 'Settings storage not available' }, 501)
+        const alpacaKeyStr = await env.SETTINGS.get(storeKey('alpaca_paper' as any))
+        if (!alpacaKeyStr) return json({ error: 'Alpaca paper key not configured' }, 400)
+        const alpacaKeys = JSON.parse(alpacaKeyStr)
+        const body = (await req.json().catch(() => null)) as any
+        if (!body) return json({ error: 'Invalid request body' }, 400)
+        const result = await alpacaTradingCall('/v2/orders', alpacaKeys, { method: 'POST', body: JSON.stringify(body) })
+        return json(result)
+      } catch (e) {
+        console.error('Broker place error:', e)
+        return json({ error: String(e) }, 500)
+      }
+    }
+    if (pathname === '/api/broker/cancel') {
+      if (req.method !== 'POST') return json({ error: 'POST only' }, 405)
+      try {
+        if (!env.SETTINGS) return json({ error: 'Settings storage not available' }, 501)
+        const alpacaKeyStr = await env.SETTINGS.get(storeKey('alpaca_paper' as any))
+        if (!alpacaKeyStr) return json({ error: 'Alpaca paper key not configured' }, 400)
+        const alpacaKeys = JSON.parse(alpacaKeyStr)
+        const body = (await req.json().catch(() => null)) as { id?: string } | null
+        if (!body?.id) return json({ error: 'id required' }, 400)
+        await alpacaTradingCall(`/v2/orders/${body.id}`, alpacaKeys, { method: 'DELETE' })
+        return json({ ok: true })
+      } catch (e) {
+        console.error('Broker cancel error:', e)
+        return json({ error: String(e) }, 500)
+      }
+    }
+    if (pathname === '/api/broker/close') {
+      if (req.method !== 'POST') return json({ error: 'POST only' }, 405)
+      try {
+        if (!env.SETTINGS) return json({ error: 'Settings storage not available' }, 501)
+        const alpacaKeyStr = await env.SETTINGS.get(storeKey('alpaca_paper' as any))
+        if (!alpacaKeyStr) return json({ error: 'Alpaca paper key not configured' }, 400)
+        const alpacaKeys = JSON.parse(alpacaKeyStr)
+        const body = (await req.json().catch(() => null)) as { symbol?: string } | null
+        if (!body?.symbol) return json({ error: 'symbol required' }, 400)
+        const result = await alpacaTradingCall(`/v2/positions/${encodeURIComponent(body.symbol.replace('/', ''))}`, alpacaKeys, { method: 'DELETE' })
+        return json(result)
+      } catch (e) {
+        console.error('Broker close error:', e)
+        return json({ error: String(e) }, 500)
+      }
+    }
+    if (pathname === '/api/practice/movers') {
+      if (req.method !== 'GET') return json({ error: 'GET only' }, 405)
+      try {
+        if (!env.SETTINGS) return json({ error: 'Settings storage not available' }, 501)
+        const alpacaKeyStr = await env.SETTINGS.get(storeKey('alpaca_paper' as any))
+        if (!alpacaKeyStr) return json({ error: 'Alpaca paper key not configured' }, 400)
+        const alpacaKeys = JSON.parse(alpacaKeyStr)
+        const url = new URL(req.url)
+        const limit = parseInt(url.searchParams.get('limit') ?? '10', 10)
+        const threshold = parseFloat(url.searchParams.get('threshold') ?? '2')
+        const movers = await alpacaMovers(alpacaKeys, limit, threshold)
+        return json({ movers })
+      } catch (e) {
+        console.error('Practice movers error:', e)
         return json({ error: String(e) }, 500)
       }
     }

@@ -84,15 +84,34 @@ export function useMarketData(inst: Instrument, tf: Timeframe, keys: ApiKeys, al
         }
         // stocks: Alpaca (paper keys) first, then Alpha Vantage
         const addFinnhub = (base: string, idle: 'polling') => {
-          if (!k.finnhub) return
-          cleanups.push(
-            finnhubTrades(
-              inst.feedId,
-              k.finnhub,
-              (p, v, t) => set((s) => ({ candles: applyTick(s.candles, p, v, Math.floor(t / 1000), step) })),
-              (live) => set({ status: live ? 'live' : idle, source: live ? `${base} + Finnhub` : base }),
-            ),
-          )
+          if (k.finnhub) {
+            cleanups.push(
+              finnhubTrades(
+                inst.feedId,
+                k.finnhub,
+                (p, v, t) => set((s) => ({ candles: applyTick(s.candles, p, v, Math.floor(t / 1000), step) })),
+                (live) => set({ status: live ? 'live' : idle, source: live ? `${base} + Finnhub` : base }),
+              ),
+            )
+          } else {
+            // Fallback to polling snapshot API when no Finnhub key
+            const id = setInterval(async () => {
+              try {
+                const res = await fetch(`/api/market/stock/snapshot?symbols=${JSON.stringify([inst.feedId])}`)
+                if (res.ok) {
+                  const data = (await res.json()) as { snapshots: Record<string, { last: number; open: number; high: number; low: number; volume: number }>; error?: string }
+                  if (!data.error && data.snapshots[inst.feedId]) {
+                    const q = data.snapshots[inst.feedId]
+                    set((s) => ({ candles: applyTick(s.candles, q.last, q.volume, Math.floor(Date.now() / 1000), step) }))
+                  }
+                }
+              } catch {
+                /* keep last good data */
+              }
+            }, 5000)
+            cleanups.push(() => clearInterval(id))
+            set({ status: idle, source: base })
+          }
         }
         // Fetch candles from Worker endpoint (handles Alpaca primary, Alpha Vantage fallback)
         let candles: Candle[] | null = null
