@@ -29,6 +29,7 @@ import { BottomPanel } from './components/BottomPanel'
 import { PortfolioPage } from './components/PortfolioPage'
 import { AutoLearnPanel } from './components/AutoLearnPanel'
 import { useAutoLearning } from './hooks/useAutoLearning'
+import { useMigrateKeysToCloud } from './hooks/useMigrateKeysToCloud'
 import { usePractice } from './hooks/usePractice'
 import { PracticePanel } from './components/PracticePanel'
 import { BrainPanel } from './components/BrainPanel'
@@ -135,6 +136,9 @@ export default function App() {
     [universe, aiSymbols, tourSyms],
   )
   const inst = useMemo(() => chartUniverse.find((i) => i.symbol === prefs.symbol) ?? INSTRUMENTS[0], [chartUniverse, prefs.symbol])
+  // Auto-migrate keys from localStorage to Cloudflare on first load
+  useMigrateKeysToCloud(keys, alpacaKeys)
+
   const market = useMarketData(inst, prefs.tf, keys, alpacaKeys)
   const quotes = useQuotes(chartUniverse, keys, alpacaKeys)
   const addInstrument = (i: Instrument) => setAdded((list) => (list.some((x) => x.symbol === i.symbol) ? list : [...list, i]))
