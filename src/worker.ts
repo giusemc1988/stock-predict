@@ -2,6 +2,7 @@
  * Cloudflare Worker: serves the app's built files and one small API, /api/brain, for Jarvis's
  * free-AI helper. Keys are Worker secrets (wrangler secret put GEMINI_API_KEY, etc.).
  * Also serves /api/practice for live paper trading via Cron every 5 minutes.
+ * Also serves /api/news for Alpaca news feed.
  */
 import { askBrain, brainStatus, cleanAsk, type BrainEnv } from './lib/brainServer'
 import { practiceCycle, type WorkerEnv as PracticeEnv } from './worker/practiceCycle'
@@ -84,7 +85,7 @@ export default {
       const symbol = pathname.slice('/api/news/'.length)
       if (!symbol) return json({ error: 'Symbol required' }, 400)
       try {
-        const url = `https://data.alpaca.markets/v1beta3/news?symbols=${encodeURIComponent(symbol)}&limit=10&sort=desc`
+        const url = `https://data.alpaca.markets/v1beta1/news?symbols=${encodeURIComponent(symbol)}&limit=10&sort=desc`
         const response = await fetch(url, {
           headers: {
             'APCA-API-KEY-ID': env.ALPACA_API_KEY_ID,
@@ -93,15 +94,15 @@ export default {
           signal: AbortSignal.timeout(5000),
         })
         if (!response.ok) {
-          // 404, 429, or other errors — return empty news
-          return json({ news: [] })
+          const upstreamError = await response.text().catch(() => '')
+          return json({ news: [], upstreamStatus: response.status, upstreamError }, 200)
         }
         const data = (await response.json()) as { news?: Array<{ id: string; headline: string; created_at: string; url: string }> }
         const news = (data.news || []).slice(0, 5)
         return json({ news })
       } catch (e) {
         console.error(`News fetch error for ${symbol}:`, e)
-        return json({ news: [] })
+        return json({ news: [], error: String(e) })
       }
     }
     if (pathname === '/api/practice/alerts') {
@@ -188,6 +189,9 @@ export default {
       } catch (e) {
         console.error('Telegram test error:', e)
         return json({ error: String(e) }, 500)
+=======
+        return json({ news: [], error: String(e) })
+>>>>>>> 2609828 (feat: Add Alpaca news endpoint with correct API version and error visibility)
       }
     }
     return env.ASSETS.fetch(req)
