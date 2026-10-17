@@ -17,7 +17,7 @@ function practiceToTradeResult(trade: PracticeTrade, side: 'BUY' | 'SELL' = 'BUY
     exit: trade.exit,
     timestamp: trade.openedAt,
     side,
-    pnlPct: trade.retPct * 100,
+    pnlPct: trade.retPct, // already in percentage from practice.json
     won: trade.pnl > 0,
     reason: trade.info.reason || trade.exitReason,
   }
