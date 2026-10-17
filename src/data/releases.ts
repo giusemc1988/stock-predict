@@ -2,7 +2,7 @@
  * Version and "What's new". Bump APP_VERSION and add an entry to the top of RELEASES
  * with each update. The banner shows once per version, then stays dismissed.
  */
-export const APP_VERSION = '1.21.3'
+export const APP_VERSION = '1.21.4'
 
 export interface Release {
   version: string
@@ -13,6 +13,16 @@ export interface Release {
 }
 
 export const RELEASES: Release[] = [
+  {
+    version: '1.21.4',
+    date: '2026-10-17',
+    changes: [
+      'Fixed: Alpaca news endpoint now uses the correct API version (v1beta1 instead of v1beta3) and shows error details instead of silently returning empty when the upstream call fails, so problems are easier to diagnose.',
+    ],
+    changesVi: [
+      'Đã sửa: endpoint tin Alpaca giờ dùng phiên bản API đúng (v1beta1 thay vì v1beta3) và hiện chi tiết lỗi thay vì câm lặng khi gọi upstream thất bại, để dễ chẩn đoán vấn đề.',
+    ],
+  },
   {
     version: '1.21.3',
     date: '2026-10-17',
@@ -347,6 +357,18 @@ export const RELEASES: Release[] = [
   },
 
   {
+=======
+    version: '1.21.4',
+    date: '2026-10-17',
+    changes: [
+      'Fixed: Alpaca news endpoint now uses the correct API version (v1beta1 instead of v1beta3) and shows error details instead of silently returning empty when the upstream call fails, so problems are easier to diagnose.',
+    ],
+    changesVi: [
+      'Đã sửa: endpoint tin Alpaca giờ dùng phiên bản API đúng (v1beta1 thay vì v1beta3) và hiện chi tiết lỗi thay vì câm lặng khi gọi upstream thất bại, để dễ chẩn đoán vấn đề.',
+    ],
+  },
+  {
+>>>>>>> 2609828 (feat: Add Alpaca news endpoint with correct API version and error visibility)
     version: '1.9.0-beta',
     date: '2026-10-16',
     changes: [
