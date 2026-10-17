@@ -355,20 +355,7 @@ export const RELEASES: Release[] = [
       'Đã kiểm tra tour "Show me" hoạt động.',
     ],
   },
-
   {
-=======
-    version: '1.21.4',
-    date: '2026-10-17',
-    changes: [
-      'Fixed: Alpaca news endpoint now uses the correct API version (v1beta1 instead of v1beta3) and shows error details instead of silently returning empty when the upstream call fails, so problems are easier to diagnose.',
-    ],
-    changesVi: [
-      'Đã sửa: endpoint tin Alpaca giờ dùng phiên bản API đúng (v1beta1 thay vì v1beta3) và hiện chi tiết lỗi thay vì câm lặng khi gọi upstream thất bại, để dễ chẩn đoán vấn đề.',
-    ],
-  },
-  {
->>>>>>> 2609828 (feat: Add Alpaca news endpoint with correct API version and error visibility)
     version: '1.9.0-beta',
     date: '2026-10-16',
     changes: [
