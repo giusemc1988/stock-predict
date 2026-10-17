@@ -79,7 +79,6 @@ async function main() {
       step: config.step,
     })
 
-    let totalProvenTrades = 0
     let totalTestTrades = 0
     let provenFolds = 0
     const allMetrics = []
@@ -104,10 +103,12 @@ async function main() {
 
       const proven = validator.hasProvenEdge(metrics)
       if (proven) provenFolds++
-      totalProvenTrades += proven ? testTrades.length : 0
       totalTestTrades += testTrades.length
       allMetrics.push(metrics)
     }
+
+    // A signal is "Proven" only if the strategy beats baseline in >50% of folds
+    const totalProvenTrades = provenFolds > allMetrics.length * 0.5 ? totalTestTrades : 0
 
     // Report results
     const avgWinRate = (allMetrics.reduce((sum, m) => sum + m.winRate, 0) / allMetrics.length * 100).toFixed(1)
