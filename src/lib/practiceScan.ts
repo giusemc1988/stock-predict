@@ -12,6 +12,8 @@ import { baseRate, decide, type JournalEntry } from './journal'
 import { onBarClose, onBars, onPrice, type EntryContext, type PickRow, type PracticeState } from './practice'
 import { dollarVolume, gainToday, pickWhy, rankCandidates, volumeVsAvg, type PickSource, type PracticeCandidate } from './practicePicks'
 import { runStrategy } from './strategy'
+import { fetchAlpacaNews } from './newsProvider'
+import { analyzeSentiment } from './newsSentiment'
 
 export const PICK_TF = '15m' as const
 export const BAR_SEC = 15 * 60
@@ -93,6 +95,7 @@ export async function scanCycle(input: ScanInput): Promise<ScanResult> {
   const prices: Record<string, number> = {}
   const newBars: Record<string, Candle[]> = {}
   const latestTimes: Record<string, number> = {}
+  const sentiments: Record<string, number | null> = {}
   for (const m of input.markets) {
     try {
       const all = await input.fetchBars(m)
@@ -107,6 +110,20 @@ export async function scanCycle(input: ScanInput): Promise<ScanResult> {
       const strat = runStrategy(bars)
       const a = analyze(bars, strat, strat.prediction, NO_FLOW, rules)
       const last = bars[bars.length - 1]
+      // fetch and score news sentiment for stocks (not crypto)
+      let sentiment: number | null = null
+      if (m.asset === 'stock') {
+        try {
+          const news = await fetchAlpacaNews(m.symbol)
+          if (news.length > 0) {
+            const headlines = news.map(n => n.headline)
+            sentiment = analyzeSentiment(headlines).sentiment
+          }
+        } catch {
+          // news fetch failed, sentiment stays null
+        }
+      }
+      sentiments[m.symbol] = sentiment
       raw.push({
         symbol: m.symbol,
         asset: m.asset,
@@ -183,6 +200,7 @@ export async function scanCycle(input: ScanInput): Promise<ScanResult> {
         playbookMin: rules.minSample,
         playbookMargin: rules.learnEdgeMarginPct / 100,
         skills: input.skills,
+        newsSentiment: sentiments[x.symbol],
       })
     }
     return s

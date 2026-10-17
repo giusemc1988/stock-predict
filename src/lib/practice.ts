@@ -49,6 +49,8 @@ export interface PracticeEntryInfo {
   skills?: string[]
   /** A stock under PENNY_PRICE when bought: smaller size and higher costs, reported apart. */
   penny?: boolean
+  /** Recent news sentiment at entry: -1..1 (bullish to bearish). */
+  newsSentiment?: number
 }
 
 export interface PracticePickInfo {
@@ -335,6 +337,8 @@ export interface EntryContext {
   /** Trades that follow a rule needed before it can be proven, and the win-rate margin (0..1). */
   playbookMin?: number
   playbookMargin?: number
+  /** News sentiment at entry: -1 (bearish) to +1 (bullish), from recent headlines. Optional; null if not fetched. */
+  newsSentiment?: number | null
 }
 
 /** Called once per closed bar on the open chart: maybe enter, and age or signal-exit open trades. */
@@ -463,6 +467,7 @@ export function onBarClose(prev: PracticeState, ctx: EntryContext): PracticeStat
     ...(ctx.data ? { data: ctx.data, dataLimitSec: maxAgeSec(ctx.tfSec ?? 0, ctx.maxDataAgeMin ?? 30) } : {}),
     ...(ctx.skills ? { skills: ctx.skills } : {}),
     ...(penny ? { penny: true } : {}),
+    ...(ctx.newsSentiment != null ? { newsSentiment: +ctx.newsSentiment.toFixed(3) } : {}),
   }
   const closeBy = kind === 'day' ? dayEnd : ctx.now + ctx.holdDays * 86_400_000
   const pos: PracticePosition = {
