@@ -1165,7 +1165,10 @@ body:has(.jfab) .toasts, body:has(.jfab) .jarvis-alert { bottom: 84px; }
 .panel-guard button { padding: 6px 12px; border-radius: 8px; border: 1px solid var(--line-2); }
 
 /* Key check results */
-.key-check-results { margin-top: 8px; display: grid; gap: 4px; }
-.key-result { display: grid; grid-template-columns: 1fr auto; gap: 8px; align-items: center; padding: 6px 8px; border-radius: 6px; background: var(--panel-2); font-size: 12px; }
+.key-check-results { margin-top: 8px; width: 100%; border-collapse: collapse; }
+.key-result { padding: 6px 8px; border-radius: 6px; background: var(--panel-2); font-size: 12px; }
 .key-result.ok { border-left: 3px solid var(--up); }
 .key-result.fail { border-left: 3px solid var(--down); }
+.key-result td { vertical-align: center; padding: 6px 8px; }
+.key-result .key-name { text-align: left; width: auto; }
+.key-result .key-status { text-align: right; width: auto; }

@@ -368,11 +368,11 @@ export default {
       const promises = keys.map((k) =>
         Promise.race([
           testProvider(k.id, e),
-          new Promise<{ ok: boolean; error: string }>((_, reject) =>
+          new Promise<{ ok: boolean; error?: string }>((_, reject) =>
             setTimeout(() => reject(new Error('timeout')), 8000),
           ),
         ])
-          .then((test) => ({ id: k.id, name: k.name, ok: test.ok, status: test.ok ? 'OK' : undefined, error: test.error }))
+          .then((test) => ({ id: k.id, name: k.name, ok: test.ok, error: test.error }))
           .catch((e) => ({ id: k.id, name: k.name, ok: false, error: String(e?.message ?? e) === 'timeout' ? 'Timeout (took too long)' : String(e?.message ?? e) })),
       )
       // Check Telegram separately (stored in PRACTICE, not SETTINGS)
@@ -385,7 +385,7 @@ export default {
       } catch {
         telegramStatus = { id: 'telegram', name: 'Telegram', ok: false, error: 'Not set' }
       }
-      const results = await Promise.all(promises)
+      const results: Array<{ id: string; name: string; ok: boolean; error?: string }> = await Promise.all(promises)
       if (telegramStatus) results.push(telegramStatus)
       return json({ keys: results })
     }

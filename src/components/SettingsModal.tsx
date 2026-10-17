@@ -142,14 +142,16 @@ export function SettingsModal({ keys, onSave, onClose, onOpenAiRules, alpacaKeys
         <div className="field">
           <button onClick={checkAllKeys} disabled={checkingKeys}>{checkingKeys ? 'Checking...' : 'Check all keys'}</button>
           {keyResults && (
-            <div className="key-check-results">
-              {keyResults.map((k) => (
-                <div key={k.id} className={`key-result ${k.ok ? 'ok' : 'fail'}`}>
-                  <span>{k.name}</span>
-                  <span className={k.ok ? 'up' : 'warn'}>{k.ok ? '✓ OK' : `✗ ${k.error || 'No key'}`}</span>
-                </div>
-              ))}
-            </div>
+            <table className="key-check-results">
+              <tbody>
+                {keyResults.map((k) => (
+                  <tr key={k.id} className={`key-result ${k.ok ? 'ok' : 'fail'}`}>
+                    <td className="key-name">{k.name}</td>
+                    <td className={`key-status ${k.ok ? 'up' : 'warn'}`}>{k.ok ? '✓ OK' : `✗ ${k.error || 'No key'}`}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           )}
         </div>
         <p className="muted">The keys below are optional extras. Alpha Vantage's free plan allows only 25 requests a day. Keys are saved to Cloudflare so they sync across devices.</p>
