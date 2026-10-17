@@ -224,7 +224,16 @@ export function SettingsModal({ keys, onSave, onClose, onOpenAiRules, alpacaKeys
               setSavingKeys(true)
               try {
                 await saveDataKeys()
-                onSave(draft)
+                // Wait for KV sync, then reload keys from server to ensure they persisted
+                await new Promise(resolve => setTimeout(resolve, 500))
+                const resp = await fetch('/api/data/keys', { method: 'POST' })
+                if (resp.ok) {
+                  const raw = (await resp.json()) as { alpha_vantage?: string | null; finnhub?: string | null }
+                  const loaded: ApiKeys = { alphaVantage: raw.alpha_vantage || '', finnhub: raw.finnhub || '' }
+                  onSave(loaded)
+                } else {
+                  onSave(draft)
+                }
                 onClose()
               } finally {
                 setSavingKeys(false)

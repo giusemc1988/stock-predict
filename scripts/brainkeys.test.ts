@@ -93,6 +93,12 @@ const denied = (async () => (calls++, new Response('{"error":{"message":"Invalid
 assert.equal((await testProvider('groq', { GROQ_API_KEY: 'gsk_secretsecretsecretsecret' }, denied)).ok, false)
 assert.equal(calls, 1)
 
+// Groq returning HTTP 200 with empty response (quota/rate limit)
+const groqEmptyResponse = async (_u: string) => new Response(JSON.stringify({ choices: [{ message: { content: '' } }] }), { status: 200 })
+const groqEmptyResult = await testProvider('groq', { GROQ_API_KEY: 'gsk_secretsecretsecretsecret' }, groqEmptyResponse as typeof fetch)
+assert.equal(groqEmptyResult.ok, false, 'Groq empty response is rejected')
+assert.ok(groqEmptyResult.error?.includes('quota') || groqEmptyResult.error?.includes('rate limit'), 'Groq empty response shows clear rate limit message')
+
 // Telegram config is stored separately in PRACTICE KV, not in KEY_SLOTS
 const telegramStore = memStore({ 'telegramConfig': JSON.stringify({ token: 'token123', chatId: 'chat456' }) })
 // Simulating the checker logic from worker.ts line 381-386
