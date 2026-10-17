@@ -138,7 +138,7 @@ export const DEFAULT_AI_RULES: AiRules = {
   practiceMovers: true,
   practiceServer: true,
   practiceWatchlist: true,
-  practiceFollow: false,
+  practiceFollow: true,
   practiceInPanels: true,
   practicePenny: true,
   practiceUnlimited: true,
@@ -169,7 +169,7 @@ export const DEFAULT_AI_RULES: AiRules = {
   scoreboardPerformanceTimer: true,
   jarvisGate: false,
   jarvisMotion: true,
-  jarvisSpeech: false,
+  jarvisSpeech: true,
   jarvisShowMe: true,
   jarvisReplay: true,
   jarvisAlerts: true,
@@ -183,7 +183,7 @@ export const DEFAULT_AI_RULES: AiRules = {
   aiKeyBoxes: true,
   jarvisCloudAi: true,
   briefHome: true,
-  briefAi: false,
+  briefAi: true,
   practiceCryptoMovers: true,
   adjustableTimeRange: true,
   localModelName: 'llama3.2',
@@ -191,7 +191,7 @@ export const DEFAULT_AI_RULES: AiRules = {
   localQA: false,
   resizePanels: true,
   autoRangeTf: true,
-  localVoiceNarrator: false,
+  localVoiceNarrator: true,
   signalValidator: true,
   newsEnabled: false,
   newsAnalysis: false,
@@ -201,7 +201,7 @@ export const DEFAULT_AI_RULES: AiRules = {
   localAiOn: false,
   orderFlowEstimate: true,
   practiceTradeNotifications: true,
-  telegramNotifications: false,
+  telegramNotifications: true,
   telegramToken: '',
   walkForwardValidatorOn: true,
 }
@@ -341,9 +341,50 @@ export function sanitize(raw: unknown): AiRules {
   return out
 }
 
+async function loadFromServer(): Promise<AiRules | null> {
+  try {
+    const res = await fetch('/api/ai-rules', { signal: AbortSignal.timeout(3000) })
+    if (!res.ok) return null
+    const data = await res.json()
+    return sanitize(data)
+  } catch {
+    return null
+  }
+}
+
 function load(): AiRules {
   try {
-    const r = sanitize(JSON.parse(localStorage.getItem(KEY) ?? 'null'))
+    // Try localStorage cache first (fast path)
+    const cached = localStorage.getItem(KEY)
+    if (cached) {
+      const r = sanitize(JSON.parse(cached))
+      // Also fetch from server in background to keep in sync
+      if (typeof window !== 'undefined') {
+        loadFromServer().then((serverRules) => {
+          if (serverRules) {
+            current = serverRules
+            localStorage.setItem(KEY, JSON.stringify(serverRules))
+            window.dispatchEvent(new Event(EVENT))
+          }
+        })
+      }
+      return r
+    }
+
+    // If no cache, try server first
+    if (typeof window !== 'undefined') {
+      // Note: sync fetch is not possible, so we return defaults and let the app update once server responds
+      loadFromServer().then((serverRules) => {
+        if (serverRules) {
+          current = serverRules
+          localStorage.setItem(KEY, JSON.stringify(serverRules))
+          window.dispatchEvent(new Event(EVENT))
+        }
+      })
+    }
+
+    // For first-time setup, handle TURN_ON_ONCE like before
+    const r = { ...DEFAULT_AI_RULES }
     if (!localStorage.getItem(ONBOARD_KEY)) {
       for (const k of TURN_ON_ONCE) r[k] = true
       localStorage.setItem(KEY, JSON.stringify(r))
@@ -370,6 +411,17 @@ export function setAiRules(r: AiRules) {
     /* storage blocked: the rules still apply for this visit */
   }
   window.dispatchEvent(new Event(EVENT))
+
+  // Save to server in background (no await, fire-and-forget)
+  if (typeof window !== 'undefined') {
+    fetch('/api/ai-rules', {
+      method: 'PUT',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify(current)
+    }).catch(() => {
+      /* server save failed, but local cache is still valid */
+    })
+  }
 }
 
 export function useAiRules(): AiRules {
