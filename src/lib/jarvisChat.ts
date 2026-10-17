@@ -7,6 +7,15 @@ import { understand } from './listen'
 import { alreadySo, describeAction, parseCommand, type JarvisAction } from './jarvisActions'
 import { ask, greeting, stockMemory, type AskContext, type Bi } from './jarvis'
 
+/** Detect if text is Vietnamese (has Vietnamese characters or common words). */
+export function detectLanguage(text: string): 'vi' | 'en' {
+  // Vietnamese characters: ạ-ỿ range
+  if (/[à-ỹ]/.test(text)) return 'vi'
+  // Common Vietnamese words
+  if (/\b(em|anh|bạn|tôi|nó|nó|làm|cho|đi|được|không|có|cái|này|đó|để|với|từ|trên|dưới|trong|ngoài|mà|thì|vì|như|nếu|hoặc|và)\b/i.test(text)) return 'vi'
+  return 'en'
+}
+
 export interface ChatTurn {
   who: 'me' | 'jarvis'
   text: Bi

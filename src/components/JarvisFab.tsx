@@ -11,6 +11,7 @@ import { canSpeak, loadVoicePrefs, primeSpeech, speak, speakProblem, stopSpeakin
 import type { Bi } from '../lib/jarvis'
 import { JarvisAvatar } from './JarvisAvatar'
 import { askCloud, factsForAi } from '../lib/cloudBrain'
+import { detectLanguage } from '../lib/jarvisChat'
 
 interface Props {
   state: PracticeState
@@ -107,6 +108,8 @@ export function JarvisFab({ state, rules, journal, learn, killSwitch, priceOf, k
     } catch {
       /* keep the default */
     }
+    // Detect the language user typed (override browser language)
+    const userLang = detectLanguage(t)
     const ctx = { state, rules, journal, killSwitch, priceOf, skills, learn: learnInfo, symbol }
     const r = chatReply(t, {
       ctx,
@@ -123,10 +126,19 @@ export function JarvisFab({ state, rules, journal, learn, killSwitch, priceOf, k
     // not understood: our own data came first; now ask the free-AI helper, with those facts
     if (r.unsure && rules.jarvisCloudAi) {
       add({ who: 'me', text: { en: t, vi: t }, time: now })
-      void askCloud(t, lang, factsForAi(ctx)).then((ai) => {
-        const said: Bi = ai ? { en: ai.text, vi: ai.text } : answer
-        add({ who: 'jarvis', text: said, time: stamp(), by: ai?.by })
-        say(ai ? [said] : r.text)
+      void askCloud(t, userLang, factsForAi(ctx)).then((ai) => {
+        if (ai) {
+          const said: Bi = { en: ai.text, vi: ai.text }
+          add({ who: 'jarvis', text: said, time: stamp(), by: ai?.by })
+          say([said])
+        } else {
+          // No key configured: show message in user's language
+          const noKey: Bi = userLang === 'vi'
+            ? { en: 'Để em hiểu được toàn bộ câu hỏi của bạn, cần thêm API key. Vào Settings > Free AI keys và chọn một (Gemini, Groq hoặc Grok - đều miễn phí).', vi: 'Để em hiểu được toàn bộ câu hỏi của bạn, cần thêm API key. Vào Settings > Free AI keys và chọn một (Gemini, Groq hoặc Grok - đều miễn phí).' }
+            : { en: 'To fully understand your question, I need an API key. Go to Settings > Free AI keys and pick one (Gemini, Groq, or Grok - all free).', vi: '' }
+          add({ who: 'jarvis', text: noKey, time: stamp() })
+          say([noKey])
+        }
       })
       return
     }
