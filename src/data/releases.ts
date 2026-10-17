@@ -2,7 +2,7 @@
  * Version and "What's new". Bump APP_VERSION and add an entry to the top of RELEASES
  * with each update. The banner shows once per version, then stays dismissed.
  */
-export const APP_VERSION = '1.21.9'
+export const APP_VERSION = '1.21.11'
 
 export interface Release {
   version: string
@@ -13,6 +13,16 @@ export interface Release {
 }
 
 export const RELEASES: Release[] = [
+  {
+    version: '1.21.11',
+    date: '2026-10-17',
+    changes: [
+      'New: "Potential" list shows stocks with good BUY signals from the AI scanner (sorted by signal score). ⚠️ Signals not proven yet — walk-forward test found no stable edge. Toggle in Settings > AI rules (on by default).',
+    ],
+    changesVi: [
+      'Mới: Danh sách "Tiềm năng" hiển thị cổ phiếu có tín hiệu MUA tốt từ máy quét AI (sắp xếp theo điểm tín hiệu). ⚠️ Tín hiệu chưa được chứng minh — kiểm thử ngoài mẫu không tìm lợi thế ổn định. Bật/tắt trong Cài đặt > Quy tắc AI (bật sẵn).',
+    ],
+  },
   {
     version: '1.21.9',
     date: '2026-10-17',

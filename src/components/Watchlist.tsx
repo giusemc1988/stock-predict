@@ -9,6 +9,7 @@ import { candlesFor } from '../data/series'
 import { useSyncExternalStore } from 'react'
 import { useLang, useT } from '../lib/i18n'
 import { useMarketLists } from '../hooks/useMarketLists'
+import { useAiRules } from '../lib/aiRules'
 import type { AlpacaDataKeys, ApiKeys, MarketListRow } from '../data/providers'
 
 /** One market practice mode is trading, closed today, or watching. */
@@ -42,7 +43,7 @@ interface Props {
   sortRequest?: number
 }
 
-type ListSort = 'gainers' | 'losers' | 'volume' | 'most_active' | 'new_highs'
+type ListSort = 'gainers' | 'losers' | 'volume' | 'most_active' | 'new_highs' | 'potential'
 
 function listInstrument(r: MarketListRow): Instrument {
   const known = CATALOG.find((c) => c.symbol === r.symbol)
@@ -175,9 +176,10 @@ export function Watchlist({ aiActive, instruments, quotes, active, onSelect, onA
   const tx = useT()
   const lang = useLang()
   const L = (en: string, vi: string) => (lang === 'vi' ? vi : en)
+  const aiRules = useAiRules()
   const [filter, setFilter] = useState('')
   const [tab, setTab] = useState<'all' | 'crypto' | 'stock'>('all')
-  const [sort, setSort] = useState<'default' | 'gainers' | 'losers' | 'volume' | 'most_active' | 'new_highs' | 'success'>(sortRequest ? 'gainers' : 'default')
+  const [sort, setSort] = useState<'default' | 'gainers' | 'losers' | 'volume' | 'most_active' | 'new_highs' | 'success' | 'potential'>(sortRequest ? 'gainers' : 'default')
   useEffect(() => {
     if (sortRequest) setSort('gainers')
   }, [sortRequest])
@@ -193,18 +195,44 @@ export function Watchlist({ aiActive, instruments, quotes, active, onSelect, onA
   const filtered = instruments.filter(
     (i) => (tab === 'all' || i.assetClass === tab) && (i.symbol + i.name).toLowerCase().includes(filter.toLowerCase()),
   )
-  const marketWide = sort === 'gainers' || sort === 'losers' || sort === 'volume' || sort === 'most_active' || sort === 'new_highs'
+  const marketWide = sort === 'gainers' || sort === 'losers' || sort === 'volume' || sort === 'most_active' || sort === 'new_highs' || sort === 'potential'
   // top gainers / losers / volume come from the whole market, never from the watchlist
   const lists = useMarketLists(marketWide, alpacaKeys)
   const marketRows = useMemo(() => {
     if (!marketWide) return []
-    const metric = (r: MarketListRow) =>
-      sort === 'gainers' ? r.changePct : sort === 'losers' ? -r.changePct : sort === 'most_active' || sort === 'volume' ? r.dollarVolume ?? 0 : sort === 'new_highs' ? r.price : 0
-    const pick = (l: typeof lists.crypto) => (l && marketWide ? (l[sort] ?? []) : [])
+
+    // potential list: filter picks with BUY verdict, sorted by score
+    if (sort === 'potential') {
+      const potential = Array.from(picksBySymbol.values())
+        .filter((p) => p.verdict === 'BUY')
+        .sort((a, b) => b.score - a.score)
+        .slice(0, 25)
+
+      const q = filter.toLowerCase()
+      return potential
+        .filter((p) => p.symbol.toLowerCase().includes(q))
+        .map((p) => ({
+          symbol: p.symbol,
+          price: 0,
+          changePct: 0,
+          dollarVolume: 0,
+          assetClass: CATALOG.find((c) => c.symbol === p.symbol)?.assetClass ?? 'stock',
+        } as MarketListRow))
+    }
+
+    const metric = (r: MarketListRow) => {
+      if (sort === 'gainers') return r.changePct
+      if (sort === 'losers') return -r.changePct
+      if (sort === 'most_active' || sort === 'volume') return r.dollarVolume ?? 0
+      if (sort === 'new_highs') return r.price
+      return 0
+    }
+    const sortKey = sort as Exclude<typeof sort, 'potential' | 'default' | 'success'>
+    const pick = (l: typeof lists.crypto) => (l && marketWide ? (l[sortKey] ?? []) : [])
     const rows = [...(tab !== 'crypto' ? pick(lists.stocks) : []), ...(tab !== 'stock' ? pick(lists.crypto) : [])]
     const q = filter.toLowerCase()
     return rows.filter((r) => r.symbol.toLowerCase().includes(q)).sort((a, b) => metric(b) - metric(a)).slice(0, 25)
-  }, [marketWide, sort, tab, filter, lists.crypto, lists.stocks])
+  }, [marketWide, sort, tab, filter, lists.crypto, lists.stocks, picksBySymbol])
   const list = useMemo(() => {
     if (sort !== 'success') return filtered
     const won = (i: Instrument) => picksBySymbol.get(i.symbol)?.winRate ?? -1
@@ -285,8 +313,8 @@ export function Watchlist({ aiActive, instruments, quotes, active, onSelect, onA
         ))}
       </div>
       <div className="seg small">
-        {(['default', 'gainers', 'losers', 'volume', 'most_active', 'new_highs', 'success'] as const).map((s) => (
-          <button key={s} className={sort === s ? 'on' : ''} onClick={() => setSort(s)}>
+        {(['default', 'gainers', 'losers', 'volume', 'most_active', 'new_highs', 'success', ...(aiRules.potentialListOn ? ['potential'] : [])] as const).map((s) => (
+          <button key={s} className={sort === s ? 'on' : ''} onClick={() => setSort(s as typeof sort)}>
             {s === 'default'
               ? tx('sortDefault')
               : s === 'gainers'
@@ -299,7 +327,9 @@ export function Watchlist({ aiActive, instruments, quotes, active, onSelect, onA
                       ? L('Most active', 'Giao dịch nhất')
                       : s === 'new_highs'
                         ? L('New highs', 'Đỉnh mới')
-                        : tx('sortSuccess')}
+                        : s === 'success'
+                          ? tx('sortSuccess')
+                          : L('Potential', 'Tiềm năng')}
           </button>
         ))}
       </div>
@@ -308,6 +338,13 @@ export function Watchlist({ aiActive, instruments, quotes, active, onSelect, onA
           {picksBySymbol.size === 0
             ? tx('scanFirst')
             : tx('successFromScan')}
+        </p>
+      )}
+      {sort === 'potential' && (
+        <p className="muted small">
+          {picksBySymbol.size === 0
+            ? L('Run an AI scan first to see potential picks.', 'Chạy quét AI trước để xem các mã tiềm năng.')
+            : L('Stocks with good BUY signals. ⚠️ Signals not proven yet — walk-forward test found no edge. Under 30 paper trades so far.', 'Cổ phiếu có tín hiệu MUA tốt. ⚠️ Tín hiệu chưa được chứng minh — kiểm thử ngoài mẫu chưa tìm lợi thế. Mới có dưới 30 giao dịch thử nghiệm.')}
         </p>
       )}
       {marketWide && (
@@ -334,7 +371,7 @@ export function Watchlist({ aiActive, instruments, quotes, active, onSelect, onA
               r={r}
               sort={sort as ListSort}
               active={r.symbol === active}
-              pick={scanOn ? picksBySymbol.get(r.symbol) : undefined}
+              pick={(scanOn || sort === 'potential') ? picksBySymbol.get(r.symbol) : undefined}
               onSelect={() => {
                 if (!taken.has(r.symbol)) onAdd(listInstrument(r))
                 onSelect(r.symbol)
