@@ -2,7 +2,7 @@
  * Version and "What's new". Bump APP_VERSION and add an entry to the top of RELEASES
  * with each update. The banner shows once per version, then stays dismissed.
  */
-export const APP_VERSION = '1.27.0'
+export const APP_VERSION = '1.27.1'
 
 export interface Release {
   version: string
@@ -13,6 +13,18 @@ export interface Release {
 }
 
 export const RELEASES: Release[] = [
+  {
+    version: '1.27.1',
+    date: '2026-10-18',
+    changes: [
+      'New: Jarvis Dev, a way to fix and upgrade Jarvis on your own PC with no internet, even when Claude is out of quota. Open jarvis.bat and pick from a simple menu: run the app, fix with the local AI (Aider + Ollama qwen3-coder), check, save. Changes are saved on their own branch, never straight to main. Guide: tools/jarvis-dev/README.md.',
+      'New: AGENTS.md, the project rules every AI follows (paper trading only, What\'s new in English and Vietnamese, every feature has an off switch).',
+    ],
+    changesVi: [
+      'Mới: Jarvis Dev, cách sửa và nâng cấp Jarvis ngay trên máy anh, không cần mạng, kể cả khi Claude hết lượt. Mở jarvis.bat rồi chọn trong bảng: mở app, sửa bằng AI trên máy (Aider + Ollama qwen3-coder), kiểm tra, lưu. Thay đổi lưu vào nhánh riêng, không bao giờ vào thẳng main. Hướng dẫn: tools/jarvis-dev/README.md.',
+      'Mới: AGENTS.md, bộ luật dự án mà AI nào cũng làm theo (chỉ paper trading, What\'s new tiếng Anh và tiếng Việt, tính năng nào cũng có nút tắt).',
+    ],
+  },
   {
     version: '1.27.0',
     date: '2026-10-18',
