@@ -1,0 +1,12 @@
+{
+  "appId": "com.chanh.jarvis",
+  "appName": "Jarvis",
+  "webDir": "dist",
+  "server": {
+    "url": "https://stock-predict.chanhmn1011.workers.dev",
+    "allowNavigation": ["stock-predict.chanhmn1011.workers.dev", "*.cloudflareaccess.com"]
+  },
+  "android": {
+    "allowMixedContent": false
+  }
+}

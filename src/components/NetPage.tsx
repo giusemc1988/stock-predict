@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from 'react'
 import { hhmm } from '../lib/brief'
 import { DEMO_DEVICES, DEMO_WIFI } from '../lib/demoData'
 import { browserSpeedTest } from '../lib/speedTest'
+import { inPhoneApp, LanTools, loadNets, mergePhoneScan, netKey, patchKnown, saveNets, type PhoneWifi } from '../lib/phoneLan'
 import { channelTip, isPrivateIPv4, type WifiNetwork } from '../lib/netParse'
 import { useNetT, type NetKey } from '../lib/netText'
 import { LangSwitch } from './HubPanels'
@@ -28,6 +29,7 @@ interface WifiData {
 type Offline = { offline: true; why: string; snapshot: { at: number; data: unknown } | null }
 
 const GUIDE = 'https://github.com/giusemc1988/stock-predict/blob/main/agent/README.md'
+const APP = 'https://github.com/giusemc1988/stock-predict/blob/main/android/HUONG-DAN.md'
 
 async function call<T>(path: string, init?: RequestInit): Promise<T | Offline> {
   const r = await fetch(`/api/home/${path}`, { ...init, headers: { 'content-type': 'application/json', ...init?.headers } })
@@ -64,7 +66,7 @@ function ChannelChart({ nets, own }: { nets: WifiNetwork[]; own: string | null }
 }
 
 /** Wi-Fi & Bluetooth tools for Chanh's own network, fed by the home agent (agent/jarvis-agent.ts). */
-export function NetPage({ onBack }: { onBack: () => void }) {
+export function NetPage({ onBack, phoneScan = true }: { onBack: () => void; phoneScan?: boolean }) {
   const t = useNetT()
   const [devs, setDevs] = useState<DevicesData | null>(null)
   const [wifi, setWifi] = useState<WifiData | null>(null)
@@ -74,11 +76,34 @@ export function NetPage({ onBack }: { onBack: () => void }) {
   const [speed, setSpeed] = useState<{ downMbps: number; upMbps: number; pingMs: number } | null>(null)
   const [ble, setBle] = useState<string | null>(null)
   const [demo, setDemo] = useState(false)
+  // inside the Android app the phone scans the Wi-Fi it is on; each Wi-Fi keeps its own device memory
+  const phone = phoneScan && inPhoneApp()
+  const [here, setHere] = useState<PhoneWifi | null>(null)
 
   const say = (k: NetKey, v?: Record<string, string | number>) => setNote(t(k, v))
   const fail = (e: unknown) => say('error', { msg: e instanceof Error ? e.message : String(e) })
 
+  const scanPhone = useCallback(async () => {
+    setBusy(true)
+    try {
+      const w = await LanTools.wifiScan()
+      setHere(w)
+      setWifi({ supported: true, ssid: w.ssid, networks: w.networks })
+      const d = await LanTools.devices()
+      const key = netKey({ ...w, gateway: d.gateway })
+      const { nets, data } = mergePhoneScan(loadNets(), key, w.ssid, d, Date.now())
+      saveNets(nets)
+      setDevs(data)
+      setOff(null)
+    } catch (e) {
+      setNote(e instanceof Error ? e.message : String(e))
+    } finally {
+      setBusy(false)
+    }
+  }, [])
+
   const scan = useCallback(async (sweep: boolean) => {
+    if (phone) return scanPhone()
     setBusy(true)
     try {
       const [d, w] = await Promise.all([call<DevicesData>(`devices${sweep ? '?sweep=1' : ''}`), call<WifiData>('wifi')])
@@ -97,7 +122,7 @@ export function NetPage({ onBack }: { onBack: () => void }) {
     } finally {
       setBusy(false)
     }
-  }, [])
+  }, [phone, scanPhone])
 
   useEffect(() => {
     const id = setTimeout(() => void scan(false), 0)
@@ -109,7 +134,7 @@ export function NetPage({ onBack }: { onBack: () => void }) {
 
   const pingIp = async (ip: string) => {
     try {
-      const r = await call<{ received: number; sent: number; avgMs: number | null }>(`ping?ip=${encodeURIComponent(ip)}`)
+      const r = phone ? await LanTools.ping({ ip }) : await call<{ received: number; sent: number; avgMs: number | null }>(`ping?ip=${encodeURIComponent(ip)}`)
       if (isOffline(r)) return say('needAgent')
       say(r.received ? 'pingResult' : 'pingNone', { ip, got: r.received, sent: r.sent, ms: r.avgMs ?? '—' })
     } catch (e) {
@@ -118,7 +143,7 @@ export function NetPage({ onBack }: { onBack: () => void }) {
   }
   const portsIp = async (ip: string) => {
     try {
-      const r = await call<{ open: number[] }>(`ports?ip=${encodeURIComponent(ip)}`)
+      const r = phone ? await LanTools.ports({ ip }) : await call<{ open: number[] }>(`ports?ip=${encodeURIComponent(ip)}`)
       if (isOffline(r)) return say('needAgent')
       say(r.open.length ? 'portsOpen' : 'portsNone', { ip, list: r.open.join(', ') })
     } catch (e) {
@@ -127,7 +152,7 @@ export function NetPage({ onBack }: { onBack: () => void }) {
   }
   const wake = async (mac: string) => {
     try {
-      const r = await call<{ ok: boolean }>('wol', { method: 'POST', body: JSON.stringify({ mac }) })
+      const r = phone ? await LanTools.wol({ mac }) : await call<{ ok: boolean }>('wol', { method: 'POST', body: JSON.stringify({ mac }) })
       if (isOffline(r)) return say('needAgent')
       say('wakeSent')
     } catch (e) {
@@ -135,6 +160,12 @@ export function NetPage({ onBack }: { onBack: () => void }) {
     }
   }
   const update = async (mac: string, patch: { name?: string; trusted?: boolean }) => {
+    if (phone && here) {
+      const key = netKey({ ...here, gateway: devs?.devices.find((d) => d.router)?.ip ?? here.gateway })
+      saveNets(patchKnown(loadNets(), key, mac, patch))
+      setDevs((v) => v && { ...v, devices: v.devices.map((d) => (d.mac === mac ? { ...d, ...patch, isNew: patch.trusted ? false : d.isNew } : d)) })
+      return
+    }
     try {
       await call('devices', { method: 'POST', body: JSON.stringify({ mac, ...patch }) })
       await scan(false)
@@ -146,7 +177,7 @@ export function NetPage({ onBack }: { onBack: () => void }) {
     setBusy(true)
     try {
       // with the home agent the PC measures the home line; without it this phone or computer measures its own Wi-Fi
-      const viaAgent = live && !demo ? await call<{ downMbps: number; upMbps: number; pingMs: number }>('speed') : null
+      const viaAgent = live && !demo && !phone ? await call<{ downMbps: number; upMbps: number; pingMs: number }>('speed') : null
       const r = viaAgent && !isOffline(viaAgent) ? viaAgent : await browserSpeedTest()
       setSpeed(r)
       say(viaAgent && !isOffline(viaAgent) ? 'speedResult' : 'speedHere', { down: r.downMbps, up: r.upMbps, ping: r.pingMs })
@@ -189,8 +220,8 @@ export function NetPage({ onBack }: { onBack: () => void }) {
   const list = devs?.devices ?? []
   const nets = wifi?.networks ?? []
   const tip = nets.length ? channelTip(nets, wifi?.ssid ?? null) : null
-  const status = demo ? t('demoOn') : off ? (off.why === 'not set up' ? t('agentNotSetUp') : t('agentOff')) : t('agentLive')
-  const shown = live || !!off?.snapshot || demo
+  const status = phone ? t('phoneScanning', { ssid: here?.ssid ?? wifi?.ssid ?? '…' }) : demo ? t('demoOn') : off ? (off.why === 'not set up' ? t('agentNotSetUp') : t('agentOff')) : t('agentLive')
+  const shown = live || !!off?.snapshot || demo || phone
   const startDemo = () => {
     setDevs(DEMO_DEVICES)
     setWifi(DEMO_WIFI)
@@ -224,7 +255,12 @@ export function NetPage({ onBack }: { onBack: () => void }) {
         </p>
       )}
 
-      {off && !demo && (
+      {phone && <p className="net-demo small"><span>{t('phoneOwnOnly')}</span></p>}
+      {!phone && phoneScan && /Android/i.test(navigator.userAgent) && (
+        <a className="net-note net-app" href={APP} target="_blank" rel="noreferrer noopener">{t('getApp')} →</a>
+      )}
+
+      {off && !demo && !phone && (
         <section className="bf-card net-setup">
           <header><h3>{t('setupTitle')}</h3></header>
           <p className="muted">{t('setupWhy')}</p>
@@ -262,8 +298,8 @@ export function NetPage({ onBack }: { onBack: () => void }) {
             return (
               <div key={d.mac} className={`net-row${d.isNew ? ' alert' : ''}`}>
                 <div className="net-row-main">
-                  <b>{d.name ?? (me ? 'PC' : t('unknownDevice'))}</b>
-                  <small className="mono">{d.ip} · {d.mac}</small>
+                  <b>{d.name ?? (me ? (phone ? 'Phone' : 'PC') : t('unknownDevice'))}</b>
+                  <small className="mono">{d.ip}{d.mac.startsWith('ip:') ? '' : ` · ${d.mac}`}</small>
                 </div>
                 <span className="small muted">{d.vendor ?? t('unknownMaker')}</span>
                 <span className="net-flags">
@@ -286,7 +322,7 @@ export function NetPage({ onBack }: { onBack: () => void }) {
               <summary className="small muted">{t('offlineDevices', { n: devs.offline.length })}</summary>
               {devs.offline.map((o) => (
                 <div key={o.mac} className="net-row off">
-                  <div className="net-row-main"><b>{o.name ?? t('unknownDevice')}</b><small className="mono">{o.mac}</small></div>
+                  <div className="net-row-main"><b>{o.name ?? t('unknownDevice')}</b><small className="mono">{o.mac.replace(/^ip:/, '')}</small></div>
                   <span className="small muted">{hhmm(o.lastSeen)}</span>
                   <span />
                   <span className="net-acts"><button disabled={!live} onClick={() => void wake(o.mac)}>{t('wake')}</button></span>
