@@ -2,7 +2,7 @@
  * Version and "What's new". Bump APP_VERSION and add an entry to the top of RELEASES
  * with each update. The banner shows once per version, then stays dismissed.
  */
-export const APP_VERSION = '1.25.1'
+export const APP_VERSION = '1.26.0'
 
 export interface Release {
   version: string
@@ -13,6 +13,20 @@ export interface Release {
 }
 
 export const RELEASES: Release[] = [
+  {
+    version: '1.26.0',
+    date: '2026-10-17',
+    changes: [
+      'New: Jarvis Android app. It opens this same site and adds Wi-Fi scanning on the phone: at any of your shops or houses, join its Wi-Fi and open "Home network" to see devices, Wi-Fi channels, ping, open ports and Wake-on-LAN. Install guide: android/HUONG-DAN.md.',
+      'Each Wi-Fi keeps its own device list on the phone (names, trusted, "new device" flags), so every shop and house is tracked separately.',
+      'Android limits: most device makers are hidden (Android 10+), and Location must be on to read Wi-Fi names. Your own Wi-Fi only. Switch it off in Settings > AI rules (on by default).',
+    ],
+    changesVi: [
+      'Mới: app Jarvis cho Android. App mở đúng trang này và thêm quét Wi-Fi trên điện thoại: tới tiệm hay nhà nào của anh, vào Wi-Fi đó, mở "Mạng nhà" để xem thiết bị, kênh Wi-Fi, ping, cổng mở và đánh thức máy. Hướng dẫn cài: android/HUONG-DAN.md.',
+      'Mỗi Wi-Fi có danh sách thiết bị riêng trên điện thoại (tên, tin cậy, báo thiết bị mới), nên tiệm và nhà nào cũng được theo dõi riêng.',
+      'Giới hạn của Android: đa số thiết bị không hiện hãng (Android 10 trở lên), và phải bật Vị trí để đọc tên Wi-Fi. Chỉ Wi-Fi của anh. Tắt trong Cài đặt > Quy tắc AI (bật sẵn).',
+    ],
+  },
   {
     version: '1.25.1',
     date: '2026-10-17',
