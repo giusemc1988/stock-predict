@@ -18,12 +18,30 @@ $Dir    = Join-Path $Home2 'jarvis-dev'
 $Old    = Join-Path $Home2 'stock-predict'
 $Model  = 'qwen3-coder:30b'
 $Ollama = 'http://127.0.0.1:11434'
+# Aider lives in its own Python environment outside the code folder.
+$Venv   = Join-Path $Home2 '.jarvis-aider'
+$AiderExe = Join-Path $Venv 'Scripts\aider.exe'
 
 function Title($en, $vi) { Write-Host ''; Write-Host "== $en ==" -ForegroundColor Cyan; Write-Host "   $vi" -ForegroundColor DarkCyan }
 function Ok($en, $vi)    { Write-Host "  [OK]   $en" -ForegroundColor Green; Write-Host "         $vi" -ForegroundColor DarkGreen }
 function Warn($en, $vi)  { Write-Host "  [!]    $en" -ForegroundColor Yellow; Write-Host "         $vi" -ForegroundColor DarkYellow }
 function Bad($en, $vi)   { Write-Host "  [X]    $en" -ForegroundColor Red; Write-Host "         $vi" -ForegroundColor DarkRed }
 function Has($exe)       { return [bool](Get-Command $exe -ErrorAction SilentlyContinue) }
+function HasAider        { return (Test-Path $AiderExe) -or (Has 'aider') }
+function AiderCmd        { if (Test-Path $AiderExe) { return $AiderExe } return 'aider' }
+
+# Surface Pro 11 (Windows on ARM): some of Aider's Python parts have no ARM build, so prefer the
+# x64 Python (it runs under Windows' built-in emulation). x64 installs to Python312, ARM64 to Python312-arm64.
+function PickPython {
+  if ($env:LOCALAPPDATA) {
+    $x64 = Join-Path $env:LOCALAPPDATA 'Programs\Python\Python312\python.exe'
+    if (Test-Path $x64) { return $x64 }
+  }
+  if (Has 'py') { $p = (py -3.12 -c 'import sys;print(sys.executable)' 2>$null); if ($p) { return $p.Trim() } }
+  if (Has 'python') { return (Get-Command python).Source }
+  return $null
+}
+function IsArm { return $env:PROCESSOR_ARCHITECTURE -eq 'ARM64' -or $env:PROCESSOR_ARCHITEW6432 -eq 'ARM64' }
 
 function Online {
   try { $null = Invoke-WebRequest -Uri 'https://github.com' -Method Head -UseBasicParsing -TimeoutSec 5; return $true } catch { return $false }
@@ -61,6 +79,7 @@ function Do-Setup {
   $missing = @()
   if (Has 'git')  { Ok 'Git found' 'Có Git' }       else { $missing += 'Git.Git' }
   if (Has 'node') { Ok 'Node.js found' 'Có Node.js' } else { $missing += 'OpenJS.NodeJS.LTS' }
+  if (IsArm) { Ok 'Windows on ARM detected (Surface Pro 11)' 'Máy Windows ARM (Surface Pro 11)' }
   if (Has 'ollama') { Ok 'Ollama found' 'Có Ollama' } else { $missing += 'Ollama.Ollama' }
   if ($missing.Count) {
     Bad 'Some programs are missing. Install them, close this window, then run Setup again:' 'Thiếu chương trình. Cài xong, đóng cửa sổ này, rồi chạy lại Cài đặt:'
@@ -89,13 +108,28 @@ function Do-Setup {
   elseif (Online) { Write-Host "  Downloading $Model (about 19 GB, one time)..." -ForegroundColor Gray; ollama pull $Model }
   else { Warn "Model $Model missing; run Setup again when online." "Thiếu model $Model; chạy lại Cài đặt khi có mạng." }
 
-  if (Has 'aider') { Ok 'Aider (AI coder) found' 'Có Aider (AI viết code)' }
+  if (HasAider) { Ok 'Aider (AI coder) found' 'Có Aider (AI viết code)' }
   elseif (Online) {
-    Write-Host '  Installing Aider (AI coder)...' -ForegroundColor Gray
-    if (Has 'py') { py -m pip install --user aider-install; py -m aider_install }
-    elseif (Has 'python') { python -m pip install --user aider-install; python -m aider_install }
-    else { Bad 'Python is needed for Aider: winget install Python.Python.3.12, then Setup again.' 'Cần Python cho Aider: winget install Python.Python.3.12, rồi chạy lại Cài đặt.'; return }
-    Warn 'Close this window and open jarvis.bat again so Aider is found.' 'Đóng cửa sổ này rồi mở lại jarvis.bat để máy thấy Aider.'
+    $py = PickPython
+    if (-not $py) {
+      Bad 'Python 3.12 is needed for Aider. Install it, then run Setup again:' 'Cần Python 3.12 cho Aider. Cài xong rồi chạy lại Cài đặt:'
+      if (IsArm) { Write-Host '         winget install Python.Python.3.12 --architecture x64' -ForegroundColor White }
+      else { Write-Host '         winget install Python.Python.3.12' -ForegroundColor White }
+      return
+    }
+    Write-Host "  Installing Aider (AI coder) with $py ..." -ForegroundColor Gray
+    & $py -m venv $Venv 2>&1 | Out-Host
+    & (Join-Path $Venv 'Scripts\python.exe') -m pip install --upgrade pip aider-chat 2>&1 | Out-Host
+    if (Test-Path $AiderExe) { Ok 'Aider installed' 'Đã cài Aider' }
+    else {
+      Bad 'Aider did not install.' 'Cài Aider không được.'
+      if (IsArm) {
+        Warn 'On this ARM Surface, install the x64 Python, then run Setup again:' 'Trên Surface ARM này, cài Python bản x64 rồi chạy lại Cài đặt:'
+        Write-Host '         winget install Python.Python.3.12 --architecture x64' -ForegroundColor White
+        Write-Host "         (then delete the folder $Venv / rồi xóa thư mục $Venv)" -ForegroundColor White
+      }
+      return
+    }
   } else { Warn 'Aider missing; run Setup again when online.' 'Thiếu Aider; chạy lại Cài đặt khi có mạng.' }
 
   if (Test-Path $Old) { Warn "Your old folder $Old is not touched." "Thư mục cũ $Old không bị đụng tới." }
@@ -127,7 +161,7 @@ function Do-Check {
 function Do-Fix {
   if (-not (InRepo)) { return }
   Title 'Fix or upgrade with local AI' 'Sửa hoặc nâng cấp bằng AI trên máy'
-  if (-not (Has 'aider')) { Bad 'Aider is not installed. Choose 1 (Setup).' 'Chưa cài Aider. Chọn 1 (Cài đặt).'; return }
+  if (-not (HasAider)) { Bad 'Aider is not installed. Choose 1 (Setup).' 'Chưa cài Aider. Chọn 1 (Cài đặt).'; return }
   if (-not (OllamaUp)) { Start-Process 'ollama' 'serve' -WindowStyle Hidden; Start-Sleep 3 }
   if (-not (HasModel)) { Bad "Model $Model is missing. Choose 1 (Setup) when online." "Thiếu model $Model. Chọn 1 (Cài đặt) khi có mạng."; return }
   $b = WorkBranch
@@ -137,7 +171,7 @@ function Do-Fix {
   Write-Host '  Type /exit when done, then choose 4 (Check) and 5 (Save).' -ForegroundColor Gray
   Write-Host '  Gõ /exit khi xong, rồi chọn 4 (Kiểm tra) và 5 (Lưu).' -ForegroundColor DarkGray
   $env:OLLAMA_API_BASE = $Ollama
-  aider --model "ollama_chat/$Model" --read AGENTS.md --no-auto-commits --test-cmd 'npm test' --no-show-model-warnings
+  & (AiderCmd) --model "ollama_chat/$Model" --read AGENTS.md --no-auto-commits --test-cmd 'npm test' --no-show-model-warnings
 }
 
 function Do-Save {
@@ -170,7 +204,7 @@ function Do-Status {
   if (Online) { Ok 'Internet: online' 'Mạng: có' } else { Warn 'Internet: offline (local AI still works)' 'Mạng: không có (AI trên máy vẫn chạy)' }
   if (OllamaUp) { Ok 'Ollama: running' 'Ollama: đang chạy' } else { Warn 'Ollama: not running (starts when needed)' 'Ollama: chưa chạy (tự bật khi cần)' }
   if (HasModel) { Ok "Model: $Model" "Model: $Model" } else { Warn "Model ${Model}: missing" "Model ${Model}: chưa có" }
-  if (Has 'aider') { Ok 'Aider: installed' 'Aider: đã cài' } else { Warn 'Aider: not installed' 'Aider: chưa cài' }
+  if (HasAider) { Ok 'Aider: installed' 'Aider: đã cài' } else { Warn 'Aider: not installed' 'Aider: chưa cài' }
   if (Test-Path (Join-Path $Dir '.git')) {
     Set-Location $Dir
     $n = @(git status --porcelain).Count

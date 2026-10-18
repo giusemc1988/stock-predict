@@ -2,7 +2,7 @@
  * Version and "What's new". Bump APP_VERSION and add an entry to the top of RELEASES
  * with each update. The banner shows once per version, then stays dismissed.
  */
-export const APP_VERSION = '1.27.1'
+export const APP_VERSION = '1.27.2'
 
 export interface Release {
   version: string
@@ -13,6 +13,12 @@ export interface Release {
 }
 
 export const RELEASES: Release[] = [
+  {
+    version: '1.27.2',
+    date: '2026-10-18',
+    changes: ['Jarvis Dev now fits the Surface Pro 11 (Windows 11 on ARM): it installs the local AI coder (Aider) in its own Python environment and uses the x64 Python when needed, with the exact command to paste if anything is missing.'],
+    changesVi: ['Jarvis Dev giờ hợp với Surface Pro 11 (Windows 11 ARM): cài AI viết code trên máy (Aider) trong môi trường Python riêng, dùng Python bản x64 khi cần, và đưa đúng lệnh để dán nếu thiếu gì.'],
+  },
   {
     version: '1.27.1',
     date: '2026-10-18',

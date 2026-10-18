@@ -17,6 +17,11 @@ Bảng chọn hiện ra thì chọn **1** (Cài đặt). Máy sẽ tự kiểm t
 
 Nếu máy báo thiếu chương trình nào, nó sẽ đưa đúng lệnh `winget install ...` để anh dán vào.
 
+**Surface Pro 11 (Windows 11 ARM):** Git, Node.js và Ollama đều có bản ARM. Riêng Aider cần **Python bản x64**, chạy được nhờ chế độ giả lập có sẵn của Windows, vì vài phần của Aider chưa có bản ARM. Nếu máy hỏi, anh dán lệnh này:
+```powershell
+winget install Python.Python.3.12 --architecture x64
+```
+
 Lưu ý: thư mục cũ `C:\Users\chanh\stock-predict` **không bị đụng tới**. Jarvis Dev làm việc trong thư mục riêng `C:\Users\chanh\jarvis-dev`.
 
 ## Dùng hằng ngày
