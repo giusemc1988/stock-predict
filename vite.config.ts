@@ -26,6 +26,13 @@ export default defineConfig({
         rewrite: (p) => p.replace(/^\/api\/home/, '/api'),
         configure: (proxy) => proxy.on('proxyReq', (req) => req.setHeader('authorization', `Bearer ${agentToken()}`)),
       },
+      // local dev: RuView firmware for the browser flasher (the Worker does this online, pinned release only)
+      '/api/firmware': {
+        target: 'https://github.com',
+        changeOrigin: true,
+        followRedirects: true,
+        rewrite: (p) => p.replace(/^\/api\/firmware\/([^/]+)\/([^/]+)$/, '/ruvnet/ruview/releases/download/$1/$2'),
+      },
     },
   },
 })

@@ -1352,6 +1352,8 @@ body:has(.jfab) .toasts, body:has(.jfab) .jarvis-alert { bottom: 84px; }
 .rv-cmd code { flex: 1; min-width: 0; font: 12px var(--mono); color: #cde3ff; overflow-x: auto; white-space: nowrap; scrollbar-width: thin; }
 .rv-cmd .btn, .rv-page .bf-card > header .btn, .rv-wiz .btn { padding: 5px 12px; border-radius: 999px; border: 1px solid var(--line-2); font-size: 12px; text-decoration: none; }
 .rv-wiz .btn.prime, .net-setup .rv-cmd + .btn { justify-self: start; }
+.rv-alt { display: grid; gap: 8px; }
+.rv-alt > summary { cursor: pointer; color: var(--muted, #8a97a8); }
 .rv-wiz .btn.prime { padding: 8px 16px; background: var(--robot); color: #04111c; font-weight: 600; border: 0; }
 .rv-wiz .btn:disabled { opacity: 0.6; }
 .rv-wiz h4 { margin: 6px 0 0; font-size: 13px; font-weight: 600; color: #dce6f5; }
@@ -1368,3 +1370,4 @@ body:has(.jfab) .toasts, body:has(.jfab) .jarvis-alert { bottom: 84px; }
 .net-demo { margin: 0; display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; padding: 8px 12px; border-radius: 10px; background: rgba(240, 185, 11, 0.08); border: 1px solid rgba(240, 185, 11, 0.3); color: #f5d77a; }
 .net-demo span { flex: 1 1 240px; }
 .net-demo .btn, .net-setup .bf-acts .btn:not(.prime) { padding: 5px 12px; border-radius: 999px; border: 1px solid var(--line-2); font-size: 12px; color: var(--text); }
+.net-app { display: block; text-decoration: none; color: var(--text); }

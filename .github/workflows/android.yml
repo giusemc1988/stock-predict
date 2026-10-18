@@ -1,0 +1,44 @@
+name: Android app
+
+# Builds the Jarvis Android app (a shell around the live site plus the Wi-Fi scan plugin).
+# On main it also puts the APK on the "android-latest" release, so the phone can download it.
+on:
+  push:
+    branches: [main]
+    paths: ['android/**', 'capacitor.config.json', 'package.json', '.github/workflows/android.yml']
+  pull_request:
+    paths: ['android/**', 'capacitor.config.json', '.github/workflows/android.yml']
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+      - run: npm ci
+      - run: npm run build
+      - run: npx cap sync android
+      - run: ./gradlew testDebugUnitTest assembleDebug --no-daemon
+        working-directory: android
+      - run: cp android/app/build/outputs/apk/debug/app-debug.apk jarvis.apk
+      - uses: actions/upload-artifact@v4
+        with:
+          name: jarvis-android
+          path: jarvis.apk
+      - if: github.ref == 'refs/heads/main'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release view android-latest >/dev/null 2>&1 || gh release create android-latest --title "Jarvis Android app" --notes "Download jarvis.apk on your Android phone and open it to install. The app opens the Jarvis site, so web updates need no new APK." --latest=false
+          gh release upload android-latest jarvis.apk --clobber

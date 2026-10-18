@@ -640,11 +640,11 @@ export default function App() {
         </PanelGuard>
       ) : shownPage === 'net' ? (
         <PanelGuard name="Wi-Fi">
-          <NetPage onBack={() => setPage(briefOn ? 'brief' : 'trade')} />
+          <NetPage onBack={() => setPage(briefOn ? 'brief' : 'trade')} phoneScan={aiRules.phoneScan} />
         </PanelGuard>
       ) : shownPage === 'ruview' ? (
         <PanelGuard name="RuView">
-          <RuViewPage onBack={() => setPage(briefOn ? 'brief' : 'trade')} />
+          <RuViewPage onBack={() => setPage(briefOn ? 'brief' : 'trade')} webFlash={aiRules.webFlash} />
         </PanelGuard>
       ) : shownPage === 'trade' ? (
         <>

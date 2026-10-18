@@ -83,6 +83,8 @@ export interface AiRules {
   jarvisCloudAi: boolean // when Jarvis doesn't understand, ask a free AI helper (keys live on the server)
   briefHome: boolean // Jarvis Brief is the home page; off opens the Trading desk as before
   netTools: boolean // Wi-Fi & Bluetooth page for your own network (needs the home agent for scans)
+  webFlash: boolean // RuView page: flash a board's firmware from Chrome/Edge over USB
+  phoneScan: boolean // Android app: the phone scans the Wi-Fi it is on (devices, channels, ping, ports, Wake-on-LAN)
   ruviewOn: boolean // RuView sensing page: presence from Wi-Fi signals via ESP32 nodes, runs on the home PC
   hubLayout: boolean // the home page uses the Hub layout: best pick next to the sphere, prediction board, Studio and devices
   briefAi: boolean // a free AI helper writes the Jarvis Brief from the page's real data (once per scan)
@@ -190,6 +192,8 @@ export const DEFAULT_AI_RULES: AiRules = {
   hubLayout: true,
   netTools: true,
   ruviewOn: true,
+  phoneScan: true,
+  webFlash: true,
   briefAi: true,
   practiceCryptoMovers: true,
   adjustableTimeRange: true,
@@ -307,6 +311,8 @@ export const RULE_FIELDS: RuleField[] = [
   { group: 'jarvis', key: 'jarvisCloudAi', en: "Free AI helper: when Jarvis doesn't understand you, he asks a free AI (Gemini, Groq, Grok or NVIDIA) using his own facts. Only works after a key is added (type it in Settings, or set it as a server secret)", vi: 'Trợ lý AI miễn phí: khi Jarvis không hiểu, Jarvis hỏi một AI miễn phí (Gemini, Groq, Grok hoặc NVIDIA) kèm dữ liệu của mình. Chỉ hoạt động sau khi thêm khóa (nhập trong Cài đặt, hoặc đặt làm secret trên máy chủ)' },
   { group: 'jarvis', key: 'aiKeyBoxes', en: 'Show the free AI key boxes in Settings (Gemini, Groq, NVIDIA)', vi: 'Hiện ô nhập khóa AI miễn phí trong Cài đặt (Gemini, Groq, NVIDIA)' },
   { group: 'jarvis', key: 'netTools', en: 'Wi-Fi & Bluetooth page: devices on your network, Wi-Fi channels, ping, port check, Wake-on-LAN, speed test (your own network only; scans need the home agent)', vi: 'Trang Wi-Fi và Bluetooth: thiết bị trong mạng, kênh Wi-Fi, ping, kiểm tra cổng, đánh thức máy, đo tốc độ (chỉ mạng của anh; quét cần chương trình trên máy nhà)' },
+  { group: 'jarvis', key: 'webFlash', en: 'RuView: flash an ESP32-S3/C6 board straight from Chrome or Edge on a computer (USB cable, pinned RuView firmware, checked before writing)', vi: 'RuView: nạp firmware cho board ESP32-S3/C6 ngay trên Chrome hoặc Edge trên máy tính (cáp USB, firmware RuView đã ghim, kiểm tra trước khi ghi)' },
+  { group: 'jarvis', key: 'phoneScan', en: 'Android app: scan the Wi-Fi your phone is on (devices, Wi-Fi channels, ping, port check, Wake-on-LAN), with a separate device list for each shop or house (your own Wi-Fi only)', vi: 'App Android: quét Wi-Fi điện thoại đang kết nối (thiết bị, kênh Wi-Fi, ping, kiểm tra cổng, đánh thức máy), mỗi tiệm hoặc nhà có danh sách thiết bị riêng (chỉ Wi-Fi của anh)' },
   { group: 'jarvis', key: 'ruviewOn', en: 'RuView sensing page: presence at home from Wi-Fi signals with ESP32 nodes, add nodes over USB, pinned RuView version with daily update check (your own home only; needs the home agent and Docker)', vi: 'Trang RuView cảm biến: biết có người trong nhà bằng sóng Wi-Fi với node ESP32, thêm node qua USB, giữ đúng bản RuView và kiểm tra bản mới mỗi ngày (chỉ trong nhà anh; cần chương trình máy nhà và Docker)' },
   { group: 'jarvis', key: 'hubLayout', en: 'Hub home page: best pick next to the sphere, prediction board with 6 agent dots, Studio and devices (off: the old Jarvis Brief layout)', vi: 'Trang chủ Hub: mã tốt nhất cạnh quả cầu, bảng dự đoán có 6 chấm agent, Studio và thiết bị (tắt: giao diện Jarvis Brief cũ)' },
   { group: 'jarvis', key: 'briefHome', en: 'Jarvis Brief as the home page (off: open the Trading desk first)', vi: 'Jarvis Brief là trang chủ (tắt: mở Bàn giao dịch trước)' },

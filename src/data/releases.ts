@@ -2,7 +2,7 @@
  * Version and "What's new". Bump APP_VERSION and add an entry to the top of RELEASES
  * with each update. The banner shows once per version, then stays dismissed.
  */
-export const APP_VERSION = '1.25.1'
+export const APP_VERSION = '1.27.1'
 
 export interface Release {
   version: string
@@ -13,6 +13,44 @@ export interface Release {
 }
 
 export const RELEASES: Release[] = [
+  {
+    version: '1.27.1',
+    date: '2026-10-18',
+    changes: [
+      'New: Jarvis Dev, a way to fix and upgrade Jarvis on your own PC with no internet, even when Claude is out of quota. Open jarvis.bat and pick from a simple menu: run the app, fix with the local AI (Aider + Ollama qwen3-coder), check, save. Changes are saved on their own branch, never straight to main. Guide: tools/jarvis-dev/README.md.',
+      'New: AGENTS.md, the project rules every AI follows (paper trading only, What\'s new in English and Vietnamese, every feature has an off switch).',
+    ],
+    changesVi: [
+      'Mới: Jarvis Dev, cách sửa và nâng cấp Jarvis ngay trên máy anh, không cần mạng, kể cả khi Claude hết lượt. Mở jarvis.bat rồi chọn trong bảng: mở app, sửa bằng AI trên máy (Aider + Ollama qwen3-coder), kiểm tra, lưu. Thay đổi lưu vào nhánh riêng, không bao giờ vào thẳng main. Hướng dẫn: tools/jarvis-dev/README.md.',
+      'Mới: AGENTS.md, bộ luật dự án mà AI nào cũng làm theo (chỉ paper trading, What\'s new tiếng Anh và tiếng Việt, tính năng nào cũng có nút tắt).',
+    ],
+  },
+  {
+    version: '1.27.0',
+    date: '2026-10-18',
+    changes: [
+      'New: flash an ESP32 board for RuView straight from the browser. On a computer with Chrome or Edge, open RuView > Add a node, plug the board in by USB and press "Flash from this browser". Jarvis reads the chip (ESP32-S3 or C6), picks the right pinned RuView file, checks it, then writes it. No Python or command needed.',
+      'Boards without RuView firmware (the original ESP32, C3) are refused before anything is written. The command is still there under "Or use a command instead". Switch it off in Settings > AI rules (on by default). Not yet tested on your real boards.',
+    ],
+    changesVi: [
+      'Mới: nạp firmware RuView cho board ESP32 ngay trên trình duyệt. Trên máy tính có Chrome hoặc Edge, mở RuView > Thêm node, cắm board bằng USB rồi bấm "Nạp ngay trên trình duyệt này". Jarvis đọc chip (ESP32-S3 hoặc C6), chọn đúng file RuView đã ghim, kiểm tra, rồi ghi. Không cần Python hay gõ lệnh.',
+      'Board không có firmware RuView (ESP32 đời cũ, C3) sẽ bị từ chối trước khi ghi. Lệnh cũ vẫn còn ở mục "Hoặc dùng lệnh". Tắt trong Cài đặt > Quy tắc AI (bật sẵn). Chưa thử trên board thật của anh.',
+    ],
+  },
+  {
+    version: '1.26.0',
+    date: '2026-10-17',
+    changes: [
+      'New: Jarvis Android app. It opens this same site and adds Wi-Fi scanning on the phone: at any of your shops or houses, join its Wi-Fi and open "Home network" to see devices, Wi-Fi channels, ping, open ports and Wake-on-LAN. Install guide: android/HUONG-DAN.md.',
+      'Each Wi-Fi keeps its own device list on the phone (names, trusted, "new device" flags), so every shop and house is tracked separately.',
+      'Android limits: most device makers are hidden (Android 10+), and Location must be on to read Wi-Fi names. Your own Wi-Fi only. Switch it off in Settings > AI rules (on by default).',
+    ],
+    changesVi: [
+      'Mới: app Jarvis cho Android. App mở đúng trang này và thêm quét Wi-Fi trên điện thoại: tới tiệm hay nhà nào của anh, vào Wi-Fi đó, mở "Mạng nhà" để xem thiết bị, kênh Wi-Fi, ping, cổng mở và đánh thức máy. Hướng dẫn cài: android/HUONG-DAN.md.',
+      'Mỗi Wi-Fi có danh sách thiết bị riêng trên điện thoại (tên, tin cậy, báo thiết bị mới), nên tiệm và nhà nào cũng được theo dõi riêng.',
+      'Giới hạn của Android: đa số thiết bị không hiện hãng (Android 10 trở lên), và phải bật Vị trí để đọc tên Wi-Fi. Chỉ Wi-Fi của anh. Tắt trong Cài đặt > Quy tắc AI (bật sẵn).',
+    ],
+  },
   {
     version: '1.25.1',
     date: '2026-10-17',
