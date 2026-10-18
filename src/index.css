@@ -1352,6 +1352,8 @@ body:has(.jfab) .toasts, body:has(.jfab) .jarvis-alert { bottom: 84px; }
 .rv-cmd code { flex: 1; min-width: 0; font: 12px var(--mono); color: #cde3ff; overflow-x: auto; white-space: nowrap; scrollbar-width: thin; }
 .rv-cmd .btn, .rv-page .bf-card > header .btn, .rv-wiz .btn { padding: 5px 12px; border-radius: 999px; border: 1px solid var(--line-2); font-size: 12px; text-decoration: none; }
 .rv-wiz .btn.prime, .net-setup .rv-cmd + .btn { justify-self: start; }
+.rv-alt { display: grid; gap: 8px; }
+.rv-alt > summary { cursor: pointer; color: var(--muted, #8a97a8); }
 .rv-wiz .btn.prime { padding: 8px 16px; background: var(--robot); color: #04111c; font-weight: 600; border: 0; }
 .rv-wiz .btn:disabled { opacity: 0.6; }
 .rv-wiz h4 { margin: 6px 0 0; font-size: 13px; font-weight: 600; color: #dce6f5; }

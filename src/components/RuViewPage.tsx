@@ -40,13 +40,14 @@ function CopyLine({ text }: { text: string }) {
 }
 
 /** Step-by-step "add a node": pick board, flash the pinned firmware, then set Wi-Fi and node number over USB. */
-function AddNode({ reg, me, onSaved, onClose }: { reg: RegistryNode[]; me: string[]; onSaved: (n: RegistryNode) => Promise<void>; onClose: () => void }) {
+function AddNode({ reg, me, webFlash, onSaved, onClose }: { reg: RegistryNode[]; me: string[]; webFlash: boolean; onSaved: (n: RegistryNode) => Promise<void>; onClose: () => void }) {
   const t = useRuviewT()
   const [board, setBoard] = useState<BoardId>('s3-8mb')
   const [hello, setHello] = useState<Hello | null>(null)
   const [link, setLink] = useState<NodeLink | null>(null)
   const [msg, setMsg] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
+  const [flashMsg, setFlashMsg] = useState<string | null>(null)
   const [form, setForm] = useState({ room: '', id: nextNodeId(reg), ssid: '', password: '', pc: me[0] ?? '', port: CSI_PORT, antenna: 'internal' as 'internal' | 'external' })
   const b = boardOf(board) ?? BOARDS[0]
   const cmd = flashCommand(b)
@@ -75,6 +76,39 @@ function AddNode({ reg, me, onSaved, onClose }: { reg: RegistryNode[]; me: strin
       setMsg(t('found', { chip: h.chip, ver: h.version, id: h.nodeId || '—' }))
     } catch (e) {
       if (e instanceof Error && e.name !== 'NotFoundError') setMsg(t('error', { msg: e.message }))
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  const flash = async () => {
+    setFlashMsg(null)
+    setBusy(true)
+    // the board is busy flashing; a setup link from before would be stale
+    await link?.close()
+    setLink(null)
+    setHello(null)
+    try {
+      const { flashBoard } = await import('../lib/webFlashRun')
+      const done = await flashBoard(board, {
+        step: (s, info = {}) => {
+          if (s === 'connect') setFlashMsg(t('flConnect'))
+          if (s === 'download') setFlashMsg(t('flDownload', info))
+          if (s === 'check') setFlashMsg(t('flCheck'))
+          if (s === 'write') setFlashMsg(t('flWrite', { pct: 0 }))
+          if (s === 'done') setFlashMsg(t('flDone', { board: String(info.board ?? ''), ver: RUVIEW.firmware }))
+        },
+        progress: (pct) => setFlashMsg(t('flWrite', { pct })),
+        log: () => {},
+      })
+      setBoard(done)
+    } catch (e) {
+      const err = e as Error & { code?: string }
+      if (err.name === 'NotFoundError') setFlashMsg(null)
+      else if (err.code === 'chip') setFlashMsg(t('flChip', { chip: err.message }))
+      else if (err.code === 'sum' || err.code === 'inner' || err.code === 'missing') setFlashMsg(t('flSum'))
+      else if (err.code === 'download') setFlashMsg(t('flDownloadErr', { msg: err.message }))
+      else setFlashMsg(`${t('flFail', { msg: err.message })} ${t('webFlashBoot')}`)
     } finally {
       setBusy(false)
     }
@@ -128,12 +162,24 @@ function AddNode({ reg, me, onSaved, onClose }: { reg: RegistryNode[]; me: strin
       <p className="rv-warn small">{t('hwcheck')}</p>
 
       <h4>{t('wiz2', { ver: RUVIEW.release })}</h4>
-      <p className="small">{t('wiz2Note', { file: b.bundle ?? '' })}</p>
-      {cmd && <CopyLine text={cmd} />}
-      <div className="bf-acts">
-        <a className="btn" href={RUVIEW_RELEASE_URL} target="_blank" rel="noreferrer noopener">{t('openRelease')}</a>
-      </div>
-      <p className="small muted">{t('noWebFlash')}</p>
+      {webFlash && serialApi() ? (
+        <>
+          <p className="small">{t('webFlashNote')}</p>
+          <button className="btn prime" disabled={busy} onClick={() => void flash()}>{t('webFlashBtn')}</button>
+          <p className="small muted">{t('webFlashBoot')}</p>
+          {flashMsg && <p className="net-note" role="status">{flashMsg}</p>}
+        </>
+      ) : (
+        <p className="small muted">{t('noWebFlash')}</p>
+      )}
+      <details className="rv-alt" open={!(webFlash && serialApi())}>
+        <summary className="small">{t('orCommand')}</summary>
+        <p className="small">{t('wiz2Note', { file: b.bundle ?? '' })}</p>
+        {cmd && <CopyLine text={cmd} />}
+        <div className="bf-acts">
+          <a className="btn" href={RUVIEW_RELEASE_URL} target="_blank" rel="noreferrer noopener">{t('openRelease')}</a>
+        </div>
+      </details>
 
       <h4>{t('wiz3')}</h4>
       {serialApi() ? (
@@ -176,7 +222,7 @@ function AddNode({ reg, me, onSaved, onClose }: { reg: RegistryNode[]; me: strin
 }
 
 /** RuView sensing (github.com/ruvnet/ruview) on the home PC, read through the home agent. */
-export function RuViewPage({ onBack }: { onBack: () => void }) {
+export function RuViewPage({ onBack, webFlash = true }: { onBack: () => void; webFlash?: boolean }) {
   const t = useRuviewT()
   const [off, setOff] = useState<Offline | null>(null)
   const [status, setStatus] = useState<Status | null>(null)
@@ -375,7 +421,7 @@ export function RuViewPage({ onBack }: { onBack: () => void }) {
           ))}
         </section>
 
-        {adding && <AddNode reg={reg} me={me} onSaved={saveNode} onClose={() => setAdding(false)} />}
+        {adding && <AddNode reg={reg} me={me} webFlash={webFlash} onSaved={saveNode} onClose={() => setAdding(false)} />}
 
         <section className="bf-card rv-conns">
           <header><h3>{t('conns')}</h3></header>

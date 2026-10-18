@@ -644,7 +644,7 @@ export default function App() {
         </PanelGuard>
       ) : shownPage === 'ruview' ? (
         <PanelGuard name="RuView">
-          <RuViewPage onBack={() => setPage(briefOn ? 'brief' : 'trade')} />
+          <RuViewPage onBack={() => setPage(briefOn ? 'brief' : 'trade')} webFlash={aiRules.webFlash} />
         </PanelGuard>
       ) : shownPage === 'trade' ? (
         <>

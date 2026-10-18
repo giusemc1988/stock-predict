@@ -8,6 +8,7 @@ import { askBrain, brainStatus, cleanAsk, type BrainEnv } from './lib/brainServe
 import { practiceCycle, type WorkerEnv as PracticeEnv } from './worker/practiceCycle'
 import { cleanKey, isSlot, keySources, sameOrigin, storeKey, testProvider, withSavedKeys, type KeyStore } from './lib/brainKeys'
 import type { PracticeState } from './lib/practice'
+import { upstreamAsset } from './lib/webFlash'
 
 interface Env extends BrainEnv, PracticeEnv {
   ASSETS: { fetch: (r: Request) => Promise<Response> }
@@ -480,6 +481,15 @@ export default {
       } catch (e) {
         return fallback(e instanceof Error ? e.message : String(e))
       }
+    }
+    if (pathname.startsWith('/api/firmware/')) {
+      // RuView firmware for the browser flasher: only the pinned release's bundles (GitHub downloads have no CORS)
+      if (req.method !== 'GET') return json({ error: 'GET only' }, 405)
+      const src = upstreamAsset(pathname.slice('/api/firmware/'.length))
+      if (!src) return json({ error: 'not found' }, 404)
+      const r = await fetch(src, { redirect: 'follow' })
+      if (!r.ok) return json({ error: `upstream ${r.status}` }, 502)
+      return new Response(r.body, { headers: { 'content-type': 'application/octet-stream', 'cache-control': 'private, max-age=86400' } })
     }
     if (pathname.startsWith('/api/news/')) {
       if (req.method !== 'GET') return json({ error: 'GET only' }, 405)

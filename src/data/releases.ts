@@ -2,7 +2,7 @@
  * Version and "What's new". Bump APP_VERSION and add an entry to the top of RELEASES
  * with each update. The banner shows once per version, then stays dismissed.
  */
-export const APP_VERSION = '1.26.0'
+export const APP_VERSION = '1.27.0'
 
 export interface Release {
   version: string
@@ -13,6 +13,18 @@ export interface Release {
 }
 
 export const RELEASES: Release[] = [
+  {
+    version: '1.27.0',
+    date: '2026-10-18',
+    changes: [
+      'New: flash an ESP32 board for RuView straight from the browser. On a computer with Chrome or Edge, open RuView > Add a node, plug the board in by USB and press "Flash from this browser". Jarvis reads the chip (ESP32-S3 or C6), picks the right pinned RuView file, checks it, then writes it. No Python or command needed.',
+      'Boards without RuView firmware (the original ESP32, C3) are refused before anything is written. The command is still there under "Or use a command instead". Switch it off in Settings > AI rules (on by default). Not yet tested on your real boards.',
+    ],
+    changesVi: [
+      'Mới: nạp firmware RuView cho board ESP32 ngay trên trình duyệt. Trên máy tính có Chrome hoặc Edge, mở RuView > Thêm node, cắm board bằng USB rồi bấm "Nạp ngay trên trình duyệt này". Jarvis đọc chip (ESP32-S3 hoặc C6), chọn đúng file RuView đã ghim, kiểm tra, rồi ghi. Không cần Python hay gõ lệnh.',
+      'Board không có firmware RuView (ESP32 đời cũ, C3) sẽ bị từ chối trước khi ghi. Lệnh cũ vẫn còn ở mục "Hoặc dùng lệnh". Tắt trong Cài đặt > Quy tắc AI (bật sẵn). Chưa thử trên board thật của anh.',
+    ],
+  },
   {
     version: '1.26.0',
     date: '2026-10-17',
