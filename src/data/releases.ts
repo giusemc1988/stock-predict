@@ -2,7 +2,7 @@
  * Version and "What's new". Bump APP_VERSION and add an entry to the top of RELEASES
  * with each update. The banner shows once per version, then stays dismissed.
  */
-export const APP_VERSION = '1.36.0'
+export const APP_VERSION = '1.37.0'
 
 export interface Release {
   version: string
@@ -14,10 +14,24 @@ export interface Release {
 
 export const RELEASES: Release[] = [
   {
+    version: '1.37.0',
+    date: '2026-10-22',
+    changes: ["Argus now runs on your own Cloudflare as the argus Worker, built from the original God's Eye View repo at a pinned commit, with no keys and no debug routes (the old link was someone else's site). Satellites (orbits refreshed every 2 hours) and earthquakes work. Live aircraft come from free feeds (adsb.lol, adsb.fi, OpenSky) that often refuse Cloudflare's servers; when they do, the layer says which feed refused."],
+    changesVi: ["Argus giờ chạy trên Cloudflare của anh thành Worker argus, build từ repo God's Eye View gốc ở commit đã ghim, không key, không đường debug (link cũ là trang của người khác). Vệ tinh (quỹ đạo cập nhật mỗi 2 giờ) và động đất chạy được. Máy bay trực tiếp lấy từ nguồn miễn phí (adsb.lol, adsb.fi, OpenSky) hay từ chối máy chủ Cloudflare; khi đó lớp này ghi rõ nguồn nào từ chối."],
+  },
+  {
     version: '1.36.0',
     date: '2026-10-22',
-    changes: ["Argus now runs on your own Cloudflare as the argus Worker, built from the original God's Eye View repo at a pinned commit: civil flights (OpenSky, with adsb.lol near your view as backup), military aircraft, satellites (CelesTrak) and earthquakes, no keys and no debug routes. The old link was someone else's site."],
-    changesVi: ["Argus giờ chạy trên Cloudflare của anh thành Worker argus, build từ repo God's Eye View gốc ở commit đã ghim: chuyến bay dân sự (OpenSky, dự phòng adsb.lol quanh vùng đang xem), máy bay quân sự, vệ tinh (CelesTrak) và động đất, không key, không đường debug. Link cũ là trang của người khác."],
+    changes: [
+      'Tabs feel smoother: the highlight slides to the tab you pick (top menu, chart timeframes, the right-panel tabs, Practice sub-tabs, language and other switches) instead of jumping.',
+      'Cards on the Hub lift a little with a soft shadow when you hover them, and buttons and tabs press in slightly when you click.',
+      'Off with "reduce motion" on your device or Settings > AI rules > Dashboard cards and motion (tabs and cards look exactly as before).',
+    ],
+    changesVi: [
+      'Tab mượt hơn: ô sáng trượt sang tab bạn chọn (menu trên cùng, khung thời gian biểu đồ, tab bảng phải, tab con Luyện tập, ngôn ngữ và các nút gạt khác) thay vì nhảy.',
+      'Thẻ trên Hub nhích lên một chút với bóng mờ khi rê chuột, và nút, tab hơi lún xuống khi bấm.',
+      'Tắt bằng "giảm chuyển động" trên thiết bị hoặc Cài đặt > Quy tắc AI > Thẻ và hiệu ứng dashboard (tab và thẻ trở lại y như cũ).',
+    ],
   },
   {
     version: '1.35.0',

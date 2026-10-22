@@ -62,6 +62,7 @@ import { logRobot } from './lib/audit'
 import { stampData, staleReason } from './lib/dataGuard'
 import { Toasts, type Toast } from './components/Toasts'
 import { PanelGuard } from './components/PanelGuard'
+import { startSlidePills } from './lib/slidePill'
 
 const NO_CANDLES: Candle[] = []
 
@@ -183,6 +184,8 @@ export default function App() {
   // Settings > AI rules > Dashboard cards and motion: one class on <html> turns the entrance motion on (index.css, .dm)
   useEffect(() => {
     document.documentElement.classList.toggle('dm', aiRules.dashMotion)
+    // tab bars get a highlight that slides to the chosen tab
+    return aiRules.dashMotion ? startSlidePills() : undefined
   }, [aiRules.dashMotion])
 
   // Call Jarvis router when a bar closes
