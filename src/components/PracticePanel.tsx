@@ -49,7 +49,7 @@ function Curve({ points }: { points: { t: number; equity: number }[] }) {
   return (
     <svg className="pr-curve" viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none" role="img" aria-label="equity curve">
       <line x1="0" x2={W} y1={y(PRACTICE_START)} y2={y(PRACTICE_START)} className="pr-base" />
-      <path d={d} className={up ? 'up' : 'down'} />
+      <path pathLength={1} d={d} className={up ? 'up' : 'down'} />
     </svg>
   )
 }

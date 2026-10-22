@@ -14,7 +14,7 @@ interface Props {
   onPage: (p: HubPage) => void
 }
 
-const ICON: Record<ClusterId, IconName> = { trading: 'trend', world: 'radar', esp32: 'chip', network: 'wifi', build: 'code', studio: 'film' }
+const ICON: Record<ClusterId, IconName> = { trading: 'trend', world: 'globe', esp32: 'chip', network: 'wifi', build: 'code', studio: 'film' }
 // where a group's card goes: its main page, or the Tool Hub for groups made of links
 const OPENS: Partial<Record<ClusterId, HubPage>> = { world: 'godseye', esp32: 'ruview-flash', network: 'net', studio: 'studio' }
 
