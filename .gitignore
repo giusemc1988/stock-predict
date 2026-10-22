@@ -33,3 +33,4 @@ dist-ssr
 .dev.vars
 .wrangler
 .agent
+argus/dist

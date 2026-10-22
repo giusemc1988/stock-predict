@@ -1,0 +1,66 @@
+# Argus (God's Eye View): builds the upstream gods-eye-view app at the commit pinned in
+# argus/upstream.json and deploys it with argus/worker.ts as the "argus" Worker.
+# The upstream install/build runs in a job WITHOUT secrets; only the static output
+# reaches the deploy job, which holds the Cloudflare token.
+name: Deploy Argus
+
+on:
+  push:
+    branches: [main]
+    paths: ['argus/**', '.github/workflows/argus.yml']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: argus/upstream.json
+          sparse-checkout-cone-mode: false
+      - id: pin
+        run: |
+          echo "repo=$(jq -r .repo argus/upstream.json)" >> "$GITHUB_OUTPUT"
+          echo "commit=$(jq -r .commit argus/upstream.json)" >> "$GITHUB_OUTPUT"
+      - run: |
+          git init upstream
+          cd upstream
+          git remote add origin "${{ steps.pin.outputs.repo }}"
+          git fetch --depth 1 origin "${{ steps.pin.outputs.commit }}"
+          git checkout --quiet FETCH_HEAD
+          # production must not ship debug routes
+          rm -rf functions/api/debug
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - working-directory: upstream
+        run: |
+          npm ci --no-audit --no-fund
+          npx vite build
+      - uses: actions/upload-artifact@v4
+        with:
+          name: argus-dist
+          path: upstream/dist
+          retention-days: 3
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: argus-dist
+          path: argus/dist
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - working-directory: argus
+        run: |
+          cp _headers dist/_headers
+          npx -y wrangler@4 deploy
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}

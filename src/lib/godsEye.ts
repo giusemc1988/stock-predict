@@ -1,11 +1,11 @@
 /**
- * God's Eye View: anh's live 3D globe (fork of bilawalsidhu/gods-eye-view, MIT) runs on its own
- * Cloudflare Pages site. The Hub embeds it and checks each data layer from our Worker, so a dead
- * layer shows a clear reason instead of an empty globe.
+ * Argus (God's Eye View): the bilawalsidhu/gods-eye-view globe (MIT), built at a pinned commit and
+ * served by our own "argus" Worker (argus/ in this repo, deployed by .github/workflows/argus.yml).
+ * The Hub embeds it and checks each data layer from our Worker, so a dead layer says why.
  */
 import type { Bi } from './hubText'
 
-export const GODS_EYE_URL = 'https://gods-eye-view-9xw.pages.dev'
+export const GODS_EYE_URL = 'https://argus.chanhmn1011.workers.dev'
 export const GODS_EYE_REPO = 'https://github.com/bilawalsidhu/gods-eye-view'
 
 export type LayerId = 'flights' | 'military' | 'satellites' | 'vessels' | 'quakes'
@@ -19,9 +19,9 @@ export interface Layer {
 }
 
 export const LAYERS: Layer[] = [
-  { id: 'flights', label: { en: 'Civil flights', vi: 'Chuyến bay dân sự' }, probe: '/api/flights' },
+  { id: 'flights', label: { en: 'Civil flights', vi: 'Chuyến bay dân sự' }, probe: '/api/flights?lat=40.7&lon=-74' },
   { id: 'military', label: { en: 'Military aircraft', vi: 'Máy bay quân sự' }, probe: '/api/military' },
-  { id: 'satellites', label: { en: 'Satellites', vi: 'Vệ tinh' }, probe: '/api/celestrak/active' },
+  { id: 'satellites', label: { en: 'Satellites', vi: 'Vệ tinh' }, probe: '/api/celestrak/stations' },
   { id: 'vessels', label: { en: 'Ships (AIS)', vi: 'Tàu biển (AIS)' }, probe: '/api/vessels' },
   { id: 'quakes', label: { en: 'Earthquakes', vi: 'Động đất' }, probe: 'https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_hour.geojson' },
 ]
@@ -75,7 +75,7 @@ export const GE_TEXT = {
   down: { en: 'Down', vi: 'Lỗi' },
   debug: { en: 'A debug route is public on the God\'s Eye site (/api/debug/overpass). Delete functions/api/debug/ in that Pages project before calling it production.', vi: 'Trang God\'s Eye còn để lộ đường debug (/api/debug/overpass). Xoá functions/api/debug/ trong dự án Pages đó trước khi coi là bản chính thức.' },
   failed: { en: 'Could not check the layers right now.', vi: 'Chưa kiểm tra được các lớp lúc này.' },
-  note: { en: 'The globe is anh\'s own deploy on Cloudflare Pages. Voice and ships need paid keys; add them in that site\'s settings when you decide.', vi: 'Quả địa cầu là bản deploy riêng của anh trên Cloudflare Pages. Giọng nói và tàu biển cần key trả phí; khi nào anh quyết thì thêm trong cài đặt của trang đó.' },
+  note: { en: 'Runs as the argus Worker on your own Cloudflare, built from the original repo at a pinned commit, with no keys and no debug routes. Ships need an AIS key and voice an OpenAI key; add them only if you decide to.', vi: 'Chạy thành Worker argus trên Cloudflare của anh, build từ repo gốc ở commit đã ghim, không key, không đường debug. Tàu biển cần key AIS, giọng nói cần key OpenAI; chỉ thêm khi anh quyết.' },
   source: { en: 'Source', vi: 'Mã nguồn' },
   load: { en: 'Load the globe (heavy on phone data)', vi: 'Tải quả địa cầu (tốn dữ liệu di động)' },
 } satisfies Record<string, Bi>
