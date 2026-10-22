@@ -18,6 +18,63 @@ const clamp = (x: number, lo = -1, hi = 1) => Math.max(lo, Math.min(hi, x))
 const stanceOf = (v: number, dead = 0.15): AnalystCheck['stance'] => (v > dead ? 'bull' : v < -dead ? 'bear' : 'neutral')
 const pct = (x: number) => `${Math.round(x * 100)}%`
 
+/**
+ * Hard risk gate: reject signal if setup violates key rules
+ * - RR >= 1.5: risk reward ratio at least 1.5
+ * - ATR <= 8%: volatility not extreme
+ * - WR >= 50%: backtest shows edge on unseen data
+ */
+interface RiskGate {
+  minRiskReward: number
+  maxATRPercent: number
+  minWinRate: number
+}
+
+const DEFAULT_RISK_GATE: RiskGate = {
+  minRiskReward: 1.5,
+  maxATRPercent: 8,
+  minWinRate: 0.5,
+}
+
+function checkRiskGate(
+  plan: { entry: number; stop: number; target: number } | null,
+  atr: number,
+  winRate: number,
+  gate: RiskGate = DEFAULT_RISK_GATE,
+): { passed: boolean; reason?: string } {
+  if (!plan) return { passed: true } // no plan = no trade
+
+  // 1. Check risk/reward ratio
+  const r = Math.abs(plan.entry - plan.stop)
+  const targetDist = Math.abs(plan.target - plan.entry)
+  const rr = r > 0 ? targetDist / r : 0
+  if (rr < gate.minRiskReward) {
+    return {
+      passed: false,
+      reason: `RR ${rr.toFixed(2)} < ${gate.minRiskReward} (risk is too high for target)`,
+    }
+  }
+
+  // 2. Check ATR percentage
+  const atrPercent = (atr / plan.entry) * 100
+  if (atrPercent > gate.maxATRPercent) {
+    return {
+      passed: false,
+      reason: `ATR ${atrPercent.toFixed(1)}% > ${gate.maxATRPercent}% (volatility too extreme)`,
+    }
+  }
+
+  // 3. Check win rate from backtest
+  if (winRate < gate.minWinRate) {
+    return {
+      passed: false,
+      reason: `WR ${pct(winRate)} < ${pct(gate.minWinRate)} (no proven edge on this chart)`,
+    }
+  }
+
+  return { passed: true }
+}
+
 export function analyze(candles: Candle[], strat: StrategyResult, live: Prediction | null, flow: OrderFlow, rules: AiRules = getAiRules()): Analysis | null {
   if (candles.length < 60 || !live) return null
   const close = candles.map((c) => c.close)
@@ -106,7 +163,7 @@ export function analyze(candles: Candle[], strat: StrategyResult, live: Predicti
   const wsum = checks.reduce((a, c) => a + c.weight, 0)
   const score = checks.reduce((a, c) => a + c.score * c.weight, 0) / wsum
   const th = rules.verdictThreshold / 100
-  const verdict: Verdict = score > th ? 'BUY' : score < -th ? 'SELL' : 'HOLD'
+  let verdict: Verdict = score > th ? 'BUY' : score < -th ? 'SELL' : 'HOLD'
 
   // Discount by real track record on this chart.
   const acc = strat.stats.modelAccuracy
@@ -115,19 +172,31 @@ export function analyze(candles: Candle[], strat: StrategyResult, live: Predicti
   const confidence = Math.min(acc < 0.55 ? 0.5 : 0.85, Math.abs(score) * (0.35 + 0.65 * reliability) * (0.6 + 0.4 * agree) * 1.6)
   const confidenceLabel = confidence < 0.3 ? 'Low' : confidence < 0.55 ? 'Medium' : 'High'
 
+  // Get exit plan and apply hard risk gate before generating headline
+  const xp = verdict === 'HOLD' ? null : exitPlan(candles, verdict, atr)
+  const plan = xp ? { entry: xp.entry, stop: xp.stop, target: xp.target, riskReward: 2 } : null
+
+  let gateRejection: string | null = null
+  if (plan && verdict !== 'HOLD') {
+    const gateCheck = checkRiskGate(plan, atr, strat.stats.winRate)
+    if (!gateCheck.passed) {
+      gateRejection = gateCheck.reason || 'Risk gate failed'
+      // Gate failed: kill the signal
+      verdict = 'HOLD'
+    }
+  }
+
   const bulls = checks.filter((c) => c.stance === 'bull').map(name)
   const bears = checks.filter((c) => c.stance === 'bear').map(name)
-  const headline =
-    verdict === 'BUY'
+  const headline = gateRejection
+    ? `Signals point ${score > 0 ? 'up' : score < 0 ? 'down' : 'nowhere'}, but setup fails risk gate: ${gateRejection}`
+    : verdict === 'BUY'
       ? `Leaning buy: ${listify(bulls)} point${bulls.length === 1 ? 's' : ''} up${bears.length ? `, though ${listify(bears)} disagree${bears.length === 1 ? 's' : ''}` : ''}.`
       : verdict === 'SELL'
         ? `Leaning sell: ${listify(bears)} point${bears.length === 1 ? 's' : ''} down${bulls.length ? `, though ${listify(bulls)} disagree${bulls.length === 1 ? 's' : ''}` : ''}.`
         : bulls.length || bears.length
           ? `Wait: the signals conflict (${bulls.length} bullish, ${bears.length} bearish). No clear edge right now.`
           : 'Wait: nothing stands out. No clear edge right now.'
-
-  const xp = verdict === 'HOLD' ? null : exitPlan(candles, verdict, atr)
-  const plan = xp ? { entry: xp.entry, stop: xp.stop, target: xp.target, riskReward: 2 } : null
 
   // Buy-and-hold check: if simply holding did better, the model shows no edge on this chart.
   const beatenByHold = strat.stats.trades > 0 && strat.stats.totalReturnPct < strat.stats.buyHoldPct
