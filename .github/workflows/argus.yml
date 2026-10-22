@@ -6,7 +6,7 @@ name: Deploy Argus
 
 on:
   push:
-    branches: [main, claude/project-thread-l44y2p]
+    branches: [main]
     paths: ['argus/**', '.github/workflows/argus.yml']
   workflow_dispatch:
 
