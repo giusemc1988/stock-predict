@@ -38,7 +38,7 @@ async function cached(name: string, ttl: number, load: () => Promise<Response>):
     return reply(h)
   }
   if (hit && Date.now() - hit.at < 86_400_000) return reply(hit, { 'x-cache': 'STALE' })
-  return json({ error: `${name} unavailable`, detail: r ? `Upstream HTTP ${r.status}` : 'Upstream timeout' }, 502)
+  return json({ error: `${name} unavailable`, detail: r ? `Upstream HTTP ${r.status}${r.statusText ? ` (${r.statusText})` : ''}` : 'Upstream timeout' }, 502)
 }
 
 const get = (url: string, ms = 12000) => fetch(url, { headers: { accept: 'application/json', 'user-agent': UA }, signal: AbortSignal.timeout(ms) })
@@ -48,6 +48,7 @@ const get = (url: string, ms = 12000) => fetch(url, { headers: { accept: 'applic
  * global snapshot (it often refuses cloud servers, so it is only the second choice).
  */
 async function flights(url: URL): Promise<Response> {
+  let nearWhy = ''
   const lat = Number(url.searchParams.get('lat'))
   const lon = Number(url.searchParams.get('lon'))
   if (url.searchParams.has('lat') && Number.isFinite(lat) && Number.isFinite(lon) && Math.abs(lat) <= 90 && Math.abs(lon) <= 180) {
@@ -55,21 +56,24 @@ async function flights(url: URL): Promise<Response> {
     const ro = Math.round(lon * 4) / 4
     // adsb.lol first, adsb.fi when it refuses (both free, no key, same readsb format)
     const near = await cached(`near/${rl},${ro}`, 15, async () => {
+      const why: string[] = []
       for (const [src, u] of [['adsb.lol', `https://api.adsb.lol/v2/lat/${rl}/lon/${ro}/dist/250`], ['adsb.fi', `https://opendata.adsb.fi/api/v2/lat/${rl}/lon/${ro}/dist/250`]]) {
-        const r = await get(u, 6000).catch(() => null)
+        const r = await get(u, 6000).catch((e: Error) => (why.push(`${src} ${e.name}`), null))
+        if (r && !r.ok) why.push(`${src} HTTP ${r.status}`)
         if (!r?.ok) continue
         const body = toOpenSky((await r.json()) as Parameters<typeof toOpenSky>[0])
         return new Response(JSON.stringify(body), { headers: { 'content-type': 'application/json', 'x-flight-source': src, 'x-flight-coverage': '250nm around the view', 'x-flight-count': String(body.states.length) } })
       }
-      return new Response('', { status: 502 })
+      return new Response('', { status: 502, statusText: why.join(', ') })
     })
     if (near.ok) return near
+    nearWhy = ((await near.json().catch(() => ({}))) as { detail?: string }).detail ?? ''
   }
   const open = await cached('opensky', 30, async () => {
     const r = await get('https://opensky-network.org/api/states/all?extended=1', 8000)
     return r.ok ? new Response(r.body, { headers: { 'content-type': 'application/json', 'x-flight-source': 'OpenSky Network', 'x-flight-coverage': 'global' } }) : r
   })
-  return open.ok ? open : json({ error: 'Flights unavailable', detail: 'adsb.lol, adsb.fi and OpenSky all refused' }, 502)
+  return open.ok ? open : json({ error: 'Flights unavailable', detail: `adsb.lol, adsb.fi and OpenSky all refused. ${nearWhy}`.trim() }, 502)
 }
 
 export default {
