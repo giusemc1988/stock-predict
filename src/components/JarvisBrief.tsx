@@ -27,6 +27,7 @@ import { hubText } from '../lib/hubText'
 import { useNews } from '../hooks/useNews'
 import { HubProjects } from './HubProjects'
 import { StatRow } from './StatCard'
+import { SkRows } from './Skeleton'
 
 interface Props {
   rules: AiRules
@@ -124,6 +125,8 @@ export function JarvisBrief(p: Props) {
   const acctChange = (practiceEquity(p.practice) / PRACTICE_START - 1) * 100
   const lossUsed = p.lossLimitOn && p.lossLimit > 0 ? Math.round((Math.max(0, -p.dayPL) / p.lossLimit) * 100) : null
   const learnCalls = learnIn.right + learnIn.wrong
+  // the first scan of the day has not finished: show the pick and board as grey placeholders
+  const scanLoading = dash && inputs.scan.on && p.scan.busy && !p.scan.at
   const briefBlock = (
         <div className="bf-brief">
           <div className="bf-status">
@@ -208,6 +211,7 @@ export function JarvisBrief(p: Props) {
             {vi ? "Nguồn" : "Source"}: {p.serverMode ? (vi ? "máy chủ luyện tập, quét mã biến động hôm nay" : "server practice scan of today's movers") : vi ? "quét luyện tập trong trình duyệt" : "practice scan in this browser"}
           </p>
           {!inputs.scan.on && <p className="warn">{vi ? 'Quét luyện tập đang tắt (Cài đặt > Quy tắc AI).' : 'The practice scan is off (Settings > AI rules).'}</p>}
+          {dash && inputs.scan.on && p.scan.busy && !p.scan.at && <SkRows rows={4} cols={4} />}
           {inputs.scan.on && !p.scan.at && <p className="muted">{p.scan.busy ? (vi ? 'Đang quét…' : 'Scanning…') : vi ? 'Chưa có lần quét nào.' : 'No scan yet.'}</p>}
           {p.scan.at && !buys.length && <p className="muted">{vi ? 'Lần quét gần nhất không có lệnh MUA nào đạt quy tắc.' : 'The last scan found no BUY call that passes the rules.'}</p>}
           {p.scan.noStockData && <p className="warn">{vi ? 'Chưa quét cổ phiếu: cần key Alpaca paper ở trang Danh mục.' : 'Stocks skipped: add an Alpaca paper key on the Portfolio page.'}</p>}
@@ -246,6 +250,12 @@ export function JarvisBrief(p: Props) {
           {moverTab === 'stock' && lists.stocksNeedKey && <p className="warn">{vi ? 'Cần key Alpaca paper ở trang Danh mục để có danh sách cổ phiếu trực tiếp.' : 'Add an Alpaca paper key on the Portfolio page for the live stock list.'}</p>}
           {moverTab === 'stock' && lists.stockError && <p className="warn">{lists.stockError}</p>}
           {moverTab === 'crypto' && lists.cryptoError && <p className="warn">{lists.cryptoError}</p>}
+          {dash && !moverRows && (lists.loading || !lists.updatedAt) && !(moverTab === 'stock' ? lists.stocksNeedKey || lists.stockError : lists.cryptoError) && (
+            <div className="bf-movers-2">
+              <SkRows rows={5} cols={2} />
+              <SkRows rows={5} cols={2} />
+            </div>
+          )}
           {moverRows && (
             <div className="bf-movers-2">
               <Movers title={vi ? 'Tăng mạnh nhất' : 'Top gainers'} rows={moverRows.gainers} onPick={openRow} />
@@ -321,16 +331,16 @@ export function JarvisBrief(p: Props) {
           {tools ? (
             // today's signal and the scoreboard side by side: "should I trust today's call?" in one glance
             <div className="hub-today">
-              <HubBestPick picks={buys} ctx={voteCtx} nodes={nodes} scanOn={inputs.scan.on} onOpen={openPick} onWhy={openSignalFlow} onDesk={p.onDesk} />
+              <HubBestPick loading={scanLoading} picks={buys} ctx={voteCtx} nodes={nodes} scanOn={inputs.scan.on} onOpen={openPick} onWhy={openSignalFlow} onDesk={p.onDesk} />
               {scoreCard}
             </div>
           ) : (
-            <HubBestPick picks={buys} ctx={voteCtx} nodes={nodes} scanOn={inputs.scan.on} onOpen={openPick} onWhy={openSignalFlow} onDesk={p.onDesk} />
+            <HubBestPick loading={scanLoading} picks={buys} ctx={voteCtx} nodes={nodes} scanOn={inputs.scan.on} onOpen={openPick} onWhy={openSignalFlow} onDesk={p.onDesk} />
           )}
         </section>
         <div className="hub-cols">
           <div className="hub-main">
-            <HubBoard picks={buys} ctx={voteCtx} nodes={nodes} onOpen={openPick} onWhy={openSignalFlow} />
+            <HubBoard loading={scanLoading} picks={buys} ctx={voteCtx} nodes={nodes} onOpen={openPick} onWhy={openSignalFlow} />
             {tools ? (
               <ToolHub
                 onPage={p.onTool!}

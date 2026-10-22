@@ -2,7 +2,7 @@
  * Version and "What's new". Bump APP_VERSION and add an entry to the top of RELEASES
  * with each update. The banner shows once per version, then stays dismissed.
  */
-export const APP_VERSION = '1.31.0'
+export const APP_VERSION = '1.32.0'
 
 export interface Release {
   version: string
@@ -13,6 +13,18 @@ export interface Release {
 }
 
 export const RELEASES: Release[] = [
+  {
+    version: '1.32.0',
+    date: '2026-10-22',
+    changes: [
+      'While data loads, you now see grey placeholders in the shape of the real layout instead of empty space: the price chart, the watchlist, Market movers, and the Hub\'s best pick and prediction board during the first scan.',
+      'Off with Settings > AI rules > Dashboard cards and motion (the shimmer stops with "reduce motion").',
+    ],
+    changesVi: [
+      'Khi đang tải dữ liệu, giờ có khung xám đúng hình bố cục thật thay vì chỗ trống: biểu đồ giá, danh sách theo dõi, Biến động thị trường, và mã tốt nhất cùng bảng dự đoán trên Hub trong lần quét đầu.',
+      'Tắt trong Cài đặt > Quy tắc AI > Thẻ và hiệu ứng dashboard (vệt sáng dừng khi máy bật "giảm chuyển động").',
+    ],
+  },
   {
     version: '1.31.0',
     date: '2026-10-22',
