@@ -10,6 +10,7 @@ import { useSyncExternalStore } from 'react'
 import { useLang, useT } from '../lib/i18n'
 import { useMarketLists } from '../hooks/useMarketLists'
 import { useAiRules } from '../lib/aiRules'
+import { SkRows } from './Skeleton'
 import type { AlpacaDataKeys, ApiKeys, MarketListRow } from '../data/providers'
 
 /** One market practice mode is trading, closed today, or watching. */
@@ -364,6 +365,7 @@ export function Watchlist({ aiActive, instruments, quotes, active, onSelect, onA
         </div>
       )}
       <div className="wl-list">
+        {marketWide && !marketRows.length && lists.loading && aiRules.dashMotion && <SkRows rows={8} className="sk-wl" />}
         {marketWide &&
           marketRows.map((r) => (
             <MarketRow
