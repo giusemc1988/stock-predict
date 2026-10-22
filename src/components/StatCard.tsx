@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react'
+import { CountUp } from './CountUp'
 
 /** Small line icons for stat cards (24 x 24, stroke = currentColor). */
 const ICONS = {
@@ -65,7 +66,7 @@ export function StatCard({ s }: { s: Stat }) {
         )}
         <span className="sc-label">{s.label}</span>
       </div>
-      <b className={`sc-value mono ${s.tone ?? ''}`}>{s.value}</b>
+      <b className={`sc-value mono ${s.tone ?? ''}`}>{typeof s.value === 'string' ? <CountUp text={s.value} /> : s.value}</b>
       {(s.chip || s.sub) && (
         <div className="sc-foot">
           {s.chip && (
