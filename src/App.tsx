@@ -178,6 +178,11 @@ export default function App() {
   // The live prediction/forecast updates with every tick.
   const live = useMemo(() => (candles.length > 40 ? runStrategy(candles).prediction : null), [candles])
 
+  // Settings > AI rules > Dashboard cards and motion: one class on <html> turns the entrance motion on (index.css, .dm)
+  useEffect(() => {
+    document.documentElement.classList.toggle('dm', aiRules.dashMotion)
+  }, [aiRules.dashMotion])
+
   // Call Jarvis router when a bar closes
   useEffect(() => {
     if (candles.length > 1) {

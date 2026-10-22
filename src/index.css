@@ -1444,3 +1444,30 @@ body:has(.jfab) .toasts, body:has(.jfab) .jarvis-alert { bottom: 84px; }
   .sc-value { font-size: 18px; }
   .pf-sc { width: 100%; }
 }
+
+/* Staggered entrance (html.dm = Dashboard cards and motion on): blocks fade in and rise 20px one after another when a page or tab opens.
+   Only opacity and transform; the end state is transform: none, so nothing keeps a stacking context. */
+@keyframes dm-rise { from { opacity: 0; transform: translate3d(0, 20px, 0); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: no-preference) {
+.dm .sc-projects > *,
+.dm .brief-page > :is(.hub-head, .bf-hero),
+.dm .hub-hero > *,
+.dm :is(.hub-main, .hub-side, .bf-grid, .pf-main, .net-grid) > *,
+.dm .portfolio > .pf-hero,
+.dm .right-body > * > :is(div, section, p, ul) {
+  animation: dm-rise 0.55s cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation-delay: calc(var(--dm-base, 0s) + var(--dm-i, 0) * 70ms);
+}
+.dm :is(.sc-projects, .hub-hero, .hub-main, .hub-side, .bf-grid, .pf-main, .net-grid, .right-body > *) > :nth-child(2) { --dm-i: 1; }
+.dm :is(.sc-projects, .hub-hero, .hub-main, .hub-side, .bf-grid, .pf-main, .net-grid, .right-body > *) > :nth-child(3) { --dm-i: 2; }
+.dm :is(.sc-projects, .hub-hero, .hub-main, .hub-side, .bf-grid, .pf-main, .net-grid, .right-body > *) > :nth-child(4) { --dm-i: 3; }
+.dm :is(.sc-projects, .hub-hero, .hub-main, .hub-side, .bf-grid, .pf-main, .net-grid, .right-body > *) > :nth-child(5) { --dm-i: 4; }
+.dm :is(.sc-projects, .hub-hero, .hub-main, .hub-side, .bf-grid, .pf-main, .net-grid, .right-body > *) > :nth-child(6) { --dm-i: 5; }
+.dm :is(.sc-projects, .hub-hero, .hub-main, .hub-side, .bf-grid, .pf-main, .net-grid, .right-body > *) > :nth-child(n + 7) { --dm-i: 6; }
+/* order on the Hub: projects, then the sphere and today's pick, then the columns */
+.dm .brief-page > .bf-hero, .dm .hub-hero { --dm-base: 0.12s; }
+.dm .hub-hero > * { --dm-base: 0.2s; }
+.dm .hub-main > *, .dm .bf-grid > *, .dm .pf-main > * { --dm-base: 0.32s; }
+.dm .hub-side > * { --dm-base: 0.4s; }
+.dm .brief-page.hub > .bf-hero { animation: none; }
+}
