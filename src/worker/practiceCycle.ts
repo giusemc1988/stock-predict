@@ -127,6 +127,17 @@ export interface TradeAlert {
   ruleName?: string
 }
 
+/**
+ * Calculate rolling win rate from the most recent closed trades.
+ * Returns null if insufficient data, otherwise 0-1 (e.g., 0.4 = 40%).
+ */
+function rollingWinRate(trades: { pnl: number }[], sampleSize = 20): number | null {
+  if (trades.length < sampleSize) return null
+  const recent = trades.slice(-sampleSize)
+  const wins = recent.filter((t) => t.pnl > 0).length
+  return wins / recent.length
+}
+
 export async function practiceCycle(env: WorkerEnv): Promise<{ state: PracticeState; message: string; alerts?: TradeAlert[] }> {
 
   let prev: PracticeState = emptyPractice()
@@ -166,6 +177,10 @@ export async function practiceCycle(env: WorkerEnv): Promise<{ state: PracticeSt
     spy = cached ?? []
   }
 
+  // Pause learning if rolling win rate falls below 40% (unproven edge)
+  const wr = rollingWinRate(prev.trades)
+  const pauseLearning = wr != null && wr < 0.4
+
   const r = await scanCycle({
     markets: withOpenMarkets(markets, prev),
     fetchBars: (m) => yahoo15m(m.symbol),
@@ -178,6 +193,7 @@ export async function practiceCycle(env: WorkerEnv): Promise<{ state: PracticeSt
     dayEnd: sessionEnd('stock', now),
     sourceFor: () => 'Yahoo Finance',
     skills: SKILLS.map(skillTag),
+    pauseLearning,
   })
 
   if (Object.keys(r.prices).length === 0) {
@@ -239,6 +255,7 @@ export async function practiceCycle(env: WorkerEnv): Promise<{ state: PracticeSt
     }
   }
 
-  const msg = `scanned ${r.candidates.length} markets (${r.failed.length} failed); best: ${top.join(', ') || 'none'}; open ${next.open.length}, closed ${next.trades.length}, realized ${next.realized.toFixed(2)}`
+  const learningStatus = pauseLearning ? `PAUSED (WR ${(wr! * 100).toFixed(0)}% < 40%)` : wr != null ? `active (WR ${(wr * 100).toFixed(0)}%)` : 'n/a'
+  const msg = `scanned ${r.candidates.length} markets (${r.failed.length} failed); best: ${top.join(', ') || 'none'}; open ${next.open.length}, closed ${next.trades.length}, realized ${next.realized.toFixed(2)}; learning ${learningStatus}`
   return { state: next, message: msg, alerts }
 }

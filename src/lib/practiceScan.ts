@@ -42,6 +42,8 @@ export interface ScanInput {
   sourceFor: (m: ScanMarket) => string
   /** Approved skills, recorded on each decision. */
   skills?: string[]
+  /** True when rolling win rate < 40%; pause learning to avoid overfitting to unproven signals. */
+  pauseLearning?: boolean
 }
 
 export interface ScanResult {
@@ -161,8 +163,9 @@ export async function scanCycle(input: ScanInput): Promise<ScanResult> {
     }
     // then entries, best pick first: the top BUY takes the day's long-term slot, the next ones the day trades
     for (const x of fresh) {
+      const canLearn = x.probUp != null && baseRate(journal) && !input.pauseLearning
       const learner: EntryContext['learner'] =
-        x.probUp == null || !baseRate(journal) ? 'n/a' : decide(journal, x.probUp, 0.55, rules.learnEdgeMarginPct / 100).signal === 'BUY' ? 'BUY' : 'HOLD'
+        !canLearn ? 'n/a' : decide(journal, x.probUp!, 0.55, rules.learnEdgeMarginPct / 100).signal === 'BUY' ? 'BUY' : 'HOLD'
       const why = x.place != null ? pickWhy(x, buys) : null
       s = onBarClose(s, {
         symbol: x.symbol,
