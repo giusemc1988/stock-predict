@@ -46,6 +46,8 @@ export interface ScanInput {
   pauseLearning?: boolean
   /** Drawdown brake multiplier: 1.0 (normal), 0.5 (-3%), 0.25 (-6%), 0 (-15%+). */
   drawdownBrakeMultiplier?: number
+  /** Kelly sizing multiplier: conservative 0.25x Kelly based on closed trade history. */
+  kellyMultiplier?: number
 }
 
 export interface ScanResult {
@@ -207,6 +209,7 @@ export async function scanCycle(input: ScanInput): Promise<ScanResult> {
         skills: input.skills,
         newsSentiment: sentiments[x.symbol],
         drawdownBrakeMultiplier: input.drawdownBrakeMultiplier,
+        kellyMultiplier: input.kellyMultiplier,
       })
     }
     return s
