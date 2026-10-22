@@ -7,6 +7,8 @@ import { fmtPct, fmtUsd, tone } from '../lib/format'
 import { EquityChart } from './EquityChart'
 import { OrdersTable, PositionsTable } from './AccountTables'
 import { InfoTip } from './InfoTip'
+import { StatRow } from './StatCard'
+import { useAiRules } from '../lib/aiRules'
 
 interface Props {
   broker: BrokerState
@@ -55,6 +57,7 @@ export function PortfolioPage(p: Props) {
   const investedPct = account.equity ? (invested / account.equity) * 100 : 0
   const lossUsed = p.lossLimit > 0 ? Math.max(0, -account.dayPL) / p.lossLimit : 0
   const periodPL = broker.history.length ? account.equity - broker.history[0].equity : 0
+  const dash = useAiRules().dashMotion
 
   return (
     <div className="portfolio">
@@ -69,6 +72,17 @@ export function PortfolioPage(p: Props) {
               {fmtUsd(account.dayPL)} ({fmtPct(account.dayPLPct)}) <span>today</span>
             </div>
           </div>
+          {dash ? (
+            <StatRow
+              className="pf-sc"
+              items={[
+                { key: 'total', icon: 'trend', label: 'Total P&L', value: account.totalPL == null ? '—' : fmtUsd(account.totalPL), tone: account.totalPL == null ? '' : tone(account.totalPL) },
+                { key: 'bp', icon: 'wallet', label: 'Buying power', value: fmtUsd(account.buyingPower) },
+                { key: 'cash', icon: 'cash', label: 'Cash', value: fmtUsd(account.cash) },
+                { key: 'inv', icon: 'pie', label: 'Invested', value: fmtUsd(invested), chip: { text: `${investedPct.toFixed(0)}%`, tone: 'info', icon: 'pie' }, sub: 'of portfolio' },
+              ]}
+            />
+          ) : (
           <div className="pf-stats">
             <div>
               <span>Total P&L</span>
@@ -87,6 +101,7 @@ export function PortfolioPage(p: Props) {
               <b className="mono">{fmtUsd(invested)}</b>
             </div>
           </div>
+          )}
         </div>
         <div className="pf-chart-head">
           <span className={`mono ${tone(periodPL)}`}>

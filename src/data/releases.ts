@@ -2,7 +2,7 @@
  * Version and "What's new". Bump APP_VERSION and add an entry to the top of RELEASES
  * with each update. The banner shows once per version, then stays dismissed.
  */
-export const APP_VERSION = '1.28.0'
+export const APP_VERSION = '1.29.0'
 
 export interface Release {
   version: string
@@ -13,6 +13,20 @@ export interface Release {
 }
 
 export const RELEASES: Release[] = [
+  {
+    version: '1.29.0',
+    date: '2026-10-22',
+    changes: [
+      'The Hub now opens with a card for each project: Trading, RuView, ESP32 Lab, Network, Build and Studio. Each shows a real number and a coloured status chip, and opens its page when you tap it.',
+      'Number boxes on the Hub, Portfolio and Practice tab are now clearer cards: small label, big number, and a coloured change chip when the app measures one.',
+      'Switch it off in Settings > AI rules > Dashboard cards and motion to get the previous look back.',
+    ],
+    changesVi: [
+      'Hub giờ mở đầu bằng một thẻ cho mỗi dự án: Trading, RuView, ESP32 Lab, Mạng, Xây dựng và Studio. Mỗi thẻ có số thật và chip trạng thái màu, bấm vào là mở đúng trang.',
+      'Các ô số trên Hub, Danh mục và tab Luyện tập giờ là thẻ rõ hơn: nhãn nhỏ, số lớn, và chip thay đổi có màu khi ứng dụng có đo con số đó.',
+      'Tắt trong Cài đặt > Quy tắc AI > Thẻ và hiệu ứng dashboard để về giao diện trước.',
+    ],
+  },
   {
     version: '1.28.0',
     date: '2026-10-22',

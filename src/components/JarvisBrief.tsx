@@ -25,6 +25,8 @@ import type { HubPage } from '../lib/toolHub'
 import { ToolHub } from './ToolHub'
 import { hubText } from '../lib/hubText'
 import { useNews } from '../hooks/useNews'
+import { HubProjects } from './HubProjects'
+import { StatRow } from './StatCard'
 
 interface Props {
   rules: AiRules
@@ -118,6 +120,10 @@ export function JarvisBrief(p: Props) {
   const ready = lists.updatedAt != null
   const brief = useBriefText(p.rules.briefAi && p.rules.jarvisCloudAi && ready, stableFacts, key, lang, p.rules.localAiOn && ready)
 
+  const dash = p.rules.dashMotion
+  const acctChange = (practiceEquity(p.practice) / PRACTICE_START - 1) * 100
+  const lossUsed = p.lossLimitOn && p.lossLimit > 0 ? Math.round((Math.max(0, -p.dayPL) / p.lossLimit) * 100) : null
+  const learnCalls = learnIn.right + learnIn.wrong
   const briefBlock = (
         <div className="bf-brief">
           <div className="bf-status">
@@ -149,6 +155,29 @@ export function JarvisBrief(p: Props) {
             </button>
           </div>
           {spoke && <p className="muted small">{spoke}</p>}
+          {dash ? (
+            <StatRow
+              className="bf-mood-sc"
+              items={[
+                { key: 'buys', icon: 'target', label: vi ? 'Lệnh MUA hôm nay' : 'BUY calls now', value: String(buys.length) },
+                {
+                  key: 'acct',
+                  icon: 'wallet',
+                  label: vi ? 'Tài khoản luyện tập' : 'Practice account',
+                  value: fmtUsd(practiceEquity(p.practice)),
+                  chip: { text: fmtPct(acctChange), tone: tone(acctChange) },
+                  sub: vi ? 'so với $10,000' : 'vs $10,000 start',
+                },
+                {
+                  key: 'loss',
+                  icon: 'shield',
+                  label: vi ? 'Giới hạn lỗ đã dùng' : 'Loss limit used',
+                  value: lossUsed == null ? '—' : `${lossUsed}%`,
+                  tone: lossUsed != null && lossUsed >= 50 ? 'down' : '',
+                },
+              ]}
+            />
+          ) : (
           <div className="bf-mood">
             <div>
               <b className="mono">{buys.length}</b>
@@ -163,6 +192,7 @@ export function JarvisBrief(p: Props) {
               <span>{vi ? 'giới hạn lỗ đã dùng' : 'of loss limit used'}</span>
             </div>
           </div>
+          )}
         </div>
   )
   const core = (
@@ -238,6 +268,15 @@ export function JarvisBrief(p: Props) {
             <h3>{vi ? "Tự học" : "Learner"}</h3>
           </header>
           <p className="bf-source">{vi ? "Nguồn: bộ tự học" : "Source: auto learner"}</p>
+          {dash ? (
+            <StatRow
+              items={[
+                { key: 'right', icon: 'target', label: vi ? 'Đúng' : 'Right', value: learnCalls ? `${Math.round((learnIn.right / learnCalls) * 100)}%` : '—', sub: vi ? `${learnCalls} lần` : `${learnCalls} calls` },
+                { key: 'lessons', icon: 'book', label: vi ? 'Bài học hôm nay' : 'Lessons today', value: String(learnIn.lessonsToday) },
+                { key: 'cycles', icon: 'cycle', label: vi ? 'Chu kỳ học' : 'Learn cycles', value: String(learnIn.cycles) },
+              ]}
+            />
+          ) : (
           <div className="bf-stats">
             <div>
               <b className="mono">{learnIn.right + learnIn.wrong ? `${Math.round((learnIn.right / (learnIn.right + learnIn.wrong)) * 100)}%` : "—"}</b>
@@ -252,6 +291,7 @@ export function JarvisBrief(p: Props) {
               <span>{vi ? "Chu kỳ học" : "Learn cycles"}</span>
             </div>
           </div>
+          )}
           {p.learn.latest && <p className="bf-lesson">"{L(p.learn.latest)}"</p>}
         </section>
   )
@@ -264,6 +304,8 @@ export function JarvisBrief(p: Props) {
   const hub = p.rules.hubLayout
   const tools = p.rules.toolHub && !!p.onTool
   const voteCtx: VoteContext = { flow: { symbol: p.flow.symbol, buyShare: p.flow.buyShare }, headlines: news.map((n) => n.headline), learner: { right: learnIn.right, wrong: learnIn.wrong }, risk: { killSwitch: p.killSwitch, dayPL: p.dayPL, lossLimit: p.lossLimit, lossLimitOn: p.lossLimitOn } }
+  // project cards open the same pages as the Tool Hub; without it, the hub's own buttons
+  const toPage = (pg: HubPage) => (p.onTool ? p.onTool(pg) : pg === 'net' ? p.onNet?.() : pg === 'ruview' || pg === 'ruview-flash' ? p.onRuview?.() : p.onDesk())
   const openPick = (b: PickRow) => p.onSymbol(b.symbol, b.symbol.includes('/') ? 'crypto' : 'stock')
 
   if (hub)
@@ -273,6 +315,7 @@ export function JarvisBrief(p: Props) {
           <span className="hub-hello">{L(hello).split('. ')[0]}.</span>
           <LangSwitch />
         </div>
+        {dash && <HubProjects practice={p.practice} buys={buys.length} on={{ net: !!p.onNet, ruview: !!p.onRuview }} onPage={toPage} />}
         <section className="bf-hero hub-hero">
         <BrainCore nodes={nodes} memory={memory} thinking={p.scan.busy || brief.writing} motion={p.rules.jarvisMotion} onNode={p.onNode} />
           {tools ? (
