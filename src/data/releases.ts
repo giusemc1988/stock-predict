@@ -2,7 +2,7 @@
  * Version and "What's new". Bump APP_VERSION and add an entry to the top of RELEASES
  * with each update. The banner shows once per version, then stays dismissed.
  */
-export const APP_VERSION = '1.29.0'
+export const APP_VERSION = '1.30.0'
 
 export interface Release {
   version: string
@@ -13,6 +13,18 @@ export interface Release {
 }
 
 export const RELEASES: Release[] = [
+  {
+    version: '1.30.0',
+    date: '2026-10-22',
+    changes: [
+      'Pages open smoothly: on the Hub, Portfolio, Wi-Fi, RuView and the Trading desk tabs, cards fade in and rise one after another, once, when the page or tab opens.',
+      'Respects "reduce motion" on your device, and turns off with Settings > AI rules > Dashboard cards and motion.',
+    ],
+    changesVi: [
+      'Các trang mở mượt hơn: trên Hub, Danh mục, Wi-Fi, RuView và các tab Bàn giao dịch, các thẻ hiện dần và trượt lên lần lượt, một lần khi mở trang hoặc tab.',
+      'Tôn trọng chế độ "giảm chuyển động" của máy, và tắt được trong Cài đặt > Quy tắc AI > Thẻ và hiệu ứng dashboard.',
+    ],
+  },
   {
     version: '1.29.0',
     date: '2026-10-22',
