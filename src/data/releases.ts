@@ -2,7 +2,7 @@
  * Version and "What's new". Bump APP_VERSION and add an entry to the top of RELEASES
  * with each update. The banner shows once per version, then stays dismissed.
  */
-export const APP_VERSION = '1.32.0'
+export const APP_VERSION = '1.33.0'
 
 export interface Release {
   version: string
@@ -13,6 +13,20 @@ export interface Release {
 }
 
 export const RELEASES: Release[] = [
+  {
+    version: '1.33.0',
+    date: '2026-10-22',
+    changes: [
+      'Charts draw themselves when they appear: the Portfolio equity curve draws left to right with its fill fading in (again when you switch 1D / 1M / 3M), the Tool Hub graph draws its lines out from Jarvis, and watchlist sparklines and the practice equity curve draw in.',
+      'The Portfolio equity curve has a dark bubble that follows your cursor with the value and time. Bars (invested share, Trade Score, confidence) grow from the left.',
+      'Off with "reduce motion" on your device or Settings > AI rules > Dashboard cards and motion.',
+    ],
+    changesVi: [
+      'Biểu đồ tự vẽ khi hiện ra: đường tài sản ở Danh mục vẽ từ trái sang phải và vùng tô hiện dần (vẽ lại khi đổi 1D / 1M / 3M), đồ thị Tool Hub vẽ đường tỏa ra từ Jarvis, sparkline trong danh sách theo dõi và đường tài sản luyện tập cũng tự vẽ.',
+      'Đường tài sản ở Danh mục có bong bóng tối đi theo con trỏ, hiện giá trị và thời gian. Các thanh (phần đã đầu tư, Điểm GD, độ tin cậy) mọc từ trái sang.',
+      'Tắt khi máy bật "giảm chuyển động" hoặc trong Cài đặt > Quy tắc AI > Thẻ và hiệu ứng dashboard.',
+    ],
+  },
   {
     version: '1.32.0',
     date: '2026-10-22',

@@ -116,7 +116,7 @@ export function PortfolioPage(p: Props) {
             ))}
           </div>
         </div>
-        <EquityChart points={broker.history} up={periodPL >= 0} />
+        <EquityChart points={broker.history} up={periodPL >= 0} replay={period} />
         <div className="alloc">
           <div className="alloc-bar">
             <i style={{ width: `${investedPct}%` }} />

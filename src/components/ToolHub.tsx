@@ -61,13 +61,13 @@ export function ToolHub({ onPage, on, status = {} }: { onPage: (p: HubPage) => v
         <svg className="th-graph" viewBox={`0 0 ${lay.W} ${lay.H}`} role="group" aria-label={t('thTitle')}>
           {CLUSTERS.map((g) => {
             const gp = lay.groups.get(g.id)!
-            return <line key={g.id} className="th-edge core" x1={lay.center.x} y1={lay.center.y} x2={gp.x} y2={gp.y} style={{ stroke: g.tone }} />
+            return <line key={g.id} pathLength={1} className="th-edge core" x1={lay.center.x} y1={lay.center.y} x2={gp.x} y2={gp.y} style={{ stroke: g.tone }} />
           })}
           {TOOLS.map((n) => {
             const gp = lay.groups.get(n.cluster)!
             const np = lay.nodes.get(n.id)!
             const g = CLUSTERS.find((c) => c.id === n.cluster)!
-            return <line key={n.id} className={`th-edge${searching && !hits.has(n.id) ? ' dim' : ''}`} x1={gp.x} y1={gp.y} x2={np.x} y2={np.y} style={{ stroke: g.tone }} />
+            return <line key={n.id} pathLength={1} className={`th-edge${searching && !hits.has(n.id) ? ' dim' : ''}`} x1={gp.x} y1={gp.y} x2={np.x} y2={np.y} style={{ stroke: g.tone }} />
           })}
           <g className="th-core" transform={`translate(${lay.center.x} ${lay.center.y})`}>
             <circle r="30" />

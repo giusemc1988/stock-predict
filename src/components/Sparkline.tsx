@@ -8,7 +8,7 @@ export function Sparkline({ data, width = 64, height = 22 }: { data: number[]; w
   const color = up ? 'var(--up)' : 'var(--down)'
   return (
     <svg width={width} height={height} className="spark">
-      <polyline points={pts.join(' ')} fill="none" stroke={color} strokeWidth="1.3" strokeLinejoin="round" />
+      <polyline pathLength={1} points={pts.join(' ')} fill="none" stroke={color} strokeWidth="1.3" strokeLinejoin="round" />
     </svg>
   )
 }

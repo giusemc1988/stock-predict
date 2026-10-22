@@ -1491,3 +1491,23 @@ body:has(.jfab) .toasts, body:has(.jfab) .jarvis-alert { bottom: 84px; }
 .sk-candles i { flex: 1; border-radius: 3px; background: var(--line-2); opacity: 0.7; }
 @media (prefers-reduced-motion: reduce) { .sk::after { animation: none; } }
 .sk.sk-chart { position: absolute; }
+
+/* Live charts (html.dm): lines draw themselves (pathLength 0 -> 1), bars grow from the left, the equity chart gets a dark bubble that follows the cursor */
+.equity-wrap { position: relative; }
+.eq-tip { position: absolute; left: 0; top: 0; z-index: 3; display: grid; gap: 1px; padding: 6px 10px; border-radius: 10px; background: rgba(6, 11, 20, 0.92); border: 1px solid var(--line-2); box-shadow: 0 8px 22px rgba(0, 0, 0, 0.45); pointer-events: none; white-space: nowrap; }
+.eq-tip b { font-size: 13px; }
+.eq-tip span { color: var(--muted); font-size: 10.5px; }
+.eq-tip::after { content: ''; position: absolute; left: 50%; bottom: -5px; width: 8px; height: 8px; background: inherit; border: inherit; border-width: 0 1px 1px 0; transform: translateX(-50%) rotate(45deg); }
+@keyframes dm-draw { from { stroke-dashoffset: 1; } to { stroke-dashoffset: 0; } }
+@keyframes dm-grow { from { transform: scaleX(0); } to { transform: none; } }
+@keyframes dm-fade { from { opacity: 0; } }
+@media (prefers-reduced-motion: no-preference) {
+  .dm :is(.spark polyline, .pr-curve path, .th-edge) { stroke-dasharray: 1; animation: dm-draw 0.9s cubic-bezier(0.22, 1, 0.36, 1) both; }
+  .dm .th-edge:not(.core) { animation-delay: 0.35s; }
+  .dm .th-node, .dm .th-group { animation: dm-fade 0.5s ease 0.6s both; }
+  .dm :is(.alloc-bar, .hub-bar, .conf-bar) i { transform-origin: left center; animation: dm-grow 0.8s cubic-bezier(0.22, 1, 0.36, 1) both; }
+  .dm .hub-brow:nth-child(3) .hub-bar i { animation-delay: 0.07s; }
+  .dm .hub-brow:nth-child(4) .hub-bar i { animation-delay: 0.14s; }
+  .dm .hub-brow:nth-child(5) .hub-bar i { animation-delay: 0.21s; }
+  .dm .hub-brow:nth-child(n + 6) .hub-bar i { animation-delay: 0.28s; }
+}
