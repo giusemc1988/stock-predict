@@ -21,6 +21,7 @@ const ICONS = {
   film: 'M4 5h16v14H4zM8 5v14M16 5v14M4 9.5h4M4 14.5h4M16 9.5h4M16 14.5h4',
   list: 'M8 6h12M8 12h12M8 18h12M4 6h.01M4 12h.01M4 18h.01',
   check: 'M5 12.5l4.5 4.5L19 7.5',
+  globe: 'M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18zM3 12h18M12 3c2.5 2.6 3.8 5.6 3.8 9s-1.3 6.4-3.8 9c-2.5-2.6-3.8-5.6-3.8-9S9.5 5.6 12 3z',
   clock: 'M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18zM12 7v5l3 2',
 } as const
 export type IconName = keyof typeof ICONS
@@ -97,7 +98,7 @@ export function StatCard({ s }: { s: Stat }) {
 /** A row of stat cards that wraps to fit the space. */
 export function StatRow({ items, className = '' }: { items: Stat[]; className?: string }) {
   return (
-    <div className={`sc-row ${className}`}>
+    <div className={`sc-row ${className}`} style={{ ['--n' as string]: items.length }}>
       {items.map((s) => (
         <StatCard key={s.key} s={s} />
       ))}

@@ -325,7 +325,7 @@ export function JarvisBrief(p: Props) {
           <span className="hub-hello">{L(hello).split('. ')[0]}.</span>
           <LangSwitch />
         </div>
-        {dash && <HubProjects practice={p.practice} buys={buys.length} on={{ net: !!p.onNet, ruview: !!p.onRuview }} onPage={toPage} />}
+        {dash && <HubProjects practice={p.practice} buys={buys.length} on={{ net: !!p.onNet, ruview: !!p.onRuview, godseye: p.rules.godsEyeOn, studio: p.rules.videoStudioOn }} onPage={toPage} />}
         <section className="bf-hero hub-hero">
         <BrainCore nodes={nodes} memory={memory} thinking={p.scan.busy || brief.writing} motion={p.rules.jarvisMotion} onNode={p.onNode} />
           {tools ? (
@@ -344,7 +344,7 @@ export function JarvisBrief(p: Props) {
             {tools ? (
               <ToolHub
                 onPage={p.onTool!}
-                on={{ net: !!p.onNet, ruview: !!p.onRuview }}
+                on={{ net: !!p.onNet, ruview: !!p.onRuview, godseye: p.rules.godsEyeOn, studio: p.rules.videoStudioOn }}
                 status={{ desk: hubText(lang, 'thOpenTrades', { n: p.practice.open.length }), board: hubText(lang, 'thCalls', { n: buys.length }) }}
               />
             ) : (

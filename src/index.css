@@ -1433,11 +1433,13 @@ body:has(.jfab) .toasts, body:has(.jfab) .jarvis-alert { bottom: 84px; }
 .pr-sc .sc { padding: 10px 12px; }
 .pr-sc .sc-value { font-size: 17px; }
 .hub-projects { margin: 2px 0 12px; }
-.sc-projects { grid-template-columns: repeat(6, minmax(0, 1fr)); }
-@media (max-width: 1279px) { .sc-projects { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+/* one row on wide screens however many projects there are; 4 per row below that */
+.sc-projects { grid-template-columns: repeat(var(--n, 6), minmax(0, 1fr)); }
+@media (max-width: 1279px) { .sc-projects { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
 @media (max-width: 1100px) { .pf-sc { grid-template-columns: repeat(2, minmax(110px, 1fr)); } }
 @media (max-width: 699px) {
   .sc-projects { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .sc-projects > :first-child:nth-last-child(odd) { grid-column: 1 / -1; }
   .bf-mood-sc { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
   .bf-mood-sc .sc:first-child { grid-column: 1 / -1; }
   .sc { padding: 10px 12px; }
@@ -1511,3 +1513,29 @@ body:has(.jfab) .toasts, body:has(.jfab) .jarvis-alert { bottom: 84px; }
   .dm .hub-brow:nth-child(5) .hub-bar i { animation-delay: 0.21s; }
   .dm .hub-brow:nth-child(n + 6) .hub-bar i { animation-delay: 0.28s; }
 }
+
+/* God's Eye View page */
+.ge-layers { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.ge-layer { display: grid; grid-template-columns: 10px 1fr auto; gap: 4px 10px; align-items: center; }
+.ge-layer > .muted { grid-column: 2 / -1; }
+.ge-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--line); }
+.ge-layer.ok .ge-dot { background: #4fd18b; }
+.ge-layer.key .ge-dot, .ge-layer.noproxy .ge-dot { background: var(--gold); }
+.ge-layer.down .ge-dot { background: #ff6b6b; }
+.ge-frame { padding: 0; overflow: hidden; min-height: 200px; place-items: center; }
+.ge-frame iframe { width: 100%; height: min(78vh, 760px); border: 0; display: block; background: #000; }
+
+/* Video Studio page */
+.vs-row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.vs-field { display: grid; gap: 4px; min-width: 0; }
+.vs-field input, .vs-field textarea { width: 100%; box-sizing: border-box; background: var(--bg); color: inherit; border: 1px solid var(--line); border-radius: 8px; padding: 8px; font: inherit; }
+.vs-scripts { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.vs-check { display: inline-flex; gap: 6px; align-items: center; font-size: 13px; }
+.vs-preview { width: min(100%, 360px); margin: 0 auto; border-radius: 10px; overflow: hidden; border: 1px solid var(--line); }
+.vs-preview canvas { width: 100%; height: 100%; display: block; }
+.vs-out { display: grid; gap: 8px; justify-items: center; }
+.vs-out video { width: min(100%, 360px); max-height: 70vh; border-radius: 10px; background: #000; }
+.vs-lab { display: grid; gap: 4px; }
+.vs-lab-row { display: flex; justify-content: space-between; gap: 8px; align-items: center; }
+.vs-cap { white-space: pre-line; }
+@media (max-width: 699px) { .vs-scripts { grid-template-columns: 1fr; } }

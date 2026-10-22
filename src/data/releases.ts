@@ -2,7 +2,7 @@
  * Version and "What's new". Bump APP_VERSION and add an entry to the top of RELEASES
  * with each update. The banner shows once per version, then stays dismissed.
  */
-export const APP_VERSION = '1.33.0'
+export const APP_VERSION = '1.34.0'
 
 export interface Release {
   version: string
@@ -14,17 +14,35 @@ export interface Release {
 
 export const RELEASES: Release[] = [
   {
-    version: '1.33.0',
+    version: '1.34.0',
     date: '2026-10-22',
     changes: [
       'Charts draw themselves when they appear: the Portfolio equity curve draws left to right with its fill fading in (again when you switch 1D / 1M / 3M), the Tool Hub graph draws its lines out from Jarvis, and watchlist sparklines and the practice equity curve draw in.',
       'The Portfolio equity curve has a dark bubble that follows your cursor with the value and time. Bars (invested share, Trade Score, confidence) grow from the left.',
+      'Argus now has its own card (globe icon) in the Hub\'s project row, and the row stays on one line on wide screens.',
       'Off with "reduce motion" on your device or Settings > AI rules > Dashboard cards and motion.',
     ],
     changesVi: [
       'Biểu đồ tự vẽ khi hiện ra: đường tài sản ở Danh mục vẽ từ trái sang phải và vùng tô hiện dần (vẽ lại khi đổi 1D / 1M / 3M), đồ thị Tool Hub vẽ đường tỏa ra từ Jarvis, sparkline trong danh sách theo dõi và đường tài sản luyện tập cũng tự vẽ.',
       'Đường tài sản ở Danh mục có bong bóng tối đi theo con trỏ, hiện giá trị và thời gian. Các thanh (phần đã đầu tư, Điểm GD, độ tin cậy) mọc từ trái sang.',
+      'Argus giờ có thẻ riêng (biểu tượng quả địa cầu) trong hàng thẻ dự án trên Hub, và hàng thẻ nằm gọn một dòng trên màn hình rộng.',
       'Tắt khi máy bật "giảm chuyển động" hoặc trong Cài đặt > Quy tắc AI > Thẻ và hiệu ứng dashboard.',
+    ],
+  },
+  {
+    version: '1.33.0',
+    date: '2026-10-22',
+    changes: [
+      "New in the Hub: Argus (God's Eye View). Your live 3D globe opens inside the app, with a status for every data layer checked from the server (flights, military aircraft, satellites, ships, earthquakes), so a dead layer says why instead of staying empty.",
+      'New in the Hub: Nova (Video Studio). Bilingual faceless videos made in your browser: Faceless, Philosophy and My Trip modes, EN and VI scripts written separately (AI with your free Gemini or Groq key, or the built-in library), no watermark, voice off by default, generated music at about -24.5 LUFS, smooth 0.7 s transitions, MP4 1080x1920 or 1920x1080 at 30 fps in BT.709 limited range, and a Title Lab to copy titles, hashtags and captions. It never posts by itself.',
+      'ESP32-DIV is now in the ESP32 Lab group. Both new pages have their own switch in Settings > AI rules.',
+      'Safety: home actions (Wake-on-LAN, port checks, RuView node changes) are refused unless they come from the app itself.',
+    ],
+    changesVi: [
+      "Mới trong Hub: Argus (God's Eye View). Quả địa cầu 3D của anh mở ngay trong app, kèm trạng thái từng lớp dữ liệu kiểm tra từ máy chủ (máy bay, quân sự, vệ tinh, tàu biển, động đất); lớp nào chết sẽ nói rõ lý do.",
+      'Mới trong Hub: Nova (Video Studio). Video không lộ mặt song ngữ làm ngay trên trình duyệt: chế độ Faceless, Triết lý và Chuyến đi; kịch bản EN và VI viết riêng (AI bằng key Gemini hoặc Groq miễn phí của anh, hoặc thư viện có sẵn); không watermark; giọng đọc mặc định tắt; nhạc nền tự tạo khoảng -24.5 LUFS; chuyển cảnh mượt 0.7 giây; MP4 1080x1920 hoặc 1920x1080, 30 fps, BT.709 limited range; Title Lab để copy tiêu đề, hashtag, caption. Không bao giờ tự đăng.',
+      'ESP32-DIV đã vào nhóm ESP32 Lab. Hai trang mới đều có công tắc riêng trong Cài đặt > Quy tắc AI.',
+      'An toàn: lệnh ở nhà (đánh thức máy, kiểm tra cổng, sửa node RuView) bị từ chối nếu không đến từ chính app.',
     ],
   },
   {

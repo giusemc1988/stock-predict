@@ -9,14 +9,14 @@ import { StatRow, type IconName, type Stat } from './StatCard'
 interface Props {
   practice: PracticeState
   buys: number
-  on: { net: boolean; ruview: boolean }
+  on: { net: boolean; ruview: boolean; godseye?: boolean; studio?: boolean }
   /** Open a page of the app (the same targets the Tool Hub opens). */
   onPage: (p: HubPage) => void
 }
 
-const ICON: Record<ClusterId, IconName> = { trading: 'trend', esp32: 'chip', network: 'wifi', build: 'code', studio: 'film' }
+const ICON: Record<ClusterId, IconName> = { trading: 'trend', world: 'globe', esp32: 'chip', network: 'wifi', build: 'code', studio: 'film' }
 // where a group's card goes: its main page, or the Tool Hub for groups made of links
-const OPENS: Partial<Record<ClusterId, HubPage>> = { esp32: 'ruview-flash', network: 'net' }
+const OPENS: Partial<Record<ClusterId, HubPage>> = { world: 'godseye', esp32: 'ruview-flash', network: 'net', studio: 'studio' }
 
 /** One card per project the hub runs, in each project's Tool Hub colour. Every number comes from data the hub already has. */
 export function HubProjects({ practice, buys, on, onPage }: Props) {
@@ -59,7 +59,7 @@ export function HubProjects({ practice, buys, on, onPage }: Props) {
     const ready = mine.filter((n) => toolOpen(n, on)).length
     const soon = mine.filter((n) => n.action.kind === 'soon').length
     const page = OPENS[c.id]
-    const pageOn = page !== 'net' || on.net
+    const pageOn = page === 'net' ? on.net : page === 'godseye' ? on.godseye !== false : page === 'studio' ? on.studio !== false : true
     return {
       key: c.id,
       label: label(c.id),
