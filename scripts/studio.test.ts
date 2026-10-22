@@ -6,6 +6,7 @@ import { rgbaToI420 } from '../src/lib/studio/encode'
 import { cleanWriteAsk } from '../src/lib/studioServer'
 import { STUDIO_TEXT } from '../src/lib/studio/text'
 import { debugExposed, layerState, GE_TEXT } from '../src/lib/godsEye'
+import { toOpenSky } from '../argus/adsbLol'
 
 // AI answers are cleaned into scene lines
 assert.deepEqual(parseScenes('1. First line\n- Second line\n\n"Third"\n```', 5), ['First line', 'Second line', 'Third'])
@@ -70,6 +71,15 @@ assert.equal(layerState('flights', { status: 502, contentType: J, body: '{"error
 assert.equal(layerState('flights', null).state, 'down')
 assert.equal(debugExposed({ status: 200, contentType: J, body: '[]' }), true)
 assert.equal(debugExposed({ status: 200, contentType: 'text/html', body: '' }), false)
+
+// Argus flights fallback: adsb.lol rows become OpenSky vectors (adsb.fi "aircraft" too), bad rows and duplicates dropped
+const os = toOpenSky({ now: 1_700_000_000_000, ac: [{ hex: 'ABC123', flight: 'DAL1 ', lat: 40, lon: -74, alt_baro: 1000, gs: 100, track: 90 }, { hex: 'abc123', lat: 1, lon: 1 }, { hex: 'x', lat: 95, lon: 0 }] })
+assert.equal(os.time, 1_700_000_000)
+assert.equal(os.states.length, 1)
+assert.deepEqual(os.states[0].slice(0, 2), ['abc123', 'DAL1'])
+assert.ok(Math.abs((os.states[0][7] as number) - 304.8) < 1e-9 && Math.abs((os.states[0][9] as number) - 51.4444) < 1e-9)
+
+assert.equal(toOpenSky({ now: 1, aircraft: [{ hex: 'aa', lat: 1, lon: 2 }] }).states.length, 1)
 
 // every label has both languages
 for (const [k, v] of Object.entries({ ...STUDIO_TEXT, ...GE_TEXT })) assert.ok(v.en.trim() && v.vi.trim(), k)

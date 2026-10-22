@@ -2,7 +2,7 @@
  * Version and "What's new". Bump APP_VERSION and add an entry to the top of RELEASES
  * with each update. The banner shows once per version, then stays dismissed.
  */
-export const APP_VERSION = '1.36.0'
+export const APP_VERSION = '1.37.0'
 
 export interface Release {
   version: string
@@ -13,6 +13,12 @@ export interface Release {
 }
 
 export const RELEASES: Release[] = [
+  {
+    version: '1.37.0',
+    date: '2026-10-22',
+    changes: ["Argus now runs on your own Cloudflare as the argus Worker, built from the original God's Eye View repo at a pinned commit, with no keys and no debug routes (the old link was someone else's site). Satellites (orbits refreshed every 2 hours) and earthquakes work. Live aircraft come from free feeds (adsb.lol, adsb.fi, OpenSky) that often refuse Cloudflare's servers; when they do, the layer says which feed refused."],
+    changesVi: ["Argus giờ chạy trên Cloudflare của anh thành Worker argus, build từ repo God's Eye View gốc ở commit đã ghim, không key, không đường debug (link cũ là trang của người khác). Vệ tinh (quỹ đạo cập nhật mỗi 2 giờ) và động đất chạy được. Máy bay trực tiếp lấy từ nguồn miễn phí (adsb.lol, adsb.fi, OpenSky) hay từ chối máy chủ Cloudflare; khi đó lớp này ghi rõ nguồn nào từ chối."],
+  },
   {
     version: '1.36.0',
     date: '2026-10-22',

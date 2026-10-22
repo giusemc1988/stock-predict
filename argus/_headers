@@ -1,0 +1,5 @@
+# Copied into dist/ at deploy. Only the Hub (and Argus itself) may frame the globe.
+/*
+  Content-Security-Policy: frame-ancestors 'self' https://stock-predict.chanhmn1011.workers.dev
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin
