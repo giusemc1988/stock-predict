@@ -44,12 +44,14 @@ export function toState(a: Row, nowS: number): unknown[] | null {
   ]
 }
 
-export function toOpenSky(payload: { now?: unknown; ac?: Row[] }): { time: number; states: unknown[][] } {
+/** Reads adsb.lol (`ac`) and adsb.fi (`aircraft`) answers alike; both are readsb v2. */
+export function toOpenSky(payload: { now?: unknown; ac?: Row[]; aircraft?: Row[] }): { time: number; states: unknown[][] } {
   const now = num(payload?.now)
   const nowS = now === null ? Math.floor(Date.now() / 1000) : Math.floor(now > 1e10 ? now / 1000 : now)
   const seen = new Set<string>()
   const states: unknown[][] = []
-  for (const row of Array.isArray(payload?.ac) ? payload.ac : []) {
+  const rows = Array.isArray(payload?.ac) ? payload.ac : Array.isArray(payload?.aircraft) ? payload.aircraft : []
+  for (const row of rows) {
     const s = toState(row, nowS)
     if (!s || seen.has(s[0] as string)) continue
     seen.add(s[0] as string)

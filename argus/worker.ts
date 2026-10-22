@@ -53,11 +53,15 @@ async function flights(url: URL): Promise<Response> {
   if (url.searchParams.has('lat') && Number.isFinite(lat) && Number.isFinite(lon) && Math.abs(lat) <= 90 && Math.abs(lon) <= 180) {
     const rl = Math.round(lat * 4) / 4
     const ro = Math.round(lon * 4) / 4
-    const near = await cached(`adsblol/${rl},${ro}`, 15, async () => {
-      const r = await get(`https://api.adsb.lol/v2/lat/${rl}/lon/${ro}/dist/250`)
-      if (!r.ok) return r
-      const body = toOpenSky((await r.json()) as Parameters<typeof toOpenSky>[0])
-      return new Response(JSON.stringify(body), { headers: { 'content-type': 'application/json', 'x-flight-source': 'adsb.lol', 'x-flight-coverage': '250nm around the view', 'x-flight-count': String(body.states.length) } })
+    // adsb.lol first, adsb.fi when it refuses (both free, no key, same readsb format)
+    const near = await cached(`near/${rl},${ro}`, 15, async () => {
+      for (const [src, u] of [['adsb.lol', `https://api.adsb.lol/v2/lat/${rl}/lon/${ro}/dist/250`], ['adsb.fi', `https://opendata.adsb.fi/api/v2/lat/${rl}/lon/${ro}/dist/250`]]) {
+        const r = await get(u, 6000).catch(() => null)
+        if (!r?.ok) continue
+        const body = toOpenSky((await r.json()) as Parameters<typeof toOpenSky>[0])
+        return new Response(JSON.stringify(body), { headers: { 'content-type': 'application/json', 'x-flight-source': src, 'x-flight-coverage': '250nm around the view', 'x-flight-count': String(body.states.length) } })
+      }
+      return new Response('', { status: 502 })
     })
     if (near.ok) return near
   }
@@ -65,7 +69,7 @@ async function flights(url: URL): Promise<Response> {
     const r = await get('https://opensky-network.org/api/states/all?extended=1', 8000)
     return r.ok ? new Response(r.body, { headers: { 'content-type': 'application/json', 'x-flight-source': 'OpenSky Network', 'x-flight-coverage': 'global' } }) : r
   })
-  return open.ok ? open : json({ error: 'Flights unavailable', detail: 'adsb.lol and OpenSky both refused' }, 502)
+  return open.ok ? open : json({ error: 'Flights unavailable', detail: 'adsb.lol, adsb.fi and OpenSky all refused' }, 502)
 }
 
 export default {
@@ -76,7 +80,11 @@ export default {
     if (!p.startsWith('/api/')) return env.ASSETS.fetch(req)
     if (req.method !== 'GET' && req.method !== 'HEAD') return json({ error: 'GET only' }, 405)
     if (p === '/api/flights') return flights(url)
-    if (p === '/api/military') return cached('military', 12, () => get('https://api.adsb.lol/v2/mil'))
+    if (p === '/api/military')
+      return cached('military', 12, async () => {
+        const r = await get('https://api.adsb.lol/v2/mil', 6000).catch(() => null)
+        return r?.ok ? r : get('https://opendata.adsb.fi/api/v2/mil', 6000)
+      })
     const sat = /^\/api\/celestrak\/([a-z0-9-]{1,40})$/i.exec(p)
     if (sat) {
       const group = sat[1].toLowerCase()
