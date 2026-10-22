@@ -1539,3 +1539,23 @@ body:has(.jfab) .toasts, body:has(.jfab) .jarvis-alert { bottom: 84px; }
 .vs-lab-row { display: flex; justify-content: space-between; gap: 8px; align-items: center; }
 .vs-cap { white-space: pre-line; }
 @media (max-width: 699px) { .vs-scripts { grid-template-columns: 1fr; } }
+
+/* Activity feed (Dashboard cards and motion): round icon by event type, what happened, how long ago */
+.af-list { list-style: none; margin: 0; padding: 0; display: grid; }
+.af-item { --c: var(--muted); display: grid; grid-template-columns: 26px minmax(0, 1fr) auto; gap: 10px; align-items: start; padding: 8px 0; border-bottom: 1px solid var(--line); }
+.af-item:last-child { border-bottom: 0; }
+.af-ico { display: grid; place-items: center; width: 26px; height: 26px; border-radius: 50%; color: var(--c); background: color-mix(in srgb, var(--c) 15%, transparent); }
+.af-buy, .af-ok { --c: var(--up); }
+.af-sell { --c: var(--gold); }
+.af-no { --c: var(--down); }
+.af-learn { --c: #b79cff; }
+.af-body { display: grid; gap: 2px; min-width: 0; }
+.af-text { font-size: 12.5px; line-height: 1.4; overflow-wrap: anywhere; }
+.hub-activity .af-text { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; line-clamp: 2; overflow: hidden; }
+.af-skip .af-text { color: var(--muted); }
+.af-sub { color: var(--muted); font-size: 11px; }
+.af-time { color: var(--muted); font-size: 11px; white-space: nowrap; padding-top: 4px; }
+@keyframes af-in { from { opacity: 0; transform: translate3d(0, -12px, 0); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: no-preference) { .dm .af-item { animation: af-in 0.4s cubic-bezier(0.22, 1, 0.36, 1) both; } }
+.hub-activity .af-list { max-height: 360px; overflow: auto; }
+.pr-trade-head .af-ico { align-self: center; width: 22px; height: 22px; }

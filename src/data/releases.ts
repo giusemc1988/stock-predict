@@ -2,7 +2,7 @@
  * Version and "What's new". Bump APP_VERSION and add an entry to the top of RELEASES
  * with each update. The banner shows once per version, then stays dismissed.
  */
-export const APP_VERSION = '1.34.0'
+export const APP_VERSION = '1.35.0'
 
 export interface Release {
   version: string
@@ -13,6 +13,20 @@ export interface Release {
 }
 
 export const RELEASES: Release[] = [
+  {
+    version: '1.35.0',
+    date: '2026-10-22',
+    changes: [
+      'New on the Hub: Recent activity. The newest practice trades, logged AI decisions and learner notes in one feed, each with a round icon for its type (buy, sell, skip, accepted, rejected, lesson) and how long ago it happened.',
+      'The Practice tab\'s Activity list uses the same feed, and the Decision log gets the same accepted / rejected icons. New items slide in from the top.',
+      'Off with Settings > AI rules > Dashboard cards and motion (the old lists come back).',
+    ],
+    changesVi: [
+      'Mới trên Hub: Hoạt động gần đây. Lệnh luyện tập, quyết định AI đã ghi và bài học mới nhất gom vào một dòng, mỗi mục có biểu tượng tròn theo loại (mua, bán, bỏ qua, chấp nhận, từ chối, bài học) và cách đây bao lâu.',
+      'Danh sách Hoạt động trong tab Luyện tập dùng cùng kiểu này, và Nhật ký quyết định có biểu tượng chấp nhận / từ chối. Mục mới trượt vào từ trên.',
+      'Tắt trong Cài đặt > Quy tắc AI > Thẻ và hiệu ứng dashboard (danh sách cũ quay lại).',
+    ],
+  },
   {
     version: '1.34.0',
     date: '2026-10-22',
