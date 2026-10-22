@@ -86,6 +86,7 @@ export interface AiRules {
   webFlash: boolean // RuView page: flash a board's firmware from Chrome/Edge over USB
   phoneScan: boolean // Android app: the phone scans the Wi-Fi it is on (devices, channels, ping, ports, Wake-on-LAN)
   ruviewOn: boolean // RuView sensing page: presence from Wi-Fi signals via ESP32 nodes, runs on the home PC
+  toolHub: boolean // Hub: Tool Hub graph/list of every tool and project; today's pick sits next to the scoreboard
   hubLayout: boolean // the home page uses the Hub layout: best pick next to the sphere, prediction board, Studio and devices
   briefAi: boolean // a free AI helper writes the Jarvis Brief from the page's real data (once per scan)
   practiceCryptoMovers: boolean // practice also scans today's top crypto gainers and most-traded coins
@@ -190,6 +191,7 @@ export const DEFAULT_AI_RULES: AiRules = {
   jarvisCloudAi: true,
   briefHome: true,
   hubLayout: true,
+  toolHub: true,
   netTools: true,
   ruviewOn: true,
   phoneScan: true,
@@ -314,6 +316,7 @@ export const RULE_FIELDS: RuleField[] = [
   { group: 'jarvis', key: 'webFlash', en: 'RuView: flash an ESP32-S3/C6 board straight from Chrome or Edge on a computer (USB cable, pinned RuView firmware, checked before writing)', vi: 'RuView: nạp firmware cho board ESP32-S3/C6 ngay trên Chrome hoặc Edge trên máy tính (cáp USB, firmware RuView đã ghim, kiểm tra trước khi ghi)' },
   { group: 'jarvis', key: 'phoneScan', en: 'Android app: scan the Wi-Fi your phone is on (devices, Wi-Fi channels, ping, port check, Wake-on-LAN), with a separate device list for each shop or house (your own Wi-Fi only)', vi: 'App Android: quét Wi-Fi điện thoại đang kết nối (thiết bị, kênh Wi-Fi, ping, kiểm tra cổng, đánh thức máy), mỗi tiệm hoặc nhà có danh sách thiết bị riêng (chỉ Wi-Fi của anh)' },
   { group: 'jarvis', key: 'ruviewOn', en: 'RuView sensing page: presence at home from Wi-Fi signals with ESP32 nodes, add nodes over USB, pinned RuView version with daily update check (your own home only; needs the home agent and Docker)', vi: 'Trang RuView cảm biến: biết có người trong nhà bằng sóng Wi-Fi với node ESP32, thêm node qua USB, giữ đúng bản RuView và kiểm tra bản mới mỗi ngày (chỉ trong nhà anh; cần chương trình máy nhà và Docker)' },
+  { group: 'jarvis', key: 'toolHub', en: 'Tool Hub on the home page: every tool and project (Trading, ESP32 Lab, Network, Build, Studio) as a graph or list, with search; today\'s pick sits next to the scoreboard (off: the previous Hub layout)', vi: 'Tool Hub trên trang chủ: mọi công cụ và dự án (Trading, ESP32 Lab, Mạng, Xây dựng, Studio) dạng đồ thị hoặc danh sách, có ô tìm; mã chọn hôm nay nằm cạnh bảng điểm (tắt: giao diện Hub trước đó)' },
   { group: 'jarvis', key: 'hubLayout', en: 'Hub home page: best pick next to the sphere, prediction board with 6 agent dots, Studio and devices (off: the old Jarvis Brief layout)', vi: 'Trang chủ Hub: mã tốt nhất cạnh quả cầu, bảng dự đoán có 6 chấm agent, Studio và thiết bị (tắt: giao diện Jarvis Brief cũ)' },
   { group: 'jarvis', key: 'briefHome', en: 'Jarvis Brief as the home page (off: open the Trading desk first)', vi: 'Jarvis Brief là trang chủ (tắt: mở Bàn giao dịch trước)' },
   { group: 'jarvis', key: 'briefAi', en: 'Free AI writes the Jarvis Brief from real data (once per scan; plain text if every AI key fails)', vi: 'AI miễn phí viết Jarvis Brief từ dữ liệu thật (mỗi lần quét một lần; nếu mọi key AI lỗi thì dùng văn bản thường)' },

@@ -106,7 +106,7 @@ export function HubBestPick({ picks, ctx, nodes, scanOn, onOpen, onWhy, onDesk }
 export function HubBoard({ picks, ctx, nodes, onOpen, onWhy }: Omit<PickProps, 'onDesk' | 'scanOn'>) {
   const t = useHubT()
   return (
-    <section className="bf-card hub-board">
+    <section className="bf-card hub-board" id="hub-board">
       <header>
         <h3>{t('board')}</h3>
         <span className="muted small">{t('boardDots')}</span>
@@ -214,15 +214,19 @@ export function HubDevices({ onNet, onRuview }: { onNet?: () => void; onRuview?:
 }
 
 /** Phone tab bar for the hub. */
-export function HubTabbar({ onDesk }: { onDesk: () => void }) {
+export function HubTabbar({ onDesk, tools = false }: { onDesk: () => void; tools?: boolean }) {
   const t = useHubT()
   const go = (id: string) => document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
   return (
     <nav className="hub-tabbar" aria-label={t('navLabel')}>
       <button className="on" onClick={() => go('hub-top')}><i />{t('tabPredict')}</button>
       <button onClick={onDesk}><i />{t('tabTrading')}</button>
+      {tools ? (
+        <button onClick={() => go('hub-tools')}><i />{t('tabTools')}</button>
+      ) : (
+        <button onClick={() => go('hub-devices')}><i />{t('tabDevices')}</button>
+      )}
       <button onClick={() => go('hub-studio')}><i />{t('studio')}</button>
-      <button onClick={() => go('hub-devices')}><i />{t('tabDevices')}</button>
     </nav>
   )
 }

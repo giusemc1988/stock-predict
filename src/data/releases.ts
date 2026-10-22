@@ -2,7 +2,7 @@
  * Version and "What's new". Bump APP_VERSION and add an entry to the top of RELEASES
  * with each update. The banner shows once per version, then stays dismissed.
  */
-export const APP_VERSION = '1.27.2'
+export const APP_VERSION = '1.28.0'
 
 export interface Release {
   version: string
@@ -13,6 +13,20 @@ export interface Release {
 }
 
 export const RELEASES: Release[] = [
+  {
+    version: '1.28.0',
+    date: '2026-10-22',
+    changes: [
+      'Jarvis OS phase 1: the old scoreboard spot is now a Tool Hub. Tools are grouped (Trading, ESP32 Lab, Network, Build, Studio) and open real pages, links or sections. Search, and a graph or list view that remembers your choice.',
+      'Today\'s pick now sits beside the Jarvis scoreboard on the home page.',
+      'Flash a board is now in the ESP32 Lab group of the Tool Hub.',
+    ],
+    changesVi: [
+      'Jarvis OS giai đoạn 1: chỗ bảng điểm cũ giờ là Tool Hub. Công cụ được nhóm (Trading, ESP32 Lab, Mạng, Xây dựng, Studio) và mở đúng trang, liên kết hoặc mục. Có tìm kiếm, và chế độ đồ thị hoặc danh sách nhớ lựa chọn của anh.',
+      'Mã được chọn hôm nay nằm cạnh bảng điểm Jarvis ở trang chính.',
+      'Nạp firmware nằm trong nhóm ESP32 Lab của Tool Hub.',
+    ],
+  },
   {
     version: '1.27.2',
     date: '2026-10-18',
