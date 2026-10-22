@@ -9,6 +9,9 @@ on:
     branches: [main]
     paths: ['argus/**', '.github/workflows/argus.yml']
   workflow_dispatch:
+  # satellite orbits (TLE) are baked into the build; CelesTrak updates them every 2 hours
+  schedule:
+    - cron: '17 */2 * * *'
 
 permissions:
   contents: read
@@ -40,6 +43,16 @@ jobs:
         run: |
           npm ci --no-audit --no-fund
           npx vite build
+      - name: Satellite orbits
+        # Cloudflare's shared IPs get refused by CelesTrak, so the runner fetches them and ships them as files
+        run: |
+          mkdir -p upstream/dist/tle
+          for g in active stations visual gps-ops weather starlink; do
+            curl -fsS -m 60 -A "argus-hub/1.0 (+https://github.com/giusemc1988/stock-predict)" \
+              "https://celestrak.org/NORAD/elements/gp.php?GROUP=$g&FORMAT=tle" -o "upstream/dist/tle/$g.txt" \
+              && grep -q '^1 ' "upstream/dist/tle/$g.txt" || { echo "::warning::CelesTrak $g not fetched"; rm -f "upstream/dist/tle/$g.txt"; }
+          done
+          ls -la upstream/dist/tle
       - uses: actions/upload-artifact@v4
         with:
           name: argus-dist

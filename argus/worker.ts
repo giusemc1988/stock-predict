@@ -92,6 +92,9 @@ export default {
     const sat = /^\/api\/celestrak\/([a-z0-9-]{1,40})$/i.exec(p)
     if (sat) {
       const group = sat[1].toLowerCase()
+      // orbits baked in at deploy (refreshed every 2 h by the workflow); live CelesTrak only as a last try
+      const baked = await env.ASSETS.fetch(new Request(new URL(`/tle/${group}.txt`, url)))
+      if (baked.ok && (baked.headers.get('content-type') ?? '').startsWith('text/plain')) return new Response(baked.body, { headers: { 'content-type': 'text/plain', 'x-tle-source': 'baked', ...API_HEADERS } })
       return cached(`celestrak/${group}`, 7200, async () => {
         const r = await fetch(`https://celestrak.org/NORAD/elements/gp.php?GROUP=${group}&FORMAT=tle`, { headers: { 'user-agent': UA }, signal: AbortSignal.timeout(20000) })
         return r.ok ? new Response(r.body, { headers: { 'content-type': 'text/plain' } }) : r
