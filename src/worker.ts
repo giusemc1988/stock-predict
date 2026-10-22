@@ -9,6 +9,8 @@ import { practiceCycle, type WorkerEnv as PracticeEnv } from './worker/practiceC
 import { cleanKey, isSlot, keySources, sameOrigin, storeKey, testProvider, withSavedKeys, type KeyStore } from './lib/brainKeys'
 import type { PracticeState } from './lib/practice'
 import { upstreamAsset } from './lib/webFlash'
+import { DEBUG_PATHS, GODS_EYE_URL, LAYERS, debugExposed, layerState, type Probe } from './lib/godsEye'
+import { cleanWriteAsk, writeScript } from './lib/studioServer'
 
 interface Env extends BrainEnv, PracticeEnv {
   ASSETS: { fetch: (r: Request) => Promise<Response> }
@@ -278,9 +280,55 @@ async function finnhubQuote(symbol: string, key: string) {
   return { last: q.c, open: q.pc ?? q.c, high: q.h ?? q.c, low: q.l ?? q.c }
 }
 
+/** One God's Eye probe: status, type and the first 400 characters, or null on timeout. */
+async function geProbe(url: string, ms = 20000): Promise<Probe | null> {
+  try {
+    const r = await fetch(url, { signal: AbortSignal.timeout(ms), headers: { accept: 'application/json' } })
+    const body = (await r.text()).slice(0, 400)
+    return { status: r.status, contentType: r.headers.get('content-type') ?? '', body }
+  } catch {
+    return null
+  }
+}
+
+/**
+ * Every God's Eye layer checked at once; kept 60 s in the edge cache so the page never hammers the feeds.
+ * The debug-route check is slow (that route itself waits on Overpass), so it runs in the background
+ * and its answer is kept for an hour and shown on the next load.
+ */
+async function godsEyeStatus(ctx?: { waitUntil(p: Promise<unknown>): void }): Promise<Response> {
+  const cache = (globalThis as unknown as { caches?: { default?: Cache } }).caches?.default
+  const key = new Request('https://cache.local/godseye-status')
+  const dkey = new Request('https://cache.local/godseye-debug')
+  const hit = await cache?.match(key)
+  if (hit) return hit
+  const abs = (p: string) => (p.startsWith('http') ? p : GODS_EYE_URL + p)
+  const layers = await Promise.all(LAYERS.map(async (l) => layerState(l.id, await geProbe(abs(l.probe)))))
+  const dhit = await cache?.match(dkey)
+  const debugOpen: string[] = dhit ? await dhit.json() : []
+  if (!dhit && cache) {
+    const job = Promise.all(DEBUG_PATHS.map(async (p) => (debugExposed(await geProbe(abs(p), 45000)) ? p : null))).then((d) =>
+      cache.put(dkey, new Response(JSON.stringify(d.filter(Boolean)), { headers: { 'content-type': 'application/json', 'cache-control': 'public, max-age=3600' } })),
+    )
+    ctx?.waitUntil(job)
+  }
+  const res = new Response(JSON.stringify({ at: Date.now(), layers, debugOpen }), { headers: { 'content-type': 'application/json', 'cache-control': 'public, max-age=60' } })
+  await cache?.put(key, res.clone())
+  return res
+}
+
 export default {
-  async fetch(req: Request, env: Env): Promise<Response> {
+  async fetch(req: Request, env: Env, ctx?: { waitUntil(p: Promise<unknown>): void }): Promise<Response> {
     const { pathname } = new URL(req.url)
+    if (pathname === '/api/godseye/status') return godsEyeStatus(ctx)
+    if (pathname === '/api/studio/write') {
+      if (req.method !== 'POST') return json({ error: 'POST only' }, 405)
+      if (!sameOrigin(req)) return json({ error: 'Not allowed' }, 403)
+      const ask = cleanWriteAsk(await req.json().catch(() => null))
+      if (!ask) return json({ error: 'No topic' }, 400)
+      const r = await writeScript(ask, await withSavedKeys(env, env.SETTINGS))
+      return r ? json(r) : json({ error: 'No AI helper answered. Add a free Gemini or Groq key in Settings.' }, 503)
+    }
     if (pathname === '/api/brain/status') {
       const e = await withSavedKeys(env, env.SETTINGS)
       return json({ providers: brainStatus(e), keys: await keySources(env, env.SETTINGS), canSave: !!env.SETTINGS })
@@ -460,6 +508,8 @@ export default {
     if (pathname.startsWith('/api/home/')) {
       const sub = pathname.slice('/api/home/'.length)
       if (!HOME_PATHS.has(sub)) return json({ error: 'not found' }, 404)
+      // home actions (Wake-on-LAN, port checks, node registry) only from this app's own pages, never from another site
+      if (req.method !== 'GET' && !sameOrigin(req)) return json({ error: 'Not allowed' }, 403)
       const snapKey = `home:last:${sub}`
       const fallback = async (why: string) => {
         const snap = HOME_SNAPSHOT.has(sub) && req.method === 'GET' ? await env.SETTINGS?.get(snapKey).catch(() => null) : null

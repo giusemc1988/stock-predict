@@ -18,7 +18,7 @@ function firstView(): View {
 }
 
 /** Tool Hub: every tool and project around Jarvis, as a graph or a list. Every item opens real work. */
-export function ToolHub({ onPage, on, status = {} }: { onPage: (p: HubPage) => void; on: { net: boolean; ruview: boolean }; status?: Record<string, string> }) {
+export function ToolHub({ onPage, on, status = {} }: { onPage: (p: HubPage) => void; on: { net: boolean; ruview: boolean; godseye?: boolean; studio?: boolean }; status?: Record<string, string> }) {
   const t = useHubT()
   const lang = useLang()
   const L = (b: { en: string; vi: string }) => b[lang]
