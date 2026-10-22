@@ -331,6 +331,8 @@ export interface EntryContext {
   unlimited?: boolean
   /** Stop new buys for the rest of the day once today's closed trades lost this % of the account (0/missing = off). */
   dayLossLimitPct?: number
+  /** Drawdown brake multiplier: 1.0 (normal), 0.5 (-3% to -6%), 0.25 (-6% to -15%), 0 (-15%+). */
+  drawdownBrakeMultiplier?: number
   skills?: string[]
   /** Jarvis playbook gate: a buy that breaks a rule proven on past practice trades is skipped. */
   playbookGate?: boolean
@@ -442,8 +444,10 @@ export function onBarClose(prev: PracticeState, ctx: EntryContext): PracticeStat
   if (!(plan.stop > 0)) return skip('Exit plan', 'no valid stop and target', 'không có cắt lỗ và chốt lời hợp lệ')
   pass('Exit plan')
 
-  // small, fixed practice size; halved in high volatility
-  const pct = (ctx.sizePct / 100) * (regime === 'high' ? 0.5 : 1) * (penny ? PENNY_SIZE_MULT : 1)
+  // small, fixed practice size; halved in high volatility; reduced by drawdown brakes
+  const volatilityMult = regime === 'high' ? 0.5 : 1
+  const brakeMult = ctx.drawdownBrakeMultiplier ?? 1
+  const pct = (ctx.sizePct / 100) * volatilityMult * brakeMult * (penny ? PENNY_SIZE_MULT : 1)
   const costs = penny && ctx.costs ? { ...ctx.costs, spreadBps: ctx.costs.spreadBps * PENNY_COST_MULT, slippageBps: ctx.costs.slippageBps * PENNY_COST_MULT } : ctx.costs
   const qty = (eq * pct) / ctx.price
   if (!(qty > 0)) return s

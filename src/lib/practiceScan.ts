@@ -44,6 +44,8 @@ export interface ScanInput {
   skills?: string[]
   /** True when rolling win rate < 40%; pause learning to avoid overfitting to unproven signals. */
   pauseLearning?: boolean
+  /** Drawdown brake multiplier: 1.0 (normal), 0.5 (-3%), 0.25 (-6%), 0 (-15%+). */
+  drawdownBrakeMultiplier?: number
 }
 
 export interface ScanResult {
@@ -204,6 +206,7 @@ export async function scanCycle(input: ScanInput): Promise<ScanResult> {
         playbookMargin: rules.learnEdgeMarginPct / 100,
         skills: input.skills,
         newsSentiment: sentiments[x.symbol],
+        drawdownBrakeMultiplier: input.drawdownBrakeMultiplier,
       })
     }
     return s

@@ -138,6 +138,39 @@ function rollingWinRate(trades: { pnl: number }[], sampleSize = 20): number | nu
   return wins / recent.length
 }
 
+/**
+ * Calculate drawdown brake multiplier based on today's total P&L.
+ * Returns: 1.0 (normal), 0.5 (-3% to -6%), 0.25 (-6% to -15%), 0 (-15%+).
+ */
+function drawdownBrakeMultiplier(state: PracticeState, now: number): number {
+  const equity = PRACTICE_START + state.realized
+
+  // Calculate today's P&L: realized from closed trades + unrealized from open positions
+  const today = new Date(now).toLocaleDateString('en-CA') // YYYY-MM-DD format
+  const todayRealized = state.trades.filter((t) => {
+    const tradeDay = new Date(t.closedAt).toLocaleDateString('en-CA')
+    return tradeDay === today
+  }).reduce((sum, t) => sum + t.pnl, 0)
+
+  // Unrealized P&L on open positions (use server prices if available)
+  let unrealized = 0
+  for (const p of state.open) {
+    const price = state.server?.prices?.[p.symbol] ?? p.entry
+    unrealized += (price - p.entry) * p.qty
+  }
+
+  const todayPnl = todayRealized + unrealized
+  const todayReturnPct = (todayPnl / equity) * 100
+
+  // Apply drawdown brakes
+  if (todayReturnPct <= -15) return 0     // Stop trading
+  if (todayReturnPct <= -6) return 0.25   // Quarter size
+  if (todayReturnPct <= -3) return 0.5    // Half size
+  return 1                                 // Normal size
+}
+
+const PRACTICE_START = 10_000
+
 export async function practiceCycle(env: WorkerEnv): Promise<{ state: PracticeState; message: string; alerts?: TradeAlert[] }> {
 
   let prev: PracticeState = emptyPractice()
@@ -181,6 +214,9 @@ export async function practiceCycle(env: WorkerEnv): Promise<{ state: PracticeSt
   const wr = rollingWinRate(prev.trades)
   const pauseLearning = wr != null && wr < 0.4
 
+  // Drawdown brakes: reduce position size based on daily loss
+  const brakeMult = drawdownBrakeMultiplier(prev, now)
+
   const r = await scanCycle({
     markets: withOpenMarkets(markets, prev),
     fetchBars: (m) => yahoo15m(m.symbol),
@@ -194,6 +230,7 @@ export async function practiceCycle(env: WorkerEnv): Promise<{ state: PracticeSt
     sourceFor: () => 'Yahoo Finance',
     skills: SKILLS.map(skillTag),
     pauseLearning,
+    drawdownBrakeMultiplier: brakeMult,
   })
 
   if (Object.keys(r.prices).length === 0) {
@@ -256,6 +293,7 @@ export async function practiceCycle(env: WorkerEnv): Promise<{ state: PracticeSt
   }
 
   const learningStatus = pauseLearning ? `PAUSED (WR ${(wr! * 100).toFixed(0)}% < 40%)` : wr != null ? `active (WR ${(wr * 100).toFixed(0)}%)` : 'n/a'
-  const msg = `scanned ${r.candidates.length} markets (${r.failed.length} failed); best: ${top.join(', ') || 'none'}; open ${next.open.length}, closed ${next.trades.length}, realized ${next.realized.toFixed(2)}; learning ${learningStatus}`
+  const brakeStatus = brakeMult === 1 ? 'normal' : brakeMult === 0.5 ? 'HALF (-3%)' : brakeMult === 0.25 ? 'QUARTER (-6%)' : 'STOPPED (-15%)'
+  const msg = `scanned ${r.candidates.length} markets (${r.failed.length} failed); best: ${top.join(', ') || 'none'}; open ${next.open.length}, closed ${next.trades.length}, realized ${next.realized.toFixed(2)}; learning ${learningStatus}; brakes ${brakeStatus}`
   return { state: next, message: msg, alerts }
 }
