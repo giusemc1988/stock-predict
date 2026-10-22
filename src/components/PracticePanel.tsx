@@ -4,6 +4,8 @@ import { useLang } from '../lib/i18n'
 import type { PracticeScan } from '../hooks/usePractice'
 import { pickSourceLabel } from '../lib/practicePicks'
 import { loadRobotAudit, type AuditEntry } from '../lib/audit'
+import { fmtPct, tone } from '../lib/format'
+import { StatRow } from './StatCard'
 import { buildDailyReport } from '../lib/dailyReport'
 import { DATA_LABEL } from '../lib/dataGuard'
 import { BUCKET_LABEL, REVIEW_FAIL, reviewCounts, type ReviewBucket } from '../lib/review'
@@ -91,6 +93,7 @@ export function PracticePanel({ state, rules, symbol, priceOf, onReset, scan, on
     const now = priceOf(p.symbol)
     return a + (now > 0 ? (now - p.entry) * p.qty : 0)
   }, 0)
+  const eqChange = ((equity + openPnl) / PRACTICE_START - 1) * 100
   const wins = shownTrades.filter((t) => t.pnl > 0)
   const fails = shownTrades.filter((t) => t.pnl <= 0)
 
@@ -332,6 +335,17 @@ export function PracticePanel({ state, rules, symbol, priceOf, onReset, scan, on
             </div>
           </div>
 
+          {rules.dashMotion ? (
+            <StatRow
+              className="pr-sc"
+              items={[
+                { key: 'eq', icon: 'wallet', label: L('Equity', 'Tài sản'), value: `$${(equity + openPnl).toFixed(2)}`, chip: { text: fmtPct(eqChange), tone: tone(eqChange) }, sub: L('vs start', 'so với ban đầu') },
+                { key: 'real', icon: 'cash', label: L('Realized', 'Đã chốt'), value: money(state.realized), tone: state.realized >= 0 ? 'up' : 'down' },
+                { key: 'open', icon: 'trend', label: L('Open P&L', 'Lãi/lỗ mở'), value: money(openPnl), tone: openPnl >= 0 ? 'up' : 'down' },
+                { key: 'wr', icon: 'target', label: L('Win rate', 'Tỷ lệ thắng'), value: pct(r.winRate), sub: L(`${r.n} trades`, `${r.n} lệnh`) },
+              ]}
+            />
+          ) : (
           <div className="al-tiles">
             <div>
               <span>{L('Equity', 'Tài sản')}</span>
@@ -352,6 +366,7 @@ export function PracticePanel({ state, rules, symbol, priceOf, onReset, scan, on
               </b>
             </div>
           </div>
+          )}
 
           <div className="al-card">
             <div className="al-kicker">{L('OPEN PRACTICE TRADES', 'LỆNH LUYỆN TẬP ĐANG MỞ')}</div>

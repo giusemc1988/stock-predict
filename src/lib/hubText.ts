@@ -67,6 +67,16 @@ export const HUB_TEXT = {
   tabTools: { en: 'Tools', vi: 'Công cụ' },
   tabDevices: { en: 'Devices', vi: 'Thiết bị' },
   language: { en: 'Language', vi: 'Ngôn ngữ' },
+  pjTitle: { en: 'Your projects', vi: 'Dự án của anh' },
+  pjTradingSub: { en: '{b} BUY calls · {n} open trades', vi: '{b} lệnh MUA · {n} lệnh đang mở' },
+  pjVsStart: { en: 'Practice account vs the $10,000 start', vi: 'Tài khoản luyện tập so với $10,000 ban đầu' },
+  pjRuviewSub: { en: 'Rooms, nodes, presence', vi: 'Phòng, node, có người' },
+  pjRuviewTitle: { en: 'Pinned RuView release', vi: 'Bản RuView đang ghim' },
+  pjBeta: { en: 'Beta', vi: 'Beta' },
+  pjOff: { en: 'Off', vi: 'Tắt' },
+  pjReady: { en: 'Ready', vi: 'Sẵn sàng' },
+  pjSoonN: { en: '{n} soon', vi: '{n} sắp có' },
+  pjToolsReady: { en: 'tools ready', vi: 'công cụ sẵn sàng' },
 } satisfies Record<string, Bi>
 
 export type HubKey = keyof typeof HUB_TEXT
