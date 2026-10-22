@@ -2,7 +2,7 @@
  * Version and "What's new". Bump APP_VERSION and add an entry to the top of RELEASES
  * with each update. The banner shows once per version, then stays dismissed.
  */
-export const APP_VERSION = '1.30.0'
+export const APP_VERSION = '1.31.0'
 
 export interface Release {
   version: string
@@ -13,6 +13,18 @@ export interface Release {
 }
 
 export const RELEASES: Release[] = [
+  {
+    version: '1.31.0',
+    date: '2026-10-22',
+    changes: [
+      'Main numbers count up: the first time a card shows a real number (project cards, Portfolio value, Practice tiles, Jarvis Scoreboard), it runs from 0 up to the value in under a second. After that numbers update live as before.',
+      'Off with "reduce motion" on your device or Settings > AI rules > Dashboard cards and motion.',
+    ],
+    changesVi: [
+      'Số chính chạy từ 0 lên: lần đầu một thẻ có số thật (thẻ dự án, Giá trị danh mục, ô Luyện tập, Bảng điểm Jarvis), số chạy từ 0 lên đúng giá trị trong chưa tới 1 giây. Sau đó số cập nhật trực tiếp như cũ.',
+      'Tắt khi máy bật "giảm chuyển động" hoặc trong Cài đặt > Quy tắc AI > Thẻ và hiệu ứng dashboard.',
+    ],
+  },
   {
     version: '1.30.0',
     date: '2026-10-22',

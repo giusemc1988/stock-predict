@@ -8,6 +8,7 @@ import { EquityChart } from './EquityChart'
 import { OrdersTable, PositionsTable } from './AccountTables'
 import { InfoTip } from './InfoTip'
 import { StatRow } from './StatCard'
+import { CountUp } from './CountUp'
 import { useAiRules } from '../lib/aiRules'
 
 interface Props {
@@ -67,7 +68,7 @@ export function PortfolioPage(p: Props) {
             <span className="pf-label">
               Portfolio value <span className="paper-badge">PAPER · {broker.label}</span>
             </span>
-            <div className="pf-value mono">{fmtUsd(account.equity)}</div>
+            <div className="pf-value mono">{dash ? <CountUp text={fmtUsd(account.equity)} /> : fmtUsd(account.equity)}</div>
             <div className={`pf-day mono ${tone(account.dayPL)}`}>
               {fmtUsd(account.dayPL)} ({fmtPct(account.dayPLPct)}) <span>today</span>
             </div>

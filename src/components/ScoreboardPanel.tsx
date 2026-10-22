@@ -2,6 +2,8 @@ import { fmtPct, fmtUsd, tone } from '../lib/format'
 import { practiceReport, scoreboardNumbers, expectancy, maxDrawdown, type PracticeState } from '../lib/practice'
 import { hhmm } from '../lib/brief'
 import { useLang } from '../lib/i18n'
+import { useAiRules } from '../lib/aiRules'
+import { CountUp } from './CountUp'
 
 interface Props {
   practice: PracticeState
@@ -14,6 +16,9 @@ interface Props {
 export function ScoreboardPanel({ practice, baseline = true, priceOf }: Props) {
   const lang = useLang()
   const vi = lang === 'vi'
+  // Dashboard cards and motion: the main numbers count up from 0 the first time they show
+  const dash = useAiRules().dashMotion
+  const num = (text: string) => (dash ? <CountUp text={text} /> : text)
   const rep = practiceReport(practice)
   const sb = scoreboardNumbers(practice, priceOf)
   const b = sb.baseline
@@ -30,22 +35,22 @@ export function ScoreboardPanel({ practice, baseline = true, priceOf }: Props) {
       {baseline && (
         <div className="scoreboard-vs">
           <div className="score-metric">
-            <div className={`score-value mono ${tone(sb.total)}`}>{fmtPct(sb.jarvisPct)}</div>
+            <div className={`score-value mono ${tone(sb.total)}`}>{num(fmtPct(sb.jarvisPct))}</div>
             <div className="score-label">Jarvis</div>
             <div className="score-sub mono">{vi ? `${fmtUsd(sb.total)} đã đóng + đang mở` : `${fmtUsd(sb.total)} closed + open`}</div>
           </div>
           <div className="score-metric">
-            <div className={`score-value mono ${sb.basePct == null ? '' : tone(sb.basePct)}`}>{sb.basePct == null ? '—' : fmtPct(sb.basePct)}</div>
+            <div className={`score-value mono ${sb.basePct == null ? '' : tone(sb.basePct)}`}>{num(sb.basePct == null ? '—' : fmtPct(sb.basePct))}</div>
             <div className="score-label">{vi ? `Mua giữ ${b?.symbol ?? 'SPY'}` : `Buy & hold ${b?.symbol ?? 'SPY'}`}</div>
             <div className="score-sub mono">{b ? `${b.start.toFixed(2)} → ${b.last.toFixed(2)}` : vi ? 'chờ máy chủ' : 'waiting for the server'}</div>
           </div>
           <div className="score-metric">
-            <div className={`score-value mono ${sb.edgePct == null ? '' : tone(sb.edgePct)}`}>{sb.edgePct == null ? '—' : `${fmtPct(sb.edgePct)}`}</div>
+            <div className={`score-value mono ${sb.edgePct == null ? '' : tone(sb.edgePct)}`}>{num(sb.edgePct == null ? '—' : `${fmtPct(sb.edgePct)}`)}</div>
             <div className="score-label">{sb.edgePct == null || Math.abs(sb.edgePct) < 0.005 ? (sb.edgePct == null ? (vi ? 'Chênh lệch' : 'Difference') : vi ? 'Đang hòa' : 'Even so far') : sb.edgePct > 0 ? (vi ? 'Jarvis đang hơn' : 'Jarvis ahead by') : vi ? 'Jarvis đang thua' : 'Jarvis behind by'}</div>
             <div className="score-sub mono">{b ? (vi ? `từ ${hhmm(b.startAt)}` : `since ${hhmm(b.startAt)}`) : '—'}</div>
           </div>
           <div className="score-metric">
-            <div className={`score-value mono ${sb.priced ? tone(sb.unrealized) : ''}`}>{sb.open === 0 ? fmtUsd(0) : sb.priced ? fmtUsd(sb.unrealized) : '—'}</div>
+            <div className={`score-value mono ${sb.priced ? tone(sb.unrealized) : ''}`}>{num(sb.open === 0 ? fmtUsd(0) : sb.priced ? fmtUsd(sb.unrealized) : '—')}</div>
             <div className="score-label">{vi ? 'Lãi/lỗ đang mở' : 'Open P&L'}</div>
             <div className="score-sub mono">
               {vi ? `${sb.open} lệnh đang mở` : `${sb.open} open`}
@@ -57,13 +62,13 @@ export function ScoreboardPanel({ practice, baseline = true, priceOf }: Props) {
 
       <div className="scoreboard-grid">
         <div className="score-metric">
-          <div className={`score-value mono ${tone(rep.pnl)}`}>{fmtUsd(rep.pnl)}</div>
+          <div className={`score-value mono ${tone(rep.pnl)}`}>{num(fmtUsd(rep.pnl))}</div>
           <div className="score-label">{vi ? "Lãi/lỗ đã đóng" : "Closed P&L"}</div>
           <div className="score-sub mono">{vi ? `${rep.n} lệnh` : `${rep.n} trades`}</div>
         </div>
 
         <div className="score-metric">
-          <div className="score-value mono">{rep.winRate != null ? `${Math.round(rep.winRate * 100)}%` : "—"}</div>
+          <div className="score-value mono">{num(rep.winRate != null ? `${Math.round(rep.winRate * 100)}%` : "—")}</div>
           <div className="score-label">{vi ? "Tỉ lệ thắng" : "Win rate"}</div>
           <div className="score-sub mono">
             {rep.winRate != null && rep.n > 0
