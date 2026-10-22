@@ -28,6 +28,7 @@ import { useNews } from '../hooks/useNews'
 import { HubProjects } from './HubProjects'
 import { StatRow } from './StatCard'
 import { SkRows } from './Skeleton'
+import { ActivityFeed, type FeedItem } from './ActivityFeed'
 
 interface Props {
   rules: AiRules
@@ -315,6 +316,16 @@ export function JarvisBrief(p: Props) {
   const tools = p.rules.toolHub && !!p.onTool
   const voteCtx: VoteContext = { flow: { symbol: p.flow.symbol, buyShare: p.flow.buyShare }, headlines: news.map((n) => n.headline), learner: { right: learnIn.right, wrong: learnIn.wrong }, risk: { killSwitch: p.killSwitch, dayPL: p.dayPL, lossLimit: p.lossLimit, lossLimitOn: p.lossLimitOn } }
   // project cards open the same pages as the Tool Hub; without it, the hub's own buttons
+  // Recent activity on the Hub: the newest practice events, logged decisions and learner notes, merged by time
+  const activity: FeedItem[] = dash
+    ? [
+        ...p.practice.events.slice(0, 12).map((e): FeedItem => ({ id: `e${e.id}`, time: e.time, kind: e.kind, text: L(e), sub: e.symbol })),
+        ...(p.practice.audit ?? []).slice(0, 12).map((a): FeedItem => ({ id: `a${a.id}`, time: a.time, kind: a.accepted ? 'ok' : 'no', text: L(a), sub: `${a.symbol} · ${vi ? 'nhật ký quyết định' : 'decision log'}` })),
+        ...p.learn.log.slice(0, 12).map((l, i): FeedItem => ({ id: `l${l.time}${i}`, time: l.time, kind: 'learn', text: L(l), sub: vi ? 'bộ tự học' : 'learner' })),
+      ]
+        .sort((a, b) => b.time - a.time)
+        .slice(0, 8)
+    : []
   const toPage = (pg: HubPage) => (p.onTool ? p.onTool(pg) : pg === 'net' ? p.onNet?.() : pg === 'ruview' || pg === 'ruview-flash' ? p.onRuview?.() : p.onDesk())
   const openPick = (b: PickRow) => p.onSymbol(b.symbol, b.symbol.includes('/') ? 'crypto' : 'stock')
 
@@ -361,6 +372,15 @@ export function JarvisBrief(p: Props) {
             </div>
           </div>
           <aside className="hub-side">
+            {dash && (
+              <section className="bf-card hub-activity">
+                <header>
+                  <h3>{vi ? 'Hoạt động gần đây' : 'Recent activity'}</h3>
+                </header>
+                <p className="bf-source">{vi ? 'Nguồn: tài khoản luyện tập, nhật ký quyết định, bộ tự học' : 'Source: practice account, decision log, learner'}</p>
+                <ActivityFeed items={activity} empty={vi ? 'Chưa có gì. Lệnh, quyết định và bài học sẽ hiện ở đây khi xảy ra.' : 'Nothing yet. Trades, decisions and lessons show up here as they happen.'} />
+              </section>
+            )}
             <HubStudio />
             {!tools && <HubDevices onNet={p.onNet} onRuview={p.onRuview} />}
           </aside>
