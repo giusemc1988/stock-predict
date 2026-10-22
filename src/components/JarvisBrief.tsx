@@ -21,6 +21,9 @@ import { LocalAiQA } from './LocalAiQA'
 import { NewsBox } from './NewsBox'
 import { HubBestPick, HubBoard, HubDevices, HubStudio, HubTabbar, LangSwitch } from './HubPanels'
 import type { VoteContext } from '../lib/hub'
+import type { HubPage } from '../lib/toolHub'
+import { ToolHub } from './ToolHub'
+import { hubText } from '../lib/hubText'
 import { useNews } from '../hooks/useNews'
 
 interface Props {
@@ -45,6 +48,8 @@ interface Props {
   /** Open the Wi-Fi & Bluetooth page (undefined when it is switched off). */
   onNet?: () => void
   onRuview?: () => void
+  /** Tool Hub: open a page of the app */
+  onTool?: (p: HubPage) => void
 }
 
 function Movers({ title, rows, vol, onPick }: { title: string; rows: MarketListRow[]; vol?: boolean; onPick: (r: MarketListRow) => void }) {
@@ -257,6 +262,7 @@ export function JarvisBrief(p: Props) {
   ) : null
 
   const hub = p.rules.hubLayout
+  const tools = p.rules.toolHub && !!p.onTool
   const voteCtx: VoteContext = { flow: { symbol: p.flow.symbol, buyShare: p.flow.buyShare }, headlines: news.map((n) => n.headline), learner: { right: learnIn.right, wrong: learnIn.wrong }, risk: { killSwitch: p.killSwitch, dayPL: p.dayPL, lossLimit: p.lossLimit, lossLimitOn: p.lossLimitOn } }
   const openPick = (b: PickRow) => p.onSymbol(b.symbol, b.symbol.includes('/') ? 'crypto' : 'stock')
 
@@ -269,12 +275,28 @@ export function JarvisBrief(p: Props) {
         </div>
         <section className="bf-hero hub-hero">
         <BrainCore nodes={nodes} memory={memory} thinking={p.scan.busy || brief.writing} motion={p.rules.jarvisMotion} onNode={p.onNode} />
-          <HubBestPick picks={buys} ctx={voteCtx} nodes={nodes} scanOn={inputs.scan.on} onOpen={openPick} onWhy={openSignalFlow} onDesk={p.onDesk} />
+          {tools ? (
+            // today's signal and the scoreboard side by side: "should I trust today's call?" in one glance
+            <div className="hub-today">
+              <HubBestPick picks={buys} ctx={voteCtx} nodes={nodes} scanOn={inputs.scan.on} onOpen={openPick} onWhy={openSignalFlow} onDesk={p.onDesk} />
+              {scoreCard}
+            </div>
+          ) : (
+            <HubBestPick picks={buys} ctx={voteCtx} nodes={nodes} scanOn={inputs.scan.on} onOpen={openPick} onWhy={openSignalFlow} onDesk={p.onDesk} />
+          )}
         </section>
         <div className="hub-cols">
           <div className="hub-main">
             <HubBoard picks={buys} ctx={voteCtx} nodes={nodes} onOpen={openPick} onWhy={openSignalFlow} />
-            {scoreCard}
+            {tools ? (
+              <ToolHub
+                onPage={p.onTool!}
+                on={{ net: !!p.onNet, ruview: !!p.onRuview }}
+                status={{ desk: hubText(lang, 'thOpenTrades', { n: p.practice.open.length }), board: hubText(lang, 'thCalls', { n: buys.length }) }}
+              />
+            ) : (
+              scoreCard
+            )}
             {briefBlock}
             <div className="hub-pair">
               {moversCard}
@@ -287,10 +309,10 @@ export function JarvisBrief(p: Props) {
           </div>
           <aside className="hub-side">
             <HubStudio />
-            <HubDevices onNet={p.onNet} onRuview={p.onRuview} />
+            {!tools && <HubDevices onNet={p.onNet} onRuview={p.onRuview} />}
           </aside>
         </div>
-        <HubTabbar onDesk={p.onDesk} />
+        <HubTabbar onDesk={p.onDesk} tools={tools} />
         {showSignalFlow && <SignalFlowExplainer signal={showSignalFlow} of={buys.length} onClose={() => setShowSignalFlow(null)} />}
         {showReadiness && <AgentReadiness nodes={nodes} onClose={() => setShowReadiness(false)} />}
       </main>

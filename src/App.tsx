@@ -111,6 +111,8 @@ export default function App() {
   const briefOn = aiRules.briefHome && aiRules.jarvisOn
   const shownPage: Page = (page === 'brief' && !briefOn) || (page === 'net' && !aiRules.netTools) || (page === 'ruview' && !aiRules.ruviewOn) ? 'trade' : page
   const setPage = setPageRaw
+  // the Tool Hub's "Flash a board" opens RuView with the add-node wizard already open
+  const [ruviewFlash, setRuviewFlash] = useState(false)
   const [sortRequest, setSortRequest] = useState(0)
   const [rightTab, setRightTab] = useState<'ai' | 'flow' | 'trade' | 'learn' | 'picks' | 'practice' | 'brain'>('ai')
   const lang = useLang()
@@ -636,6 +638,10 @@ export default function App() {
           onDesk={() => setPage('trade')}
           onNet={aiRules.netTools ? () => setPage('net') : undefined}
           onRuview={aiRules.ruviewOn ? () => setPage('ruview') : undefined}
+          onTool={(pg) => {
+            setRuviewFlash(pg === 'ruview-flash')
+            setPage(pg === 'ruview-flash' ? 'ruview' : pg)
+          }}
         />
         </PanelGuard>
       ) : shownPage === 'net' ? (
@@ -644,7 +650,7 @@ export default function App() {
         </PanelGuard>
       ) : shownPage === 'ruview' ? (
         <PanelGuard name="RuView">
-          <RuViewPage onBack={() => setPage(briefOn ? 'brief' : 'trade')} webFlash={aiRules.webFlash} />
+          <RuViewPage onBack={() => setPage(briefOn ? 'brief' : 'trade')} webFlash={aiRules.webFlash} startAdding={ruviewFlash} />
         </PanelGuard>
       ) : shownPage === 'trade' ? (
         <>

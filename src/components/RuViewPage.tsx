@@ -222,7 +222,7 @@ function AddNode({ reg, me, webFlash, onSaved, onClose }: { reg: RegistryNode[];
 }
 
 /** RuView sensing (github.com/ruvnet/ruview) on the home PC, read through the home agent. */
-export function RuViewPage({ onBack, webFlash = true }: { onBack: () => void; webFlash?: boolean }) {
+export function RuViewPage({ onBack, webFlash = true, startAdding = false }: { onBack: () => void; webFlash?: boolean; startAdding?: boolean }) {
   const t = useRuviewT()
   const [off, setOff] = useState<Offline | null>(null)
   const [status, setStatus] = useState<Status | null>(null)
@@ -231,7 +231,7 @@ export function RuViewPage({ onBack, webFlash = true }: { onBack: () => void; we
   const [vitals, setVitals] = useState<Vitals | null>(null)
   const [reg, setReg] = useState<RegistryNode[]>([])
   const [me, setMe] = useState<string[]>([])
-  const [adding, setAdding] = useState(false)
+  const [adding, setAdding] = useState(startAdding)
   const [note, setNote] = useState<string | null>(null)
   const [demo, setDemo] = useState(false)
 
