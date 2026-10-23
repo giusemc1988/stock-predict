@@ -66,6 +66,7 @@ export const STUDIO_TEXT = {
   serverLog: { en: 'Log', vi: 'Nhật ký' },
   footagePexels: { en: 'Footage: Pexels video clips.', vi: 'Hình: clip video Pexels.' },
   footageOpenverse: { en: 'Footage: free public-domain photos (Openverse) with slow zoom. Add a free Pexels key for real video clips.', vi: 'Hình: ảnh miễn phí bản quyền mở (Openverse) có zoom chậm. Thêm key Pexels miễn phí để có clip video thật.' },
+  footageGradient: { en: 'The free photo source did not answer, so this one has plain colour backgrounds. Make it again later, or add a Pexels key.', vi: 'Nguồn ảnh miễn phí không phản hồi nên video này dùng nền màu. Tạo lại sau, hoặc thêm key Pexels.' },
   pexelsKey: { en: 'Pexels key (free)', vi: 'Key Pexels (miễn phí)' },
   pexelsHow: { en: 'On your phone: pexels.com/api → Get started → sign up → copy "Your API key" and paste it here.', vi: 'Trên điện thoại: vào pexels.com/api → Get started → đăng ký → copy "Your API key" rồi dán vào đây.' },
   pexelsSave: { en: 'Save key', vi: 'Lưu key' },

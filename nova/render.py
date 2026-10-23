@@ -26,6 +26,8 @@ OPENVERSE_ASPECT = {"9:16": "tall", "16:9": "wide", "1:1": "square"}
 MAX_PHOTOS = 12
 # photo URLs already saved, so the any-shape second pass does not repeat the first
 _SEEN: set[str] = set()
+# Openverse terms that timed out twice; after 2 we stop asking it (a slow Openverse would cost 20+ minutes)
+_DOWN = [0]
 
 
 def write_config(pexels_key: str) -> None:
@@ -51,18 +53,23 @@ def openverse_photos(terms: list[str], aspect: str | None, dest: str) -> list[st
     headers = {"User-Agent": "Nova-Video-Studio/1.0 (+https://github.com/giusemc1988/stock-predict)"}
     files: list[str] = []
     for term in terms:
-        if len(files) >= MAX_PHOTOS:
+        if len(files) >= MAX_PHOTOS or _DOWN[0] >= 2:
             break
-        try:
-            r = requests.get(
-                "https://api.openverse.org/v1/images/",
-                params={"q": term, "license": "cc0,pdm", "category": "photograph", "size": "large", "page_size": 6, "mature": "false", **({"aspect_ratio": OPENVERSE_ASPECT.get(aspect, "tall")} if aspect else {})},
-                headers=headers,
-                timeout=20,
-            )
-            results = r.json().get("results", []) if r.ok else []
-        except Exception as exc:  # noqa: BLE001 - one bad term must not stop the video
-            print(f"openverse: {term!r} failed: {exc}")
+        results = None
+        for attempt in range(2):
+            try:
+                r = requests.get(
+                    "https://api.openverse.org/v1/images/",
+                    params={"q": term, "license": "cc0,pdm", "category": "photograph", "size": "large", "page_size": 6, "mature": "false", **({"aspect_ratio": OPENVERSE_ASPECT.get(aspect, "tall")} if aspect else {})},
+                    headers=headers,
+                    timeout=45,
+                )
+                results = r.json().get("results", []) if r.ok else []
+                break
+            except Exception as exc:  # noqa: BLE001 - Openverse is often slow; one bad term must not stop the video
+                print(f"openverse: {term!r} try {attempt + 1} failed: {exc}")
+        if results is None:
+            _DOWN[0] += 1
             continue
         for item in results[:3]:
             url = item.get("url") or ""
@@ -84,6 +91,26 @@ def openverse_photos(terms: list[str], aspect: str | None, dest: str) -> list[st
     return files
 
 
+def gradient_backgrounds(aspect: str, dest: str, count: int = 5) -> list[str]:
+    """Last resort when no photo source answers: calm Nova-coloured gradients, so the voice and subtitles still ship."""
+    from PIL import Image
+
+    w, h = (1080, 1920) if aspect == "9:16" else (1920, 1080) if aspect == "16:9" else (1080, 1080)
+    palette = [((11, 21, 48), (201, 162, 39)), ((8, 30, 60), (64, 140, 180)), ((20, 12, 40), (150, 90, 160)), ((6, 40, 40), (60, 160, 120)), ((30, 20, 10), (210, 120, 60))]
+    os.makedirs(dest, exist_ok=True)
+    files = []
+    for i in range(count):
+        top, bottom = palette[i % len(palette)]
+        col = Image.new("RGB", (1, 256))
+        for y in range(256):
+            t = y / 255
+            col.putpixel((0, y), tuple(round(a + (b - a) * t) for a, b in zip(top, bottom)))
+        name = f"nova-bg-{i}.jpg"
+        col.resize((w, h), Image.BICUBIC).save(os.path.join(dest, name), quality=92)
+        files.append(name)
+    return files
+
+
 def render(job: dict, pexels_key: str) -> dict:
     from app.models.schema import MaterialInfo, VideoParams
     from app.services import state as sm
@@ -93,6 +120,7 @@ def render(job: dict, pexels_key: str) -> dict:
     aspect = job.get("aspect") if job.get("aspect") in ("9:16", "16:9", "1:1") else "9:16"
     terms = [t for t in job.get("terms", []) if t][:8] or [job["topic"]]
     source = "pexels" if pexels_key else "local"
+    footage = "pexels"
     materials = None
     if source == "local":
         folder = utils.storage_dir("local_videos", create=True)
@@ -100,8 +128,11 @@ def render(job: dict, pexels_key: str) -> dict:
         if len(photos) < 3:
             # few photos in this shape: take any shape, the "cover" fit crops them
             photos += openverse_photos(terms, None, folder)[: MAX_PHOTOS - len(photos)]
+        footage = "openverse"
         if not photos:
-            return {"ok": False, "error": "No footage: Openverse returned no photos and no Pexels key is saved."}
+            print("openverse gave no photos: using plain gradient backgrounds")
+            photos = gradient_backgrounds(aspect, folder)
+            footage = "gradient"
         materials = [MaterialInfo(provider="local", url=p) for p in photos]
 
     params = VideoParams(
@@ -135,7 +166,7 @@ def render(job: dict, pexels_key: str) -> dict:
         stage = task.get("failed_stage") or "video"
         return {"ok": False, "error": f"{stage}: {task.get('error') or 'MoneyPrinterTurbo made no video'}"}
     shutil.copyfile(videos[0], f"{WORK}/out/{job['id']}.mp4")
-    return {"ok": True, "duration": (result or {}).get("audio_duration"), "footage": "pexels" if pexels_key else "openverse"}
+    return {"ok": True, "duration": (result or {}).get("audio_duration"), "footage": footage}
 
 
 def main() -> int:

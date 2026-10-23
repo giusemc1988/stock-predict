@@ -36,7 +36,8 @@ export interface StudioJob {
   parts?: number
   chunk?: number
   duration?: number | null
-  footage?: 'pexels' | 'openverse'
+  /** gradient = no photo source answered, so plain colour backgrounds were used */
+  footage?: 'pexels' | 'openverse' | 'gradient'
   run?: string
 }
 

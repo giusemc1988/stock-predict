@@ -97,6 +97,7 @@ export function StudioRenderPanel({ topic, topicVi, en, vi, aspect }: { topic: s
             <span className={`small ${j.status === 'failed' ? 'warn' : 'muted'}`}>{t(STATUS[j.status])}</span>
           </div>
           {j.status === 'failed' && j.error && <p className="small muted">{j.error}</p>}
+          {j.status === 'done' && j.footage === 'gradient' && <p className="small muted">{t('footageGradient')}</p>}
           {j.status === 'done' && (
             <div className="vs-out">
               <video src={`/api/studio/video?id=${j.id}`} controls playsInline preload="metadata" />
