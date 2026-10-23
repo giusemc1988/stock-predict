@@ -23,7 +23,7 @@ export function cleanWriteAsk(body: unknown): WriteAsk | null {
   const topic = typeof b?.topic === 'string' ? b.topic.replace(/\s+/g, ' ').trim().slice(0, 200) : ''
   if (!topic) return null
   const mode = MODES.includes(b?.mode as StudioMode) ? (b!.mode as StudioMode) : 'faceless'
-  const scenes = Math.max(3, Math.min(8, Math.round(Number(b?.scenes) || 5)))
+  const scenes = Math.max(3, Math.min(12, Math.round(Number(b?.scenes) || 5)))
   const topicVi = typeof b?.topicVi === 'string' ? b.topicVi.replace(/\s+/g, ' ').trim().slice(0, 200) : ''
   return { topic, topicVi: topicVi || topic, mode, scenes }
 }

@@ -96,4 +96,41 @@ assert.equal(await kickFarm('tok', gh(401)), false)
 assert.equal(await kickFarm('tok', (async () => { throw new Error('offline') }) as unknown as typeof fetch), false)
 assert.ok(await checkGithubToken('tok', gh(200)))
 assert.equal(await checkGithubToken('tok', gh(404)), false)
+
+// video settings: clamped, odd values fall back to Nova's defaults
+{
+  const { DEFAULT_RENDER_OPTS, cleanRenderOpts, withHook } = await import('../src/lib/studioJobs')
+  assert.deepEqual(cleanRenderOpts(undefined), DEFAULT_RENDER_OPTS)
+  const o = cleanRenderOpts({ voiceRate: 9, voiceVolume: 0.73, music: false, musicVolume: -1, clip: 3.6, transition: 'Spin', subSize: 500, subColor: '#ffe14d', subStroke: 2.3, subBox: 1, subPos: 5, subMode: 'word_by_word', subPop: true })
+  assert.equal(o.voiceRate, 1.5)
+  assert.equal(o.voiceVolume, 0.73)
+  assert.equal(o.music, false)
+  assert.equal(o.musicVolume, 0)
+  assert.equal(o.clip, 4)
+  assert.equal(o.transition, 'none')
+  assert.equal(o.subSize, 110)
+  assert.equal(o.subColor, '#FFE14D')
+  assert.equal(o.subStroke, 2.5)
+  assert.equal(o.subBox, true)
+  assert.equal(o.subPos, 10)
+  assert.equal(o.subMode, 'word_by_word')
+  assert.equal(cleanRenderOpts({ subColor: 'red; drop' }).subColor, '#FFFFFF')
+  assert.equal(cleanRenderOpts({ voiceRate: 1.15 }).voiceRate, 1.15)
+
+  // the hook opens the video once
+  assert.deepEqual(withHook(['a', 'b'], 'Hook!'), ['Hook!', 'a', 'b'])
+  assert.deepEqual(withHook(['Hook!', 'b'], ' hook! '), ['Hook!', 'b'])
+  assert.deepEqual(withHook(['a'], ''), ['a'])
+  assert.equal(withHook(Array(12).fill('x'), 'h').length, 12)
+
+  const kv2 = fakeKv()
+  const a2 = cleanRenderAsk({ topic: 'Sea', en: ['One'], vi: ['Một'], langs: ['vi', 'en'], aspect: '1:1', opts: { subSize: 80 }, hook: { vi: 'Bạn có biết?', en: '' } })!
+  assert.equal(a2.aspect, '1:1')
+  const jobs2 = (await queueJobs(kv2, a2, ['sea'], 1, uuid))!
+  const vi2 = jobs2.find((j) => j.lang === 'vi')!
+  const en2 = jobs2.find((j) => j.lang === 'en')!
+  assert.deepEqual(vi2.lines, ['Bạn có biết?', 'Một'])
+  assert.deepEqual(en2.lines, ['One'])
+  assert.equal(vi2.opts!.subSize, 80)
+}
 console.log('novajobs ok')

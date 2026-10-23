@@ -74,7 +74,7 @@ async function loadMedia(file: File): Promise<Media> {
 }
 
 /** Bilingual Faceless Video Studio: script EN + VI, preview, MP4 export and Title Lab, all in the browser. */
-export function VideoStudioPage({ onBack, glass = true, trends = true, postKit = true }: { onBack: () => void; glass?: boolean; trends?: boolean; postKit?: boolean }) {
+export function VideoStudioPage({ onBack, glass = true, trends = true, postKit = true, videoSettings = true }: { onBack: () => void; glass?: boolean; trends?: boolean; postKit?: boolean; videoSettings?: boolean }) {
   const lang = useLang()
   const theme = useHubTheme()
   const active = useActiveStep()
@@ -88,6 +88,9 @@ export function VideoStudioPage({ onBack, glass = true, trends = true, postKit =
   const [en, setEn] = useState(LIBRARY[0].en.join('\n'))
   const [vi, setVi] = useState(LIBRARY[0].vi.join('\n'))
   const [music, setMusic] = useState(true)
+  const [scenes, setScenes] = useState(5)
+  // the post kit's chosen hook opens the server video
+  const [hook, setHook] = useState({ en: '', vi: '' })
   const [fades, setFades] = useState(true)
   const [voice, setVoice] = useState(false)
   const [media, setMedia] = useState<Media[]>([])
@@ -128,7 +131,7 @@ export function VideoStudioPage({ onBack, glass = true, trends = true, postKit =
     setMsg(null)
     setBusy(t('writing'))
     try {
-      const r = await fetch('/api/studio/write', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ topic: ask?.topic ?? topic, topicVi: ask?.topicVi ?? topicVi, mode, scenes: 5 }) })
+      const r = await fetch('/api/studio/write', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ topic: ask?.topic ?? topic, topicVi: ask?.topicVi ?? topicVi, mode, scenes }) })
       const j = (await r.json().catch(() => ({}))) as { en?: string[]; vi?: string[]; by?: string; error?: string }
       if (!r.ok || !j.en?.length || !j.vi?.length) throw new Error(j.error ?? `HTTP ${r.status}`)
       setEn(j.en.join('\n'))
@@ -224,7 +227,7 @@ export function VideoStudioPage({ onBack, glass = true, trends = true, postKit =
       // played from an object URL: a relative path breaks inside sandboxed frames
       const url = URL.createObjectURL(r.blob)
       const slug = (topic || 'video').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/đ/g, 'd').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 40)
-      setOut({ url, name: `${slug || 'video'}-${aspect === '9:16' ? '1080x1920' : '1920x1080'}.mp4`, size: r.blob.size })
+      setOut({ url, name: `${slug || 'video'}-${w}x${h}.mp4`, size: r.blob.size })
       if (music && !r.audio) setMsg(t('noAudioEnc'))
     } catch (e) {
       setMsg(`${t('renderFailed')} ${(e as Error).message}`)
@@ -285,7 +288,7 @@ export function VideoStudioPage({ onBack, glass = true, trends = true, postKit =
           </div>
           <p className="muted small">{t(`${mode}Note` as StudioKey)}</p>
           <div className="seg small" role="group" aria-label={t('aspect')}>
-            {(['9:16', '16:9'] as Aspect[]).map((a) => (
+            {(['9:16', '16:9', '1:1'] as Aspect[]).map((a) => (
               <button key={a} className={aspect === a ? 'on' : ''} onClick={() => setAspect(a)}>{a}</button>
             ))}
           </div>
@@ -311,6 +314,12 @@ export function VideoStudioPage({ onBack, glass = true, trends = true, postKit =
             <button className="btn primary" disabled={!!busy || !topic.trim()} onClick={() => void writeAi()}>{t('writeAi')}</button>
             {busy === t('writing') && <span className="small muted">{busy}</span>}
           </div>
+          {videoSettings && (
+            <label className="vs-field nv-scenes">
+              <span className="small muted">{t('scenesCount')}: <b>{scenes}</b></span>
+              <input type="range" min={3} max={12} value={scenes} onChange={(e) => setScenes(Number(e.target.value))} />
+            </label>
+          )}
           <p className="muted small">{t('aiNote')}</p>
           <div className="vs-scripts">
             <label className="vs-field"><span className="small muted">EN · {t('oneLine')}</span><textarea rows={6} value={en} onChange={(e) => setEn(e.target.value)} /></label>
@@ -337,7 +346,7 @@ export function VideoStudioPage({ onBack, glass = true, trends = true, postKit =
         </section>
 
         <section id="nv-make" className="nv-make">
-          <StudioRenderPanel topic={topic} topicVi={topicVi} en={script.en} vi={script.vi} aspect={aspect} glass={glass} />
+          <StudioRenderPanel topic={topic} topicVi={topicVi} en={script.en} vi={script.vi} aspect={aspect} glass={glass} settings={videoSettings} hook={postKit ? hook : undefined} onClearHook={() => setHook({ en: '', vi: '' })} />
 
           <div className={card}>
             <header><h3>{t('quickTitle')}</h3></header>
@@ -372,7 +381,7 @@ export function VideoStudioPage({ onBack, glass = true, trends = true, postKit =
           {postKit ? (
             <>
               {head(5, 'stepPost')}
-              <NovaPostKit script={script} />
+              <NovaPostKit script={script} hook={hook} onHook={videoSettings ? (l, x) => setHook((h) => ({ ...h, [l]: x })) : undefined} />
             </>
           ) : (
             <>

@@ -1,7 +1,8 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useLocalStorage } from '../hooks/useLocalStorage'
 import { useLang } from '../lib/i18n'
 import { STUDIO_TEXT, type StudioKey } from '../lib/studio/text'
-import type { RenderLang, RenderVoice, StudioJob } from '../lib/studioJobs'
+import { DEFAULT_RENDER_OPTS, TRANSITIONS, cleanRenderOpts, type RenderAspect, type RenderLang, type RenderOpts, type RenderVoice, type StudioJob } from '../lib/studioJobs'
 
 type JobRow = Omit<StudioJob, 'lines' | 'terms'>
 export type KeyKind = 'pexels' | 'github' | 'youtube'
@@ -9,7 +10,7 @@ const POLL_MS = 20_000
 const STATUS: Record<StudioJob['status'], StudioKey> = { queued: 'statusQueued', rendering: 'statusRendering', done: 'statusDone', failed: 'statusFailed' }
 
 /** Nova step 5: queue the script for MoneyPrinterTurbo on GitHub Actions, then play the finished MP4s. */
-export function StudioRenderPanel({ topic, topicVi, en, vi, aspect, glass = false }: { topic: string; topicVi: string; en: string[]; vi: string[]; aspect: '9:16' | '16:9'; glass?: boolean }) {
+export function StudioRenderPanel({ topic, topicVi, en, vi, aspect, glass = false, settings = false, hook, onClearHook }: { topic: string; topicVi: string; en: string[]; vi: string[]; aspect: RenderAspect; glass?: boolean; settings?: boolean; hook?: { en: string; vi: string }; onClearHook?: () => void }) {
   const lang = useLang()
   const t = (k: StudioKey) => STUDIO_TEXT[k][lang]
   const [langs, setLangs] = useState<RenderLang[]>(['vi'])
@@ -18,6 +19,9 @@ export function StudioRenderPanel({ topic, topicVi, en, vi, aspect, glass = fals
   const [keys, setKeys] = useState<Record<'pexels' | 'github', boolean>>({ pexels: false, github: false })
   const [msg, setMsg] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
+  const [savedOpts, setSavedOpts] = useLocalStorage<Partial<RenderOpts>>('nova.video.v1', {})
+  // video settings (AI rule novaVideoSettings); off = Nova's defaults
+  const opts = useMemo(() => (settings ? cleanRenderOpts(savedOpts) : DEFAULT_RENDER_OPTS), [settings, savedOpts])
 
   const load = useCallback(async () => {
     const r = await fetch('/api/studio/jobs').catch(() => null)
@@ -40,7 +44,7 @@ export function StudioRenderPanel({ topic, topicVi, en, vi, aspect, glass = fals
     setMsg(null)
     setBusy(true)
     try {
-      const r = await fetch('/api/studio/render', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ topic, topicVi, en, vi, langs, voice, aspect }) })
+      const r = await fetch('/api/studio/render', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ topic, topicVi, en, vi, langs, voice, aspect, opts, hook: settings ? hook : undefined }) })
       const j = (await r.json().catch(() => ({}))) as { error?: string; kicked?: boolean }
       if (r.status === 429) setMsg(t('serverBusy'))
       else if (!r.ok) setMsg(`${t('serverFailed')} ${j.error ?? `HTTP ${r.status}`}`)
@@ -76,6 +80,19 @@ export function StudioRenderPanel({ topic, topicVi, en, vi, aspect, glass = fals
           <button key={v} className={voice === v ? 'on' : ''} onClick={() => setVoice(v)}>{t(v === 'female' ? 'serverFemale' : 'serverMale')}</button>
         ))}
       </div>
+      {settings && <VideoSettings opts={opts} onChange={(o) => setSavedOpts(o)} />}
+      {settings && hook && (
+        <p className="small nv-hook-line">
+          {langs.some((l) => hook[l]) ? (
+            <>
+              <span className="muted">{t('vsHook')}</span> “{langs.map((l) => hook[l]).filter(Boolean).join(' / ')}”
+              {onClearHook && <button className="btn small" aria-label={t('serverDelete')} onClick={onClearHook}>✕</button>}
+            </>
+          ) : (
+            <span className="muted">{t('vsHookNone')}</span>
+          )}
+        </p>
+      )}
       <p className="muted small">{t(keys.pexels ? 'footagePexels' : 'footageOpenverse')}</p>
       {!keys.github && <p className="small warn">{t('githubSlow')}</p>}
       <div className="vs-row">
@@ -140,6 +157,58 @@ export function KeyBox({ kind, saved, title, how, onSaved }: { kind: KeyKind; sa
         {saved && <button className="btn small" onClick={() => void save(true)}>{t('keyRemove')}</button>}
       </div>
       {msg && <p className="small warn">{msg}</p>}
+    </details>
+  )
+}
+
+const COLORS = ['#FFFFFF', '#FFE14D', '#7FE8FF', '#FF9FD2', '#A8F0A0']
+
+/** Voice, music, footage and subtitle settings for the server video; saved on this device. */
+function VideoSettings({ opts, onChange }: { opts: RenderOpts; onChange: (o: RenderOpts) => void }) {
+  const lang = useLang()
+  const t = (k: StudioKey) => STUDIO_TEXT[k][lang]
+  const set = (patch: Partial<RenderOpts>) => onChange({ ...opts, ...patch })
+  const range = (label: StudioKey, key: 'voiceRate' | 'voiceVolume' | 'musicVolume' | 'clip' | 'subSize' | 'subStroke' | 'subPos', min: number, max: number, step: number, show: (v: number) => string) => (
+    <label className="vs-field">
+      <span className="small muted">{t(label)}: <b>{show(opts[key])}</b></span>
+      <input type="range" min={min} max={max} step={step} value={opts[key]} onChange={(e) => set({ [key]: Number(e.target.value) })} />
+    </label>
+  )
+  const pct = (v: number) => `${Math.round(v * 100)}%`
+  return (
+    <details className="vs-pexels nv-vset">
+      <summary className="small">{t('vsTitle')}</summary>
+      <div className="nv-kit-grid">
+        {range('vsVoiceRate', 'voiceRate', 0.7, 1.5, 0.05, (v) => `${v.toFixed(2)}×`)}
+        {range('vsVoiceVolume', 'voiceVolume', 0.5, 1.5, 0.05, pct)}
+        {range('vsClip', 'clip', 2, 8, 1, (v) => `${v}s`)}
+        {opts.music && range('vsMusicVolume', 'musicVolume', 0, 0.5, 0.05, pct)}
+        {range('vsSubSize', 'subSize', 36, 110, 2, String)}
+        {range('vsSubStroke', 'subStroke', 0, 5, 0.5, String)}
+        {range('vsSubPos', 'subPos', 10, 90, 1, String)}
+        <label className="vs-field">
+          <span className="small muted">{t('vsTransition')}</span>
+          <select className="btn" value={opts.transition} onChange={(e) => set({ transition: e.target.value as RenderOpts['transition'] })}>
+            {TRANSITIONS.map((x) => <option key={x} value={x}>{t(`tr${x}` as StudioKey)}</option>)}
+          </select>
+        </label>
+      </div>
+      <span className="small muted">{t('vsSubColor')}</span>
+      <div className="nv-swatches" role="group" aria-label={t('vsSubColor')}>
+        {COLORS.map((c) => (
+          <button key={c} className={`nv-swatch${opts.subColor === c ? ' on' : ''}`} style={{ background: c }} aria-label={c} aria-pressed={opts.subColor === c} onClick={() => set({ subColor: c })} />
+        ))}
+        <input type="color" value={opts.subColor.toLowerCase()} onChange={(e) => set({ subColor: e.target.value.toUpperCase() })} aria-label={t('vsSubColor')} />
+      </div>
+      <span className="small muted">{t('vsSubMode')}</span>
+      <div className="seg small" role="group" aria-label={t('vsSubMode')}>
+        <button className={opts.subMode === 'sentence' ? 'on' : ''} onClick={() => set({ subMode: 'sentence' })}>{t('subSentence')}</button>
+        <button className={opts.subMode === 'word_by_word' ? 'on' : ''} onClick={() => set({ subMode: 'word_by_word' })}>{t('subWord')}</button>
+      </div>
+      <label className="vs-check"><input type="checkbox" checked={opts.subPop} onChange={(e) => set({ subPop: e.target.checked })} /> {t('vsSubPop')}</label>
+      <label className="vs-check"><input type="checkbox" checked={opts.subBox} onChange={(e) => set({ subBox: e.target.checked })} /> {t('vsSubBox')}</label>
+      <label className="vs-check"><input type="checkbox" checked={opts.music} onChange={(e) => set({ music: e.target.checked })} /> {t('vsMusic')}</label>
+      <div className="vs-row"><button className="btn small" onClick={() => onChange(DEFAULT_RENDER_OPTS)}>{t('vsReset')}</button></div>
     </details>
   )
 }

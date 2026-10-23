@@ -11,5 +11,25 @@
     "Biển càng sâu, màu xanh càng đậm.",
     "Lần tới ra biển, hãy nhìn kỹ hơn một chút nhé."
   ],
-  "terms": ["ocean waves", "sunlight sea", "deep blue water", "beach horizon"]
+  "terms": [
+    "ocean waves",
+    "sunlight sea",
+    "deep blue water",
+    "beach horizon"
+  ],
+  "opts": {
+    "voiceRate": 1.1,
+    "voiceVolume": 1,
+    "music": true,
+    "musicVolume": 0.15,
+    "clip": 3,
+    "transition": "FadeIn",
+    "subSize": 70,
+    "subColor": "#FFE14D",
+    "subStroke": 2.5,
+    "subBox": true,
+    "subPos": 70,
+    "subMode": "word_by_word",
+    "subPop": true
+  }
 }

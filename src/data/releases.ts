@@ -2,7 +2,7 @@
  * Version and "What's new". Bump APP_VERSION and add an entry to the top of RELEASES
  * with each update. The banner shows once per version, then stays dismissed.
  */
-export const APP_VERSION = '1.51.0'
+export const APP_VERSION = '1.52.0'
 
 export interface Release {
   version: string
@@ -13,6 +13,12 @@ export interface Release {
 }
 
 export const RELEASES: Release[] = [
+  {
+    version: '1.52.0',
+    date: '2026-10-23',
+    changes: ['Nova\'s server video can now be tuned in step 4: voice speed and volume, background music on or off and its volume, seconds per footage clip, a transition, and subtitle size, colour, outline and height, with word-by-word subtitles, a pop-in effect or a dark box behind the text. Videos can be square (1:1), and AI can write 3 to 12 scenes. In the post kit, tap ★ on a hook to open the video with it (spoken and shown first). Off switch: Settings > AI rules > Nova video settings.'],
+    changesVi: ['Video máy chủ của Nova giờ chỉnh được ở bước 4: tốc độ và âm lượng giọng, bật tắt nhạc nền và âm lượng nhạc, số giây mỗi cảnh hình, kiểu chuyển cảnh, cỡ, màu, viền và vị trí phụ đề, phụ đề từng chữ, hiệu ứng nảy chữ hoặc nền tối sau chữ. Có thêm khung vuông 1:1, và AI viết được từ 3 đến 12 cảnh. Trong Bộ đăng bài, bấm ★ ở một hook để video mở đầu bằng câu đó (đọc và hiện chữ trước tiên). Tắt trong Cài đặt > Luật AI > Chỉnh video Nova.'],
+  },
   {
     version: '1.51.0',
     date: '2026-10-23',
