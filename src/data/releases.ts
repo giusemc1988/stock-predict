@@ -2,7 +2,7 @@
  * Version and "What's new". Bump APP_VERSION and add an entry to the top of RELEASES
  * with each update. The banner shows once per version, then stays dismissed.
  */
-export const APP_VERSION = '1.41.0'
+export const APP_VERSION = '1.41.1'
 
 export interface Release {
   version: string
@@ -13,6 +13,12 @@ export interface Release {
 }
 
 export const RELEASES: Release[] = [
+  {
+    version: '1.41.1',
+    date: '2026-10-23',
+    changes: ['On a phone, swiping back from the screen edge (or the Back button) inside a project now returns to the Jarvis Hub instead of closing the app. Switching between Brief, Trading desk and Portfolio does not add extra steps, so one swipe always gets you home.'],
+    changesVi: ['Trên điện thoại, vuốt từ mép màn hình để quay lại (hoặc nút Back) trong một dự án giờ về lại Jarvis Hub thay vì thoát app. Chuyển giữa Bản tin, Bàn giao dịch và Danh mục không thêm bước, nên vuốt một lần là về Hub.'],
+  },
   {
     version: '1.41.0',
     date: '2026-10-23',

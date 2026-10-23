@@ -2,6 +2,7 @@ import assert from 'node:assert/strict'
 import { CLUSTERS, TOOLS, fold, graphLayout, searchTools, toolOpen } from '../src/lib/toolHub'
 import { VIRALTECH, postCounts } from '../src/data/viraltech'
 import { PROJECTS, pageOn, searchHub } from '../src/lib/projects'
+import { historyStep } from '../src/lib/pageHistory'
 
 // accents and hyphens fold away, so Vietnamese and "wifi" searches match
 assert.equal(fold('Tốc độ'), 'toc do')
@@ -64,4 +65,12 @@ assert.equal(pageOn('net', { ...allOn, net: false }), false)
 assert.equal(pageOn('ruview-flash', { ...allOn, ruview: false }), false)
 assert.equal(pageOn('brief', allOn), true)
 assert.equal(pageOn(null, allOn), false)
+// swipe-back: a project opened from the Hub is one step; going home walks back; Atlas tabs don't stack
+assert.deepEqual(historyStep('home', 'net', 'home', 0), { kind: 'push' })
+assert.deepEqual(historyStep('net', 'home', 'home', 1), { kind: 'back', steps: 1 })
+assert.deepEqual(historyStep('brief', 'trade', 'home', 1), { kind: 'replace' })
+assert.deepEqual(historyStep('portfolio', 'home', 'home', 1), { kind: 'back', steps: 1 })
+assert.deepEqual(historyStep('home', 'home', 'home', 0), { kind: 'none' })
+assert.deepEqual(historyStep('brief', 'trade', 'brief', 0), { kind: 'push' }, 'Hub off: Atlas first page is home')
+assert.deepEqual(historyStep('home', 'home', 'home', 0), { kind: 'none' })
 console.log('toolhub ok')
