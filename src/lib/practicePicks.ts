@@ -6,7 +6,7 @@
 import type { Analysis, AssetClass, Candle } from '../types'
 import { dayKey } from './practice'
 
-export type PickSource = 'watchlist' | 'gainer' | 'active'
+export type PickSource = 'watchlist' | 'gainer' | 'active' | 'loser'
 
 export interface PracticeCandidate {
   symbol: string
@@ -78,8 +78,18 @@ const SOURCE = {
   watchlist: { en: 'your watchlist', vi: 'danh sách theo dõi' },
   gainer: { en: 'top gainers today', vi: 'mã tăng mạnh nhất hôm nay' },
   active: { en: 'most traded today', vi: 'mã giao dịch nhiều nhất hôm nay' },
+  loser: { en: 'top losers today', vi: 'mã giảm mạnh nhất hôm nay' },
 }
-export const pickSourceLabel = SOURCE
+/** Label for where a pick came from; an unknown source (old saved data, a new feed) never crashes the page. */
+export const pickSourceLabel = new Proxy(SOURCE, {
+  get: (o, k) => (o as Record<string | symbol, { en: string; vi: string }>)[k] ?? { en: 'the scanner', vi: 'máy quét' },
+}) as Record<PickSource, { en: string; vi: string }>
+
+/** A mover's source from the server: "gainer", "loser", "active", or a "+5.2%"/"-3.1%" change from older servers. */
+export function moverSource(s: unknown): Exclude<PickSource, 'watchlist'> {
+  if (s === 'gainer' || s === 'active' || s === 'loser') return s
+  return typeof s === 'string' && s.trim().startsWith('-') ? 'loser' : 'gainer'
+}
 
 /** Plain-language reason a candidate was picked. */
 export function pickWhy(c: PracticeCandidate, of: number): { en: string; vi: string } {
@@ -87,6 +97,6 @@ export function pickWhy(c: PracticeCandidate, of: number): { en: string; vi: str
   if (c.gainPct != null) parts.push({ en: `${c.gainPct >= 0 ? '+' : ''}${c.gainPct.toFixed(1)}% today`, vi: `${c.gainPct >= 0 ? '+' : ''}${c.gainPct.toFixed(1)}% hôm nay` })
   if (c.volVsAvg != null) parts.push({ en: `volume ${c.volVsAvg.toFixed(1)}x normal`, vi: `khối lượng ${c.volVsAvg.toFixed(1)}x bình thường` })
   if (c.tradeScore != null) parts.push({ en: `Trade Score ${c.tradeScore}`, vi: `Điểm GD ${c.tradeScore}` })
-  parts.push({ en: `from ${SOURCE[c.source].en}`, vi: `từ ${SOURCE[c.source].vi}` })
+  parts.push({ en: `from ${pickSourceLabel[c.source].en}`, vi: `từ ${pickSourceLabel[c.source].vi}` })
   return { en: parts.map((p) => p.en).join(', '), vi: parts.map((p) => p.vi).join(', ') }
 }

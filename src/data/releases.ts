@@ -2,7 +2,7 @@
  * Version and "What's new". Bump APP_VERSION and add an entry to the top of RELEASES
  * with each update. The banner shows once per version, then stays dismissed.
  */
-export const APP_VERSION = '1.47.0'
+export const APP_VERSION = '1.47.1'
 
 export interface Release {
   version: string
@@ -13,6 +13,12 @@ export interface Release {
 }
 
 export const RELEASES: Release[] = [
+  {
+    version: '1.47.1',
+    date: '2026-10-23',
+    changes: ['Fixed: the whole app could show "Cannot read properties of undefined (reading \'en\')" when the practice scanner picked a stock from today\'s top movers. Top losers are now labelled as such, and an unknown pick source shows "the scanner" instead of breaking the page.'],
+    changesVi: ['Sửa lỗi: cả app có thể hiện "Cannot read properties of undefined (reading \'en\')" khi máy quét luyện tập chọn một mã trong nhóm biến động mạnh hôm nay. Mã giảm mạnh giờ có nhãn riêng, và nguồn lạ chỉ ghi "máy quét" thay vì làm hỏng trang.'],
+  },
   {
     version: '1.47.0',
     date: '2026-10-23',

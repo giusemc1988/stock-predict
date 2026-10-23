@@ -56,7 +56,7 @@ export interface PracticeEntryInfo {
 export interface PracticePickInfo {
   place: number
   of: number
-  source: 'watchlist' | 'gainer' | 'active'
+  source: 'watchlist' | 'gainer' | 'active' | 'loser'
   gainPct: number | null
   volVsAvg: number | null
   en: string
@@ -179,7 +179,7 @@ export interface Baseline {
 /** One row of a stock-picker scan, small enough to save. */
 export interface PickRow {
   symbol: string
-  source: 'watchlist' | 'gainer' | 'active'
+  source: 'watchlist' | 'gainer' | 'active' | 'loser'
   verdict: Analysis['verdict'] | null
   gainPct: number | null
   volVsAvg: number | null

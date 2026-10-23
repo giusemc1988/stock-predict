@@ -65,7 +65,7 @@ export const pickRows = (cs: PracticeCandidate[], max = 15): PickRow[] =>
 
 export interface Mover {
   symbol: string
-  source: 'gainer' | 'active'
+  source: 'gainer' | 'active' | 'loser'
 }
 
 /** What one scan looks at: your watchlist, plus today's stock and crypto movers from live market-wide lists. */

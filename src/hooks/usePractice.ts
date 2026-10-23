@@ -6,7 +6,7 @@ import { stampData } from '../lib/dataGuard'
 import { baseRate, decide, type JournalEntry } from '../lib/journal'
 import { emptyPractice, onBarClose, PENNY_MIN_PRICE, PENNY_PRICE, onPrice, parsePractice, type PickRow, type PracticeEvent, type PracticeState } from '../lib/practice'
 import { cryptoMovers, PICK_TF, scanCycle, scanMarkets, withOpenMarkets, type Mover, type ScanMarket } from '../lib/practiceScan'
-import { dollarVolume } from '../lib/practicePicks'
+import { dollarVolume, moverSource } from '../lib/practicePicks'
 import { binanceMarketLists, hasAlpacaData, type AlpacaDataKeys, type ApiKeys, type MarketMover } from '../data/providers'
 import { candlesFor } from '../data/series'
 import { fetchAlpacaNews } from '../lib/newsProvider'
@@ -292,7 +292,7 @@ export function usePractice({ rules, symbol, asset, tf, candles, analysis, liveS
       }
       const markets: ScanMarket[] = scanMarkets(
         c.universe.filter((i) => i.assetClass === 'crypto' || stockData),
-        c.rules.practiceMovers ? movers.current.list.map((m) => ({ symbol: m.symbol, source: m.source })) : [],
+        c.rules.practiceMovers ? movers.current.list.map((m) => ({ symbol: m.symbol, source: moverSource(m.source) })) : [],
         c.rules.practiceCryptoMovers ? coins.current.list : [],
       )
       const instFor = (m: ScanMarket): Instrument => c.universe.find((i) => i.symbol === m.symbol) ?? { symbol: m.symbol, name: m.symbol, assetClass: m.asset, feedId: m.asset === 'crypto' ? m.symbol.replace('/', '') : m.symbol, demoPrice: 100, demoVol: 0.4 }
