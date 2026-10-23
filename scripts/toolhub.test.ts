@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict'
 import { CLUSTERS, TOOLS, fold, graphLayout, searchTools, toolOpen } from '../src/lib/toolHub'
 import { VIRALTECH, postCounts } from '../src/data/viraltech'
+import { PROJECTS, pageOn, searchHub } from '../src/lib/projects'
 
 // accents and hyphens fold away, so Vietnamese and "wifi" searches match
 assert.equal(fold('Tốc độ'), 'toc do')
@@ -41,4 +42,26 @@ assert.equal(lay.nodes.size, TOOLS.length)
 for (const p of [...lay.groups.values(), ...lay.nodes.values()]) {
   assert.ok(p.x >= 0 && p.x <= lay.W && p.y >= 0 && p.y <= lay.H, `point ${p.x},${p.y} inside the box`)
 }
+// Jarvis Hub: every project has a unique id, both languages, and only known tools
+assert.equal(new Set(PROJECTS.map((p) => p.id)).size, PROJECTS.length)
+for (const p of PROJECTS) {
+  assert.ok(p.what.en.trim() && p.what.vi.trim(), `${p.id} needs EN and VI text`)
+  for (const id of p.tools) assert.ok(TOOLS.some((t) => t.id === id), `${p.id} tool ${id} exists`)
+}
+// a tool belongs to one project at most
+const owned = PROJECTS.flatMap((p) => p.tools)
+assert.equal(new Set(owned).size, owned.length)
+// search: a project name comes first, tools are found in either language, accents ignored
+assert.equal(searchHub('nova')[0].project.id, 'nova')
+assert.equal(searchHub('nova')[0].tool, undefined)
+assert.ok(searchHub('wifi').some((h) => h.project.id === 'nexus' && h.tool?.id === 'wifi'))
+assert.ok(searchHub('nap firmware').some((h) => h.tool?.id === 'flash'))
+assert.ok(searchHub('toc do').some((h) => h.tool?.id === 'speed'))
+assert.deepEqual(searchHub('  '), [])
+// a page switched off in Settings does not open
+const allOn = { net: true, ruview: true, godseye: true, studio: true }
+assert.equal(pageOn('net', { ...allOn, net: false }), false)
+assert.equal(pageOn('ruview-flash', { ...allOn, ruview: false }), false)
+assert.equal(pageOn('brief', allOn), true)
+assert.equal(pageOn(null, allOn), false)
 console.log('toolhub ok')

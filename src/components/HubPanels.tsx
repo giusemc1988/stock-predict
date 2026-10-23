@@ -224,15 +224,17 @@ export function HubDevices({ onNet, onRuview }: { onNet?: () => void; onRuview?:
 }
 
 /** Phone tab bar for the hub. */
-export function HubTabbar({ onDesk, tools = false }: { onDesk: () => void; tools?: boolean }) {
+export function HubTabbar({ onDesk, tools = false, onHub }: { onDesk: () => void; tools?: boolean; onHub?: () => void }) {
   const t = useHubT()
   const go = (id: string) => document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
   return (
     <nav className="hub-tabbar" aria-label={t('navLabel')}>
       <button className="on" onClick={() => go('hub-top')}><i />{t('tabPredict')}</button>
       <button onClick={onDesk}><i />{t('tabTrading')}</button>
-      {tools ? (
-        <button onClick={() => go('hub-tools')}><i />{t('tabTools')}</button>
+      {onHub ? (
+        <button onClick={onHub}><i />Hub</button>
+      ) : tools ? (
+        <button onClick={() => go('hub-board')}><i />{t('board')}</button>
       ) : (
         <button onClick={() => go('hub-devices')}><i />{t('tabDevices')}</button>
       )}
