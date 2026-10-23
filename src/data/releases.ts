@@ -2,7 +2,7 @@
  * Version and "What's new". Bump APP_VERSION and add an entry to the top of RELEASES
  * with each update. The banner shows once per version, then stays dismissed.
  */
-export const APP_VERSION = '1.52.0'
+export const APP_VERSION = '1.52.1'
 
 export interface Release {
   version: string
@@ -13,6 +13,20 @@ export interface Release {
 }
 
 export const RELEASES: Release[] = [
+  {
+    version: '1.52.1',
+    date: '2026-10-23',
+    changes: [
+      'Fixed the "Still in CONNECTING state" error that sometimes broke a panel when you picked a stock or moved between pages: the live price feed now waits until it is connected before sending.',
+      'Hub cards: the tool buttons at the bottom now wrap onto a second line, so nothing is cut off on a phone or tablet.',
+      'Smoother scrolling on phones and tablets: cards skip the live glass blur there, the background no longer re-blurs on every frame, and animations pause while a card is off screen.',
+    ],
+    changesVi: [
+      'Sửa lỗi "Still in CONNECTING state" thỉnh thoảng làm hỏng một khung khi chọn mã hoặc chuyển trang: luồng giá trực tiếp giờ đợi kết nối xong rồi mới gửi.',
+      'Thẻ Hub: các nút công cụ ở dưới giờ xuống dòng, không còn bị cắt trên điện thoại hay máy tính bảng.',
+      'Cuộn mượt hơn trên điện thoại và máy tính bảng: thẻ bỏ hiệu ứng làm mờ kính trực tiếp, nền không còn làm mờ lại mỗi khung hình, và hoạt ảnh tạm dừng khi thẻ nằm ngoài màn hình.',
+    ],
+  },
   {
     version: '1.52.0',
     date: '2026-10-23',

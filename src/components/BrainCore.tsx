@@ -1,4 +1,5 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
+import { watchOnScreen } from '../lib/onScreen'
 import { AGENT_COLORS as COLORS } from '../lib/hub'
 import type { BriefNode, NodeId } from '../lib/brief'
 import { useLang } from '../lib/i18n'
@@ -139,8 +140,14 @@ export function BrainCore({ nodes, memory, thinking, motion, onNode }: Props) {
     let ripples: number[] = []
     let lastRipple = -9
     let raf = 0
+    const seen = watchOnScreen(c)
 
     const frame = (t: number) => {
+      // scrolled away: keep the loop alive but draw nothing
+      if (motion && !seen.visible) {
+        raf = requestAnimationFrame(frame)
+        return
+      }
       const time = t / 1000
       const { nodes: ns, thinking: busy } = live.current
       g.clearRect(0, 0, W, H)
@@ -300,7 +307,10 @@ export function BrainCore({ nodes, memory, thinking, motion, onNode }: Props) {
     }
     if (motion) raf = requestAnimationFrame(frame)
     else frame(4000)
-    return () => cancelAnimationFrame(raf)
+    return () => {
+      cancelAnimationFrame(raf)
+      seen.stop()
+    }
     // a still picture (motion off) is redrawn when the data changes
   }, [size, count, motion, stillKey])
 
