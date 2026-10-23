@@ -1,14 +1,50 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { useLang } from '../lib/i18n'
+import { useHubTheme } from '../lib/themes'
+import { AgentFace } from './AgentFace'
 import { LangSwitch } from './HubPanels'
+import { ProjectLogo } from './ProjectLogo'
 import { LIBRARY, fromText, libraryFor, titleLab, type Script, type StudioMode } from '../lib/studio/script'
 import { drawFrame, plan, sizeOf, type Aspect, type Media } from '../lib/studio/render'
 import { SAMPLE_RATE, renderMusic } from '../lib/studio/audio'
 import { canExport, exportMp4 } from '../lib/studio/encode'
 import { STUDIO_TEXT, type StudioKey } from '../lib/studio/text'
 import { StudioRenderPanel } from './StudioRenderPanel'
+import './JarvisHub.css'
+import './NovaStudio.css'
 
 const MAX_MEDIA = 8
+/** Nova's colour on the Hub (JarvisHub HUE). */
+const NOVA_HUE = '#d6a4ea'
+/** The five steps, top to bottom; the sticky bar jumps between them. */
+const STEPS = [
+  { id: 'nv-idea', key: 'stepIdea' },
+  { id: 'nv-script', key: 'stepScript' },
+  { id: 'nv-footage', key: 'stepFootage' },
+  { id: 'nv-make', key: 'stepMake' },
+  { id: 'nv-post', key: 'stepPost' },
+] as const satisfies readonly { id: string; key: StudioKey }[]
+
+/** Which step is on screen, for the step bar. */
+function useActiveStep(): string {
+  const [active, setActive] = useState<string>(STEPS[0].id)
+  useEffect(() => {
+    if (typeof IntersectionObserver === 'undefined') return
+    const io = new IntersectionObserver(
+      (es) => {
+        const seen = es.filter((e) => e.isIntersecting).sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top)[0]
+        if (seen) setActive(seen.target.id)
+      },
+      { rootMargin: '-35% 0px -55% 0px' },
+    )
+    STEPS.forEach((st) => {
+      const el = document.getElementById(st.id)
+      if (el) io.observe(el)
+    })
+    return () => io.disconnect()
+  }, [])
+  return active
+}
 
 /** A photo as is, or the middle frame of a clip as a labelled still. */
 async function loadMedia(file: File): Promise<Media> {
@@ -44,8 +80,12 @@ function Copy({ text, label }: { text: string; label: string }) {
 }
 
 /** Bilingual Faceless Video Studio: script EN + VI, preview, MP4 export and Title Lab, all in the browser. */
-export function VideoStudioPage({ onBack }: { onBack: () => void }) {
+export function VideoStudioPage({ onBack, glass = true }: { onBack: () => void; glass?: boolean }) {
   const lang = useLang()
+  const theme = useHubTheme()
+  const active = useActiveStep()
+  // the glass look (AI rule novaGlass); off = the plain cards from before
+  const card = glass ? 'bf-card nv-card hg-glass' : 'bf-card'
   const t = (k: StudioKey) => STUDIO_TEXT[k][lang]
   const [mode, setMode] = useState<StudioMode>('faceless')
   const [aspect, setAspect] = useState<Aspect>('9:16')
@@ -187,109 +227,156 @@ export function VideoStudioPage({ onBack }: { onBack: () => void }) {
   }
 
   const modes: StudioMode[] = ['faceless', 'philosophy', 'trip']
+  const usesMedia = mode === 'trip' || mode === 'philosophy'
+  const jump = (id: string) => document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  const head = (n: number, key: StudioKey, extra?: ReactNode) => (
+    <header>
+      <h3><span className="nv-n" aria-hidden="true">{n}</span>{t(key)}</h3>
+      {extra}
+    </header>
+  )
   return (
-    <main className="net-page vs-page">
-      <div className="hub-head">
-        <div className="net-title">
+    <main className={`net-page vs-page nv${glass ? ' hg' : ''}`} data-theme={glass ? theme : undefined}>
+      {glass && (
+        <div className="hg-wall" aria-hidden="true">
+          <i className="hg-b1" />
+          <i className="hg-b2" />
+          <i className="hg-b3" />
+        </div>
+      )}
+      <div className={glass ? 'hg-wrap nv-wrap' : 'nv-wrap'}>
+        <header className={`nv-bar${glass ? ' hg-glass' : ''}`}>
           <button className="btn net-back" onClick={onBack}>{t('back')}</button>
-          <span className="hub-hello">{t('title')}</span>
-        </div>
-        <div className="net-status"><LangSwitch /></div>
-      </div>
-      <p className="muted small">{t('sub')}</p>
+          <b className="nv-bar-t">{t('title')}</b>
+          <LangSwitch />
+        </header>
 
-      <section className="bf-card">
-        <header><h3>{t('step1')}</h3></header>
-        <div className="seg small" role="tablist">
-          {modes.map((m) => (
-            <button key={m} role="tab" aria-selected={mode === m} className={mode === m ? 'on' : ''} onClick={() => setMode(m)}>{t(m)}</button>
-          ))}
-        </div>
-        <p className="muted small">{t(`${mode}Note` as StudioKey)}</p>
-        <div className="seg small" role="group" aria-label={t('aspect')}>
-          {(['9:16', '16:9'] as Aspect[]).map((a) => (
-            <button key={a} className={aspect === a ? 'on' : ''} onClick={() => setAspect(a)}>{a}</button>
-          ))}
-        </div>
-      </section>
+        <section className="nv-hero">
+          <div className="nv-face" aria-hidden="true"><AgentFace id="nova" hue={NOVA_HUE} /></div>
+          <div className="nv-hero-t">
+            <h1 className="nv-brand"><ProjectLogo id="nova" hue={NOVA_HUE} className="nv-logo" />Nova</h1>
+            <p className="nv-tag">{t('sub')}</p>
+          </div>
+        </section>
 
-      <section className="bf-card">
-        <header><h3>{t('step2')}</h3></header>
-        <label className="vs-field">
-          <span className="small muted">{t('topic')} (EN)</span>
-          <input value={topic} onChange={(e) => setTopic(e.target.value)} maxLength={200} />
-        </label>
-        <label className="vs-field">
-          <span className="small muted">{t('topic')} (VI)</span>
-          <input value={topicVi} onChange={(e) => setTopicVi(e.target.value)} maxLength={200} />
-        </label>
-        <div className="vs-row">
-          <button className="btn" disabled={!!busy || !topic.trim()} onClick={() => void writeAi()}>{t('writeAi')}</button>
+        <nav className={`nv-steps${glass ? ' hg-glass' : ''}`} aria-label={t('stepsNav')}>
+          {STEPS.map((st, i) => (
+            <button key={st.id} className={active === st.id ? 'on' : ''} aria-current={active === st.id ? 'step' : undefined} onClick={() => jump(st.id)}>
+              <span className="nv-n">{i + 1}</span>
+              <span className="nv-step-t">{t(st.key)}</span>
+            </button>
+          ))}
+        </nav>
+
+        <section id="nv-idea" className={card}>
+          {head(1, 'stepIdea')}
+          <div className="seg small" role="tablist" aria-label={t('step1')}>
+            {modes.map((m) => (
+              <button key={m} role="tab" aria-selected={mode === m} className={mode === m ? 'on' : ''} onClick={() => setMode(m)}>{t(m)}</button>
+            ))}
+          </div>
+          <p className="muted small">{t(`${mode}Note` as StudioKey)}</p>
+          <div className="seg small" role="group" aria-label={t('aspect')}>
+            {(['9:16', '16:9'] as Aspect[]).map((a) => (
+              <button key={a} className={aspect === a ? 'on' : ''} onClick={() => setAspect(a)}>{a}</button>
+            ))}
+          </div>
+          <div className="nv-two">
+            <label className="vs-field">
+              <span className="small muted">{t('topic')} (EN)</span>
+              <input value={topic} onChange={(e) => setTopic(e.target.value)} maxLength={200} />
+            </label>
+            <label className="vs-field">
+              <span className="small muted">{t('topic')} (VI)</span>
+              <input value={topicVi} onChange={(e) => setTopicVi(e.target.value)} maxLength={200} />
+            </label>
+          </div>
           <select className="btn" value="" onChange={(e) => pickLibrary(Number(e.target.value))} aria-label={t('library')}>
             <option value="">{t('library')}</option>
             {libraryFor(mode).map((s, i) => <option key={i} value={i}>{s.topic[lang]}</option>)}
           </select>
-        </div>
-        <p className="muted small">{t('aiNote')}</p>
-        <div className="vs-scripts">
-          <label className="vs-field"><span className="small muted">EN · {t('oneLine')}</span><textarea rows={6} value={en} onChange={(e) => setEn(e.target.value)} /></label>
-          <label className="vs-field"><span className="small muted">VI · {t('oneLine')}</span><textarea rows={6} value={vi} onChange={(e) => setVi(e.target.value)} /></label>
-        </div>
-        {mismatch && <p className="warn">{t('mismatch')}</p>}
-      </section>
-
-      {(mode === 'trip' || mode === 'philosophy') && (
-        <section className="bf-card">
-          <header><h3>{t('step3')}</h3><span className="small muted">{media.length}/{MAX_MEDIA}</span></header>
-          <input type="file" accept="image/*,video/*" multiple disabled={media.length >= MAX_MEDIA || !!busy} onChange={(e) => void addMedia(e.target.files)} />
-          <p className="muted small">{t('mediaNote')}</p>
-          {media.length > 0 && <button className="btn small" onClick={() => setMedia([])}>{t('clear')}</button>}
         </section>
-      )}
 
-      <section className="bf-card">
-        <header><h3>{t('step4')}</h3></header>
-        <div className="vs-row">
-          <label className="vs-check"><input type="checkbox" checked={music} onChange={(e) => setMusic(e.target.checked)} /> {t('music')}</label>
-          <label className="vs-check"><input type="checkbox" checked={fades} onChange={(e) => setFades(e.target.checked)} /> {t('fades')}</label>
-          <label className="vs-check"><input type="checkbox" checked={voice} onChange={(e) => setVoice(e.target.checked)} /> {t('voice')}</label>
-        </div>
-        {voice && <p className="muted small">{t('voiceNote')}</p>}
-        <div className="vs-preview" style={{ aspectRatio: `${w} / ${h}` }}>
-          <canvas ref={canvasRef} width={w} height={h} />
-        </div>
-        <p className="small muted">{script.en.length} {t('scenes')} · {p.duration.toFixed(1)}s · {w}×{h} · 30fps</p>
-        <div className="vs-row">
-          <button className="btn" disabled={!script.en.length || !!busy} onClick={() => void play()}>{playing ? t('stop') : t('play')}</button>
-          <button className="btn primary" disabled={!script.en.length || !!busy || !canExport()} onClick={() => void make()}>{t('make')}</button>
-        </div>
-        {!canExport() && <p className="warn">{t('noExport')}</p>}
-        {busy && <p className="small">{busy}{busy === t('rendering') ? ` ${Math.round(progress * 100)}%` : ''}</p>}
-        {msg && <p className="small">{msg}</p>}
-        {out && (
-          <div className="vs-out">
-            <video src={out.url} controls playsInline />
-            <a className="btn primary" href={out.url} download={out.name}>{t('download')} ({(out.size / 1e6).toFixed(1)} MB)</a>
+        <section id="nv-script" className={card}>
+          {head(2, 'stepScript')}
+          <div className="vs-row">
+            <button className="btn primary" disabled={!!busy || !topic.trim()} onClick={() => void writeAi()}>{t('writeAi')}</button>
+            {busy === t('writing') && <span className="small muted">{busy}</span>}
           </div>
-        )}
-      </section>
+          <p className="muted small">{t('aiNote')}</p>
+          <div className="vs-scripts">
+            <label className="vs-field"><span className="small muted">EN · {t('oneLine')}</span><textarea rows={6} value={en} onChange={(e) => setEn(e.target.value)} /></label>
+            <label className="vs-field"><span className="small muted">VI · {t('oneLine')}</span><textarea rows={6} value={vi} onChange={(e) => setVi(e.target.value)} /></label>
+          </div>
+          {mismatch && <p className="warn">{t('mismatch')}</p>}
+          {msg && busy == null && !out && <p className="small">{msg}</p>}
+        </section>
 
-      <StudioRenderPanel topic={topic} topicVi={topicVi} en={script.en} vi={script.vi} aspect={aspect} />
+        <section id="nv-footage" className={card}>
+          {head(3, 'stepFootage', usesMedia ? <span className="small muted">{media.length}/{MAX_MEDIA}</span> : undefined)}
+          {usesMedia ? (
+            <>
+              <label className={`nv-drop${media.length >= MAX_MEDIA || busy ? ' off' : ''}`}>
+                <input type="file" accept="image/*,video/*" multiple disabled={media.length >= MAX_MEDIA || !!busy} onChange={(e) => void addMedia(e.target.files)} />
+                <span>＋ {t('step3')}</span>
+              </label>
+              <p className="muted small">{t('mediaNote')}</p>
+              {media.length > 0 && <button className="btn small" onClick={() => setMedia([])}>{t('clear')}</button>}
+            </>
+          ) : (
+            <p className="muted small">{t('footageAuto')}</p>
+          )}
+        </section>
 
-      <section className="bf-card">
-        <header><h3>{t('titleLab')}</h3><Copy text={lab.hashtags.join(' ')} label={t('copyTags')} /></header>
-        <p className="muted small">{t('postNote')}</p>
-        {(['en', 'vi'] as const).map((l) => (
-          <div key={l} className="vs-lab">
-            <strong className="small">{l.toUpperCase()}</strong>
-            {lab.titles[l].map((x) => (
-              <div key={x} className="vs-lab-row"><span>{x}</span><Copy text={x} label={t('copy')} /></div>
+        <section id="nv-make" className="nv-make">
+          <StudioRenderPanel topic={topic} topicVi={topicVi} en={script.en} vi={script.vi} aspect={aspect} glass={glass} />
+
+          <div className={card}>
+            <header><h3>{t('quickTitle')}</h3></header>
+            <p className="muted small">{t('quickNote')}</p>
+            <div className="vs-row">
+              <label className="vs-check"><input type="checkbox" checked={music} onChange={(e) => setMusic(e.target.checked)} /> {t('music')}</label>
+              <label className="vs-check"><input type="checkbox" checked={fades} onChange={(e) => setFades(e.target.checked)} /> {t('fades')}</label>
+              <label className="vs-check"><input type="checkbox" checked={voice} onChange={(e) => setVoice(e.target.checked)} /> {t('voice')}</label>
+            </div>
+            {voice && <p className="muted small">{t('voiceNote')}</p>}
+            <div className="vs-preview" style={{ aspectRatio: `${w} / ${h}` }}>
+              <canvas ref={canvasRef} width={w} height={h} />
+            </div>
+            <p className="small muted">{script.en.length} {t('scenes')} · {p.duration.toFixed(1)}s · {w}×{h} · 30fps</p>
+            <div className="vs-row">
+              <button className="btn" disabled={!script.en.length || !!busy} onClick={() => void play()}>{playing ? t('stop') : t('play')}</button>
+              <button className="btn" disabled={!script.en.length || !!busy || !canExport()} onClick={() => void make()}>{t('make')}</button>
+            </div>
+            {!canExport() && <p className="warn">{t('noExport')}</p>}
+            {busy && busy !== t('writing') && <p className="small">{busy}{busy === t('rendering') ? ` ${Math.round(progress * 100)}%` : ''}</p>}
+            {msg && (busy != null || out) && <p className="small">{msg}</p>}
+            {out && (
+              <div className="vs-out">
+                <video src={out.url} controls playsInline />
+                <a className="btn primary" href={out.url} download={out.name}>{t('download')} ({(out.size / 1e6).toFixed(1)} MB)</a>
+              </div>
+            )}
+          </div>
+        </section>
+
+        <section id="nv-post" className={card}>
+          {head(5, 'stepPost', <Copy text={lab.hashtags.join(' ')} label={t('copyTags')} />)}
+          <p className="muted small">{t('postNote')}</p>
+          <div className="nv-two">
+            {(['en', 'vi'] as const).map((l) => (
+              <div key={l} className="vs-lab nv-inset">
+                <strong className="small">{l.toUpperCase()}</strong>
+                {lab.titles[l].map((x) => (
+                  <div key={x} className="vs-lab-row"><span>{x}</span><Copy text={x} label={t('copy')} /></div>
+                ))}
+                <div className="vs-lab-row"><span className="small muted vs-cap">{lab.caption[l]}</span><Copy text={lab.caption[l]} label={t('copyCaption')} /></div>
+              </div>
             ))}
-            <div className="vs-lab-row"><span className="small muted vs-cap">{lab.caption[l]}</span><Copy text={lab.caption[l]} label={t('copyCaption')} /></div>
           </div>
-        ))}
-        <p className="small muted">{lab.hashtags.join(' ')}</p>
-      </section>
+          <p className="small muted">{lab.hashtags.join(' ')}</p>
+        </section>
+      </div>
     </main>
   )
 }

@@ -2,7 +2,7 @@
  * Version and "What's new". Bump APP_VERSION and add an entry to the top of RELEASES
  * with each update. The banner shows once per version, then stays dismissed.
  */
-export const APP_VERSION = '1.47.2'
+export const APP_VERSION = '1.48.0'
 
 export interface Release {
   version: string
@@ -13,6 +13,12 @@ export interface Release {
 }
 
 export const RELEASES: Release[] = [
+  {
+    version: '1.48.0',
+    date: '2026-10-23',
+    changes: ['Nova now has the Hub\'s liquid glass look and follows the Hub theme (amber, plum or moss). The page is 5 clear steps with a bar that stays on top: Idea, Script, Footage, Voice & make, Post kit. Your server videos sit in their own gallery, and the quick browser preview is marked "no voice" so it is not confused with the real video. Off switch: Settings > AI rules > Nova in the glass look.'],
+    changesVi: ['Nova giờ có giao diện kính giống Hub và đổi màu theo theme của Hub (hổ phách, mận hoặc rêu). Trang chia thành 5 bước rõ ràng với thanh bước luôn ở trên: Ý tưởng, Kịch bản, Hình, Giọng & dựng, Bộ đăng bài. Video làm trên máy chủ nằm trong thư viện riêng, còn bản xem thử nhanh trên máy được ghi "không giọng" để khỏi nhầm với video thật. Tắt trong Cài đặt > Luật AI > Nova kiểu kính.'],
+  },
   {
     version: '1.47.2',
     date: '2026-10-23',
