@@ -292,14 +292,28 @@ const fh = {
   subs: new Map<string, Set<{ onTrade: TradeListener; onState: StateListener }>>(),
 }
 
+/** Sends only on an open socket; a socket still connecting (or closing) would throw. */
+function fhSend(msg: { type: 'subscribe' | 'unsubscribe'; symbol: string }) {
+  const ws = fh.ws
+  if (ws?.readyState !== WebSocket.OPEN) return
+  try {
+    ws.send(JSON.stringify(msg))
+  } catch {
+    /* socket dropped between the check and the send; onopen resubscribes everything */
+  }
+}
+
 function fhConnect() {
   clearTimeout(fh.retry)
+  // a closing socket from an earlier key or symbol can leave live=true; reset it so nothing sends early
+  fh.live = false
   const ws = new WebSocket(`wss://ws.finnhub.io?token=${fh.key}`)
   fh.ws = ws
   ws.onopen = () => {
+    if (fh.ws !== ws) return
     fh.live = true
     for (const [sym, set] of fh.subs) {
-      ws.send(JSON.stringify({ type: 'subscribe', symbol: sym }))
+      fhSend({ type: 'subscribe', symbol: sym })
       set.forEach((l) => l.onState(true))
     }
   }
@@ -309,9 +323,11 @@ function fhConnect() {
     for (const t of msg.data) fh.subs.get(t.s)?.forEach((l) => l.onTrade(t.p, t.v, t.t))
   }
   ws.onclose = () => {
+    // an old socket closing late must not mark the new one as down
+    if (fh.ws !== ws) return
     fh.live = false
     fh.subs.forEach((set) => set.forEach((l) => l.onState(false)))
-    if (fh.ws === ws && fh.subs.size) fh.retry = setTimeout(fhConnect, 5000)
+    if (fh.subs.size) fh.retry = setTimeout(fhConnect, 5000)
   }
   ws.onerror = () => ws.close()
 }
@@ -322,6 +338,7 @@ export function finnhubTrades(symbol: string, key: string, onTrade: TradeListene
     fh.key = key
     const old = fh.ws
     fh.ws = null
+    fh.live = false
     old?.close()
   }
   const l = { onTrade, onState }
@@ -331,18 +348,20 @@ export function finnhubTrades(symbol: string, key: string, onTrade: TradeListene
   fh.subs.set(symbol, set)
   if (!fh.ws) fhConnect()
   else if (fh.live) {
-    if (isNewSymbol) fh.ws.send(JSON.stringify({ type: 'subscribe', symbol }))
+    if (isNewSymbol) fhSend({ type: 'subscribe', symbol })
     onState(true)
   }
   return () => {
     set.delete(l)
     if (!set.size) {
       fh.subs.delete(symbol)
-      if (fh.live) fh.ws?.send(JSON.stringify({ type: 'unsubscribe', symbol }))
+      if (fh.live) fhSend({ type: 'unsubscribe', symbol })
     }
     if (!fh.subs.size) {
       const ws = fh.ws
       fh.ws = null
+      fh.live = false
+      clearTimeout(fh.retry)
       ws?.close()
     }
   }
