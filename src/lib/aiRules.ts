@@ -94,6 +94,8 @@ export interface AiRules {
   ruviewOn: boolean // RuView sensing page: presence from Wi-Fi signals via ESP32 nodes, runs on the home PC
   toolHub: boolean // Atlas Brief: today's pick sits next to the scoreboard (the Tool Hub graph moved into the Neo Hub search)
   hubLayout: boolean // the home page uses the Hub layout: best pick next to the sphere, prediction board, Studio and devices
+  hubGlass: boolean // the Hub in the liquid glass look: agent characters, hanging project tags, cards that turn over, Kronos forecasts and three themes; off = the classic Hub
+  hubFlip: boolean // on the liquid glass Hub a random card turns over now and then to show its agent at work
   dashMotion: boolean // dashboard cards and motion: project cards on the Hub, stat cards with change chips; off = the previous look
   briefAi: boolean // a free AI helper writes the Neo Brief from the page's real data (once per scan)
   practiceCryptoMovers: boolean // practice also scans today's top crypto gainers and most-traded coins
@@ -203,6 +205,8 @@ export const DEFAULT_AI_RULES: AiRules = {
   briefHome: true,
   hubLayout: true,
   toolHub: true,
+  hubGlass: true,
+  hubFlip: true,
   dashMotion: true,
   netTools: true,
   ruviewOn: true,
@@ -335,6 +339,8 @@ export const RULE_FIELDS: RuleField[] = [
   { group: 'jarvis', key: 'toolHub', en: "Atlas Brief: today's pick sits next to the scoreboard (off: the previous Brief layout)", vi: 'Bản tin Atlas: mã chọn hôm nay nằm cạnh bảng điểm (tắt: giao diện Bản tin trước đó)' },
   { group: 'jarvis', key: 'dashMotion', en: 'Dashboard cards and motion: a card per project on the Hub (Trading, RuView, ESP32 Lab, Network, Build, Studio) and clearer number cards with change chips (off: the previous look)', vi: 'Thẻ và hiệu ứng dashboard: mỗi dự án một thẻ trên Hub (Trading, RuView, ESP32 Lab, Mạng, Xây dựng, Studio) và thẻ số liệu rõ hơn kèm chip thay đổi (tắt: giao diện trước đó)' },
   { group: 'jarvis', key: 'hubLayout', en: 'Hub home page: best pick next to the sphere, prediction board with 6 agent dots, Studio and devices (off: the old Neo Brief layout)', vi: 'Trang chủ Hub: mã tốt nhất cạnh quả cầu, bảng dự đoán có 6 chấm agent, Studio và thiết bị (tắt: giao diện Neo Brief cũ)' },
+  { group: 'jarvis', key: 'hubGlass', en: 'Liquid glass Hub: a character for every agent, projects hanging on a rail, cards that turn over, Kronos forecasts on Atlas and three themes (off: the classic Hub)', vi: 'Hub kính mờ: mỗi agent một nhân vật, dự án treo trên thanh, thẻ lật được, dự báo Kronos ở Atlas và 3 theme (tắt: Hub kiểu cũ)' },
+  { group: 'jarvis', key: 'hubFlip', en: 'Liquid glass Hub: a random card turns over now and then to show its agent at work (also a switch in the Hub dock)', vi: 'Hub kính mờ: thỉnh thoảng một thẻ tự lật để xem agent đang làm gì (cũng có nút trên dock của Hub)' },
   { group: 'jarvis', key: 'jarvisHub', en: 'Neo Hub as the main page: every project (Atlas, Iris, Echo, Volt, Nexus, Nova, Viraltech, Lumi, Max) with its live state, and a search that opens any project or tool (off: Atlas opens first)', vi: 'Neo Hub là trang chính: mọi dự án (Atlas, Iris, Echo, Volt, Nexus, Nova, Viraltech, Lumi, Max) kèm trạng thái thật, và ô tìm mở ngay dự án hay công cụ nào (tắt: mở Atlas trước)' },
   { group: 'jarvis', key: 'hubAgents', en: 'Project agents: Neo knows every project, each project page has its own agent in the floating chat (Atlas, Iris, Echo, Volt, Nexus, Nova, Viraltech, Lumi, Max), and "open Nova" or "how is Iris?" works from any screen', vi: 'Agent từng dự án: Neo biết mọi dự án, mỗi trang dự án có agent riêng trong khung chat nổi (Atlas, Iris, Echo, Volt, Nexus, Nova, Viraltech, Lumi, Max), và nói "mở Nova" hay "Iris thế nào?" ở màn hình nào cũng được' },
   { group: 'jarvis', key: 'hubRuns', en: 'Neo runs hub jobs: say "render the Nova videos", "refresh the Iris snapshot" or "build the Android app", tap Do it, and Neo starts it on GitHub with the key saved in Nova; ask "how did the last runs go?" for results', vi: 'Neo chạy việc trong hub: nói "dựng video Nova", "làm mới snapshot Iris" hay "build app Android", bấm Làm đi là Neo chạy trên GitHub bằng key đã lưu ở Nova; hỏi "lần chạy gần nhất thế nào?" để xem kết quả' },
