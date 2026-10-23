@@ -1,0 +1,108 @@
+# Nova render farm: turns the videos queued in Nova (Jarvis Hub) into MP4s with a real voice,
+# footage and burned-in subtitles, using MoneyPrinterTurbo at the image pinned in nova/upstream.json.
+#   1. pick   (Cloudflare token)  takes up to 3 queued jobs from the Worker's KV
+#   2. render (NO secrets)        runs the upstream image with only the job folder mounted
+#   3. store  (Cloudflare token)  puts each MP4 back in KV for Nova to play and download
+# Free: public repos have unlimited Actions minutes. An empty queue ends in ~20 s.
+# GitHub may start the cron late when busy, so a video usually appears 5 to 20 minutes after "Make".
+# Pull requests that touch nova/ render a built-in Vietnamese sample instead (no KV, no secrets)
+# and upload it as an artifact, so a version bump is checked on a real video before merge.
+name: Nova render
+
+on:
+  schedule:
+    - cron: '*/5 * * * *'
+  workflow_dispatch:
+  pull_request:
+    paths: ['nova/**', '.github/workflows/nova-render.yml']
+
+permissions:
+  contents: read
+
+concurrency:
+  group: nova-render-${{ github.event_name == 'pull_request' && github.ref || 'queue' }}
+  cancel-in-progress: false
+
+jobs:
+  render:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - run: echo "WORK=$RUNNER_TEMP/nova" >> "$GITHUB_ENV"
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: |
+            nova
+            wrangler.jsonc
+          sparse-checkout-cone-mode: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: Pick queued videos
+        id: pick
+        if: github.event_name != 'pull_request'
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        run: node nova/queue.mjs pick "$WORK"
+
+      - name: Use the sample video (pull request)
+        id: sample
+        if: github.event_name == 'pull_request'
+        run: |
+          id=$(jq -r .id nova/sample-job.json)
+          mkdir -p "$WORK/jobs"
+          cp nova/sample-job.json "$WORK/jobs/$id.json"
+          echo "ids=$id" >> "$GITHUB_OUTPUT"
+
+      - name: Render with MoneyPrinterTurbo
+        id: render
+        if: steps.pick.outputs.ids != '' || steps.sample.outputs.ids != ''
+        env:
+          IDS: ${{ steps.pick.outputs.ids }}${{ steps.sample.outputs.ids }}
+        run: |
+          image=$(jq -r .image nova/upstream.json)
+          mkdir -p "$WORK/out" "$WORK/storage"
+          docker pull --quiet "$image"
+          for id in $IDS; do
+            echo "::group::render $id"
+            docker run --rm \
+              -v "$WORK:/work" \
+              -v "$WORK/storage:/MoneyPrinterTurbo/storage" \
+              -v "$PWD/nova/render.py:/nova/render.py:ro" \
+              -v "$PWD/nova/fonts/BeVietnamPro-Bold.ttf:/MoneyPrinterTurbo/resource/fonts/BeVietnamPro-Bold.ttf:ro" \
+              "$image" python3 /nova/render.py "$id" || echo "::warning::render $id failed"
+            echo "::endgroup::"
+          done
+
+      - name: Store results in Nova
+        if: always() && steps.pick.outputs.ids != ''
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          IDS: ${{ steps.pick.outputs.ids }}
+        run: for id in $IDS; do node nova/queue.mjs store "$WORK" "$id"; done
+
+      - name: Check the sample video (pull request)
+        if: github.event_name == 'pull_request'
+        env:
+          ID: ${{ steps.sample.outputs.ids }}
+        run: |
+          cat "$WORK/out/$ID.json"
+          mp4="$WORK/out/$ID.mp4"
+          test -s "$mp4" || { echo "::error::no MP4 was made"; exit 1; }
+          image=$(jq -r .image nova/upstream.json)
+          probe() { docker run --rm -v "$WORK/out:/o" --entrypoint ffprobe "$image" -v error "$@"; }
+          probe -show_entries stream=codec_type,codec_name,width,height:format=duration -of compact "/o/$ID.mp4"
+          probe -select_streams a -show_entries stream=codec_type -of csv=p=0 "/o/$ID.mp4" | grep -q audio || { echo "::error::the MP4 has no audio"; exit 1; }
+          mkdir -p "$WORK/check"
+          for s in 2 8 14; do
+            docker run --rm -v "$WORK/out:/o" -v "$WORK/check:/c" --entrypoint ffmpeg "$image" -v error -ss "$s" -i "/o/$ID.mp4" -frames:v 1 -vf scale=540:-2 "/c/frame-${s}s.png" || true
+          done
+          cp "$mp4" "$WORK/check/sample.mp4"
+      - uses: actions/upload-artifact@v4
+        if: github.event_name == 'pull_request' && always()
+        with:
+          name: nova-sample
+          path: ${{ runner.temp }}/nova/check
+          retention-days: 7
+          if-no-files-found: ignore

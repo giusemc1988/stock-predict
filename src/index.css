@@ -1536,6 +1536,9 @@ body:has(.jfab) .toasts, body:has(.jfab) .jarvis-alert { bottom: 84px; }
 .vs-out { display: grid; gap: 8px; justify-items: center; }
 .vs-out video { width: min(100%, 360px); max-height: 70vh; border-radius: 10px; background: #000; }
 .vs-lab { display: grid; gap: 4px; }
+.vs-job { display: grid; gap: 6px; padding: 10px 0; border-top: 1px solid rgba(255,255,255,0.08); }
+.vs-pexels { margin-top: 8px; }
+.vs-pexels input { flex: 1; min-width: 0; }
 .vs-lab-row { display: flex; justify-content: space-between; gap: 8px; align-items: center; }
 .vs-cap { white-space: pre-line; }
 @media (max-width: 699px) { .vs-scripts { grid-template-columns: 1fr; } }

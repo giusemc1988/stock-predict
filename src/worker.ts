@@ -11,6 +11,7 @@ import type { PracticeState } from './lib/practice'
 import { upstreamAsset } from './lib/webFlash'
 import { DEBUG_PATHS, GODS_EYE_URL, LAYERS, debugExposed, layerState, type Probe } from './lib/godsEye'
 import { cleanWriteAsk, writeScript } from './lib/studioServer'
+import { novaRoute } from './worker/nova'
 
 interface Env extends BrainEnv, PracticeEnv {
   ASSETS: { fetch: (r: Request) => Promise<Response> }
@@ -329,6 +330,8 @@ export default {
       const r = await writeScript(ask, await withSavedKeys(env, env.SETTINGS))
       return r ? json(r) : json({ error: 'No AI helper answered. Add a free Gemini or Groq key in Settings.' }, 503)
     }
+    const nova = await novaRoute(req, pathname, env, env.SETTINGS)
+    if (nova) return nova
     if (pathname === '/api/brain/status') {
       const e = await withSavedKeys(env, env.SETTINGS)
       return json({ providers: brainStatus(e), keys: await keySources(env, env.SETTINGS), canSave: !!env.SETTINGS })

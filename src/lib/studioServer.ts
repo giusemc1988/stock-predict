@@ -5,6 +5,7 @@
  */
 import { PROVIDERS, callHelper, type BrainEnv } from './brainServer'
 import { parseScenes, studioPrompt, type StudioMode } from './studio/script'
+import { fallbackTerms, parseTerms } from './studioJobs'
 
 export interface WriteAsk {
   topic: string
@@ -49,4 +50,12 @@ export async function writeScript(a: WriteAsk, e: BrainEnv): Promise<{ en: strin
   // both sides get the same scene count so each frame shows a pair
   const n = Math.min(enLines.length, viLines.length)
   return { en: enLines.slice(0, n), vi: viLines.slice(0, n), by: [...new Set([en!.by, vi!.by])].join(' + ') }
+}
+
+/** English stock-footage search terms for the server render; the topic's own words when no AI answers. */
+export async function writeTerms(topic: string, lines: string[], e: BrainEnv): Promise<string[]> {
+  const system = 'You pick stock-footage search terms. Reply with 5 to 8 short English search terms (1 to 3 words each), one per line, nothing else. Choose concrete, filmable things: places, objects, nature, people from behind. No text, logos or brand names.'
+  const r = await ask(e, system, `Topic: ${topic}\nScript:\n${lines.join('\n')}`)
+  const terms = r ? parseTerms(r.text) : []
+  return terms.length >= 3 ? terms : fallbackTerms(topic)
 }

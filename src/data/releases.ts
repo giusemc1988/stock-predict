@@ -2,7 +2,7 @@
  * Version and "What's new". Bump APP_VERSION and add an entry to the top of RELEASES
  * with each update. The banner shows once per version, then stays dismissed.
  */
-export const APP_VERSION = '1.41.1'
+export const APP_VERSION = '1.42.0'
 
 export interface Release {
   version: string
@@ -13,6 +13,20 @@ export interface Release {
 }
 
 export const RELEASES: Release[] = [
+  {
+    version: '1.42.0',
+    date: '2026-10-23',
+    changes: [
+      'Nova step 5, "Make with voice": your script becomes a real video on a free render server (MoneyPrinterTurbo on GitHub). It has a natural Vietnamese or English voice, pictures that match the script, background music and subtitles burned in. Pick VI, EN or both, and a female or male voice.',
+      'The video shows up in Nova 5 to 20 minutes later, ready to play and download; you can close the app meanwhile. Nova keeps the 12 newest videos.',
+      'Pictures come from free public-domain photos with a slow zoom. Paste a free Pexels key in the same card to get real video clips instead.',
+    ],
+    changesVi: [
+      'Nova có bước 5 "Tạo video có giọng": kịch bản của anh thành video thật trên máy render miễn phí (MoneyPrinterTurbo trên GitHub). Video có giọng đọc tiếng Việt hoặc tiếng Anh tự nhiên, hình hợp với kịch bản, nhạc nền và phụ đề in sẵn. Chọn VI, EN hoặc cả hai, giọng nữ hoặc nam.',
+      'Khoảng 5 đến 20 phút sau video hiện trong Nova, xem và tải về được; trong lúc chờ anh có thể đóng app. Nova giữ 12 video mới nhất.',
+      'Hình lấy từ ảnh miễn phí bản quyền mở, có zoom chậm. Dán key Pexels miễn phí vào cùng thẻ đó để có clip video thật.',
+    ],
+  },
   {
     version: '1.41.1',
     date: '2026-10-23',

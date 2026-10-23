@@ -6,6 +6,7 @@ import { drawFrame, plan, sizeOf, type Aspect, type Media } from '../lib/studio/
 import { SAMPLE_RATE, renderMusic } from '../lib/studio/audio'
 import { canExport, exportMp4 } from '../lib/studio/encode'
 import { STUDIO_TEXT, type StudioKey } from '../lib/studio/text'
+import { StudioRenderPanel } from './StudioRenderPanel'
 
 const MAX_MEDIA = 8
 
@@ -272,6 +273,8 @@ export function VideoStudioPage({ onBack }: { onBack: () => void }) {
           </div>
         )}
       </section>
+
+      <StudioRenderPanel topic={topic} topicVi={topicVi} en={script.en} vi={script.vi} aspect={aspect} />
 
       <section className="bf-card">
         <header><h3>{t('titleLab')}</h3><Copy text={lab.hashtags.join(' ')} label={t('copyTags')} /></header>
