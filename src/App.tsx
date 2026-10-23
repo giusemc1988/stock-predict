@@ -66,6 +66,7 @@ import { stampData, staleReason } from './lib/dataGuard'
 import { Toasts, type Toast } from './components/Toasts'
 import { PanelGuard } from './components/PanelGuard'
 import { startSlidePills } from './lib/slidePill'
+import { historyStep } from './lib/pageHistory'
 
 const NO_CANDLES: Candle[] = []
 
@@ -113,13 +114,34 @@ export default function App() {
   const skillFails = useMemo(() => new Set(runSkillTests().filter((t) => !t.ok).map((t) => t.id)), [])
   const aiRules = useMemo(() => effectiveRules(rawRules, skillStatuses, skillFails), [rawRules, skillStatuses, skillFails])
   const skillTags = useMemo(() => approvedTags(rawRules, skillStatuses, skillFails), [rawRules, skillStatuses, skillFails])
-  const [page, setPageRaw] = useState<Page>(() => (rawRules.jarvisHub ? 'home' : rawRules.briefHome && rawRules.jarvisOn ? 'brief' : 'trade'))
+  const [page, setPageRaw] = useState<Page>(() => (window.history.state as { page?: Page } | null)?.page ?? (rawRules.jarvisHub ? 'home' : rawRules.briefHome && rawRules.jarvisOn ? 'brief' : 'trade'))
   const briefOn = aiRules.briefHome && aiRules.jarvisOn
   const hubOn = aiRules.jarvisHub
   // where a project page's back button goes: the Jarvis Hub, or Atlas's first page when the Hub is off
   const homePage: Page = hubOn ? 'home' : briefOn ? 'brief' : 'trade'
   const shownPage: Page = page === 'home' && !hubOn ? (briefOn ? 'brief' : 'trade') : (page === 'brief' && !briefOn) || (page === 'net' && !aiRules.netTools) || (page === 'ruview' && !aiRules.ruviewOn) || (page === 'godseye' && !aiRules.godsEyeOn) || (page === 'studio' && !aiRules.videoStudioOn) ? 'trade' : page
-  const setPage = setPageRaw
+  // every page change goes through the browser history, so swipe-back / Back returns to the Hub (lib/pageHistory.ts)
+  const pageRef = useRef(page)
+  pageRef.current = page
+  const setPage = useCallback(
+    (to: Page) => {
+      const depth = (window.history.state as { d?: number } | null)?.d ?? 0
+      const step = historyStep(pageRef.current, to, homePage, depth)
+      if (step.kind === 'none') return
+      if (step.kind === 'back') return window.history.go(-step.steps)
+      if (step.kind === 'push') window.history.pushState({ page: to, d: depth + 1 }, '')
+      else window.history.replaceState({ page: to, d: depth }, '')
+      setPageRaw(to)
+    },
+    [homePage],
+  )
+  useEffect(() => {
+    // the first entry is home: anything older belongs to the site before this app
+    if ((window.history.state as { page?: Page } | null)?.page == null) window.history.replaceState({ page: pageRef.current, d: 0 }, '')
+    const onPop = (e: PopStateEvent) => setPageRaw((e.state as { page?: Page } | null)?.page ?? homePage)
+    window.addEventListener('popstate', onPop)
+    return () => window.removeEventListener('popstate', onPop)
+  }, [homePage])
   // the Tool Hub's "Flash a board" opens RuView with the add-node wizard already open
   const [ruviewFlash, setRuviewFlash] = useState(false)
   const [sortRequest, setSortRequest] = useState(0)
