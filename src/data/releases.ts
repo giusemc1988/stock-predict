@@ -2,7 +2,7 @@
  * Version and "What's new". Bump APP_VERSION and add an entry to the top of RELEASES
  * with each update. The banner shows once per version, then stays dismissed.
  */
-export const APP_VERSION = '1.54.0'
+export const APP_VERSION = '1.55.0'
 
 export interface Release {
   version: string
@@ -13,6 +13,12 @@ export interface Release {
 }
 
 export const RELEASES: Release[] = [
+  {
+    version: '1.55.0',
+    date: '2026-10-23',
+    changes: ['Neo now has your face: a 3D portrait made from your Pixar-style photo, with a short loop where you smile, tilt and nod. It shows on the Hub and everywhere Neo talks (chat, Brain, alerts), inside the Arc ring that still glows for thinking and warnings. The clip is about 35 KB, loads only when Neo is on screen and pauses when you scroll away; small icons and reduced motion use the still picture. Off switch: Settings > AI rules > Neo has your 3D face.'],
+    changesVi: ['Neo giờ mang khuôn mặt của anh: chân dung 3D làm từ ảnh Pixar của anh, với đoạn lặp ngắn anh cười, nghiêng đầu và gật đầu. Hiện ở Hub và mọi chỗ Neo nói chuyện (khung chat, Brain, thông báo), nằm trong vòng Arc vẫn sáng khi đang nghĩ hoặc cảnh báo. Clip chỉ khoảng 35 KB, chỉ tải khi Neo hiện trên màn hình và tự dừng khi cuộn đi; biểu tượng nhỏ và chế độ giảm chuyển động dùng ảnh tĩnh. Tắt trong Cài đặt > Luật AI > Neo mang khuôn mặt 3D của anh.'],
+  },
   {
     version: '1.54.0',
     date: '2026-10-23',

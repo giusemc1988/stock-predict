@@ -795,7 +795,16 @@ body {
 .jarvis-avatar.j-warning .j-halo { fill: rgba(240, 185, 11, 0.16); }
 @keyframes j-spin { to { transform: rotate(360deg); } }
 @keyframes j-pulse { 50% { transform: scale(1.12); } }
-@media (prefers-reduced-motion: reduce) { .jarvis-avatar .j-ring, .jarvis-avatar .j-ring2, .jarvis-avatar .j-core { animation: none !important; } }
+/* Neo's face (Chanh's 3D portrait) inside the Arc ring, `neoFace` */
+.neo-face { display: block; flex: none; border-radius: 50%; overflow: hidden; background: #d9d0c6; }
+.neo-face > video, .neo-face > img { display: block; width: 100%; height: 100%; object-fit: cover; }
+.jarvis-face { position: relative; flex: none; display: inline-grid; place-items: center; }
+.jarvis-face > .jarvis-avatar { position: absolute; inset: 0; }
+.jarvis-face > .neo-face { position: relative; box-shadow: 0 0 0 1px rgba(240, 185, 11, 0.55); }
+.jarvis-face.j-thinking:not(.still) > .neo-face { animation: neo-think 1.2s ease-in-out infinite; }
+.jarvis-face.j-warning > .neo-face { box-shadow: 0 0 0 1.5px var(--gold), 0 0 10px rgba(240, 185, 11, 0.45); }
+@keyframes neo-think { 50% { box-shadow: 0 0 0 1px rgba(79, 209, 255, 0.9), 0 0 10px rgba(79, 209, 255, 0.5); } }
+@media (prefers-reduced-motion: reduce) { .jarvis-avatar .j-ring, .jarvis-avatar .j-ring2, .jarvis-avatar .j-core, .jarvis-face > .neo-face { animation: none !important; } }
 .right-tabs.has-brain { grid-template-columns: repeat(4, 1fr); }
 .right-tabs.has-brain.no-picks { grid-template-columns: repeat(3, 1fr); }
 .right-tabs .brain-tab { color: var(--gold); }

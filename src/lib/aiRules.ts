@@ -68,6 +68,7 @@ export interface AiRules {
   scoreboardPerformanceTimer: boolean // monitor signal-to-order latency and app load times
   jarvisGate: boolean // practice buys must pass every playbook rule proven on paper trades
   jarvisMotion: boolean // animated Neo avatar
+  neoFace: boolean // Neo's avatar is Chanh's 3D face (a small looping clip) instead of the drawn character and gold core
   jarvisSpeech: boolean // Neo reads briefings and answers aloud (browser's built-in speech)
   jarvisShowMe: boolean // Show me: Neo opens the stock and points at what it explains on the chart
   jarvisReplay: boolean // Replay the day: Neo narrates each practice trade on the chart
@@ -192,6 +193,7 @@ export const DEFAULT_AI_RULES: AiRules = {
   scoreboardPerformanceTimer: true,
   jarvisGate: false,
   jarvisMotion: true,
+  neoFace: true,
   jarvisSpeech: true,
   jarvisShowMe: true,
   jarvisReplay: true,
@@ -333,6 +335,7 @@ export const RULE_FIELDS: RuleField[] = [
   { group: 'jarvis', key: 'jarvisStory', en: 'Playbook checks in practice trade stories', vi: 'Kiểm tra sổ tay trong câu chuyện lệnh luyện tập' },
   { group: 'jarvis', key: 'jarvisGate', en: 'Practice buys must pass every playbook rule proven on paper trades', vi: 'Lệnh mua luyện tập phải đạt mọi quy tắc sổ tay đã chứng minh trên lệnh thử' },
   { group: 'jarvis', key: 'jarvisMotion', en: 'Animated Neo avatar', vi: 'Hình đại diện Neo chuyển động' },
+  { group: 'jarvis', key: 'neoFace', en: 'Neo has your 3D face (a short loop: smile, tilt, nod; plays only while on screen)', vi: 'Neo mang khuôn mặt 3D của anh (đoạn lặp ngắn: cười, nghiêng, gật đầu; chỉ chạy khi đang hiện trên màn hình)' },
   { group: 'jarvis', key: 'jarvisShowMe', en: 'Show me: Neo opens the stock and points at what it is explaining on the chart', vi: 'Chỉ cho tôi: Neo mở mã và chỉ vào điều đang giải thích trên biểu đồ' },
   { group: 'jarvis', key: 'jarvisReplay', en: 'Replay the day: Neo walks through each practice trade on the chart', vi: 'Xem lại ngày: Neo dẫn xem từng lệnh luyện tập trên biểu đồ' },
   { group: 'jarvis', key: 'jarvisAlerts', en: 'Neo alerts when a practice trade opens or closes (replaces the plain pop-up)', vi: 'Neo báo khi lệnh luyện tập mở hoặc đóng (thay thông báo thường)' },

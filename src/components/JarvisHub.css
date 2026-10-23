@@ -474,3 +474,6 @@ button.hg-kb:hover, button.hg-kb:focus-visible { background: rgba(255, 255, 255,
   .hg-kl-wipe, .hg-cnode { transition: none; }
   .hg *, .hg *::before, .hg *::after { animation: none !important; transition-duration: 0.01s !important; }
 }
+
+/* Neo's 3D face in the hero (NeoFace, `neoFace`) */
+.hg-jbot .hg-neo { position: relative; width: 100%; height: 100%; box-shadow: 0 0 0 3px color-mix(in srgb, var(--k) 70%, transparent), 0 18px 40px -14px color-mix(in srgb, var(--k) 80%, transparent); }
