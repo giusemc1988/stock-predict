@@ -6,8 +6,11 @@ import { useHubTheme } from '../lib/themes'
 import { useLocalStorage } from '../hooks/useLocalStorage'
 import { ActivityFeed } from './ActivityFeed'
 import { AgentFace } from './AgentFace'
+import { AtlasCouncil, type CouncilVote } from './AtlasCouncil'
 import { CountUp } from './CountUp'
 import { LangSwitch } from './HubPanels'
+import { KronosChart } from './KronosChart'
+import type { CouncilId, KronosForecast } from '../lib/kronosView'
 import { ProjectLogo } from './ProjectLogo'
 import { useHubModel, type CardModel, type HubProps } from './useHubModel'
 import './JarvisHub.css'
@@ -45,6 +48,22 @@ const GX = {
   signals: { en: 'Analyst', vi: 'Phân tích' },
   learner: { en: 'Learner', vi: 'Bộ học' },
   risk: { en: 'Risk gate', vi: 'Cổng rủi ro' },
+  councilTitle: { en: 'Atlas council', vi: 'Hội đồng Atlas' },
+  councilOn: { en: '7 agents on {s}', vi: '7 agent đang xét {s}' },
+  councilNone: { en: 'No BUY call to judge yet', vi: 'Chưa có lệnh MUA để xét' },
+  peekCouncil: { en: 'See the 7-agent council', vi: 'Xem hội đồng 7 agent' },
+  verdict: { en: 'Council verdict', vi: 'Kết luận của hội đồng' },
+  verdictBuy: { en: 'BUY, {n}/7 agree', vi: 'Mua, {n}/7 đồng ý' },
+  verdictWait: { en: '{n}/7 say buy, waiting', vi: '{n}/7 nói mua, chờ thêm' },
+  verdictVeto: { en: 'Risk gate says no', vi: 'Cổng rủi ro chặn' },
+  voteYes: { en: 'Buy', vi: 'Mua' },
+  voteNo: { en: 'No', vi: 'Không' },
+  voteNone: { en: 'Wait', vi: 'Chờ' },
+  kronosYes: { en: 'Kronos sees {p} in 5 days', vi: 'Kronos thấy {p} sau 5 phiên' },
+  kronosNo: { en: 'Kronos sees {p} in 5 days', vi: 'Kronos thấy {p} sau 5 phiên' },
+  kronosFlat: { en: 'Kronos sees {p}, about flat', vi: 'Kronos thấy {p}, gần như đi ngang' },
+  kronosOff: { en: 'Kronos has no forecast for this symbol', vi: 'Kronos chưa dự báo mã này' },
+  tapSymbol: { en: 'Tap a symbol to draw its forecast', vi: 'Bấm một mã để vẽ đường dự báo' },
 } as const
 type GxKey = keyof typeof GX
 
@@ -80,7 +99,9 @@ const DEMO: Record<ProjectId, 'chart' | 'globe' | 'wave' | 'radar' | 'log'> = {
 const CMD: Partial<Record<ProjectId, string>> = { volt: 'esptool write_flash', lumi: 'media-lab --plan', forge: 'npm test && npm run build' }
 
 interface Kronos {
-  forecasts: { symbol: string; lastClose: number; pred: Record<string, number> }[]
+  forecasts: (KronosForecast & { run?: string })[]
+  /** the last 30 closes per symbol, saved by each run */
+  recent?: Record<string, number[]>
   updated: string
   score: Record<string, { graded: number }>
 }
@@ -153,7 +174,7 @@ function Demo({ id }: { id: ProjectId }) {
  * and tools; the back shows it at work), Atlas with real Kronos forecasts and agent votes, live
  * activity and a dock. Three themes (Settings or the menu bar). Every number comes from the app's data.
  */
-export function JarvisHub(p: HubProps & { flipAuto: boolean }) {
+export function JarvisHub(p: HubProps & { flipAuto: boolean; council: boolean }) {
   const m = useHubModel(p)
   const { vi, L, cards, stats, activity, q, setQ, inputRef, hits, canOpen, openTool, toolOk, openHit, hitOk, hello, homeUp, working } = m
   const G = (k: GxKey, vars?: Record<string, string | number>): string => Object.entries(vars ?? {}).reduce<string>((s, [a, b]) => s.replace(`{${a}}`, String(b)), GX[k][m.lang])
@@ -178,7 +199,8 @@ export function JarvisHub(p: HubProps & { flipAuto: boolean }) {
     const id = setInterval(() => {
       const pool = cards.map((c) => c.p.id).filter((x) => x !== 'atlas' && x !== hover)
       const pick = pool[Math.floor(Math.random() * pool.length)]
-      setFlipped(pick)
+      // a card anh turned over himself (Atlas) stays turned until he turns it back
+      setFlipped((f) => (f === 'atlas' ? f : pick))
       clearTimeout(back)
       back = setTimeout(() => setFlipped((f) => (f === pick ? null : f)), 4200)
     }, 6000)
@@ -211,11 +233,15 @@ export function JarvisHub(p: HubProps & { flipAuto: boolean }) {
     () =>
       (kronos?.forecasts ?? [])
         .filter((f) => f.pred['5'] && f.lastClose)
-        .map((f) => ({ symbol: f.symbol.replace('-USD', ''), pct: (f.pred['5'] / f.lastClose - 1) * 100 }))
+        .reduce<KronosForecast[]>((acc, f) => [...acc.filter((x) => x.symbol !== f.symbol), f], [])
+        .map((f) => ({ symbol: f.symbol.replace('-USD', ''), pct: (f.pred['5'] / f.lastClose - 1) * 100, f }))
         .slice(0, 8),
     [kronos],
   )
   const kMax = Math.max(2, ...kBars.map((b) => Math.abs(b.pct)))
+  const [kSel, setKSel] = useState<string | null>(null)
+  const kPick = kBars.find((b) => b.symbol === kSel)
+  const cLabel = (id: CouncilId) => (id === 'kronos' ? 'Kronos' : G(id))
   const graded = kronos?.score['5']?.graded ?? 0
 
   // the agents' votes on Atlas's top BUY call
@@ -229,6 +255,19 @@ export function JarvisHub(p: HubProps & { flipAuto: boolean }) {
       })
     : []
   const voteAt = votes.length ? tick % votes.length : -1
+
+  // the council on the back of the Atlas card: the six agents' real votes plus Kronos on the same symbol
+  const kTop = top ? kBars.find((b) => b.symbol === top.symbol.split('/')[0].toUpperCase()) : undefined
+  const councilVotes: CouncilVote[] = [
+    ...votes.map((v) => ({ id: v.id as CouncilId, vote: v.vote as Vote, why: vi ? v.why.vi : v.why.en })),
+    kTop
+      ? { id: 'kronos', vote: kTop.pct > 0.5 ? 'yes' : kTop.pct < -0.5 ? 'no' : 'none', why: G(kTop.pct > 0.5 ? 'kronosYes' : kTop.pct < -0.5 ? 'kronosNo' : 'kronosFlat', { p: fmtPct(kTop.pct) }) }
+      : { id: 'kronos', vote: 'none', why: G('kronosOff') },
+  ]
+  const yes = councilVotes.filter((v) => v.vote === 'yes').length
+  const veto = councilVotes.find((v) => v.id === 'risk')?.vote === 'no'
+  const verdict = !top ? G('councilNone') : veto ? G('verdictVeto') : yes >= 5 ? G('verdictBuy', { n: yes }) : G('verdictWait', { n: yes })
+  const voteText = (v: Vote) => G(v === 'yes' ? 'voteYes' : v === 'no' ? 'voteNo' : 'voteNone')
 
   const think = (c: CardModel, i: number) => {
     const lines = [vi ? c.p.what.vi : c.p.what.en, ...c.facts.map((f) => `${L(f.label)}: ${f.value}`), `${L(c.ring.cap)}: ${c.ring.label}`]
@@ -397,8 +436,8 @@ export function JarvisHub(p: HubProps & { flipAuto: boolean }) {
                   <div className="hg-face hg-front hg-glass" aria-hidden={on}>
                     <button className="hg-hit-area" disabled={!openable || on} tabIndex={on ? -1 : 0} onClick={() => openable && p.onOpen(c.p.opens!)} aria-label={`${L('open')} ${c.p.name}`} />
                     <i className="hg-orb" aria-hidden="true" />
-                    {!feat && (
-                      <button className="hg-peek" tabIndex={on ? -1 : 0} onClick={() => setFlipped(id)} aria-label={G('peek', { p: c.p.name })} title={G('peek', { p: c.p.name })}>
+                    {(!feat || p.council) && (
+                      <button className="hg-peek" tabIndex={on ? -1 : 0} onClick={() => setFlipped(id)} aria-label={feat ? G('peekCouncil') : G('peek', { p: c.p.name })} title={feat ? G('peekCouncil') : G('peek', { p: c.p.name })}>
                         <svg viewBox="0 0 24 24" aria-hidden="true">
                           <path d="M4 12a8 8 0 0 1 14-5.3M20 12a8 8 0 0 1-14 5.3" />
                           <path d="M18 3v4h-4M6 21v-4h4" />
@@ -438,23 +477,37 @@ export function JarvisHub(p: HubProps & { flipAuto: boolean }) {
                     )}
                     {feat && (
                       <>
-                        <div className="hg-kron hg-inset">
+                        <div className={`hg-kron hg-inset${p.council ? ' live' : ''}`}>
                           <div className="hg-khead">
                             <b>{G('kronos')}</b>
-                            <span>{G('watchOnly')}</span>
+                            <span>{p.council && kBars.length && !kPick ? G('tapSymbol') : G('watchOnly')}</span>
                           </div>
-                          {kBars.length ? (
+                          {kPick && p.council ? (
+                            <KronosChart key={kPick.symbol} f={kPick.f} recent={kronos?.recent?.[kPick.f.symbol]} vi={vi} label={cLabel} onAll={() => setKSel(null)} />
+                          ) : kBars.length ? (
                             <>
-                              <div className="hg-kbars" role="img" aria-label={kBars.map((b) => `${b.symbol} ${fmtPct(b.pct)}`).join(', ')}>
-                                {kBars.map((b, j) => (
-                                  <div key={b.symbol} className="hg-kb" style={{ '--d': `${j * 80}ms` } as CSSProperties}>
-                                    <span className="hg-kv">
-                                      <i className={b.pct >= 0 ? 'up' : 'down'} style={{ '--h': `${(Math.abs(b.pct) / kMax) * 100}%` } as CSSProperties} />
-                                    </span>
-                                    <b>{b.symbol}</b>
-                                    <em className={tone(b.pct)}>{fmtPct(b.pct)}</em>
-                                  </div>
-                                ))}
+                              <div className="hg-kbars" role={p.council ? 'group' : 'img'} aria-label={kBars.map((b) => `${b.symbol} ${fmtPct(b.pct)}`).join(', ')}>
+                                {kBars.map((b, j) => {
+                                  const inner = (
+                                    <>
+                                      <span className="hg-kv">
+                                        <i className={b.pct >= 0 ? 'up' : 'down'} style={{ '--h': `${(Math.abs(b.pct) / kMax) * 100}%` } as CSSProperties} />
+                                      </span>
+                                      <b>{b.symbol}</b>
+                                      <em className={tone(b.pct)}>{fmtPct(b.pct)}</em>
+                                    </>
+                                  )
+                                  const st = { '--d': `${j * 80}ms` } as CSSProperties
+                                  return p.council ? (
+                                    <button key={b.symbol} className="hg-kb" style={st} tabIndex={on ? -1 : 0} onClick={() => setKSel(b.symbol)} aria-label={`${b.symbol} ${fmtPct(b.pct)}`}>
+                                      {inner}
+                                    </button>
+                                  ) : (
+                                    <div key={b.symbol} className="hg-kb" style={st}>
+                                      {inner}
+                                    </div>
+                                  )
+                                })}
                               </div>
                               <p className="hg-kfoot">{G('kronosGraded', { n: graded })}</p>
                             </>
@@ -509,6 +562,22 @@ export function JarvisHub(p: HubProps & { flipAuto: boolean }) {
                       </div>
                     )}
                   </div>
+                  {feat && p.council && (
+                    <div className="hg-face hg-back hg-glass hg-cback" aria-hidden={!on}>
+                      <div className="hg-bhead">
+                        <b>{G('councilTitle')}</b>
+                        <span>{top ? G('councilOn', { s: top.symbol }) : G('councilNone')}</span>
+                      </div>
+                      <AtlasCouncil votes={councilVotes} active={on} label={cLabel} voteText={voteText} />
+                      <div className="hg-verdict hg-inset">
+                        <span>{G('verdict')}</span>
+                        <b>{verdict}</b>
+                        <button className="hg-backbtn" tabIndex={on ? 0 : -1} onClick={() => setFlipped(null)}>
+                          {G('back')}
+                        </button>
+                      </div>
+                    </div>
+                  )}
                   {!feat && (
                     <div className="hg-face hg-back hg-glass" aria-hidden={!on}>
                       <div className="hg-bhead">
