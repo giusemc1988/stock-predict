@@ -247,7 +247,7 @@ export function scoreboardNumbers(s: PracticeState, priceOf: (symbol: string) =>
     jarvisPct,
     baseline: b ?? null,
     basePct,
-    /** Jarvis minus buy-and-hold, in percentage points; positive means Jarvis is ahead. */
+    /** Neo minus buy-and-hold, in percentage points; positive means Neo is ahead. */
     edgePct: basePct == null ? null : jarvisPct - basePct,
   }
 }
@@ -336,7 +336,7 @@ export interface EntryContext {
   /** Kelly sizing multiplier: conservative 0.25x Kelly based on closed trade history. */
   kellyMultiplier?: number
   skills?: string[]
-  /** Jarvis playbook gate: a buy that breaks a rule proven on past practice trades is skipped. */
+  /** Neo playbook gate: a buy that breaks a rule proven on past practice trades is skipped. */
   playbookGate?: boolean
   /** Trades that follow a rule needed before it can be proven, and the win-rate margin (0..1). */
   playbookMin?: number

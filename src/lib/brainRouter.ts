@@ -1,5 +1,5 @@
 /**
- * Where Jarvis's words come from. Today there is no AI model: every answer is the rule text
+ * Where Neo's words come from. Today there is no AI model: every answer is the rule text
  * built from the app's own records. Phase 2 plugs free AI providers in here (Gemini, then Grok
  * or Groq, then NVIDIA NIM, called through the Worker so keys stay server-side, then an
  * in-browser model). A provider only rewords the facts it is given; it never decides a trade.
@@ -10,7 +10,7 @@ export interface BrainQuestion {
   /** What was asked, as typed or heard. */
   text: string
   lang: 'en' | 'vi'
-  /** The facts Jarvis already worked out from the app's records. */
+  /** The facts Neo already worked out from the app's records. */
   facts: Bi[]
 }
 

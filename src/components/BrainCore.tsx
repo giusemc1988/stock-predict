@@ -48,7 +48,7 @@ interface Pt {
   tw: number
 }
 
-/** Memory particles: one per note Jarvis has, up to a cap; each cluster is one node's color. */
+/** Memory particles: one per note Neo has, up to a cap; each cluster is one node's color. */
 function particles(n: number): Pt[] {
   let seed = 7
   const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647
@@ -82,14 +82,14 @@ function particles(n: number): Pt[] {
 
 interface Props {
   nodes: BriefNode[]
-  /** Notes in Jarvis's memory (journal, practice trades, learner tests): sets the particle count. */
+  /** Notes in Neo's memory (journal, practice trades, learner tests): sets the particle count. */
   memory: number
   thinking: boolean
   motion: boolean
   onNode: (id: NodeId) => void
 }
 
-/** Jarvis's second brain: memory particles in a dial, fed by the nodes around it. Draws only; makes no network calls. */
+/** Neo's second brain: memory particles in a dial, fed by the nodes around it. Draws only; makes no network calls. */
 export function BrainCore({ nodes, memory, thinking, motion, onNode }: Props) {
   const lang = useLang()
   const L = (b: { en: string; vi: string }) => (lang === 'vi' ? b.vi : b.en)
@@ -310,7 +310,7 @@ export function BrainCore({ nodes, memory, thinking, motion, onNode }: Props) {
     <div className="core-stage" ref={wrap}>
       <canvas ref={cv} aria-hidden="true" />
       <div className="core-hud">
-        <b>JARVIS · ORCHESTRATOR</b>
+        <b>NEO · ORCHESTRATOR</b>
         <span>
           <i className={liveCount ? 'up' : 'muted'}>●</i> {lang === 'vi' ? `${liveCount}/${nodes.length} nguồn đang chạy` : `${liveCount} of ${nodes.length} feeds live`}
         </span>
@@ -332,7 +332,7 @@ export function BrainCore({ nodes, memory, thinking, motion, onNode }: Props) {
           )
         })}
       <div className="core-name">
-        <b>JARVIS</b>
+        <b>NEO</b>
         <span>
           {lang === 'vi' ? 'bộ não thứ hai' : 'second brain'} · {memory.toLocaleString()} {lang === 'vi' ? 'ghi nhớ' : 'memories'}
         </span>

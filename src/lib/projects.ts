@@ -1,5 +1,5 @@
 /**
- * Jarvis Hub: the projects the hub runs, what each one is, where it opens and which Tool Hub tools
+ * Neo Hub: the projects the hub runs, what each one is, where it opens and which Tool Hub tools
  * belong to it. Pure data plus the hub search; JarvisHub.tsx draws it.
  */
 import type { Bi } from './hubText'
@@ -24,14 +24,14 @@ export interface Project {
 
 export const PROJECTS: Project[] = [
   { id: 'atlas', name: 'Atlas', what: { en: 'Stock Predictor', vi: 'Dự đoán cổ phiếu' }, hue: '#4fd1ff', opens: 'brief', tools: ['desk', 'portfolio', 'board', 'kronos'] },
-  { id: 'argus', name: 'Argus', what: { en: "God's Eye globe", vi: "Địa cầu God's Eye" }, hue: '#7aa7ff', opens: 'godseye', tools: ['godseye', 'godseye-full'] },
+  { id: 'argus', name: 'Iris', what: { en: "God's Eye globe", vi: "Địa cầu God's Eye" }, hue: '#7aa7ff', opens: 'godseye', tools: ['godseye', 'godseye-full'] },
   { id: 'echo', name: 'Echo', what: { en: 'RuView sensing', vi: 'Cảm biến RuView' }, hue: '#5fd6c8', opens: 'ruview', tools: ['ruview'] },
   { id: 'volt', name: 'Volt', what: { en: 'ESP32 Lab', vi: 'Phòng ESP32' }, hue: '#7ee0b5', opens: 'ruview-flash', tools: ['flash', 'espconnect', 'firmware', 'esp32div'] },
   { id: 'nexus', name: 'Nexus', what: { en: 'Wi-Fi & Bluetooth', vi: 'Wi-Fi & Bluetooth' }, hue: '#8fb8ff', opens: 'net', tools: ['wifi', 'speed', 'android'] },
   { id: 'nova', name: 'Nova', what: { en: 'Bilingual Video Studio', vi: 'Studio video song ngữ' }, hue: '#d9a3ff', opens: 'studio', tools: ['video'] },
   { id: 'viraltech', name: 'Viraltech', what: { en: 'Social channels', vi: 'Kênh mạng xã hội' }, hue: '#ff7ab6', opens: 'viraltech', tools: ['viraltech', 'explainers'] },
   { id: 'lumi', name: 'Lumi', what: { en: 'Media Lab', vi: 'Media Lab' }, hue: '#ffb36b', opens: null, tools: ['media', 'outside'] },
-  { id: 'forge', name: 'Forge', what: { en: 'Build & app builder', vi: 'Xây dựng & tạo app' }, hue: '#f2c46d', opens: null, tools: ['prs', 'repo', 'dev', 'apps'] },
+  { id: 'forge', name: 'Max', what: { en: 'Build & app builder', vi: 'Xây dựng & tạo app' }, hue: '#f2c46d', opens: null, tools: ['prs', 'repo', 'dev', 'apps'] },
 ]
 
 export interface HubOn {

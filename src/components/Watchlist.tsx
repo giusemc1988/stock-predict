@@ -40,7 +40,7 @@ interface Props {
   tf: Timeframe
   /** Show the AI scan button and each row's AI call. */
   scanOn: boolean
-  /** Bumped to open the live Top gainers list (from the Jarvis Brief scanner). */
+  /** Bumped to open the live Top gainers list (from the Neo Brief scanner). */
   sortRequest?: number
 }
 

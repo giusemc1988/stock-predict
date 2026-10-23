@@ -373,7 +373,7 @@ export function JarvisHub(p: Props) {
     () =>
       [
         ...p.practice.events.slice(0, 6).map((e): FeedItem => ({ id: `e${e.id}`, time: e.time, kind: e.kind, text: vi ? e.vi : e.en, sub: `Atlas · ${e.symbol}` })),
-        ...RELEASES.slice(0, 6).map((r): FeedItem => ({ id: `r${r.version}`, time: Date.parse(`${r.date}T00:00:00Z`), kind: 'ok', text: (vi ? r.changesVi?.[0] : undefined) ?? r.changes[0], sub: `Forge · v${r.version}` })),
+        ...RELEASES.slice(0, 6).map((r): FeedItem => ({ id: `r${r.version}`, time: Date.parse(`${r.date}T00:00:00Z`), kind: 'ok', text: (vi ? r.changesVi?.[0] : undefined) ?? r.changes[0], sub: `Max · v${r.version}` })),
       ]
         .sort((a, b) => b.time - a.time)
         .slice(0, 8),

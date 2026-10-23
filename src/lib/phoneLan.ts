@@ -31,7 +31,7 @@ interface LanTools {
 
 export const LanTools = registerPlugin<LanTools>('LanTools')
 
-/** true inside the Jarvis Android app, where the phone can scan the Wi-Fi it is on. */
+/** true inside the Neo Android app, where the phone can scan the Wi-Fi it is on. */
 export const inPhoneApp = () => Capacitor.isNativePlatform() && Capacitor.isPluginAvailable('LanTools')
 
 export interface Known {

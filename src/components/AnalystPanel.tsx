@@ -16,10 +16,10 @@ interface Props {
   tfLabel: string
   onTrade: () => void
   onEditRules: () => void
-  /** Show Jarvis's plain-words line under the call. */
+  /** Show Neo's plain-words line under the call. */
   jarvis?: boolean
   jarvisMotion?: boolean
-  /** Jarvis walks through this call on the chart. */
+  /** Neo walks through this call on the chart. */
   onShowMe?: () => void
 }
 
@@ -65,7 +65,7 @@ export function AnalystPanel({ analysis: a, stats, lastSignal, symbol, tfLabel, 
         <div className="jarvis-says">
           <JarvisAvatar size={26} mood={a.verdict === 'HOLD' ? 'idle' : 'speaking'} motion={jarvisMotion} />
           <span>
-            <b>Jarvis:</b> {lang === 'vi' ? jarvisSays(a, symbol).vi : jarvisSays(a, symbol).en}
+            <b>Neo:</b> {lang === 'vi' ? jarvisSays(a, symbol).vi : jarvisSays(a, symbol).en}
           </span>
           {onShowMe && (
             <button className="pr-rescan jarvis-show" onClick={onShowMe}>

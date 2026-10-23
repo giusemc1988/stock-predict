@@ -1,6 +1,6 @@
 {
   "appId": "com.chanh.jarvis",
-  "appName": "Jarvis",
+  "appName": "Neo",
   "webDir": "dist",
   "server": {
     "url": "https://stock-predict.chanhmn1011.workers.dev",

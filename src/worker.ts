@@ -1,5 +1,5 @@
 /**
- * Cloudflare Worker: serves the app's built files and one small API, /api/brain, for Jarvis's
+ * Cloudflare Worker: serves the app's built files and one small API, /api/brain, for Neo's
  * free-AI helper. Keys are Worker secrets (wrangler secret put GEMINI_API_KEY, etc.).
  * Also serves /api/practice for live paper trading via Cron every 5 minutes.
  * Also serves /api/news for Alpaca news feed.
@@ -683,7 +683,7 @@ export default {
           return json({ error: 'Telegram config not found. Save your token and Chat ID first.' }, 400)
         }
         const { token, chatId } = config
-        const testMessage = '✅ Jarvis test message\n\nYour Telegram bot is working! You will now receive trade alerts here.'
+        const testMessage = '✅ Neo test message\n\nYour Telegram bot is working! You will now receive trade alerts here.'
         const telegramUrl = `https://api.telegram.org/bot${token}/sendMessage`
         const tgRes = await fetch(telegramUrl, {
           method: 'POST',

@@ -23,7 +23,7 @@ export function getJarvisConfig(): JarvisConfig {
       return JSON.parse(stored) as JarvisConfig
     }
   } catch (err) {
-    console.error('Failed to load Jarvis config:', err)
+    console.error('Failed to load Neo config:', err)
   }
 
   return { ...jarvisDefaults }
@@ -37,6 +37,6 @@ export function saveJarvisConfig(config: JarvisConfig): void {
   try {
     localStorage.setItem(CONFIG_KEY, JSON.stringify(config))
   } catch (err) {
-    console.error('Failed to save Jarvis config:', err)
+    console.error('Failed to save Neo config:', err)
   }
 }

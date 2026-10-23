@@ -100,7 +100,7 @@ export interface NodeRow extends RegistryNode {
   behind: boolean
 }
 
-/** Registry (what you told Jarvis) joined with the live list from RuView; unknown live nodes still show up. */
+/** Registry (what you told Neo) joined with the live list from RuView; unknown live nodes still show up. */
 export function mergeNodes(reg: RegistryNode[], live: LiveNode[]): NodeRow[] {
   const rows: NodeRow[] = reg.map((r) => ({ ...r, live: live.find((l) => l.node_id === r.id) ?? null, behind: !!r.firmware && newer(RUVIEW.firmware, r.firmware) }))
   for (const l of live) if (!reg.some((r) => r.id === l.node_id)) rows.push({ id: l.node_id, room: '', board: 's3-8mb', antenna: 'internal', added: 0, live: l, behind: false })

@@ -1,11 +1,13 @@
 /**
- * One turn of a conversation with Jarvis, typed or spoken: works out what was asked and what to
+ * One turn of a conversation with Neo, typed or spoken: works out what was asked and what to
  * answer, from the app's own records. It changes nothing: an action comes back as a proposal
  * that you confirm, and a stock or replay comes back for the app to open.
  */
 import { understand } from './listen'
 import { alreadySo, describeAction, parseCommand, type JarvisAction } from './jarvisActions'
 import { ask, greeting, stockMemory, type AskContext, type Bi } from './jarvis'
+import { answerHub, introduce, parseHubAsk, type AppPage, type HubFacts } from './agents'
+import type { HubPage } from './toolHub'
 
 /** Detect if text is Vietnamese (has Vietnamese characters or common words). */
 export function detectLanguage(text: string): 'vi' | 'en' {
@@ -20,7 +22,7 @@ export interface ChatTurn {
   who: 'me' | 'jarvis'
   text: Bi
   time: number
-  /** A change Jarvis proposed; it waits for your tap. */
+  /** A change Neo proposed; it waits for your tap. */
   action?: JarvisAction
   settled?: 'done' | 'cancelled'
   /** The free-AI helper that wrote this answer, e.g. "Gemini". */
@@ -35,8 +37,10 @@ export interface ChatReply {
   /** Walk through this practice trade on the chart. */
   trade?: string
   replay?: boolean
-  /** Jarvis didn't understand; the free-AI helper may answer instead, if switched on. */
+  /** Neo didn't understand; the free-AI helper may answer instead, if switched on. */
   unsure?: boolean
+  /** Open this page: a project, or 'home' for the Hub. */
+  open?: HubPage | 'brief' | 'home'
 }
 
 export interface ChatDeps {
@@ -48,6 +52,8 @@ export interface ChatDeps {
   canStock: boolean
   canReplay: boolean
   canShow: boolean
+  /** The page the chat is on and the hub's state, when the project agents are switched on. */
+  hub?: { page: AppPage; facts: HubFacts }
 }
 
 const HELLO = /^\s*(hi|hello|hey|good (morning|afternoon|evening)|yo|chào|xin chào|alo)\b/i
@@ -60,6 +66,8 @@ export function chatReply(text: string, d: ChatDeps): ChatReply {
     if (alreadySo(cmd, ctx.rules, ctx.killSwitch, d.watchlist)) return { text: [{ en: `Already set: ${what.en}.`, vi: `Rồi: ${what.vi}.` }] }
     return { text: [{ en: `OK, I can ${what.en.charAt(0).toLowerCase()}${what.en.slice(1)}. Want me to do it?`, vi: `Được, em có thể ${what.vi}. Bạn muốn em làm không?` }], action: cmd }
   }
+  const h = d.hub ? parseHubAsk(text, d.hub.page) : null
+  if (h && d.hub) return answerHub(h, d.hub.page, d.hub.facts)
   const u = understand(text, d.known)
   if (u?.kind === 'stock' && d.canStock) return { text: [...stockMemory(u.symbol, ctx.state), { en: `Here's ${u.symbol} on the chart. Let me explain what I see.`, vi: `Đây là ${u.symbol}. Em sẽ giải thích gì đang xảy ra.` }], stock: u.symbol }
   if (u?.kind === 'replay' && d.canReplay) return { text: [{ en: "Let me show you today's trades on the chart.", vi: 'Em sẽ hiển thị các lệnh hôm nay trên biểu đồ.' }], replay: true }
@@ -68,7 +76,10 @@ export function chatReply(text: string, d: ChatDeps): ChatReply {
     const last = [...ctx.state.open, ...ctx.state.trades].sort((a, b) => b.openedAt - a.openedAt)[0]
     return u.id === 'whyBuy' && d.canShow && last ? { text: lines, trade: last.id } : { text: lines }
   }
-  if (HELLO.test(text)) return { text: [greeting(d.name, ctx.state, ctx.killSwitch, ctx.now)] }
+  // away from Atlas, a hello gets the page's agent, not the trading greeting
+  const offAtlas = !!d.hub && d.hub.page !== 'home' && d.hub.page !== 'trade' && d.hub.page !== 'brief' && d.hub.page !== 'portfolio'
+  if (HELLO.test(text)) return { text: [offAtlas && d.hub ? introduce(d.hub.page) : greeting(d.name, ctx.state, ctx.killSwitch, ctx.now)] }
+  if (offAtlas && d.hub) return { unsure: true, text: [{ en: "I'm not sure what you asked.", vi: 'Em chưa hiểu anh hỏi gì.' }, introduce(d.hub.page)] }
   // not sure what was asked: talk about the stock on screen rather than give up
   if (ctx.symbol)
     return {

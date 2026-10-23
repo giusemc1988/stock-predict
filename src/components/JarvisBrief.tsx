@@ -51,7 +51,7 @@ interface Props {
   onRuview?: () => void
   /** Tool Hub: open a page of the app */
   onTool?: (p: HubPage) => void
-  /** Back to the Jarvis Hub (undefined when it is switched off) */
+  /** Back to the Neo Hub (undefined when it is switched off) */
   onHub?: () => void
 }
 
@@ -69,7 +69,7 @@ function Movers({ title, rows, vol, onPick }: { title: string; rows: MarketListR
   )
 }
 
-/** The home page: Jarvis's spoken brief, its second brain and agents, today's picks, the live movers and progress. Every number is real. */
+/** The home page: Neo's spoken brief, its second brain and agents, today's picks, the live movers and progress. Every number is real. */
 export function JarvisBrief(p: Props) {
   const lang = useLang()
   const vi = lang === 'vi'
@@ -148,7 +148,7 @@ export function JarvisBrief(p: Props) {
               ▶ {vi ? 'Nghe bản tin' : 'Hear my brief'}
             </button>
             <button className="btn" onClick={() => p.onNode('learner')}>
-              {vi ? 'Hỏi Jarvis' : 'Ask Jarvis'}
+              {vi ? 'Hỏi Neo' : 'Ask Neo'}
             </button>
             <button className="btn" onClick={() => setShowReadiness(true)}>
               {vi ? 'Sẵn sàng ngày mai?' : 'Ready for tomorrow?'}

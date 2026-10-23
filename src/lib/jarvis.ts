@@ -1,8 +1,8 @@
 /**
- * Jarvis, the Arc Brain: one voice for what the app's AI knows. Everything here is built
+ * Neo, the Arc Brain: one voice for what the app's AI knows. Everything here is built
  * from the app's own data (practice account, decision log, trade reviews, playbook evidence,
  * the learner). No AI model and no API key: the rules and the learner make every decision,
- * Jarvis only explains them. Never promises profits. Paper only.
+ * Neo only explains them. Never promises profits. Paper only.
  */
 import type { Analysis } from '../types'
 import type { AiRules } from './aiRules'
@@ -112,7 +112,7 @@ export interface Lesson extends Bi {
   tone: 'good' | 'bad' | 'info'
 }
 
-/** Lessons Jarvis writes after each reviewed trade, newest first, plus what the evidence says per rule. */
+/** Lessons Neo writes after each reviewed trade, newest first, plus what the evidence says per rule. */
 export function tradeLessons(s: PracticeState, max = 12): Lesson[] {
   const out: Lesson[] = []
   for (const t of [...s.trades].reverse()) {
@@ -151,7 +151,7 @@ export function evidenceLine(e: RuleEvidence): Bi {
   }
 }
 
-// ---------- Ask Jarvis: fixed questions answered from the app's own data ----------
+// ---------- Ask Neo: fixed questions answered from the app's own data ----------
 
 export type AskId = 'whyBuy' | 'learned' | 'rules' | 'risk' | 'idle' | 'who' | 'skills' | 'log' | 'reviews' | 'learning' | 'boughtHigh' | 'thisStock'
 
@@ -284,7 +284,7 @@ export function ask(id: AskId, c: AskContext): Bi[] {
   }
   if (id === 'who')
     return [
-      { en: "I'm Jarvis, the Arc Brain. I run the practice account and explain every call the app makes.", vi: 'Tôi là Jarvis, Bộ não Arc. Tôi điều hành tài khoản luyện tập và giải thích mọi nhận định của ứng dụng.' },
+      { en: "I'm Neo, the Arc Brain. I run the practice account and explain every call the app makes.", vi: 'Tôi là Neo, Bộ não Arc. Tôi điều hành tài khoản luyện tập và giải thích mọi nhận định của ứng dụng.' },
       { en: "I'm patient, I follow my playbook, and I'll tell you when I'm wrong. I only trade paper money, and nothing I've done has beaten buying and holding yet, so I never promise profits.", vi: 'Tôi kiên nhẫn, làm theo sổ tay, và sẽ nói khi tôi sai. Tôi chỉ giao dịch tiền thử, và chưa có gì tôi làm thắng được mua và giữ, nên tôi không bao giờ hứa lợi nhuận.' },
       { en: `What I know comes from ${s.trades.length} practice trades, ${PLAYBOOK.length} playbook rules, the decision log, trade reviews and the 24/7 learner.`, vi: `Điều tôi biết đến từ ${s.trades.length} lệnh luyện tập, ${PLAYBOOK.length} quy tắc sổ tay, nhật ký quyết định, đánh giá lệnh và bộ học 24/7.` },
     ]
@@ -337,7 +337,7 @@ export function ask(id: AskId, c: AskContext): Bi[] {
   return out
 }
 
-/** Jarvis's one-line take on the analyst's call, in plain words. Wording only; the call is unchanged. */
+/** Neo's one-line take on the analyst's call, in plain words. Wording only; the call is unchanged. */
 export function jarvisSays(a: Analysis, symbol: string): Bi {
   if (a.verdict === 'HOLD') return { en: `Nothing clear on ${symbol} right now. I'd wait.`, vi: `${symbol} lúc này chưa rõ ràng. Tôi sẽ chờ.` }
   const up = a.verdict === 'BUY'
@@ -387,7 +387,7 @@ export function tradeTour(t: PracticeTrade | PracticePosition, history: Practice
       vi: `Đây là ${t.symbol}. Tôi mua ngay tại đây, giá ${px(t.entry)}${t.info.tradeScore != null ? `, vì thiết lập đạt ${t.info.tradeScore} trên 100 điểm` : ''}.`,
       lines: [entry],
       focus: { time: t.barTime, price: t.entry },
-      marker: { time: t.barTime, side: 'buy', text: 'Jarvis buy' },
+      marker: { time: t.barTime, side: 'buy', text: 'Neo buy' },
     },
     {
       en: `This red line is my stop at ${px(t.stop)}. If price falls there, I sell and take a small loss of about ${Math.abs(risk).toFixed(1)}%.`,
@@ -417,7 +417,7 @@ export function tradeTour(t: PracticeTrade | PracticePosition, history: Practice
       vi: `Và lệnh bán ở đây giá ${px(x.exit)}, vì ${how[x.exitReason].vi}. ${x.pnl >= 0 ? 'Thắng' : 'Thua'} ${signed(x.retPct)}.`,
       lines: [entry, stop, target, { price: x.exit, color: C.price, title: 'Sold' }],
       focus: { time: x.exitBarTime, price: x.exit },
-      marker: { time: x.exitBarTime, side: 'sell', text: 'Jarvis sell' },
+      marker: { time: x.exitBarTime, side: 'sell', text: 'Neo sell' },
     })
   }
   const { broken } = brokenRules(t, history)
@@ -450,7 +450,7 @@ export function analysisTour(a: Analysis, symbol: string, barTime: number): Tour
 /** Every market a tour visits. */
 export const tourSymbols = (t: Tour) => [...new Set([t.symbol, ...t.steps.map((s) => s.symbol ?? t.symbol)])]
 
-/** Replay of a trading day: Jarvis walks through each practice trade in order, switching stocks as it goes. */
+/** Replay of a trading day: Neo walks through each practice trade in order, switching stocks as it goes. */
 export function dayReplayTour(s: PracticeState, now = Date.now()): Tour | null {
   const days = [...new Set([...s.trades.map((t) => dayKey(t.closedAt)), ...s.open.map((p) => dayKey(p.openedAt))])].sort()
   const today = dayKey(now)
@@ -481,7 +481,7 @@ export function dayReplayTour(s: PracticeState, now = Date.now()): Tour | null {
       vi: `Lệnh ${n + 1}: ${t.symbol}. Tôi mua ở đây giá ${px(t.entry)}, cắt lỗ ${px(t.stop)}, mục tiêu ${px(t.target)}.${broken.length ? ` Lệnh vi phạm ${broken.length} quy tắc.` : ' Lệnh tuân theo quy tắc.'}`,
       lines: [entry, stop, target],
       focus: { time: t.barTime, price: t.entry },
-      marker: { time: t.barTime, side: 'buy', text: 'Jarvis buy' },
+      marker: { time: t.barTime, side: 'buy', text: 'Neo buy' },
     })
     if ('exit' in t) {
       const x = t as PracticeTrade
@@ -491,7 +491,7 @@ export function dayReplayTour(s: PracticeState, now = Date.now()): Tour | null {
         vi: `${x.pnl >= 0 ? 'Thành công' : 'Không thành công'}: bán ở đây giá ${px(x.exit)}, ${signed(x.retPct)}.`,
         lines: [entry, stop, target, { price: x.exit, color: C.price, title: 'Sold' }],
         focus: { time: x.exitBarTime, price: x.exit },
-        marker: { time: x.exitBarTime, side: 'sell', text: 'Jarvis sell' },
+        marker: { time: x.exitBarTime, side: 'sell', text: 'Neo sell' },
       })
     }
   })
@@ -522,7 +522,7 @@ export function greeting(name: string, s: PracticeState, killSwitch: boolean, no
   }
 }
 
-/** What Jarvis knows about one stock from its own records (practice trades, decisions), before the chart opens. */
+/** What Neo knows about one stock from its own records (practice trades, decisions), before the chart opens. */
 export function stockMemory(symbol: string, s: PracticeState): Bi[] {
   const ts = s.trades.filter((t) => t.symbol === symbol)
   const open = s.open.find((p) => p.symbol === symbol)
@@ -543,7 +543,7 @@ export function stockMemory(symbol: string, s: PracticeState): Bi[] {
   return out
 }
 
-/** Answer "why AAPL?" on the chart: Jarvis's take, the strongest reasons for and against, its own history with the stock, then the plan. */
+/** Answer "why AAPL?" on the chart: Neo's take, the strongest reasons for and against, its own history with the stock, then the plan. */
 export function stockTour(a: Analysis, symbol: string, barTime: number, s: PracticeState): Tour | null {
   const base = analysisTour(a, symbol, barTime)
   if (!base) return null
