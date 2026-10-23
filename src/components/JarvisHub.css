@@ -223,12 +223,13 @@ button.hg-stat:hover { border-color: color-mix(in srgb, var(--acc) 60%, transpar
 .hg-globe em { position: absolute; left: 0; right: 0; top: 50%; height: 1px; background: rgba(255, 255, 255, 0.35); }
 @keyframes hg-mer { 50% { transform: scaleX(0.04); } }
 .hg-wave { display: flex; align-items: center; gap: 5px; height: 80px; }
-.hg-wave i { width: 6px; border-radius: 3px; background: var(--k); height: 20%; animation: hg-barh 1.3s ease-in-out infinite; }
+.hg-wave i { width: 6px; border-radius: 3px; background: var(--k); height: 95%; transform: scaleY(0.21); animation: hg-barh 1.3s ease-in-out infinite; }
 .hg-wave i:nth-child(2n) { animation-delay: -0.3s; }
 .hg-wave i:nth-child(3n) { animation-delay: -0.6s; }
 .hg-wave i:nth-child(4n) { animation-delay: -0.9s; }
 .hg-wave i:nth-child(5n) { animation-delay: -0.15s; }
-@keyframes hg-barh { 50% { height: 95%; } }
+/* bars and the progress fill grow by transform, not height or width, so no layout runs per frame */
+@keyframes hg-barh { 50% { transform: none; } }
 .hg-radar { width: 104px; height: 104px; border-radius: 50%; position: relative; border: 1px solid var(--line); background: repeating-radial-gradient(circle, transparent 0 17px, rgba(255, 255, 255, 0.1) 18px 19px); }
 .hg-radar::before { content: ''; position: absolute; inset: 0; border-radius: 50%; background: conic-gradient(from 0deg, var(--k), transparent 28%); opacity: 0.55; animation: hg-spin 2.6s linear infinite; }
 .hg-radar i { position: absolute; width: 7px; height: 7px; border-radius: 50%; background: var(--ink); box-shadow: 0 0 8px var(--k); animation: hg-blip 2.6s infinite; }
@@ -241,8 +242,8 @@ button.hg-stat:hover { border-color: color-mix(in srgb, var(--acc) 60%, transpar
 .hg-term p { margin: 0; color: var(--mute); }
 .hg-term b { color: var(--k); font-weight: 500; }
 .hg-prog { height: 6px; border-radius: 3px; background: rgba(255, 255, 255, 0.12); margin-top: 8px; overflow: hidden; }
-.hg-prog i { display: block; height: 100%; width: 30%; background: var(--k); border-radius: 3px; animation: hg-fill 3.2s ease-in-out infinite; }
-@keyframes hg-fill { to { width: 96%; } }
+.hg-prog i { display: block; height: 100%; width: 96%; background: var(--k); border-radius: 3px; transform: scaleX(0.31); transform-origin: left; animation: hg-fill 3.2s ease-in-out infinite; }
+@keyframes hg-fill { to { transform: none; } }
 .hg-caret { display: inline-block; width: 7px; height: 13px; background: var(--k); vertical-align: -2px; animation: hg-caret 1s steps(1) infinite; }
 @keyframes hg-caret { 50% { opacity: 0; } }
 
@@ -464,10 +465,23 @@ button.hg-kb:hover, button.hg-kb:focus-visible { background: rgba(255, 255, 255,
 @media (hover: none), (max-width: 820px) {
   .hg-glass, .hg-cnode { -webkit-backdrop-filter: none; backdrop-filter: none; }
   .hg-glass { background: linear-gradient(140deg, rgba(255, 255, 255, 0.15), rgba(255, 255, 255, 0.06) 55%, rgba(255, 255, 255, 0.1)), color-mix(in srgb, var(--bg) 55%, transparent); }
-  .hg-wall i { animation: none; }
+  .hg-wall i { animation: none; will-change: auto; }
+  /* the faces and logos are SVG: animating their parts lays the SVG out again every frame (measured: 120
+     layouts in 2 s on a tablet). Here they stand still and the whole figure bobs instead, which the GPU does alone */
+  .hg .agf *, .hg .plg * { animation: none !important; }
+  .hg .hg-face-av { animation: hg-bob 4s ease-in-out infinite; }
+  .hg-card:nth-child(2n) .hg-face-av { animation-delay: -1.3s; }
+  .hg-card:nth-child(3n) .hg-face-av { animation-delay: -2.6s; }
+  /* the hanging tags hang still; nine swinging layers starved the GPU and some tags drew blank */
+  .hg-hang { animation: none; }
+  /* the back of a card is not drawn until it turns over */
+  .hg-card:not(.on) .hg-back { visibility: hidden; transition: visibility 0s 0.95s; }
 }
-/* loops stop while a card or the tag rail is off screen (useOffscreenPause in JarvisHub.tsx) */
-.hg [data-off] *, .hg [data-off] *::before, .hg [data-off] *::after { animation-play-state: paused !important; }
+@keyframes hg-bob { 50% { transform: translateY(-4px); } }
+/* loops stop while a card or the tag rail is off screen, and on touch screens while the page scrolls (useOffscreenPause in JarvisHub.tsx) */
+.hg [data-off] *, .hg [data-off] *::before, .hg [data-off] *::after,
+.hg-card:not(.on) .hg-back *, .hg-card:not(.on) .hg-back *::before,
+.hg[data-scrolling] *, .hg[data-scrolling] *::before, .hg[data-scrolling] *::after { animation-play-state: paused !important; }
 
 /* reduced motion: nothing drifts, swings, flips by itself or loops */
 @media (prefers-reduced-motion: reduce) {

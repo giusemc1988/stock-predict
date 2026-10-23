@@ -2,7 +2,7 @@
  * Version and "What's new". Bump APP_VERSION and add an entry to the top of RELEASES
  * with each update. The banner shows once per version, then stays dismissed.
  */
-export const APP_VERSION = '1.55.0'
+export const APP_VERSION = '1.55.1'
 
 export interface Release {
   version: string
@@ -13,6 +13,16 @@ export interface Release {
 }
 
 export const RELEASES: Release[] = [
+  {
+    version: '1.55.1',
+    date: '2026-10-23',
+    changes: [
+      'Hub scrolls much lighter on phones and tablets: the little people and logos stop moving their parts there (that made the screen redraw the whole layout every frame) and gently bob as a whole instead, every animation holds still while you scroll, the hanging tags hang still, and the back of a card is only drawn when it turns over. This also fixes tags and cards that sometimes drew blank.',
+    ],
+    changesVi: [
+      'Hub cuộn nhẹ hơn nhiều trên điện thoại và tablet: các nhân vật và logo không còn cử động từng bộ phận nữa (việc đó bắt máy vẽ lại toàn bộ bố cục mỗi khung hình), thay vào đó cả hình nhún nhẹ. Mọi hoạt ảnh đứng yên khi anh đang cuộn, các thẻ treo không đu đưa nữa, và mặt sau của thẻ chỉ được vẽ khi lật. Sửa luôn lỗi thẻ và tên dự án đôi khi hiện trống.',
+    ],
+  },
   {
     version: '1.55.0',
     date: '2026-10-23',
