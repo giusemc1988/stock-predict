@@ -15,6 +15,7 @@ import { detectLanguage } from '../lib/jarvisChat'
 import { HUB_AGENT, agentName, agentProject, hubFactsForAi, introduce, type AppPage, type HubFacts } from '../lib/agents'
 import type { HubPage } from '../lib/toolHub'
 import { fetchRuns, requestRun } from '../lib/hubRuns'
+import { fetchTasks, requestTask } from '../lib/hubTasks'
 
 interface Props {
   state: PracticeState
@@ -137,6 +138,7 @@ export function JarvisFab({ state, rules, journal, learn, killSwitch, priceOf, k
       canShow: rules.jarvisShowMe && !!onShowTrade,
       hub: agents && page && hub ? { page, facts: hub } : undefined,
       canRun: rules.hubRuns && rules.jarvisActions && !!onAction,
+      canTask: rules.hubTasks && rules.jarvisActions && !!onAction,
     })
     const now = stamp()
     const answer: Bi = { en: r.text.map((x) => x.en).join(' '), vi: r.text.map((x) => x.vi).join(' ') }
@@ -161,8 +163,8 @@ export function JarvisFab({ state, rules, journal, learn, killSwitch, priceOf, k
     }
     add({ who: 'me', text: { en: t, vi: t }, time: now }, { who: 'jarvis', text: answer, time: now + 1, action: r.action })
     if (r.open) onOpen?.(r.open)
-    if (r.runs) {
-      void fetchRuns().then((lines) => {
+    if (r.runs || r.tasks) {
+      void (r.tasks ? fetchTasks() : fetchRuns()).then((lines) => {
         const said: Bi = { en: lines.map((x) => x.en).join(' '), vi: lines.map((x) => x.vi).join(' ') }
         add({ who: 'jarvis', text: said, time: stamp() })
         say([said])
@@ -186,11 +188,14 @@ export function JarvisFab({ state, rules, journal, learn, killSwitch, priceOf, k
   const settle = (i: number, done: boolean) => {
     const turn = chat[i]
     if (!turn?.action || turn.settled || (done && !canAct)) return
-    if (done && turn.action.kind !== 'run') onAction?.(turn.action)
-    logAction({ time: stamp(), label: describeAction(turn.action), result: done ? 'done' : 'cancelled' })
-    if (done && turn.action.kind === 'run') {
+    const a = turn.action
+    // runs and code tasks go to the server; the answer comes back into the chat
+    const remote = a.kind === 'run' || a.kind === 'task'
+    if (done && !remote) onAction?.(a)
+    logAction({ time: stamp(), label: describeAction(a), result: done ? 'done' : 'cancelled' })
+    if (done && (a.kind === 'run' || a.kind === 'task')) {
       setChat((c) => c.map((x, j) => (j === i ? { ...x, settled: 'done' as const } : x)))
-      void requestRun(turn.action.id).then((said) => {
+      void (a.kind === 'run' ? requestRun(a.id) : requestTask(a.text, `${who} (${page ?? 'home'} page)`)).then((said) => {
         add({ who: 'jarvis', text: said, time: stamp() })
         say([said])
       })

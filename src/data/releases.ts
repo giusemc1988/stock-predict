@@ -2,7 +2,7 @@
  * Version and "What's new". Bump APP_VERSION and add an entry to the top of RELEASES
  * with each update. The banner shows once per version, then stays dismissed.
  */
-export const APP_VERSION = '1.45.0'
+export const APP_VERSION = '1.46.0'
 
 export interface Release {
   version: string
@@ -13,6 +13,16 @@ export interface Release {
 }
 
 export const RELEASES: Release[] = [
+  {
+    version: '1.46.0',
+    date: '2026-10-23',
+    changes: [
+      'Ask Neo for code changes. Say "fix the ... button", "add a feature that ..." or "make an app that ...", tap Do it, and Neo files it on GitHub for Claude. About once an hour Claude picks it up and opens a pull request for you to check; nothing in the app changes until you merge. Ask "how are the code tasks?" to hear where each one stands. Uses the same GitHub key saved in Nova. Off switch: Settings > AI rules.',
+    ],
+    changesVi: [
+      'Nhờ Neo sửa code. Nói "sửa lỗi nút ...", "thêm tính năng ..." hay "tạo app ...", bấm Làm đi là Neo ghi việc lên GitHub cho Claude. Khoảng mỗi giờ Claude nhận việc và mở PR để anh duyệt; chưa merge thì app chưa đổi gì. Hỏi "việc code thế nào?" để nghe từng việc tới đâu. Dùng chung key GitHub đã lưu ở Nova. Tắt trong Cài đặt > Luật AI.',
+    ],
+  },
   {
     version: '1.45.0',
     date: '2026-10-23',

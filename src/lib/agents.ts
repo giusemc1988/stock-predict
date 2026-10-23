@@ -132,7 +132,7 @@ function detail(p: Project, f: HubFacts): Bi | null {
     case 'lumi':
       return { en: 'The Media Lab is not built yet.', vi: 'Media Lab chưa làm xong.' }
     case 'forge':
-      return { en: `The app is on v${f.version} after ${f.updates} updates. Asking me to fix code or build an app comes in a later update.`, vi: `App đang ở v${f.version} sau ${f.updates} lần cập nhật. Nhờ em sửa code hay tạo app sẽ có ở bản sau.` }
+      return { en: `The app is on v${f.version} after ${f.updates} updates. Say "fix ..." or "make an app that ..." and I file it for Claude, who opens a pull request for you.`, vi: `App đang ở v${f.version} sau ${f.updates} lần cập nhật. Nói "sửa lỗi ..." hay "tạo app ..." là em ghi việc cho Claude, Claude mở PR để anh duyệt.` }
   }
 }
 

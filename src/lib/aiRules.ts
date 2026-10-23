@@ -84,6 +84,7 @@ export interface AiRules {
   jarvisHub: boolean // the Neo Hub is the main page: every project with its live state and a quick search; off = Atlas opens first as before
   hubAgents: boolean // Neo knows every project; each project page has its own agent (Atlas, Iris, Echo, Volt, Nexus, Nova, Viraltech, Lumi, Max) in the floating chat, and "open Nova" goes there
   hubRuns: boolean // Neo can start the hub's GitHub workflows (Nova render, Iris snapshot, Android build...) after you tap Do it, and say how the last runs went
+  hubTasks: boolean // Neo files code changes you ask for ("fix ...", "make an app ...") as GitHub issues; a scheduled Claude session opens a pull request for each
   briefHome: boolean // Neo Brief is the home page; off opens the Trading desk as before
   netTools: boolean // Wi-Fi & Bluetooth page for your own network (needs the home agent for scans)
   webFlash: boolean // RuView page: flash a board's firmware from Chrome/Edge over USB
@@ -198,6 +199,7 @@ export const DEFAULT_AI_RULES: AiRules = {
   jarvisHub: true,
   hubAgents: true,
   hubRuns: true,
+  hubTasks: true,
   briefHome: true,
   hubLayout: true,
   toolHub: true,
@@ -336,6 +338,7 @@ export const RULE_FIELDS: RuleField[] = [
   { group: 'jarvis', key: 'jarvisHub', en: 'Neo Hub as the main page: every project (Atlas, Iris, Echo, Volt, Nexus, Nova, Viraltech, Lumi, Max) with its live state, and a search that opens any project or tool (off: Atlas opens first)', vi: 'Neo Hub là trang chính: mọi dự án (Atlas, Iris, Echo, Volt, Nexus, Nova, Viraltech, Lumi, Max) kèm trạng thái thật, và ô tìm mở ngay dự án hay công cụ nào (tắt: mở Atlas trước)' },
   { group: 'jarvis', key: 'hubAgents', en: 'Project agents: Neo knows every project, each project page has its own agent in the floating chat (Atlas, Iris, Echo, Volt, Nexus, Nova, Viraltech, Lumi, Max), and "open Nova" or "how is Iris?" works from any screen', vi: 'Agent từng dự án: Neo biết mọi dự án, mỗi trang dự án có agent riêng trong khung chat nổi (Atlas, Iris, Echo, Volt, Nexus, Nova, Viraltech, Lumi, Max), và nói "mở Nova" hay "Iris thế nào?" ở màn hình nào cũng được' },
   { group: 'jarvis', key: 'hubRuns', en: 'Neo runs hub jobs: say "render the Nova videos", "refresh the Iris snapshot" or "build the Android app", tap Do it, and Neo starts it on GitHub with the key saved in Nova; ask "how did the last runs go?" for results', vi: 'Neo chạy việc trong hub: nói "dựng video Nova", "làm mới snapshot Iris" hay "build app Android", bấm Làm đi là Neo chạy trên GitHub bằng key đã lưu ở Nova; hỏi "lần chạy gần nhất thế nào?" để xem kết quả' },
+  { group: 'jarvis', key: 'hubTasks', en: 'Code tasks for Claude: say "fix the ... button" or "make an app that ...", tap Do it, and Neo files it on GitHub; about once an hour Claude opens a pull request for you to check (nothing changes until you merge). Ask "how are the code tasks?"', vi: 'Việc code cho Claude: nói "sửa lỗi nút ..." hay "tạo app ...", bấm Làm đi là Neo ghi lên GitHub; khoảng mỗi giờ Claude mở PR để anh duyệt (chưa merge thì chưa đổi gì). Hỏi "việc code thế nào?"' },
   { group: 'jarvis', key: 'briefHome', en: 'Neo Brief as the home page (off: open the Trading desk first)', vi: 'Neo Brief là trang chủ (tắt: mở Bàn giao dịch trước)' },
   { group: 'jarvis', key: 'briefAi', en: 'Free AI writes the Neo Brief from real data (once per scan; plain text if every AI key fails)', vi: 'AI miễn phí viết Neo Brief từ dữ liệu thật (mỗi lần quét một lần; nếu mọi key AI lỗi thì dùng văn bản thường)' },
   { group: 'jarvis', key: 'localExplain', en: 'Local AI explains your trades (on your device, no cloud keys)', vi: 'AI cục bộ giải thích lệnh của bạn (trên máy, không cần key đám mây)' },
