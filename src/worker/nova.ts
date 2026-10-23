@@ -5,6 +5,7 @@
 import { cleanKey, sameOrigin, withSavedKeys, type KeyStore } from '../lib/brainKeys'
 import type { BrainEnv } from '../lib/brainServer'
 import { writeTerms } from '../lib/studioServer'
+import { TRENDS_CACHE, TRENDS_TTL_MS, YOUTUBE_KEY, fetchTrends, type TrendGeo, type TrendsResult } from '../lib/studioTrends'
 import { GITHUB_KEY, PEXELS_KEY, checkGithubToken, cleanRenderAsk, kickFarm, deleteJob, isJobId, listJobs, queueJobs, videoResponse, type JobStore } from '../lib/studioJobs'
 
 const json = (data: unknown, status = 200) => new Response(JSON.stringify(data), { status, headers: { 'content-type': 'application/json', 'cache-control': 'no-store' } })
@@ -19,7 +20,12 @@ const KEYS = {
     },
   },
   github: { slot: GITHUB_KEY, check: (key: string) => checkGithubToken(key) },
+  youtube: {
+    slot: YOUTUBE_KEY,
+    check: async (key: string) => (await fetch(`https://www.googleapis.com/youtube/v3/videos?part=id&chart=mostPopular&maxResults=1&regionCode=US&key=${encodeURIComponent(key)}`).catch(() => null))?.status === 200,
+  },
 } as const
+type KeyKind = keyof typeof KEYS
 
 export async function novaRoute(req: Request, pathname: string, env: BrainEnv, settings?: KeyStore): Promise<Response | null> {
   if (!pathname.startsWith('/api/studio/') || pathname === '/api/studio/write') return null
@@ -28,7 +34,7 @@ export async function novaRoute(req: Request, pathname: string, env: BrainEnv, s
   const url = new URL(req.url)
 
   if (pathname === '/api/studio/jobs') {
-    if (req.method === 'GET') return json({ jobs: (await listJobs(kv)).map(({ lines: _l, terms: _t, ...j }) => j), pexels: !!(await kv.get(PEXELS_KEY)), github: !!(await kv.get(GITHUB_KEY)) })
+    if (req.method === 'GET') return json({ jobs: (await listJobs(kv)).map(({ lines: _l, terms: _t, ...j }) => j), pexels: !!(await kv.get(PEXELS_KEY)), github: !!(await kv.get(GITHUB_KEY)), youtube: !!(await kv.get(YOUTUBE_KEY)) })
     if (req.method !== 'DELETE') return json({ error: 'GET or DELETE only' }, 405)
     if (!sameOrigin(req)) return json({ error: 'Not allowed' }, 403)
     return (await deleteJob(kv, url.searchParams.get('id') ?? '')) ? json({ ok: true }) : json({ error: 'No such video' }, 404)
@@ -53,8 +59,8 @@ export async function novaRoute(req: Request, pathname: string, env: BrainEnv, s
     return req.method === 'HEAD' ? new Response(null, { status: res.status, headers: res.headers }) : res
   }
   if (pathname === '/api/studio/key') {
-    const kind = url.searchParams.get('kind')
-    if (kind !== 'pexels' && kind !== 'github') return json({ error: 'Unknown key' }, 400)
+    const kind = url.searchParams.get('kind') as KeyKind | null
+    if (!kind || !(kind in KEYS)) return json({ error: 'Unknown key' }, 400)
     if (req.method !== 'PUT' && req.method !== 'DELETE') return json({ error: 'PUT or DELETE only' }, 405)
     if (!sameOrigin(req)) return json({ error: 'Not allowed' }, 403)
     const k = KEYS[kind]
@@ -63,9 +69,22 @@ export async function novaRoute(req: Request, pathname: string, env: BrainEnv, s
       return json({ [kind]: false })
     }
     const key = cleanKey(((await req.json().catch(() => null)) as { key?: unknown } | null)?.key)
-    if (!key || !(await k.check(key))) return json({ error: kind === 'github' ? 'GitHub refused this token' : 'Pexels refused this key' }, 400)
+    if (!key || !(await k.check(key))) return json({ error: `${kind === 'github' ? 'GitHub' : kind === 'youtube' ? 'YouTube' : 'Pexels'} refused this key` }, 400)
     await kv.put(k.slot, key)
+    if (kind === 'youtube') await Promise.all([kv.delete(TRENDS_CACHE('VN')), kv.delete(TRENDS_CACHE('US'))])
     return json({ [kind]: true })
+  }
+  if (pathname === '/api/studio/trends') {
+    if (req.method !== 'GET') return json({ error: 'GET only' }, 405)
+    const geo: TrendGeo = url.searchParams.get('geo') === 'US' ? 'US' : 'VN'
+    // one hour of cache: the sources change slowly and some rate-limit; ?fresh=1 refetches
+    if (!url.searchParams.has('fresh')) {
+      const hit = JSON.parse((await kv.get(TRENDS_CACHE(geo))) ?? 'null') as TrendsResult | null
+      if (hit && Date.now() - hit.at < TRENDS_TTL_MS) return json(hit)
+    }
+    const fresh = await fetchTrends(geo, await kv.get(YOUTUBE_KEY))
+    if (fresh.items.length) await kv.put(TRENDS_CACHE(geo), JSON.stringify(fresh))
+    return json(fresh)
   }
   return json({ error: 'Not found' }, 404)
 }

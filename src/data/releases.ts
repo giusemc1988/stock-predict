@@ -2,7 +2,7 @@
  * Version and "What's new". Bump APP_VERSION and add an entry to the top of RELEASES
  * with each update. The banner shows once per version, then stays dismissed.
  */
-export const APP_VERSION = '1.48.0'
+export const APP_VERSION = '1.49.0'
 
 export interface Release {
   version: string
@@ -13,6 +13,12 @@ export interface Release {
 }
 
 export const RELEASES: Release[] = [
+  {
+    version: '1.49.0',
+    date: '2026-10-23',
+    changes: ['Nova step 1 now shows trending ideas from Google Trends, Google News, YouTube Music, Reddit, and YouTube (with a free YouTube key you can paste right there). Pick VN or US, turn sources on or off, hide sensitive news, block your own words, and choose how many to show. Tap a trend to use it, or press "Pick for me and write" to have Nova choose the hottest one and write the script. TikTok and Facebook have no free feed, so there are quick links to open them. Off switch: Settings > AI rules > Nova trending ideas.'],
+    changesVi: ['Bước 1 của Nova giờ có ý tưởng đang hot từ Google Trends, Google News, YouTube Music, Reddit và YouTube (dán key YouTube miễn phí ngay tại đó). Chọn VN hoặc US, bật tắt từng nguồn, ẩn tin nhạy cảm, chặn từ riêng của anh và chọn số lượng hiển thị. Chạm một trend để dùng, hoặc bấm "Tự chọn và viết" để Nova chọn chủ đề hot nhất rồi viết kịch bản. TikTok và Facebook không có nguồn miễn phí nên có nút mở nhanh. Tắt trong Cài đặt > Luật AI > Ý tưởng trending cho Nova.'],
+  },
   {
     version: '1.48.0',
     date: '2026-10-23',
