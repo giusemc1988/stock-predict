@@ -23,7 +23,7 @@ export interface Project {
 }
 
 export const PROJECTS: Project[] = [
-  { id: 'atlas', name: 'Atlas', what: { en: 'Stock Predictor', vi: 'Dự đoán cổ phiếu' }, hue: '#4fd1ff', opens: 'brief', tools: ['desk', 'portfolio', 'board'] },
+  { id: 'atlas', name: 'Atlas', what: { en: 'Stock Predictor', vi: 'Dự đoán cổ phiếu' }, hue: '#4fd1ff', opens: 'brief', tools: ['desk', 'portfolio', 'board', 'kronos'] },
   { id: 'argus', name: 'Argus', what: { en: "God's Eye globe", vi: "Địa cầu God's Eye" }, hue: '#7aa7ff', opens: 'godseye', tools: ['godseye', 'godseye-full'] },
   { id: 'echo', name: 'Echo', what: { en: 'RuView sensing', vi: 'Cảm biến RuView' }, hue: '#5fd6c8', opens: 'ruview', tools: ['ruview'] },
   { id: 'volt', name: 'Volt', what: { en: 'ESP32 Lab', vi: 'Phòng ESP32' }, hue: '#7ee0b5', opens: 'ruview-flash', tools: ['flash', 'espconnect', 'firmware', 'esp32div'] },

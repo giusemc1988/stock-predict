@@ -100,4 +100,5 @@ These are not part of the app bundle. The workflows download them at a pinned ve
 |---|---|---|---|
 | [explainroo](https://github.com/vincentsch/explainroo) | MIT | Viraltech English explainer videos; the sample `how-dns-works` comes from its examples | `.github/workflows/explainer.yml`, `viraltech/explainers/` (notice in `LICENSE-explainroo`) |
 | [VieNeu-TTS](https://github.com/pnnbao97/VieNeu-TTS) | Apache-2.0 (code and v3 Turbo model) | Vietnamese and English narration on CPU | `tools/vieneu/`, `.github/actions/vieneu-voice/` |
+| [Kronos](https://github.com/shiyu-coder/Kronos) | MIT (code and Kronos-small weights) | Shadow test of candle forecasts for Atlas's symbols; logged and graded only, never traded | `tools/kronos/`, `.github/workflows/kronos-shadow.yml` |
 | [airplanes.live](https://airplanes.live) | free public API, non-commercial | Argus third aircraft feed after adsb.lol and adsb.fi | `argus/worker.ts`, `argus/snapshot.ts`, `agent/jarvis-agent.ts` |

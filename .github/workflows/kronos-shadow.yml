@@ -1,0 +1,65 @@
+# Kronos shadow test: after each US close, Kronos-small (MIT, CPU) forecasts the next daily
+# candles of Atlas's symbols, and earlier forecasts are graded against the real closes and two
+# simple guesses (no change, always up). Results: docs/kronos-shadow.md (readable on the phone)
+# and public/kronos-shadow.json. It never touches Atlas or places any order.
+# Free: public Yahoo bars, no key; a few minutes of Actions a day.
+# To stop it: Actions > Kronos shadow test > ... > Disable workflow.
+name: Kronos shadow test
+
+on:
+  schedule:
+    - cron: '43 21 * * 1-5'   # 21:43 UTC, after the US close in summer and winter time
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: kronos-shadow
+  cancel-in-progress: false
+
+env:
+  # Kronos code pinned so an upstream change can't alter the test halfway
+  KRONOS_SHA: 67b630e67f6a18c9e9be918d9b4337c960db1e9a
+
+jobs:
+  forecast:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cache/pip
+            ~/.cache/huggingface
+          key: kronos-${{ hashFiles('tools/kronos/requirements.txt') }}
+
+      - name: Install Kronos (CPU)
+        run: |
+          python -m pip install -q --index-url https://download.pytorch.org/whl/cpu torch==2.14.1
+          python -m pip install -q -r tools/kronos/requirements.txt
+          git clone -q https://github.com/shiyu-coder/Kronos.git "$RUNNER_TEMP/kronos"
+          git -C "$RUNNER_TEMP/kronos" checkout -q "$KRONOS_SHA"
+
+      - name: Grade old forecasts, make new ones
+        run: python tools/kronos/shadow.py --kronos "$RUNNER_TEMP/kronos"
+
+      - name: Save the log and report
+        run: |
+          cat docs/kronos-shadow.md >> "$GITHUB_STEP_SUMMARY"
+          git config user.name "kronos-shadow"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add public/kronos-shadow.json docs/kronos-shadow.md
+          git diff --cached --quiet && exit 0
+          git commit -q -m "Kronos shadow test $(date -u +%Y-%m-%d)"
+          for i in 1 2 3; do
+            git pull --rebase -q origin main && git push -q origin HEAD:main && exit 0
+            sleep $((i * 5))
+          done
+          exit 1
