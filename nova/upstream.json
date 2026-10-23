@@ -1,0 +1,7 @@
+{
+  "repo": "https://github.com/harry0703/MoneyPrinterTurbo",
+  "version": "v1.3.9",
+  "commit": "6992380c5e82f07f3e1fc46b90927b6f1c655407",
+  "image": "ghcr.io/harry0703/moneyprinterturbo@sha256:c458010bede86d15cdf065a817998211b3d6660a9a3a3ece78ab9899d7b0aa4a",
+  "license": "MIT"
+}
