@@ -10,6 +10,8 @@ import { SAMPLE_RATE, renderMusic } from '../lib/studio/audio'
 import { canExport, exportMp4 } from '../lib/studio/encode'
 import { STUDIO_TEXT, type StudioKey } from '../lib/studio/text'
 import { StudioRenderPanel } from './StudioRenderPanel'
+import { NovaTrends } from './NovaTrends'
+import type { TrendItem } from '../lib/studioTrends'
 import './JarvisHub.css'
 import './NovaStudio.css'
 
@@ -80,7 +82,7 @@ function Copy({ text, label }: { text: string; label: string }) {
 }
 
 /** Bilingual Faceless Video Studio: script EN + VI, preview, MP4 export and Title Lab, all in the browser. */
-export function VideoStudioPage({ onBack, glass = true }: { onBack: () => void; glass?: boolean }) {
+export function VideoStudioPage({ onBack, glass = true, trends = true }: { onBack: () => void; glass?: boolean; trends?: boolean }) {
   const lang = useLang()
   const theme = useHubTheme()
   const active = useActiveStep()
@@ -130,11 +132,11 @@ export function VideoStudioPage({ onBack, glass = true }: { onBack: () => void; 
     setVi(s.vi.join('\n'))
   }
 
-  const writeAi = async () => {
+  const writeAi = async (ask?: { topic: string; topicVi: string }) => {
     setMsg(null)
     setBusy(t('writing'))
     try {
-      const r = await fetch('/api/studio/write', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ topic, topicVi, mode, scenes: 5 }) })
+      const r = await fetch('/api/studio/write', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ topic: ask?.topic ?? topic, topicVi: ask?.topicVi ?? topicVi, mode, scenes: 5 }) })
       const j = (await r.json().catch(() => ({}))) as { en?: string[]; vi?: string[]; by?: string; error?: string }
       if (!r.ok || !j.en?.length || !j.vi?.length) throw new Error(j.error ?? `HTTP ${r.status}`)
       setEn(j.en.join('\n'))
@@ -145,6 +147,19 @@ export function VideoStudioPage({ onBack, glass = true }: { onBack: () => void; 
     } finally {
       setBusy(null)
     }
+  }
+
+  // a trending topic fills both topic boxes; the AI writes each script in its own language
+  const applyTrend = (it: TrendItem) => {
+    setTopic(it.title)
+    setTopicVi(it.title)
+    setMsg(t('trendPicked'))
+    return { topic: it.title, topicVi: it.title }
+  }
+  const autoTrend = (it: TrendItem) => {
+    const ask = applyTrend(it)
+    document.getElementById('nv-script')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    void writeAi(ask)
   }
 
   const addMedia = async (files: FileList | null) => {
@@ -270,6 +285,7 @@ export function VideoStudioPage({ onBack, glass = true }: { onBack: () => void; 
 
         <section id="nv-idea" className={card}>
           {head(1, 'stepIdea')}
+          {trends && <NovaTrends onPick={(it) => void applyTrend(it)} onAuto={autoTrend} busy={!!busy} />}
           <div className="seg small" role="tablist" aria-label={t('step1')}>
             {modes.map((m) => (
               <button key={m} role="tab" aria-selected={mode === m} className={mode === m ? 'on' : ''} onClick={() => setMode(m)}>{t(m)}</button>

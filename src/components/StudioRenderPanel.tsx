@@ -4,7 +4,7 @@ import { STUDIO_TEXT, type StudioKey } from '../lib/studio/text'
 import type { RenderLang, RenderVoice, StudioJob } from '../lib/studioJobs'
 
 type JobRow = Omit<StudioJob, 'lines' | 'terms'>
-type KeyKind = 'pexels' | 'github'
+export type KeyKind = 'pexels' | 'github' | 'youtube'
 const POLL_MS = 20_000
 const STATUS: Record<StudioJob['status'], StudioKey> = { queued: 'statusQueued', rendering: 'statusRendering', done: 'statusDone', failed: 'statusFailed' }
 
@@ -15,7 +15,7 @@ export function StudioRenderPanel({ topic, topicVi, en, vi, aspect, glass = fals
   const [langs, setLangs] = useState<RenderLang[]>(['vi'])
   const [voice, setVoice] = useState<RenderVoice>('female')
   const [jobs, setJobs] = useState<JobRow[] | null>(null)
-  const [keys, setKeys] = useState<Record<KeyKind, boolean>>({ pexels: false, github: false })
+  const [keys, setKeys] = useState<Record<'pexels' | 'github', boolean>>({ pexels: false, github: false })
   const [msg, setMsg] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
 
@@ -117,7 +117,7 @@ export function StudioRenderPanel({ topic, topicVi, en, vi, aspect, glass = fals
 }
 
 /** One optional key for the render farm: paste, check on the server, save; or remove. */
-function KeyBox({ kind, saved, title, how, onSaved }: { kind: KeyKind; saved: boolean; title: string; how: string; onSaved: (saved: boolean) => void }) {
+export function KeyBox({ kind, saved, title, how, onSaved }: { kind: KeyKind; saved: boolean; title: string; how: string; onSaved: (saved: boolean) => void }) {
   const lang = useLang()
   const t = (k: StudioKey) => STUDIO_TEXT[k][lang]
   const [key, setKey] = useState('')
@@ -135,7 +135,7 @@ function KeyBox({ kind, saved, title, how, onSaved }: { kind: KeyKind; saved: bo
       <summary className="small">{title}{saved ? ' ✓' : ''}</summary>
       <p className="muted small">{how}</p>
       <div className="vs-row">
-        {!saved && <input value={key} onChange={(e) => setKey(e.target.value)} placeholder={kind === 'github' ? 'github_pat_…' : 'Pexels API key'} autoComplete="off" />}
+        {!saved && <input value={key} onChange={(e) => setKey(e.target.value)} placeholder={kind === 'github' ? 'github_pat_…' : kind === 'youtube' ? 'AIza…' : 'Pexels API key'} autoComplete="off" />}
         {!saved && <button className="btn small" disabled={key.trim().length < 10} onClick={() => void save(false)}>{t('keySave')}</button>}
         {saved && <button className="btn small" onClick={() => void save(true)}>{t('keyRemove')}</button>}
       </div>
