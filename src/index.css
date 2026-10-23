@@ -800,11 +800,14 @@ body {
 .neo-face > video, .neo-face > img { display: block; width: 100%; height: 100%; object-fit: cover; }
 .jarvis-face { position: relative; flex: none; display: inline-grid; place-items: center; }
 .jarvis-face > .jarvis-avatar { position: absolute; inset: 0; }
+/* with the face, the whole ring turns as one HTML layer (cheaper than animating an SVG child) */
+.jarvis-face > .jarvis-avatar .j-ring { animation: none !important; }
+.jarvis-face:not(.still) > .jarvis-avatar { animation: j-spin 14s linear infinite; }
 .jarvis-face > .neo-face { position: relative; box-shadow: 0 0 0 1px rgba(240, 185, 11, 0.55); }
 .jarvis-face.j-thinking:not(.still) > .neo-face { animation: neo-think 1.2s ease-in-out infinite; }
 .jarvis-face.j-warning > .neo-face { box-shadow: 0 0 0 1.5px var(--gold), 0 0 10px rgba(240, 185, 11, 0.45); }
 @keyframes neo-think { 50% { box-shadow: 0 0 0 1px rgba(79, 209, 255, 0.9), 0 0 10px rgba(79, 209, 255, 0.5); } }
-@media (prefers-reduced-motion: reduce) { .jarvis-avatar .j-ring, .jarvis-avatar .j-ring2, .jarvis-avatar .j-core, .jarvis-face > .neo-face { animation: none !important; } }
+@media (prefers-reduced-motion: reduce) { .jarvis-avatar .j-ring, .jarvis-avatar .j-ring2, .jarvis-avatar .j-core, .jarvis-face > .neo-face, .jarvis-face > .jarvis-avatar { animation: none !important; } }
 .right-tabs.has-brain { grid-template-columns: repeat(4, 1fr); }
 .right-tabs.has-brain.no-picks { grid-template-columns: repeat(3, 1fr); }
 .right-tabs .brain-tab { color: var(--gold); }

@@ -1,13 +1,19 @@
 import { useEffect, useRef, type CSSProperties } from 'react'
 
 /**
- * Neo's face: Chanh's 3D portrait, with a 6 s loop (smile, tilt, nod) made once with LivePortrait
- * (public/neo, ~35 KB). The video only loads and plays while it is on screen and motion is on;
- * small sizes and reduced motion show the still picture.
+ * Neo's face: Chanh's 3D portrait with a few short expressions (soft smile, grin, energetic nod,
+ * playful wink) made once with LivePortrait (public/neo, ~30 KB each). One video plays them in turn
+ * with a short rest between; it only loads and plays while on screen and motion is on. Small sizes
+ * and reduced motion show the still picture.
  */
 const STILL = '/neo/neo-face.webp'
 const STILL_SMALL = '/neo/neo-face-96.webp'
+const CLIPS = ['neo-face', 'neo-grin', 'neo-energy', 'neo-wink']
+const REST_MS = 1400
 const VIDEO_MIN = 36
+
+/** A different clip from the one that just played. */
+const nextClip = (prev: number) => (prev + 1 + Math.floor(Math.random() * (CLIPS.length - 1))) % CLIPS.length
 
 export function NeoFace({ size, motion = true, className = '', style }: { size?: number; motion?: boolean; className?: string; style?: CSSProperties }) {
   const ref = useRef<HTMLVideoElement>(null)
@@ -17,23 +23,38 @@ export function NeoFace({ size, motion = true, className = '', style }: { size?:
   useEffect(() => {
     const v = ref.current
     if (!v || !play) return
+    const ext = v.canPlayType('video/webm; codecs="vp9"') ? 'webm' : 'mp4'
+    let clip = Math.floor(Math.random() * CLIPS.length)
     let seen = false
-    const sync = () => (seen && !document.hidden ? v.play().catch(() => {}) : v.pause())
+    let rest: ReturnType<typeof setTimeout> | undefined
+    v.src = `/neo/${CLIPS[clip]}.${ext}`
+    const sync = () => (seen && !document.hidden && !rest ? v.play().catch(() => {}) : v.pause())
+    const onEnded = () => {
+      rest = setTimeout(() => {
+        rest = undefined
+        clip = nextClip(clip)
+        v.src = `/neo/${CLIPS[clip]}.${ext}`
+        sync()
+      }, REST_MS)
+    }
     const io = new IntersectionObserver(([e]) => ((seen = e.isIntersecting), sync()))
     io.observe(v)
-    const onVis = () => sync()
-    document.addEventListener('visibilitychange', onVis)
-    return () => (io.disconnect(), document.removeEventListener('visibilitychange', onVis), v.pause())
+    v.addEventListener('ended', onEnded)
+    document.addEventListener('visibilitychange', sync)
+    return () => {
+      io.disconnect()
+      clearTimeout(rest)
+      v.removeEventListener('ended', onEnded)
+      document.removeEventListener('visibilitychange', sync)
+      v.pause()
+    }
   }, [play])
 
   const box = size !== undefined ? { width: size, height: size, ...style } : style
   return (
     <span className={`neo-face ${className}`} style={box} role="img" aria-label="Neo">
       {play ? (
-        <video ref={ref} muted loop playsInline preload="none" poster={STILL} aria-hidden="true">
-          <source src="/neo/neo-face.webm" type="video/webm" />
-          <source src="/neo/neo-face.mp4" type="video/mp4" />
-        </video>
+        <video ref={ref} muted playsInline preload="none" poster={STILL} aria-hidden="true" />
       ) : (
         <img src={small ? STILL_SMALL : STILL} alt="" decoding="async" loading="lazy" />
       )}
