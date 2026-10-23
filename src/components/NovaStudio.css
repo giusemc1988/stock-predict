@@ -148,3 +148,15 @@
 .nv-vset .vs-check input { flex: none; width: auto; }
 .nv-hook-line { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; overflow-wrap: anywhere; }
 .nv-kit-row .btn.star.on { background: var(--acc); color: #1d1418; border-color: transparent; }
+
+/* your own footage for the server video (NovaUploads.tsx) */
+.nv-up { display: grid; grid-template-columns: minmax(0, 1fr); gap: 10px; min-width: 0; padding-top: 6px; }
+.nv-up-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(104px, 1fr)); gap: 8px; }
+.nv-up-tile { position: relative; display: grid; gap: 4px; min-width: 0; }
+.nv-up-tile :is(img, video) { width: 100%; aspect-ratio: 1; object-fit: cover; border-radius: 12px; border: 1px solid var(--line); background: rgba(0, 0, 0, 0.3); }
+.nv-up-tile.s-error :is(img, video) { opacity: 0.4; }
+.nv-up-n { position: absolute; top: 6px; left: 6px; min-width: 20px; height: 20px; border-radius: 10px; display: grid; place-items: center; font-size: 11px; background: rgba(0, 0, 0, 0.6); color: #fff; }
+.nv-up-bar { position: absolute; left: 0; top: calc(100% - 30px); height: 3px; border-radius: 2px; background: var(--acc, #d6a4ea); transition: width 0.3s ease; }
+.nv-up-act { position: absolute; top: 4px; right: 4px; display: flex; gap: 4px; }
+.nv.hg .nv-up-act .btn.small { padding: 3px 8px; font-size: 12px; background: rgba(0, 0, 0, 0.55); }
+.nv-up-s { font-size: 11px; overflow-wrap: anywhere; }

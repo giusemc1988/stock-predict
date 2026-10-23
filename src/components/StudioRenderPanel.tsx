@@ -10,7 +10,7 @@ const POLL_MS = 20_000
 const STATUS: Record<StudioJob['status'], StudioKey> = { queued: 'statusQueued', rendering: 'statusRendering', done: 'statusDone', failed: 'statusFailed' }
 
 /** Nova step 5: queue the script for MoneyPrinterTurbo on GitHub Actions, then play the finished MP4s. */
-export function StudioRenderPanel({ topic, topicVi, en, vi, aspect, glass = false, settings = false, hook, onClearHook }: { topic: string; topicVi: string; en: string[]; vi: string[]; aspect: RenderAspect; glass?: boolean; settings?: boolean; hook?: { en: string; vi: string }; onClearHook?: () => void }) {
+export function StudioRenderPanel({ topic, topicVi, en, vi, aspect, glass = false, settings = false, hook, onClearHook, media = [] }: { topic: string; topicVi: string; en: string[]; vi: string[]; aspect: RenderAspect; glass?: boolean; settings?: boolean; hook?: { en: string; vi: string }; onClearHook?: () => void; media?: string[] }) {
   const lang = useLang()
   const t = (k: StudioKey) => STUDIO_TEXT[k][lang]
   const [langs, setLangs] = useState<RenderLang[]>(['vi'])
@@ -44,7 +44,7 @@ export function StudioRenderPanel({ topic, topicVi, en, vi, aspect, glass = fals
     setMsg(null)
     setBusy(true)
     try {
-      const r = await fetch('/api/studio/render', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ topic, topicVi, en, vi, langs, voice, aspect, opts, hook: settings ? hook : undefined }) })
+      const r = await fetch('/api/studio/render', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ topic, topicVi, en, vi, langs, voice, aspect, opts, hook: settings ? hook : undefined, media }) })
       const j = (await r.json().catch(() => ({}))) as { error?: string; kicked?: boolean }
       if (r.status === 429) setMsg(t('serverBusy'))
       else if (!r.ok) setMsg(`${t('serverFailed')} ${j.error ?? `HTTP ${r.status}`}`)
@@ -93,7 +93,7 @@ export function StudioRenderPanel({ topic, topicVi, en, vi, aspect, glass = fals
           )}
         </p>
       )}
-      <p className="muted small">{t(keys.pexels ? 'footagePexels' : 'footageOpenverse')}</p>
+      <p className="muted small">{media.length ? `${t('footageUpload')} (${media.length}).` : t(keys.pexels ? 'footagePexels' : 'footageOpenverse')}</p>
       {!keys.github && <p className="small warn">{t('githubSlow')}</p>}
       <div className="vs-row">
         <button className="btn primary" disabled={busy || !ready} onClick={() => void make()}>{t('serverMake')}</button>

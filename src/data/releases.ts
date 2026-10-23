@@ -2,7 +2,7 @@
  * Version and "What's new". Bump APP_VERSION and add an entry to the top of RELEASES
  * with each update. The banner shows once per version, then stays dismissed.
  */
-export const APP_VERSION = '1.52.1'
+export const APP_VERSION = '1.53.0'
 
 export interface Release {
   version: string
@@ -13,6 +13,12 @@ export interface Release {
 }
 
 export const RELEASES: Release[] = [
+  {
+    version: '1.53.0',
+    date: '2026-10-23',
+    changes: ['Nova step 3 can now take your own photos and clips for the voiced server video: up to 10 files, 50 MB each, clips up to 60 seconds. They upload in small parts (a dropped connection retries), you can put them in any order, and the video uses them in that order instead of stock photos. Uploads delete themselves after 3 days. Off switch: Settings > AI rules > Nova uses your own photos and clips.'],
+    changesVi: ['Bước 3 của Nova giờ nhận ảnh và clip của anh cho video máy chủ có giọng: tối đa 10 file, mỗi file 50 MB, clip tối đa 60 giây. File được tải lên từng phần nhỏ (rớt mạng thì tự thử lại), anh xếp thứ tự tuỳ ý, và video dùng đúng thứ tự đó thay cho ảnh có sẵn. File tự xoá sau 3 ngày. Tắt trong Cài đặt > Luật AI > Nova dùng ảnh và clip của anh.'],
+  },
   {
     version: '1.52.1',
     date: '2026-10-23',

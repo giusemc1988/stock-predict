@@ -111,6 +111,14 @@ def gradient_backgrounds(aspect: str, dest: str, count: int = 5) -> list[str]:
     return files
 
 
+def uploads(job_id: str) -> list[str]:
+    """Files nova/queue.mjs downloaded for this job (the user's own footage), sorted by their order."""
+    folder = f"{WORK}/media/{job_id}"
+    if not os.path.isdir(folder):
+        return []
+    return [os.path.join(folder, n) for n in sorted(os.listdir(folder)) if os.path.splitext(n)[1].lower() in (".jpg", ".png", ".webp", ".mp4", ".mov", ".webm")]
+
+
 def opt(opts: dict, key: str, default, lo=None, hi=None):
     """One setting from Nova's video settings (job["opts"]); a missing or odd value keeps Nova's default."""
     v = opts.get(key, default)
@@ -134,10 +142,21 @@ def render(job: dict, pexels_key: str) -> dict:
     transition = opt(o, "transition", "none")
     sub_mode = opt(o, "subMode", "sentence")
     terms = [t for t in job.get("terms", []) if t][:8] or [job["topic"]]
-    source = "pexels" if pexels_key else "local"
+    own = uploads(job["id"])
+    source = "pexels" if pexels_key and not own else "local"
     footage = "pexels"
     materials = None
-    if source == "local":
+    if own:
+        # the user's own photos and clips, in the order they picked them
+        folder = utils.storage_dir("local_videos", create=True)
+        names = []
+        for i, path in enumerate(own):
+            name = f"nova-own-{i:02d}{os.path.splitext(path)[1]}"
+            shutil.copyfile(path, os.path.join(folder, name))
+            names.append(name)
+        footage = "upload"
+        materials = [MaterialInfo(provider="local", url=n) for n in names]
+    elif source == "local":
         folder = utils.storage_dir("local_videos", create=True)
         photos = openverse_photos(terms, aspect, folder)
         if len(photos) < 3:

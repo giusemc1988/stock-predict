@@ -54,6 +54,9 @@ jobs:
           id=$(jq -r .id nova/sample-job.json)
           mkdir -p "$WORK/jobs"
           cp nova/sample-job.json "$WORK/jobs/$id.json"
+          # synthetic "your own footage" (2 photos, 1 clip), the same layout nova/queue.mjs writes for uploads
+          mkdir -p "$WORK/media/$id"
+          cp nova/sample-media/* "$WORK/media/$id/"
           echo "ids=$id" >> "$GITHUB_OUTPUT"
 
       - name: Render with MoneyPrinterTurbo
@@ -99,6 +102,7 @@ jobs:
           ID: ${{ steps.sample.outputs.ids }}
         run: |
           cat "$WORK/out/$ID.json"
+          jq -e '.footage == "upload"' "$WORK/out/$ID.json" >/dev/null || { echo "::error::the sample uploads were not used as footage"; exit 1; }
           mp4="$WORK/out/$ID.mp4"
           test -s "$mp4" || { echo "::error::no MP4 was made"; exit 1; }
           image=$(jq -r .image nova/upstream.json)

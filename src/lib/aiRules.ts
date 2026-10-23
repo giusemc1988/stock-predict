@@ -94,6 +94,7 @@ export interface AiRules {
   novaTrends: boolean // Nova step 1 lists trending topics (Google Trends, Google News, YouTube with a free key, YouTube Music, Reddit); one tap uses one
   novaPostKit: boolean // Nova step 5: 1-10 hooks and titles, a caption per platform, hashtags 0-15, tone, length, emoji, call to action; edit or rewrite each item
   novaVideoSettings: boolean // Nova server video: voice speed/volume, music, clip length, transition, subtitle size/colour/outline/height/style, 3-12 scenes, 1:1, the post kit's hook first
+  novaUploads: boolean // Nova step 3: upload your own photos and clips (10 files, 50 MB, 60 s) as footage for the server video
   novaGlass: boolean // Nova in the Hub's liquid glass look with a sticky 5-step bar; off = the plain cards
   ruviewOn: boolean // RuView sensing page: presence from Wi-Fi signals via ESP32 nodes, runs on the home PC
   toolHub: boolean // Atlas Brief: today's pick sits next to the scoreboard (the Tool Hub graph moved into the Neo Hub search)
@@ -222,6 +223,7 @@ export const DEFAULT_AI_RULES: AiRules = {
   novaTrends: true,
   novaPostKit: true,
   novaVideoSettings: true,
+  novaUploads: true,
   phoneScan: true,
   webFlash: true,
   briefAi: true,
@@ -347,6 +349,7 @@ export const RULE_FIELDS: RuleField[] = [
   { group: 'jarvis', key: 'godsEyeOn', en: "God's Eye View page: the live 3D globe (flights, military aircraft, satellites, ships, earthquakes) inside the Hub, with a clear status for every data layer", vi: "Trang God's Eye View: quả địa cầu 3D trực tiếp (máy bay, máy bay quân sự, vệ tinh, tàu biển, động đất) ngay trong Hub, kèm trạng thái rõ ràng của từng lớp dữ liệu" },
   { group: 'jarvis', key: 'videoStudioOn', en: 'Video Studio page: bilingual (EN + VI) faceless videos made in your browser, 3 modes, MP4 download and Title Lab; never posts by itself', vi: 'Trang Video Studio: video không lộ mặt song ngữ (EN + VI) làm ngay trên trình duyệt, 3 chế độ, tải MP4 và Title Lab; không bao giờ tự đăng' },
   { group: 'jarvis', key: 'novaGlass', en: 'Nova in the glass look of the Hub: same themes, a 5-step bar (Idea, Script, Footage, Voice & make, Post kit) and a gallery of your videos (off: plain cards)', vi: 'Nova kiểu kính giống Hub: cùng theme, thanh 5 bước (Ý tưởng, Kịch bản, Hình, Giọng & dựng, Bộ đăng bài) và thư viện video (tắt: thẻ thường)' },
+  { group: 'jarvis', key: 'novaUploads', en: 'Nova uses your own photos and clips for the voiced server video: up to 10 files, 50 MB each, clips up to 60 seconds, in the order you set; kept 3 days', vi: 'Nova dùng ảnh và clip của anh cho video máy chủ có giọng: tối đa 10 file, mỗi file 50 MB, clip tối đa 60 giây, theo thứ tự anh xếp; giữ 3 ngày' },
   { group: 'jarvis', key: 'novaVideoSettings', en: 'Nova video settings: voice speed and volume, music on/off and volume, seconds per clip, transition, subtitle size, colour, outline, height, word-by-word and pop-in, 3 to 12 scenes, square 1:1, and open the video with a hook from the post kit', vi: 'Chỉnh video Nova: tốc độ và âm lượng giọng, bật tắt và âm lượng nhạc, số giây mỗi cảnh, chuyển cảnh, cỡ, màu, viền, vị trí phụ đề, phụ đề từng chữ và nảy chữ, 3 đến 12 cảnh, khung vuông 1:1, và mở đầu video bằng hook từ bộ đăng bài' },
   { group: 'jarvis', key: 'novaPostKit', en: 'Nova post kit you can adjust: 1 to 10 hooks and titles, a caption for TikTok, Instagram, YouTube and Facebook, 0 to 15 hashtags, tone, length, emoji and call to action; edit or rewrite each line (off: the simple 3 titles)', vi: 'Bộ đăng bài Nova tùy chỉnh được: 1 đến 10 hook và tiêu đề, caption cho TikTok, Instagram, YouTube và Facebook, 0 đến 15 hashtag, giọng văn, độ dài, emoji và câu kêu gọi; sửa hoặc viết lại từng dòng (tắt: 3 tiêu đề đơn giản)' },
   { group: 'jarvis', key: 'novaTrends', en: 'Nova trending ideas: topics hot right now in VN or US from Google Trends, Google News, YouTube (free key), YouTube Music and Reddit, with filters; tap one or let Nova pick and write', vi: 'Ý tưởng trending cho Nova: chủ đề đang hot ở VN hoặc US từ Google Trends, Google News, YouTube (key miễn phí), YouTube Music và Reddit, có bộ lọc; chạm để dùng hoặc để Nova tự chọn và viết' },
