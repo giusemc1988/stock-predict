@@ -168,7 +168,7 @@ function Demo({ id }: { id: ProjectId }) {
   )
 }
 
-/** Marks cards and the tag rail with data-off while they are off screen, so their CSS loops pause (JarvisHub.css). */
+/** Marks cards and the tag rail with data-off while they are off screen, and the page with data-scrolling while it scrolls on a touch screen, so CSS loops pause (JarvisHub.css). */
 function useOffscreenPause(root: RefObject<HTMLElement | null>, count: number) {
   useEffect(() => {
     const el = root.current
@@ -185,6 +185,26 @@ function useOffscreenPause(root: RefObject<HTMLElement | null>, count: number) {
     el.querySelectorAll('.hg-card, .hg-tags, .hg-hero').forEach((n) => io.observe(n))
     return () => io.disconnect()
   }, [root, count])
+
+  // touch screens: hold every loop while the page scrolls, so the GPU only moves the page
+  useEffect(() => {
+    const el = root.current
+    if (!el || !window.matchMedia?.('(hover: none), (max-width: 820px)').matches) return
+    let t: ReturnType<typeof setTimeout> | undefined
+    const onScroll = () => {
+      if (!t) el.setAttribute('data-scrolling', '')
+      clearTimeout(t)
+      t = setTimeout(() => {
+        t = undefined
+        el.removeAttribute('data-scrolling')
+      }, 220)
+    }
+    window.addEventListener('scroll', onScroll, { passive: true, capture: true })
+    return () => {
+      window.removeEventListener('scroll', onScroll, { capture: true })
+      clearTimeout(t)
+    }
+  }, [root])
 }
 
 /**
