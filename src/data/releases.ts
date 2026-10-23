@@ -2,7 +2,7 @@
  * Version and "What's new". Bump APP_VERSION and add an entry to the top of RELEASES
  * with each update. The banner shows once per version, then stays dismissed.
  */
-export const APP_VERSION = '1.47.1'
+export const APP_VERSION = '1.47.2'
 
 export interface Release {
   version: string
@@ -13,6 +13,12 @@ export interface Release {
 }
 
 export const RELEASES: Release[] = [
+  {
+    version: '1.47.2',
+    date: '2026-10-23',
+    changes: ['Hub: the buttons at the bottom of each project card no longer get cut off; swipe the row sideways to see them all. The theme dots are gone from the top bar; change the theme in Settings.'],
+    changesVi: ['Hub: hàng nút dưới mỗi thẻ dự án không còn bị cắt chữ; vuốt ngang hàng nút để xem hết. Bỏ 3 chấm theme trên thanh trên cùng; đổi theme trong Cài đặt.'],
+  },
   {
     version: '1.47.1',
     date: '2026-10-23',
