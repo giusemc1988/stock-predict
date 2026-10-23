@@ -11,6 +11,7 @@ import { canExport, exportMp4 } from '../lib/studio/encode'
 import { STUDIO_TEXT, type StudioKey } from '../lib/studio/text'
 import { StudioRenderPanel } from './StudioRenderPanel'
 import { NovaTrends } from './NovaTrends'
+import { Copy, NovaPostKit } from './NovaPostKit'
 import type { TrendItem } from '../lib/studioTrends'
 import './JarvisHub.css'
 import './NovaStudio.css'
@@ -72,17 +73,8 @@ async function loadMedia(file: File): Promise<Media> {
   }
 }
 
-function Copy({ text, label }: { text: string; label: string }) {
-  const [done, setDone] = useState(false)
-  return (
-    <button className="btn small" onClick={() => void navigator.clipboard?.writeText(text).then(() => { setDone(true); setTimeout(() => setDone(false), 1500) })}>
-      {done ? '✓' : label}
-    </button>
-  )
-}
-
 /** Bilingual Faceless Video Studio: script EN + VI, preview, MP4 export and Title Lab, all in the browser. */
-export function VideoStudioPage({ onBack, glass = true, trends = true }: { onBack: () => void; glass?: boolean; trends?: boolean }) {
+export function VideoStudioPage({ onBack, glass = true, trends = true, postKit = true }: { onBack: () => void; glass?: boolean; trends?: boolean; postKit?: boolean }) {
   const lang = useLang()
   const theme = useHubTheme()
   const active = useActiveStep()
@@ -377,20 +369,29 @@ export function VideoStudioPage({ onBack, glass = true, trends = true }: { onBac
         </section>
 
         <section id="nv-post" className={card}>
-          {head(5, 'stepPost', <Copy text={lab.hashtags.join(' ')} label={t('copyTags')} />)}
-          <p className="muted small">{t('postNote')}</p>
-          <div className="nv-two">
-            {(['en', 'vi'] as const).map((l) => (
-              <div key={l} className="vs-lab nv-inset">
-                <strong className="small">{l.toUpperCase()}</strong>
-                {lab.titles[l].map((x) => (
-                  <div key={x} className="vs-lab-row"><span>{x}</span><Copy text={x} label={t('copy')} /></div>
+          {postKit ? (
+            <>
+              {head(5, 'stepPost')}
+              <NovaPostKit script={script} />
+            </>
+          ) : (
+            <>
+              {head(5, 'stepPost', <Copy text={lab.hashtags.join(' ')} label={t('copyTags')} />)}
+              <p className="muted small">{t('postNote')}</p>
+              <div className="nv-two">
+                {(['en', 'vi'] as const).map((l) => (
+                  <div key={l} className="vs-lab nv-inset">
+                    <strong className="small">{l.toUpperCase()}</strong>
+                    {lab.titles[l].map((x) => (
+                      <div key={x} className="vs-lab-row"><span>{x}</span><Copy text={x} label={t('copy')} /></div>
+                    ))}
+                    <div className="vs-lab-row"><span className="small muted vs-cap">{lab.caption[l]}</span><Copy text={lab.caption[l]} label={t('copyCaption')} /></div>
+                  </div>
                 ))}
-                <div className="vs-lab-row"><span className="small muted vs-cap">{lab.caption[l]}</span><Copy text={lab.caption[l]} label={t('copyCaption')} /></div>
               </div>
-            ))}
-          </div>
-          <p className="small muted">{lab.hashtags.join(' ')}</p>
+              <p className="small muted">{lab.hashtags.join(' ')}</p>
+            </>
+          )}
         </section>
       </div>
     </main>

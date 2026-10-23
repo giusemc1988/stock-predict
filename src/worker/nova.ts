@@ -4,7 +4,7 @@
  */
 import { cleanKey, sameOrigin, withSavedKeys, type KeyStore } from '../lib/brainKeys'
 import type { BrainEnv } from '../lib/brainServer'
-import { writeTerms } from '../lib/studioServer'
+import { cleanKitAsk, writeKitItem, writePostKit, writeTerms } from '../lib/studioServer'
 import { TRENDS_CACHE, TRENDS_TTL_MS, YOUTUBE_KEY, fetchTrends, type TrendGeo, type TrendsResult } from '../lib/studioTrends'
 import { GITHUB_KEY, PEXELS_KEY, checkGithubToken, cleanRenderAsk, kickFarm, deleteJob, isJobId, listJobs, queueJobs, videoResponse, type JobStore } from '../lib/studioJobs'
 
@@ -73,6 +73,16 @@ export async function novaRoute(req: Request, pathname: string, env: BrainEnv, s
     await kv.put(k.slot, key)
     if (kind === 'youtube') await Promise.all([kv.delete(TRENDS_CACHE('VN')), kv.delete(TRENDS_CACHE('US'))])
     return json({ [kind]: true })
+  }
+  if (pathname === '/api/studio/postkit') {
+    if (req.method !== 'POST') return json({ error: 'POST only' }, 405)
+    if (!sameOrigin(req)) return json({ error: 'Not allowed' }, 403)
+    const a = cleanKitAsk(await req.json().catch(() => null))
+    if (!a) return json({ error: 'No topic' }, 400)
+    const e = await withSavedKeys(env, settings)
+    if (!a.only) return json(await writePostKit(a, e))
+    const one = await writeKitItem(a, e)
+    return one ? json(one) : json({ error: 'No AI helper answered. Add a free Gemini or Groq key in Settings.' }, 503)
   }
   if (pathname === '/api/studio/trends') {
     if (req.method !== 'GET') return json({ error: 'GET only' }, 405)
