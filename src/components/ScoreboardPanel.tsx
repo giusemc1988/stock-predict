@@ -27,7 +27,7 @@ export function ScoreboardPanel({ practice, baseline = true, priceOf }: Props) {
   return (
     <section className="bf-card scoreboard">
       <header>
-        <h3>{vi ? "Bảng điểm Jarvis" : "Jarvis's Scoreboard"}</h3>
+        <h3>{vi ? "Bảng điểm Neo" : "Neo's Scoreboard"}</h3>
         <span className="muted small">{vi ? "Luyện tập vs Cơ bản" : "Practice vs baseline"}</span>
       </header>
       <p className="bf-source">{vi ? "Nguồn: tài khoản luyện tập" : "Source: practice account"}</p>
@@ -36,7 +36,7 @@ export function ScoreboardPanel({ practice, baseline = true, priceOf }: Props) {
         <div className="scoreboard-vs">
           <div className="score-metric">
             <div className={`score-value mono ${tone(sb.total)}`}>{num(fmtPct(sb.jarvisPct))}</div>
-            <div className="score-label">Jarvis</div>
+            <div className="score-label">Neo</div>
             <div className="score-sub mono">{vi ? `${fmtUsd(sb.total)} đã đóng + đang mở` : `${fmtUsd(sb.total)} closed + open`}</div>
           </div>
           <div className="score-metric">
@@ -46,7 +46,7 @@ export function ScoreboardPanel({ practice, baseline = true, priceOf }: Props) {
           </div>
           <div className="score-metric">
             <div className={`score-value mono ${sb.edgePct == null ? '' : tone(sb.edgePct)}`}>{num(sb.edgePct == null ? '—' : `${fmtPct(sb.edgePct)}`)}</div>
-            <div className="score-label">{sb.edgePct == null || Math.abs(sb.edgePct) < 0.005 ? (sb.edgePct == null ? (vi ? 'Chênh lệch' : 'Difference') : vi ? 'Đang hòa' : 'Even so far') : sb.edgePct > 0 ? (vi ? 'Jarvis đang hơn' : 'Jarvis ahead by') : vi ? 'Jarvis đang thua' : 'Jarvis behind by'}</div>
+            <div className="score-label">{sb.edgePct == null || Math.abs(sb.edgePct) < 0.005 ? (sb.edgePct == null ? (vi ? 'Chênh lệch' : 'Difference') : vi ? 'Đang hòa' : 'Even so far') : sb.edgePct > 0 ? (vi ? 'Neo đang hơn' : 'Neo ahead by') : vi ? 'Neo đang thua' : 'Neo behind by'}</div>
             <div className="score-sub mono">{b ? (vi ? `từ ${hhmm(b.startAt)}` : `since ${hhmm(b.startAt)}`) : '—'}</div>
           </div>
           <div className="score-metric">

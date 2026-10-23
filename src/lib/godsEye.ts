@@ -62,7 +62,7 @@ export function layerState(id: LayerId, p: Probe | null): LayerResult {
 export const debugExposed = (p: Probe | null) => !!p && p.status >= 200 && p.status < 300 && !/text\/html/i.test(p.contentType)
 
 export const GE_TEXT = {
-  title: { en: "Argus · God's Eye", vi: "Argus · God's Eye" },
+  title: { en: "Iris · God's Eye", vi: "Iris · God's Eye" },
   sub: { en: 'Live 3D globe: flights, military aircraft, satellites, ships, earthquakes', vi: 'Địa cầu 3D trực tiếp: máy bay, máy bay quân sự, vệ tinh, tàu biển, động đất' },
   back: { en: '← Hub', vi: '← Hub' },
   open: { en: 'Open full screen ↗', vi: 'Mở toàn màn hình ↗' },

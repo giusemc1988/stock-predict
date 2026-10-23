@@ -1,6 +1,6 @@
 /**
- * Ask Jarvis by voice: the browser's built-in speech recognition (Chrome, Edge, Safari).
- * The spoken question is matched to one of Jarvis's questions; nothing else is done with it.
+ * Ask Neo by voice: the browser's built-in speech recognition (Chrome, Edge, Safari).
+ * The spoken question is matched to one of Neo's questions; nothing else is done with it.
  */
 import type { AskId } from './jarvis'
 
@@ -52,7 +52,7 @@ const NOT_TICKERS = new Set(['I', 'A', 'AI', 'OK', 'US', 'ET', 'AM', 'PM', 'VS',
 
 /**
  * Understand a typed or spoken question: a stock ("why AAPL?", "what about Tesla?"), one of
- * Jarvis's questions, or "replay today". A stock wins when one is named.
+ * Neo's questions, or "replay today". A stock wins when one is named.
  */
 export function understand(text: string, known: { symbol: string; name: string }[]): Understood {
   const t = ` ${text.toLowerCase().replace(/[^a-z0-9/.\u00c0-\u1ef9 ]/g, ' ')} `

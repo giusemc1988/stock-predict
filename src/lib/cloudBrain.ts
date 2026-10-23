@@ -1,5 +1,5 @@
 /**
- * Browser side of the free-AI helper: Jarvis asks it only when his own rules don't understand.
+ * Browser side of the free-AI helper: Neo asks it only when his own rules don't understand.
  * It talks to our Worker (/api/brain), which holds the keys; the browser never sees one.
  * If localAiOn is enabled, tries Ollama locally first (must allow the site origin via OLLAMA_ORIGINS).
  */
@@ -13,7 +13,7 @@ export interface CloudAnswer {
   by: string
 }
 
-/** What Jarvis already knows, handed to the AI so it answers from the app's records first. */
+/** What Neo already knows, handed to the AI so it answers from the app's records first. */
 export function factsForAi(c: AskContext): string[] {
   const lines = [...briefing(c.state, c.rules, c.journal, c.killSwitch, c.now), ...ask('risk', c), ...(c.symbol ? [{ en: `The chart on screen is ${c.symbol}.`, vi: '' }, ...ask('thisStock', c)] : [])]
   return lines.map((l) => l.en).filter(Boolean)

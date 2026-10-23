@@ -134,9 +134,9 @@ export const SKILLS: SkillInfo[] = [
   },
   {
     id: 'playbook',
-    category: 'Trading checklist (Jarvis)',
-    en: { name: 'Jarvis playbook', does: 'Checks each practice trade against 14 rules experienced traders use, and tracks which rules pay on paper trades.' },
-    vi: { name: 'Sổ tay Jarvis', does: 'Kiểm tra mỗi lệnh luyện tập theo 14 quy tắc của trader kinh nghiệm và theo dõi quy tắc nào hiệu quả trên lệnh thử.' },
+    category: 'Trading checklist (Neo)',
+    en: { name: 'Neo playbook', does: 'Checks each practice trade against 14 rules experienced traders use, and tracks which rules pay on paper trades.' },
+    vi: { name: 'Sổ tay Neo', does: 'Kiểm tra mỗi lệnh luyện tập theo 14 quy tắc của trader kinh nghiệm và theo dõi quy tắc nào hiệu quả trên lệnh thử.' },
     source: 'Arc Analyst (built in), common trading rules',
     inputs: ['practice trades', 'trade reviews'],
     outputs: ['followed / broken per rule', 'proven | unproven | no edge | harmful'],

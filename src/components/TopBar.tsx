@@ -24,11 +24,11 @@ interface Props {
   onAnalyst: () => void
   page: Page
   onPage: (p: Page) => void
-  /** Show the Jarvis Brief tab (home page). */
+  /** Show the Neo Brief tab (home page). */
   brief: boolean
   equity: number
   dayPL: number
-  /** Back to the Jarvis Hub, the app's main page (undefined when the Hub is switched off). */
+  /** Back to the Neo Hub, the app's main page (undefined when the Hub is switched off). */
   onHome?: () => void
 }
 
@@ -54,7 +54,7 @@ export function TopBar({ inst, quote, lastPrice, tf, onTf, status, source, error
       </div>
       <nav className="nav">
         {onHome && (
-          <button className="nav-hub" onClick={onHome} title={vi ? 'Về Jarvis Hub, trang chính' : 'Back to the Jarvis Hub, the main page'}>
+          <button className="nav-hub" onClick={onHome} title={vi ? 'Về Neo Hub, trang chính' : 'Back to the Neo Hub, the main page'}>
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
               <path d="M4 4h6v6H4zM14 4h6v6h-6zM4 14h6v6H4zM14 14h6v6h-6z" />
             </svg>
@@ -63,7 +63,7 @@ export function TopBar({ inst, quote, lastPrice, tf, onTf, status, source, error
         )}
         {brief && (
           <button className={page === 'brief' ? 'on' : ''} onClick={() => onPage('brief')}>
-            {onHome ? (vi ? 'Bản tin' : 'Brief') : 'Jarvis Brief'}
+            {onHome ? (vi ? 'Bản tin' : 'Brief') : 'Neo Brief'}
           </button>
         )}
         <button className={page === 'trade' ? 'on' : ''} onClick={() => onPage('trade')}>

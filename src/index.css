@@ -945,6 +945,7 @@ body:has(.jfab) .toasts, body:has(.jfab) .jarvis-alert { bottom: 84px; }
 .jfab-head { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-bottom: 1px solid rgba(79, 209, 255, 0.2); }
 .jfab-title { flex: 1; display: flex; flex-direction: column; min-width: 0; }
 .jfab-title b { font-size: 13px; letter-spacing: 0.06em; color: var(--robot); }
+.jfab-title .jfab-agent { font-size: 11px; font-weight: 400; letter-spacing: 0; color: var(--muted); }
 .jfab-status { font-size: 11px; color: var(--muted); }
 .jfab-status.listening { color: var(--up, #0ecb81); font-weight: 600; }
 .jfab-status.thinking, .jfab-status.speaking { color: var(--gold); }

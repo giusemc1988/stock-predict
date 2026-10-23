@@ -17,7 +17,7 @@ const LINKS: Record<string, string> = {
 const TXT = {
   en: {
     title: 'Free AI keys',
-    intro: 'Paste a free key to let Jarvis use that AI for questions he cannot answer himself. Keys are saved on the server, never in this browser, and are never shown again. The AI only explains; it never trades.',
+    intro: 'Paste a free key to let Neo use that AI for questions he cannot answer himself. Keys are saved on the server, never in this browser, and are never shown again. The AI only explains; it never trades.',
     getOne: 'get one',
     save: 'Save',
     test: 'Test',
@@ -33,7 +33,7 @@ const TXT = {
   },
   vi: {
     title: 'Khóa AI miễn phí',
-    intro: 'Dán khóa miễn phí để Jarvis dùng AI đó khi gặp câu hỏi tự mình chưa trả lời được. Khóa được lưu trên máy chủ, không lưu trong trình duyệt, và không bao giờ hiện lại. AI chỉ giải thích, không bao giờ giao dịch.',
+    intro: 'Dán khóa miễn phí để Neo dùng AI đó khi gặp câu hỏi tự mình chưa trả lời được. Khóa được lưu trên máy chủ, không lưu trong trình duyệt, và không bao giờ hiện lại. AI chỉ giải thích, không bao giờ giao dịch.',
     getOne: 'lấy khóa',
     save: 'Lưu',
     test: 'Thử',

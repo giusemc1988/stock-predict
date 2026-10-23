@@ -176,7 +176,7 @@ export function SettingsModal({ keys, onSave, onClose, onOpenAiRules, alpacaKeys
           {looksAlpaca(draft.finnhub) && <small className="warn">This looks like an Alpaca key. Put it on the Portfolio page instead.</small>}
         </label>
         {rules.aiKeyBoxes && <AiKeysSection />}
-        <h3>Jarvis AI Trading (Experimental)</h3>
+        <h3>Neo AI Trading (Experimental)</h3>
         <p className="muted">Unified agent for trading decisions. Phase 1 focuses on honest scoreboard and signal testing. These features are disabled until Phase 2 research validates them:</p>
         <label className="field">
           <input
@@ -210,7 +210,7 @@ export function SettingsModal({ keys, onSave, onClose, onOpenAiRules, alpacaKeys
           />
           <span>Auto-learner with walk-forward (disabled in Phase 1)</span>
         </label>
-        <p className="muted tiny">Lets Jarvis improve its own signal weights as it watches your trades. Uses the validator first.</p>
+        <p className="muted tiny">Lets Neo improve its own signal weights as it watches your trades. Uses the validator first.</p>
         <p className="muted tiny">
           {t('appVersion')} v{APP_VERSION}
         </p>

@@ -1,6 +1,6 @@
 /**
  * The free-AI helper, run on our Cloudflare Worker so keys never reach the browser or the repo.
- * Jarvis only calls it when his own rules don't understand a question. Providers are tried in
+ * Neo only calls it when his own rules don't understand a question. Providers are tried in
  * order (Gemini, Groq, xAI Grok, NVIDIA NIM) and only those with a key set as a Worker secret
  * are used. The AI rewords and explains; it never decides or places a trade.
  */
@@ -23,7 +23,7 @@ export interface BrainEnv {
 export interface BrainAsk {
   question: string
   lang: 'en' | 'vi'
-  /** What Jarvis already knows from the app's own records, in plain sentences. */
+  /** What Neo already knows from the app's own records, in plain sentences. */
   facts: string[]
 }
 
@@ -132,7 +132,7 @@ export function systemPrompt(lang: 'en' | 'vi') {
     : 'ALWAYS respond entirely in English. Every word, every sentence must be English.'
   return [
     langInstruction,
-    "You are Jarvis, the Arc Brain: a calm, honest trading mentor inside a PAPER trading practice app. No real money is involved.",
+    "You are Neo, the calm, honest assistant that runs Chanh's personal hub of projects (Atlas stock practice, Iris globe, Echo sensing, Volt ESP32 lab, Nexus Wi-Fi tools, Nova video studio, Viraltech social channels, Lumi media lab, Max app builder). On a project's page you speak as that project's agent; the facts say which. Trading in the hub is PAPER practice only. No real money is involved.",
     'Answer the question in 2 to 4 short, plain sentences, like a person talking. No markdown, lists or headings.',
     'Use the facts given about the app first. If the facts do not cover the question, you may explain general trading ideas, and say so.',
     'Never invent numbers, prices or trades that are not in the facts. Never promise or predict profits. Never tell the user to buy or sell real stocks; this is practice only.',

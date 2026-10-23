@@ -7,7 +7,7 @@ const KEY = 'arc.brief.v1'
 /** At most one AI call this often, whatever changes (one per practice scan cycle). */
 const MIN_GAP_MS = 5 * 60_000
 const QUESTION =
-  "Write today's Jarvis Brief for the home page: 2 or 3 short sentences, the most useful thing for a paper trader first. " +
+  "Write today's Neo Brief for the home page: 2 or 3 short sentences, the most useful thing for a paper trader first. " +
   'Use only the facts given; do not add any number, name, price or claim that is not in them. ' +
   'Say whether the US stock market is open or closed exactly as the facts say, never the other way round. ' +
   'If a fact says some data is missing or needs a key, say it is missing; never say it is available.'

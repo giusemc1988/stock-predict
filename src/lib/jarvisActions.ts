@@ -1,5 +1,5 @@
 /**
- * What Jarvis may change, and only after you tap "Do it". Jarvis reads everything in the app,
+ * What Neo may change, and only after you tap "Do it". Neo reads everything in the app,
  * but it can only propose this short list: switch an AI rule on or off (practice mode included),
  * the kill switch, and adding a market to the watchlist. Nothing here places, sizes or closes a
  * trade, and nothing touches real money. Every proposal, done or cancelled, is logged.
@@ -37,7 +37,7 @@ function findRule(text: string): BoolKey | null {
   return best && !tie ? best.key : null
 }
 
-/** A command Jarvis can propose, from a typed or spoken sentence (English or Vietnamese). */
+/** A command Neo can propose, from a typed or spoken sentence (English or Vietnamese). */
 export function parseCommand(text: string, known: { symbol: string; name: string }[]): JarvisAction | null {
   const t = text.toLowerCase()
   if (/kill switch|dừng khẩn cấp|stop all buy/.test(t)) return { kind: 'killSwitch', value: !/\b(off|disable)\b|tắt/.test(t) }

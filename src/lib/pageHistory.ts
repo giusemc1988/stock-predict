@@ -1,5 +1,5 @@
 /**
- * Phone swipe-back and the browser Back button: each project opened from the Jarvis Hub is one step in the
+ * Phone swipe-back and the browser Back button: each project opened from the Neo Hub is one step in the
  * browser history, so going back returns to the Hub instead of leaving the app. Pure decision; App.tsx applies it.
  */
 export type HistoryStep = { kind: 'none' } | { kind: 'push' } | { kind: 'replace' } | { kind: 'back'; steps: number }

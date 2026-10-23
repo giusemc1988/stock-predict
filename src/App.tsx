@@ -47,7 +47,11 @@ import { JarvisAlert, type JarvisAlertData } from './components/JarvisAlert'
 import type { ChartTour } from './components/ChartPanel'
 import { analysisTour, dayReplayTour, stockTour, tourSymbols, tradeTour, type Tour } from './lib/jarvis'
 import { canSpeak, loadVoicePrefs, speak, stopSpeaking } from './lib/speech'
-import { dayKey, kindOf, type PracticeEvent } from './lib/practice'
+import { dayKey, kindOf, practiceEquity, PRACTICE_START, type PracticeEvent } from './lib/practice'
+import type { HubFacts } from './lib/agents'
+import type { HubPage } from './lib/toolHub'
+import { APP_VERSION, RELEASES } from './data/releases'
+import { postCounts, VIRALTECH } from './data/viraltech'
 import { practiceRows } from './lib/practiceRows'
 import type { AiActiveRow } from './components/Watchlist'
 import type { PracticeOverlay } from './components/ChartPanel'
@@ -117,7 +121,7 @@ export default function App() {
   const [page, setPageRaw] = useState<Page>(() => (window.history.state as { page?: Page } | null)?.page ?? (rawRules.jarvisHub ? 'home' : rawRules.briefHome && rawRules.jarvisOn ? 'brief' : 'trade'))
   const briefOn = aiRules.briefHome && aiRules.jarvisOn
   const hubOn = aiRules.jarvisHub
-  // where a project page's back button goes: the Jarvis Hub, or Atlas's first page when the Hub is off
+  // where a project page's back button goes: the Neo Hub, or Atlas's first page when the Hub is off
   const homePage: Page = hubOn ? 'home' : briefOn ? 'brief' : 'trade'
   const shownPage: Page = page === 'home' && !hubOn ? (briefOn ? 'brief' : 'trade') : (page === 'brief' && !briefOn) || (page === 'net' && !aiRules.netTools) || (page === 'ruview' && !aiRules.ruviewOn) || (page === 'godseye' && !aiRules.godsEyeOn) || (page === 'studio' && !aiRules.videoStudioOn) ? 'trade' : page
   // every page change goes through the browser history, so swipe-back / Back returns to the Hub (lib/pageHistory.ts)
@@ -147,7 +151,7 @@ export default function App() {
   const [sortRequest, setSortRequest] = useState(0)
   const [rightTab, setRightTab] = useState<'ai' | 'flow' | 'trade' | 'learn' | 'picks' | 'practice' | 'brain'>('ai')
   const lang = useLang()
-  // the Brain tab disappears when Jarvis is switched off
+  // the Brain tab disappears when Neo is switched off
   const shownTab = (rightTab === 'brain' && !aiRules.jarvisOn) || (rightTab === 'picks' && !aiRules.aiPicksTab) ? 'ai' : rightTab
   const [toasts, setToasts] = useState<Toast[]>([])
   // Tickers added from the search box persist in this browser and join the built-in watchlist.
@@ -157,7 +161,7 @@ export default function App() {
   const universe = useMemo(() => [...INSTRUMENTS, ...added.filter((a) => !INSTRUMENTS.some((i) => i.symbol === a.symbol))], [added])
   // markets practice mode is watching or trading join the chart and quotes (not your saved watchlist)
   const [aiSymbols, setAiSymbols] = useState<string[]>([])
-  // Jarvis "Show me": a guided tour on the chart (its market joins the chart list while it runs)
+  // Neo "Show me": a guided tour on the chart (its market joins the chart list while it runs)
   const [tour, setTour] = useState<{ t: Tour; i: number } | null>(null)
   // "why AAPL?": the stock asked about opens, and its tour starts once its analysis is ready
   const [askedStock, setAskedStock] = useState<string | null>(null)
@@ -216,7 +220,7 @@ export default function App() {
     return aiRules.dashMotion ? startSlidePills() : undefined
   }, [aiRules.dashMotion])
 
-  // Call Jarvis router when a bar closes
+  // Call Neo router when a bar closes
   useEffect(() => {
     if (candles.length > 1) {
       const closedBar = candles[candles.length - 2]
@@ -232,7 +236,7 @@ export default function App() {
   const liveRef = useRef(live)
   liveRef.current = live
   const [analysis, setAnalysis] = useState<ReturnType<typeof analyze>>(null)
-  // which market the current analysis is for (Jarvis's "why AAPL?" waits for the right one)
+  // which market the current analysis is for (Neo's "why AAPL?" waits for the right one)
   const [analysisSym, setAnalysisSym] = useState('')
   useEffect(() => {
     const run = () => {
@@ -376,7 +380,7 @@ export default function App() {
       if (r.practiceOnChart) setFlash(e)
       // follow the AI: open the chart of the market it just traded
       if (r.practiceFollow && e.kind !== 'skip') setPrefs((p) => (p.symbol === e.symbol ? p : { ...p, symbol: e.symbol }))
-      // Jarvis speaks up about the trade instead of the plain pop-up
+      // Neo speaks up about the trade instead of the plain pop-up
       if (r.jarvisOn && r.jarvisAlerts && e.kind !== 'skip') {
         const vi = langRef.current === 'vi'
         const kind = e.trade === 'long' ? (vi ? 'lệnh dài hạn' : 'a longer hold') : vi ? 'lệnh trong ngày' : 'a day trade'
@@ -509,7 +513,7 @@ export default function App() {
   useEffect(() => {
     if (stepSymbol) setPrefs((p) => (p.symbol === stepSymbol ? p : { ...p, symbol: stepSymbol }))
   }, [stepSymbol, setPrefs])
-  // each step is read aloud when Jarvis speaks
+  // each step is read aloud when Neo speaks
   const spokenKey = tourStep && aiRules.jarvisSpeech ? `${tour!.t.id}|${tour!.i}|${lang}` : ''
   useEffect(() => {
     if (!spokenKey || !tourStep || !canSpeak()) return
@@ -555,7 +559,7 @@ export default function App() {
     setAskedStock(null)
     startTour(stockTour(analysis, askedStock, candles[candles.length - 1].time, practice.state))
   }, [askedStock, inst.symbol, analysisSym, analysis, candles, startTour, practice.state])
-  // Jarvis actions run only from the confirm card in the Brain tab (you tapped "Do it")
+  // Neo actions run only from the confirm card in the Brain tab (you tapped "Do it")
   const jarvisAct = aiRules.jarvisActions
     ? (a: JarvisAction) => {
         if (a.kind === 'rule') setAiRules({ ...rawRules, [a.key]: a.value })
@@ -565,7 +569,7 @@ export default function App() {
     : undefined
   const showAnalysis = showMeOn && analysis && candles.length ? () => startTour(analysisTour(analysis, inst.symbol, candles[candles.length - 1].time)) : undefined
 
-  // Jarvis Brief: each node opens the screen that holds its data
+  // Neo Brief: each node opens the screen that holds its data
   const openNode = (id: NodeId) => {
     if (id === 'risk') return setPage('portfolio')
     if (id === 'news') return setAiRulesOpen(true)
@@ -577,6 +581,28 @@ export default function App() {
     if (!chartUniverse.some((i) => i.symbol === symbol)) addInstrument({ symbol, name: symbol, assetClass, feedId: assetClass === 'crypto' ? symbol.replace('/', '') : symbol, demoPrice: 100, demoVol: 0.4 })
     select(symbol)
     setPage('trade')
+  }
+
+  // what every agent in the floating chat knows about the hub
+  const hubOnPages = { net: aiRules.netTools, ruview: aiRules.ruviewOn, godseye: aiRules.godsEyeOn, studio: aiRules.videoStudioOn }
+  const equityNow = practiceEquity(practice.state)
+  const postsNow = postCounts(VIRALTECH.posts)
+  const hubFacts: HubFacts = {
+    on: hubOnPages,
+    equity: equityNow,
+    changePct: (equityNow / PRACTICE_START - 1) * 100,
+    openTrades: practice.state.open.length,
+    buyCalls: buyCalls(practice.scan.candidates).length,
+    scanning: aiRules.practiceMode && (aiRules.practiceAutoPick || practice.serverMode),
+    killSwitch: prefs.killSwitch,
+    version: APP_VERSION,
+    updates: RELEASES.length,
+    posts: { scheduled: postsNow.scheduled, published: postsNow.published, draft: postsNow.draft },
+    channels: { linked: VIRALTECH.channels.filter((c) => c.connected).length, total: VIRALTECH.channels.length },
+  }
+  const openFromChat = (to: HubPage | 'brief' | 'home') => {
+    setRuviewFlash(to === 'ruview-flash')
+    setPage(to === 'ruview-flash' ? 'ruview' : to === 'brief' && !briefOn ? 'trade' : to === 'home' && !hubOn ? homePage : to)
   }
 
   return (
@@ -595,7 +621,7 @@ export default function App() {
       <WhatsNew />
       <TradeAlerts />
       {aiRules.jarvisOn && aiRules.jarvisFab && (
-        <PanelGuard name="Jarvis"><JarvisFab state={practice.state} rules={aiRules} journal={autoLearn.state.journal} learn={autoLearn.state} killSwitch={prefs.killSwitch} priceOf={practice.priceOf} known={chartUniverse} watchlist={universe.map((i) => i.symbol)} onAskStock={askStock} onShowTrade={showTrade} onReplay={showReplay} onAction={jarvisAct} symbol={inst.symbol} /></PanelGuard>
+        <PanelGuard name="Neo"><JarvisFab state={practice.state} rules={aiRules} journal={autoLearn.state.journal} learn={autoLearn.state} killSwitch={prefs.killSwitch} priceOf={practice.priceOf} known={chartUniverse} watchlist={universe.map((i) => i.symbol)} onAskStock={askStock} onShowTrade={showTrade} onReplay={showReplay} onAction={jarvisAct} symbol={inst.symbol} page={shownPage} hub={hubFacts} onOpen={openFromChat} /></PanelGuard>
       )}
       {jAlert && aiRules.jarvisOn && aiRules.jarvisAlerts && (
         <JarvisAlert
@@ -658,7 +684,7 @@ export default function App() {
         scanOn={aiRules.watchlistScan}
       /></PanelGuard>}
       {shownPage === 'home' ? (
-        <PanelGuard name="Jarvis Hub">
+        <PanelGuard name="Neo Hub">
           <JarvisHub
             practice={practice.state}
             picks={buyCalls(practice.scan.candidates)}
@@ -679,7 +705,7 @@ export default function App() {
           />
         </PanelGuard>
       ) : shownPage === 'brief' ? (
-        <PanelGuard name="Jarvis Brief">
+        <PanelGuard name="Neo Brief">
         <JarvisBrief
           rules={aiRules}
           alpacaKeys={alpacaKeys}

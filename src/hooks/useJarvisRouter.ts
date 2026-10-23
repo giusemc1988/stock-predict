@@ -9,7 +9,7 @@ export interface UseJarvisRouterReturn {
 }
 
 /**
- * React hook for integrating Jarvis router into trading components.
+ * React hook for integrating Neo router into trading components.
  * Manages router state, last decision, and loading status.
  */
 export function useJarvisRouter(enabled: boolean = false): UseJarvisRouterReturn {
@@ -38,7 +38,7 @@ export function useJarvisRouter(enabled: boolean = false): UseJarvisRouterReturn
           ;(window as any).__jarvis_metrics__ = metrics
         }
       } catch (err) {
-        console.error('Jarvis router failed:', err)
+        console.error('Neo router failed:', err)
       } finally {
         setIsLoading(false)
       }

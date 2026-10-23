@@ -36,7 +36,7 @@ export interface PracticeOverlay {
   flashText: string
 }
 
-/** Jarvis "Show me": one step of a guided tour drawn on the chart, with a callout. */
+/** Neo "Show me": one step of a guided tour drawn on the chart, with a callout. */
 export interface ChartTour {
   key: string
   title: string
@@ -377,7 +377,7 @@ export function ChartPanel(props: Props) {
     )
   }, [linesKey, symbol, tf])
 
-  // Jarvis "Show me": bold lines for this step, the chart scrolled to the bar, and a pulsing pointer on the spot
+  // Neo "Show me": bold lines for this step, the chart scrolled to the bar, and a pulsing pointer on the spot
   const tourLines = useRef<IPriceLine[]>([])
   const tourLinesKey = JSON.stringify(tour?.lines ?? [])
   useEffect(() => {
@@ -385,7 +385,7 @@ export function ChartPanel(props: Props) {
     if (!s) return
     for (const l of tourLines.current) s.candle.removePriceLine(l)
     tourLines.current = (JSON.parse(tourLinesKey) as ChartTour['lines']).map((l) =>
-      s.candle.createPriceLine({ price: l.price, color: l.color, lineWidth: 2, lineStyle: LineStyle.Solid, axisLabelVisible: true, title: `Jarvis · ${l.title}` }),
+      s.candle.createPriceLine({ price: l.price, color: l.color, lineWidth: 2, lineStyle: LineStyle.Solid, axisLabelVisible: true, title: `Neo · ${l.title}` }),
     )
   }, [tourLinesKey, symbol, tf])
   // the reticle and guide lines are moved with transforms written straight to the DOM (no React render per frame)
@@ -500,7 +500,7 @@ export function ChartPanel(props: Props) {
             <i className="hud-scan" aria-hidden />
             <div className="tour-head">
               <JarvisAvatar size={22} mood="speaking" motion={tour.motion} />
-              <b className="mono">JARVIS // {tour.title.toUpperCase()}</b>
+              <b className="mono">NEO // {tour.title.toUpperCase()}</b>
               <span className="mono">
                 {String(tour.index + 1).padStart(2, '0')}/{String(tour.total).padStart(2, '0')}
               </span>

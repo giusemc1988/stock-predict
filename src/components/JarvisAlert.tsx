@@ -8,7 +8,7 @@ export interface JarvisAlertData {
   tone: 'buy' | 'win' | 'loss'
 }
 
-/** Jarvis pops up when a practice trade opens or closes, HUD style, with Show me. Closes by itself after a few seconds. */
+/** Neo pops up when a practice trade opens or closes, HUD style, with Show me. Closes by itself after a few seconds. */
 export function JarvisAlert({ alert, motion, showLabel, onShow, onClose }: { alert: JarvisAlertData; motion: boolean; showLabel: string; onShow?: () => void; onClose: () => void }) {
   useEffect(() => {
     const id = setTimeout(onClose, 9000)
@@ -19,7 +19,7 @@ export function JarvisAlert({ alert, motion, showLabel, onShow, onClose }: { ale
       <i className="hud-scan" aria-hidden />
       <JarvisAvatar size={30} mood={alert.tone === 'loss' ? 'warning' : 'speaking'} motion={motion} />
       <div className="ja-body">
-        <b className="mono">JARVIS // {alert.symbol}</b>
+        <b className="mono">NEO // {alert.symbol}</b>
         <span>{alert.text}</span>
       </div>
       {onShow && (

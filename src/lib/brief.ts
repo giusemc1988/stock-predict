@@ -1,5 +1,5 @@
 /**
- * Jarvis Brief: what each part of the home page shows, worked out only from the app's real data.
+ * Neo Brief: what each part of the home page shows, worked out only from the app's real data.
  * A part with no data says what is missing; nothing here makes up a number or a name.
  */
 import type { MarketLists, MarketListRow } from '../data/providers'
@@ -17,7 +17,7 @@ export interface BriefNode {
   status: 'live' | 'missing' | 'off'
   /** 0..1, drawn as the ring around the node. */
   load: number
-  /** Feeds data into Jarvis (left side) or carries results out (right side). */
+  /** Feeds data into Neo (left side) or carries results out (right side). */
   inbound: boolean
   /** Where the data came from, shown on hover. */
   source: string

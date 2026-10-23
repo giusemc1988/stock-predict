@@ -1,5 +1,5 @@
 /**
- * Jarvis's spoken voice: the browser's free built-in speech (Web Speech API). No key and no
+ * Neo's spoken voice: the browser's free built-in speech (Web Speech API). No key and no
  * network service of ours; which voices exist depends on the device and browser.
  */
 import { useEffect, useState } from 'react'
@@ -9,7 +9,7 @@ export interface VoicePrefs {
   voice: string
   rate: number
   pitch: number
-  /** Used when no exact voice is picked: Jarvis is a man's voice unless you choose otherwise. */
+  /** Used when no exact voice is picked: Neo is a man's voice unless you choose otherwise. */
   gender: 'male' | 'female' | 'any'
 }
 
@@ -52,7 +52,7 @@ export function bestVoice(voices: SpeechSynthesisVoice[], lang: 'en' | 'vi', gen
 }
 
 /**
- * The voice Jarvis will use. The list is read fresh each time: some browsers ignore a voice
+ * The voice Neo will use. The list is read fresh each time: some browsers ignore a voice
  * object from an older list, which is why a picked voice could sound unchanged.
  */
 export function pickVoice(prefs: VoicePrefs, lang: 'en' | 'vi', voices: SpeechSynthesisVoice[] = []) {
@@ -62,7 +62,7 @@ export function pickVoice(prefs: VoicePrefs, lang: 'en' | 'vi', voices: SpeechSy
   return exact ?? bestVoice(list, lang, prefs.gender ?? 'male')
 }
 
-/** No man's voice installed: lower the pitch a little so Jarvis still sounds deeper. */
+/** No man's voice installed: lower the pitch a little so Neo still sounds deeper. */
 const pitchFor = (prefs: VoicePrefs, v: SpeechSynthesisVoice | undefined) => (!prefs.voice && prefs.gender === 'male' && v && voiceGender(v) !== 'male' ? prefs.pitch * 0.8 : prefs.pitch)
 
 /** Call inside a tap: iPhone only lets a page speak later if it first spoke during a tap. */

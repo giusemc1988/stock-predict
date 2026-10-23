@@ -74,7 +74,7 @@ function story(p: PracticePosition, audit: AuditEntry[], now: { last: number } |
   lines.push({ k: 'Checks passed', v: a?.passed?.length ? a.passed.join(', ') : NOT_RECORDED })
   if (playbook) {
     const pb = brokenRules(p, playbook)
-    lines.push({ k: 'Jarvis playbook', v: `followed ${pb.followed.length} of ${pb.checked} rules${pb.broken.length ? ` · broke: ${pb.broken.map((r) => r.en.name).join('; ')}` : ''}`, tone: pb.broken.length ? 'down' : 'up' })
+    lines.push({ k: 'Neo playbook', v: `followed ${pb.followed.length} of ${pb.checked} rules${pb.broken.length ? ` · broke: ${pb.broken.map((r) => r.en.name).join('; ')}` : ''}`, tone: pb.broken.length ? 'down' : 'up' })
   }
   lines.push({ k: 'Data', v: i.data ? `${DATA_LABEL[i.data.label].en} · ${i.data.source} · bar ${held(i.data.ageSec * 1000)} old` : NOT_RECORDED })
   lines.push({ k: 'Sell if', v: `price reaches ${fmtPrice(p.target)} target (${fmtPct(pctFrom(p.entry, p.target))}) or ${fmtPrice(p.stop)} stop (${fmtPct(pctFrom(p.entry, p.stop))})` })
@@ -100,7 +100,7 @@ function story(p: PracticePosition, audit: AuditEntry[], now: { last: number } |
  * target (they cancel each other, like a bracket); history is every fill and today's blocked buys,
  * newest first. Each row carries the trade's story for its detail view.
  */
-/** `playbook`: add Jarvis's playbook checks to each story. */
+/** `playbook`: add Neo's playbook checks to each story. */
 export function practiceRows(s: PracticeState, priceOf: (symbol: string) => number, now = Date.now(), playbook = false) {
   const pb = playbook ? s.trades : null
   const audit = s.audit ?? []

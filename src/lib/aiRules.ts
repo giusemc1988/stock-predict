@@ -57,42 +57,43 @@ export interface AiRules {
   reviewOn: boolean // grade closed trades on process vs. luck
   dailyReportOn: boolean // end-of-day practice report
   skillRegistryOn: boolean // only approved skills feed signals
-  jarvisOn: boolean // Jarvis, the Arc Brain: the Brain tab and every Jarvis surface
+  jarvisOn: boolean // Neo, the Arc Brain: the Brain tab and every Neo surface
   jarvisBriefing: boolean // morning briefing in the Brain tab
   jarvisLessons: boolean // lessons after each reviewed trade, and playbook evidence
-  jarvisAsk: boolean // Ask Jarvis: fixed questions answered from the app's own data
-  jarvisVoice: boolean // Jarvis's plain-words line under the AI Analyst call
+  jarvisAsk: boolean // Ask Neo: fixed questions answered from the app's own data
+  jarvisVoice: boolean // Neo's plain-words line under the AI Analyst call
   jarvisStory: boolean // playbook checks in each practice trade's story
   scoreboardBaseline: boolean // scoreboard shows open P&L and the account against buy-and-hold SPY
   scoreboardSignalMetrics: boolean // scoreboard shows expectancy and max drawdown for signal quality
   scoreboardPerformanceTimer: boolean // monitor signal-to-order latency and app load times
   jarvisGate: boolean // practice buys must pass every playbook rule proven on paper trades
-  jarvisMotion: boolean // animated Jarvis avatar
-  jarvisSpeech: boolean // Jarvis reads briefings and answers aloud (browser's built-in speech)
-  jarvisShowMe: boolean // Show me: Jarvis opens the stock and points at what it explains on the chart
-  jarvisReplay: boolean // Replay the day: Jarvis narrates each practice trade on the chart
-  jarvisAlerts: boolean // Jarvis pops up when a practice trade opens or closes, with Show me
-  jarvisListen: boolean // ask Jarvis by voice (microphone, browser speech recognition)
+  jarvisMotion: boolean // animated Neo avatar
+  jarvisSpeech: boolean // Neo reads briefings and answers aloud (browser's built-in speech)
+  jarvisShowMe: boolean // Show me: Neo opens the stock and points at what it explains on the chart
+  jarvisReplay: boolean // Replay the day: Neo narrates each practice trade on the chart
+  jarvisAlerts: boolean // Neo pops up when a practice trade opens or closes, with Show me
+  jarvisListen: boolean // ask Neo by voice (microphone, browser speech recognition)
   jarvisGreeting: boolean // a human greeting with your name at the top of the Brain tab
   jarvisLinks: boolean // "What I'm linked to": memory, skills, playbook, decision log, reviews, learner
-  jarvisActions: boolean // Jarvis may propose setting changes (practice, kill switch, watchlist, AI rules); each needs your tap
-  jarvisAnyStock: boolean // ask about any stock ("why AAPL?"): Jarvis opens it and explains on the chart
-  jarvisFab: boolean // floating brain button: talk or type to Jarvis from any screen, with the conversation written out
+  jarvisActions: boolean // Neo may propose setting changes (practice, kill switch, watchlist, AI rules); each needs your tap
+  jarvisAnyStock: boolean // ask about any stock ("why AAPL?"): Neo opens it and explains on the chart
+  jarvisFab: boolean // floating brain button: talk or type to Neo from any screen, with the conversation written out
   jarvisFabTalk: boolean // the floating brain reads its answers aloud
   aiKeyBoxes: boolean // Settings shows boxes to type the free AI keys (saved on the server, never in the browser)
-  jarvisCloudAi: boolean // when Jarvis doesn't understand, ask a free AI helper (keys live on the server)
-  jarvisHub: boolean // the Jarvis Hub is the main page: every project with its live state and a quick search; off = Atlas opens first as before
-  briefHome: boolean // Jarvis Brief is the home page; off opens the Trading desk as before
+  jarvisCloudAi: boolean // when Neo doesn't understand, ask a free AI helper (keys live on the server)
+  jarvisHub: boolean // the Neo Hub is the main page: every project with its live state and a quick search; off = Atlas opens first as before
+  hubAgents: boolean // Neo knows every project; each project page has its own agent (Atlas, Iris, Echo, Volt, Nexus, Nova, Viraltech, Lumi, Max) in the floating chat, and "open Nova" goes there
+  briefHome: boolean // Neo Brief is the home page; off opens the Trading desk as before
   netTools: boolean // Wi-Fi & Bluetooth page for your own network (needs the home agent for scans)
   webFlash: boolean // RuView page: flash a board's firmware from Chrome/Edge over USB
   phoneScan: boolean // Android app: the phone scans the Wi-Fi it is on (devices, channels, ping, ports, Wake-on-LAN)
   godsEyeOn: boolean // God's Eye View page: anh's live 3D globe embedded, with a server check of each data layer
   videoStudioOn: boolean // Video Studio page: bilingual faceless videos made in the browser, MP4 + Title Lab
   ruviewOn: boolean // RuView sensing page: presence from Wi-Fi signals via ESP32 nodes, runs on the home PC
-  toolHub: boolean // Atlas Brief: today's pick sits next to the scoreboard (the Tool Hub graph moved into the Jarvis Hub search)
+  toolHub: boolean // Atlas Brief: today's pick sits next to the scoreboard (the Tool Hub graph moved into the Neo Hub search)
   hubLayout: boolean // the home page uses the Hub layout: best pick next to the sphere, prediction board, Studio and devices
   dashMotion: boolean // dashboard cards and motion: project cards on the Hub, stat cards with change chips; off = the previous look
-  briefAi: boolean // a free AI helper writes the Jarvis Brief from the page's real data (once per scan)
+  briefAi: boolean // a free AI helper writes the Neo Brief from the page's real data (once per scan)
   practiceCryptoMovers: boolean // practice also scans today's top crypto gainers and most-traded coins
   adjustableTimeRange: boolean // custom time range input on the Trading desk chart (beyond the preset 1D/1W/1M/1Y/All buttons)
   localModelName: string // local LLM name: llama3.2, gemma4:e2b, qwen3-coder:30b (default: llama3.2)
@@ -102,14 +103,14 @@ export interface AiRules {
   autoRangeTf: boolean // chart range buttons also pick the bar size, like Webull
   localVoiceNarrator: boolean // read explanations + answers aloud using browser speechSynthesis
   signalValidator: boolean // validate every signal path before showing (alerts, Brief, playbook)
-  newsEnabled: boolean // show latest news for watched symbols in Jarvis Brief
+  newsEnabled: boolean // show latest news for watched symbols in Neo Brief
   newsAnalysis: boolean // analyze market news sentiment for BUY/SELL bias
   preMarketAlerts: boolean // alerts before market open (pre-market movers and news)
   cryptoMoversThrottleHrs: number // max frequency to scan crypto movers (0 = always, >0 = hours between scans)
   autoRotateKeys: boolean // try multiple API keys in order; skip any that fail or run out of quota
   localAiOn: boolean // use local AI (Ollama on your device) as the first provider, Gemini fallback
   orderFlowEstimate: boolean // show estimated order flow from delayed candles when live data unavailable
-  practiceTradeNotifications: boolean // notify before Jarvis places a practice trade
+  practiceTradeNotifications: boolean // notify before Neo places a practice trade
   telegramNotifications: boolean // send trade notifications to Telegram
   telegramToken: string // Telegram bot token (stored on server, never in browser)
   walkForwardValidatorOn: boolean // validate signals on data the ranking was not tuned on; mark as "Proven" only when win rate > 50% out-of-sample
@@ -194,6 +195,7 @@ export const DEFAULT_AI_RULES: AiRules = {
   aiKeyBoxes: true,
   jarvisCloudAi: true,
   jarvisHub: true,
+  hubAgents: true,
   briefHome: true,
   hubLayout: true,
   toolHub: true,
@@ -298,27 +300,27 @@ export const RULE_FIELDS: RuleField[] = [
   { group: 'modules', key: 'reviewOn', en: 'Trade review: good process vs. luck', vi: 'Đánh giá lệnh: quy trình tốt hay may mắn' },
   { group: 'modules', key: 'dailyReportOn', en: 'Daily practice report', vi: 'Báo cáo luyện tập hằng ngày' },
   { group: 'modules', key: 'skillRegistryOn', en: 'Skill registry (only approved skills feed signals)', vi: 'Danh sách kỹ năng (chỉ kỹ năng được duyệt mới tạo tín hiệu)' },
-  { group: 'jarvis', key: 'jarvisOn', en: 'Jarvis, the Arc Brain (Brain tab and everything below)', vi: 'Jarvis, Bộ não Arc (tab Bộ não và mọi mục bên dưới)' },
+  { group: 'jarvis', key: 'jarvisOn', en: 'Neo, the Arc Brain (Brain tab and everything below)', vi: 'Neo, Bộ não Arc (tab Bộ não và mọi mục bên dưới)' },
   { group: 'jarvis', key: 'jarvisBriefing', en: 'Morning briefing', vi: 'Bản tin buổi sáng' },
   { group: 'jarvis', key: 'jarvisLessons', en: 'Lessons and playbook evidence', vi: 'Bài học và bằng chứng sổ tay' },
-  { group: 'jarvis', key: 'jarvisAsk', en: 'Ask Jarvis', vi: 'Hỏi Jarvis' },
-  { group: 'jarvis', key: 'jarvisVoice', en: "Jarvis's line under the AI Analyst call", vi: 'Lời Jarvis dưới nhận định AI' },
-  { group: 'jarvis', key: 'scoreboardBaseline', en: 'Scoreboard: open P&L and Jarvis vs buying and holding SPY', vi: 'Bảng điểm: lãi/lỗ lệnh đang mở và Jarvis so với mua giữ SPY' },
+  { group: 'jarvis', key: 'jarvisAsk', en: 'Ask Neo', vi: 'Hỏi Neo' },
+  { group: 'jarvis', key: 'jarvisVoice', en: "Neo's line under the AI Analyst call", vi: 'Lời Neo dưới nhận định AI' },
+  { group: 'jarvis', key: 'scoreboardBaseline', en: 'Scoreboard: open P&L and Neo vs buying and holding SPY', vi: 'Bảng điểm: lãi/lỗ lệnh đang mở và Neo so với mua giữ SPY' },
   { group: 'jarvis', key: 'scoreboardSignalMetrics', en: 'Scoreboard: signal quality (expectancy, max drawdown, win vs loss)', vi: 'Bảng điểm: chất lượng tín hiệu (kỳ vọng, rủi ro tối đa, thắng vs thua)' },
   { group: 'jarvis', key: 'scoreboardPerformanceTimer', en: 'Scoreboard: performance monitor (signal latency, app load times)', vi: 'Bảng điểm: kiểm tra hiệu năng (độ trễ tín hiệu, thời gian tải ứng dụng)' },
   { group: 'jarvis', key: 'jarvisStory', en: 'Playbook checks in practice trade stories', vi: 'Kiểm tra sổ tay trong câu chuyện lệnh luyện tập' },
   { group: 'jarvis', key: 'jarvisGate', en: 'Practice buys must pass every playbook rule proven on paper trades', vi: 'Lệnh mua luyện tập phải đạt mọi quy tắc sổ tay đã chứng minh trên lệnh thử' },
-  { group: 'jarvis', key: 'jarvisMotion', en: 'Animated Jarvis avatar', vi: 'Hình đại diện Jarvis chuyển động' },
-  { group: 'jarvis', key: 'jarvisShowMe', en: 'Show me: Jarvis opens the stock and points at what it is explaining on the chart', vi: 'Chỉ cho tôi: Jarvis mở mã và chỉ vào điều đang giải thích trên biểu đồ' },
-  { group: 'jarvis', key: 'jarvisReplay', en: 'Replay the day: Jarvis walks through each practice trade on the chart', vi: 'Xem lại ngày: Jarvis dẫn xem từng lệnh luyện tập trên biểu đồ' },
-  { group: 'jarvis', key: 'jarvisAlerts', en: 'Jarvis alerts when a practice trade opens or closes (replaces the plain pop-up)', vi: 'Jarvis báo khi lệnh luyện tập mở hoặc đóng (thay thông báo thường)' },
-  { group: 'jarvis', key: 'jarvisGreeting', en: 'Greeting: Jarvis says hello by name and sums up the day', vi: 'Lời chào: Jarvis chào bạn bằng tên và tóm tắt ngày' },
-  { group: 'jarvis', key: 'jarvisLinks', en: "What I'm linked to: ask Jarvis about its memory, skills, playbook, decision log, reviews and learner", vi: 'Kết nối của tôi: hỏi Jarvis về bộ nhớ, kỹ năng, sổ tay, nhật ký quyết định, đánh giá và bộ học' },
-  { group: 'jarvis', key: 'jarvisAnyStock', en: 'Ask about any stock ("why AAPL?"): Jarvis opens it and explains on the chart', vi: 'Hỏi về bất kỳ mã nào ("vì sao AAPL?"): Jarvis mở mã đó và giải thích trên biểu đồ' },
-  { group: 'jarvis', key: 'jarvisActions', en: 'Jarvis can act: it proposes changes (pause practice, kill switch, watchlist, these switches) and does them only after you tap "Do it"; every one is logged', vi: 'Jarvis có thể hành động: đề xuất thay đổi (tạm dừng luyện tập, dừng khẩn cấp, danh sách theo dõi, các công tắc này) và chỉ làm khi bạn bấm "Làm đi"; mọi việc đều được ghi lại' },
-  { group: 'jarvis', key: 'jarvisFab', en: 'Floating brain button: talk or type to Jarvis from any screen, with the conversation written out', vi: 'Nút bộ não nổi: nói hoặc gõ với Jarvis ở mọi màn hình, kèm bản ghi cuộc trò chuyện' },
+  { group: 'jarvis', key: 'jarvisMotion', en: 'Animated Neo avatar', vi: 'Hình đại diện Neo chuyển động' },
+  { group: 'jarvis', key: 'jarvisShowMe', en: 'Show me: Neo opens the stock and points at what it is explaining on the chart', vi: 'Chỉ cho tôi: Neo mở mã và chỉ vào điều đang giải thích trên biểu đồ' },
+  { group: 'jarvis', key: 'jarvisReplay', en: 'Replay the day: Neo walks through each practice trade on the chart', vi: 'Xem lại ngày: Neo dẫn xem từng lệnh luyện tập trên biểu đồ' },
+  { group: 'jarvis', key: 'jarvisAlerts', en: 'Neo alerts when a practice trade opens or closes (replaces the plain pop-up)', vi: 'Neo báo khi lệnh luyện tập mở hoặc đóng (thay thông báo thường)' },
+  { group: 'jarvis', key: 'jarvisGreeting', en: 'Greeting: Neo says hello by name and sums up the day', vi: 'Lời chào: Neo chào bạn bằng tên và tóm tắt ngày' },
+  { group: 'jarvis', key: 'jarvisLinks', en: "What I'm linked to: ask Neo about its memory, skills, playbook, decision log, reviews and learner", vi: 'Kết nối của tôi: hỏi Neo về bộ nhớ, kỹ năng, sổ tay, nhật ký quyết định, đánh giá và bộ học' },
+  { group: 'jarvis', key: 'jarvisAnyStock', en: 'Ask about any stock ("why AAPL?"): Neo opens it and explains on the chart', vi: 'Hỏi về bất kỳ mã nào ("vì sao AAPL?"): Neo mở mã đó và giải thích trên biểu đồ' },
+  { group: 'jarvis', key: 'jarvisActions', en: 'Neo can act: it proposes changes (pause practice, kill switch, watchlist, these switches) and does them only after you tap "Do it"; every one is logged', vi: 'Neo có thể hành động: đề xuất thay đổi (tạm dừng luyện tập, dừng khẩn cấp, danh sách theo dõi, các công tắc này) và chỉ làm khi bạn bấm "Làm đi"; mọi việc đều được ghi lại' },
+  { group: 'jarvis', key: 'jarvisFab', en: 'Floating brain button: talk or type to Neo from any screen, with the conversation written out', vi: 'Nút bộ não nổi: nói hoặc gõ với Neo ở mọi màn hình, kèm bản ghi cuộc trò chuyện' },
   { group: 'jarvis', key: 'jarvisFabTalk', en: 'The floating brain answers out loud (male voice by default; change it in the Brain tab)', vi: 'Bộ não nổi trả lời thành tiếng (mặc định giọng nam; đổi trong tab Bộ não)' },
-  { group: 'jarvis', key: 'jarvisCloudAi', en: "Free AI helper: when Jarvis doesn't understand you, he asks a free AI (Gemini, Groq, Grok or NVIDIA) using his own facts. Only works after a key is added (type it in Settings, or set it as a server secret)", vi: 'Trợ lý AI miễn phí: khi Jarvis không hiểu, Jarvis hỏi một AI miễn phí (Gemini, Groq, Grok hoặc NVIDIA) kèm dữ liệu của mình. Chỉ hoạt động sau khi thêm khóa (nhập trong Cài đặt, hoặc đặt làm secret trên máy chủ)' },
+  { group: 'jarvis', key: 'jarvisCloudAi', en: "Free AI helper: when Neo doesn't understand you, he asks a free AI (Gemini, Groq, Grok or NVIDIA) using his own facts. Only works after a key is added (type it in Settings, or set it as a server secret)", vi: 'Trợ lý AI miễn phí: khi Neo không hiểu, Neo hỏi một AI miễn phí (Gemini, Groq, Grok hoặc NVIDIA) kèm dữ liệu của mình. Chỉ hoạt động sau khi thêm khóa (nhập trong Cài đặt, hoặc đặt làm secret trên máy chủ)' },
   { group: 'jarvis', key: 'aiKeyBoxes', en: 'Show the free AI key boxes in Settings (Gemini, Groq, NVIDIA)', vi: 'Hiện ô nhập khóa AI miễn phí trong Cài đặt (Gemini, Groq, NVIDIA)' },
   { group: 'jarvis', key: 'netTools', en: 'Wi-Fi & Bluetooth page: devices on your network, Wi-Fi channels, ping, port check, Wake-on-LAN, speed test (your own network only; scans need the home agent)', vi: 'Trang Wi-Fi và Bluetooth: thiết bị trong mạng, kênh Wi-Fi, ping, kiểm tra cổng, đánh thức máy, đo tốc độ (chỉ mạng của anh; quét cần chương trình trên máy nhà)' },
   { group: 'jarvis', key: 'webFlash', en: 'RuView: flash an ESP32-S3/C6 board straight from Chrome or Edge on a computer (USB cable, pinned RuView firmware, checked before writing)', vi: 'RuView: nạp firmware cho board ESP32-S3/C6 ngay trên Chrome hoặc Edge trên máy tính (cáp USB, firmware RuView đã ghim, kiểm tra trước khi ghi)' },
@@ -328,20 +330,21 @@ export const RULE_FIELDS: RuleField[] = [
   { group: 'jarvis', key: 'videoStudioOn', en: 'Video Studio page: bilingual (EN + VI) faceless videos made in your browser, 3 modes, MP4 download and Title Lab; never posts by itself', vi: 'Trang Video Studio: video không lộ mặt song ngữ (EN + VI) làm ngay trên trình duyệt, 3 chế độ, tải MP4 và Title Lab; không bao giờ tự đăng' },
   { group: 'jarvis', key: 'toolHub', en: "Atlas Brief: today's pick sits next to the scoreboard (off: the previous Brief layout)", vi: 'Bản tin Atlas: mã chọn hôm nay nằm cạnh bảng điểm (tắt: giao diện Bản tin trước đó)' },
   { group: 'jarvis', key: 'dashMotion', en: 'Dashboard cards and motion: a card per project on the Hub (Trading, RuView, ESP32 Lab, Network, Build, Studio) and clearer number cards with change chips (off: the previous look)', vi: 'Thẻ và hiệu ứng dashboard: mỗi dự án một thẻ trên Hub (Trading, RuView, ESP32 Lab, Mạng, Xây dựng, Studio) và thẻ số liệu rõ hơn kèm chip thay đổi (tắt: giao diện trước đó)' },
-  { group: 'jarvis', key: 'hubLayout', en: 'Hub home page: best pick next to the sphere, prediction board with 6 agent dots, Studio and devices (off: the old Jarvis Brief layout)', vi: 'Trang chủ Hub: mã tốt nhất cạnh quả cầu, bảng dự đoán có 6 chấm agent, Studio và thiết bị (tắt: giao diện Jarvis Brief cũ)' },
-  { group: 'jarvis', key: 'jarvisHub', en: 'Jarvis Hub as the main page: every project (Atlas, Argus, Echo, Volt, Nexus, Nova, Viraltech, Lumi, Forge) with its live state, and a search that opens any project or tool (off: Atlas opens first)', vi: 'Jarvis Hub là trang chính: mọi dự án (Atlas, Argus, Echo, Volt, Nexus, Nova, Viraltech, Lumi, Forge) kèm trạng thái thật, và ô tìm mở ngay dự án hay công cụ nào (tắt: mở Atlas trước)' },
-  { group: 'jarvis', key: 'briefHome', en: 'Jarvis Brief as the home page (off: open the Trading desk first)', vi: 'Jarvis Brief là trang chủ (tắt: mở Bàn giao dịch trước)' },
-  { group: 'jarvis', key: 'briefAi', en: 'Free AI writes the Jarvis Brief from real data (once per scan; plain text if every AI key fails)', vi: 'AI miễn phí viết Jarvis Brief từ dữ liệu thật (mỗi lần quét một lần; nếu mọi key AI lỗi thì dùng văn bản thường)' },
+  { group: 'jarvis', key: 'hubLayout', en: 'Hub home page: best pick next to the sphere, prediction board with 6 agent dots, Studio and devices (off: the old Neo Brief layout)', vi: 'Trang chủ Hub: mã tốt nhất cạnh quả cầu, bảng dự đoán có 6 chấm agent, Studio và thiết bị (tắt: giao diện Neo Brief cũ)' },
+  { group: 'jarvis', key: 'jarvisHub', en: 'Neo Hub as the main page: every project (Atlas, Iris, Echo, Volt, Nexus, Nova, Viraltech, Lumi, Max) with its live state, and a search that opens any project or tool (off: Atlas opens first)', vi: 'Neo Hub là trang chính: mọi dự án (Atlas, Iris, Echo, Volt, Nexus, Nova, Viraltech, Lumi, Max) kèm trạng thái thật, và ô tìm mở ngay dự án hay công cụ nào (tắt: mở Atlas trước)' },
+  { group: 'jarvis', key: 'hubAgents', en: 'Project agents: Neo knows every project, each project page has its own agent in the floating chat (Atlas, Iris, Echo, Volt, Nexus, Nova, Viraltech, Lumi, Max), and "open Nova" or "how is Iris?" works from any screen', vi: 'Agent từng dự án: Neo biết mọi dự án, mỗi trang dự án có agent riêng trong khung chat nổi (Atlas, Iris, Echo, Volt, Nexus, Nova, Viraltech, Lumi, Max), và nói "mở Nova" hay "Iris thế nào?" ở màn hình nào cũng được' },
+  { group: 'jarvis', key: 'briefHome', en: 'Neo Brief as the home page (off: open the Trading desk first)', vi: 'Neo Brief là trang chủ (tắt: mở Bàn giao dịch trước)' },
+  { group: 'jarvis', key: 'briefAi', en: 'Free AI writes the Neo Brief from real data (once per scan; plain text if every AI key fails)', vi: 'AI miễn phí viết Neo Brief từ dữ liệu thật (mỗi lần quét một lần; nếu mọi key AI lỗi thì dùng văn bản thường)' },
   { group: 'jarvis', key: 'localExplain', en: 'Local AI explains your trades (on your device, no cloud keys)', vi: 'AI cục bộ giải thích lệnh của bạn (trên máy, không cần key đám mây)' },
   { group: 'jarvis', key: 'localQA', en: 'Local AI answers questions about your trades and rules (on your device)', vi: 'AI cục bộ trả lời câu hỏi về lệnh và quy tắc (trên máy)' },
   { group: 'jarvis', key: 'localVoiceNarrator', en: 'Local AI reads explanations and answers aloud (browser voice)', vi: 'AI cục bộ đọc giải thích và câu trả lời to (giọng trình duyệt)' },
-  { group: 'jarvis', key: 'jarvisListen', en: 'Ask Jarvis by voice (microphone; Chrome, Edge or Safari)', vi: 'Hỏi Jarvis bằng giọng nói (micro; Chrome, Edge hoặc Safari)' },
-  { group: 'jarvis', key: 'jarvisSpeech', en: "Jarvis speaks (reads briefings and answers aloud with your device's voices; pick the voice in the Brain tab)", vi: 'Jarvis nói (đọc to bản tin và câu trả lời bằng giọng có sẵn trên thiết bị; chọn giọng trong tab Bộ não)' },
+  { group: 'jarvis', key: 'jarvisListen', en: 'Ask Neo by voice (microphone; Chrome, Edge or Safari)', vi: 'Hỏi Neo bằng giọng nói (micro; Chrome, Edge hoặc Safari)' },
+  { group: 'jarvis', key: 'jarvisSpeech', en: "Neo speaks (reads briefings and answers aloud with your device's voices; pick the voice in the Brain tab)", vi: 'Neo nói (đọc to bản tin và câu trả lời bằng giọng có sẵn trên thiết bị; chọn giọng trong tab Bộ não)' },
   { group: 'modules', key: 'autoRangeTf', en: 'Chart ranges pick the bar size (1D = 5-minute bars, 5D = 15m, 1M = 1h, 3M = 4h, 1Y and All = daily)', vi: 'Khoảng biểu đồ tự chọn cỡ nến (1D = nến 5 phút, 5D = 15p, 1M = 1 giờ, 3M = 4 giờ, 1Y và All = ngày)' },
   { group: 'modules', key: 'adjustableTimeRange', en: 'Adjustable time range on Trading desk (custom days input beyond preset buttons)', vi: 'Khoảng thời gian điều chỉnh được trên Bàn giao dịch (nhập ngày tùy chỉnh ngoài các nút sẵn)' },
   { group: 'modules', key: 'signalValidator', en: 'Validate every signal path before showing (alerts, Brief, playbook)', vi: 'Kiểm tra mọi đường dẫn tín hiệu trước khi hiển thị (cảnh báo, Bản tin, Sổ tay)' },
   { group: 'modules', key: 'walkForwardValidatorOn', en: 'Walk-forward validator (mark signals "Proven" only after 50%+ win rate on unseen data)', vi: 'Bộ xác thực quay lại (đánh dấu tín hiệu "Đã chứng minh" chỉ sau 50%+ tỉ lệ thắng trên dữ liệu chưa biết)' },
-  { group: 'jarvis', key: 'newsEnabled', en: 'Show latest news for watched symbols in Jarvis Brief', vi: 'Hiện tin tức mới nhất cho các mã theo dõi trong Jarvis Brief' },
+  { group: 'jarvis', key: 'newsEnabled', en: 'Show latest news for watched symbols in Neo Brief', vi: 'Hiện tin tức mới nhất cho các mã theo dõi trong Neo Brief' },
   { group: 'modules', key: 'newsAnalysis', en: 'Analyze market news sentiment for BUY/SELL bias', vi: 'Phân tích độ dốc tin tức thị trường cho thiên vị MUA/BÁN' },
   { group: 'modules', key: 'preMarketAlerts', en: 'Alerts before market open (pre-market movers and news)', vi: 'Cảnh báo trước khi mở cửa thị trường (mã tăng trước giờ và tin tức)' },
   { group: 'modules', key: 'cryptoMoversThrottleHrs', en: 'Crypto movers scan frequency (0 = always, >0 = max hours between scans)', vi: 'Tần suất quét crypto tăng (0 = luôn luôn, >0 = giờ tối đa giữa các lần quét)', min: 0, max: 24, step: 1, unit: 'hours' },

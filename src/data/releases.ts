@@ -2,7 +2,7 @@
  * Version and "What's new". Bump APP_VERSION and add an entry to the top of RELEASES
  * with each update. The banner shows once per version, then stays dismissed.
  */
-export const APP_VERSION = '1.43.0'
+export const APP_VERSION = '1.44.0'
 
 export interface Release {
   version: string
@@ -13,6 +13,16 @@ export interface Release {
 }
 
 export const RELEASES: Release[] = [
+  {
+    version: '1.44.0',
+    date: '2026-10-23',
+    changes: [
+      'Jarvis is now called Neo, and Neo runs the whole hub. Every project page has its own agent in the floating chat, named after the project: Atlas, Iris (was Argus), Echo, Volt, Nexus, Nova, Viraltech, Lumi and Max (was Forge). Talk or type from any screen: "how is Nova?", "which projects are running?", or "open Iris" goes straight there. Answers come from the app\'s own data. Off switch: Settings > AI rules > Project agents.',
+    ],
+    changesVi: [
+      'Jarvis giờ tên là Neo, và Neo quản lý cả hub. Mỗi trang dự án có agent riêng trong khung chat nổi, mang tên dự án: Atlas, Iris (trước là Argus), Echo, Volt, Nexus, Nova, Viraltech, Lumi và Max (trước là Forge). Nói hoặc gõ ở màn hình nào cũng được: "Nova thế nào?", "các dự án đang ra sao?", hay "mở Iris" là mở ngay. Câu trả lời lấy từ dữ liệu của app. Tắt trong Cài đặt > Luật AI > Agent từng dự án.',
+    ],
+  },
   {
     version: '1.43.0',
     date: '2026-10-23',

@@ -1,5 +1,5 @@
 /**
- * Tool Hub: every tool and project around Jarvis, grouped, each one opening real work
+ * Tool Hub: every tool and project around Neo, grouped, each one opening real work
  * (a page in this app, a link, or a spot on the home page). Pure data and layout; ToolHub.tsx draws it.
  */
 import type { Bi } from './hubText'
@@ -27,7 +27,7 @@ const REPO = 'https://github.com/giusemc1988/stock-predict'
 
 export const CLUSTERS: Cluster[] = [
   { id: 'trading', label: { en: 'Trading', vi: 'Trading' }, tone: 'var(--robot)' },
-  { id: 'world', label: { en: 'Argus', vi: 'Argus' }, tone: '#6fd3ff' },
+  { id: 'world', label: { en: 'Iris', vi: 'Iris' }, tone: '#6fd3ff' },
   { id: 'esp32', label: { en: 'ESP32 Lab', vi: 'ESP32 Lab' }, tone: '#7ee0b5' },
   { id: 'network', label: { en: 'Network', vi: 'Mạng' }, tone: '#8fb8ff' },
   { id: 'build', label: { en: 'Build', vi: 'Xây dựng' }, tone: '#f2c46d' },
@@ -39,7 +39,7 @@ export const TOOLS: ToolNode[] = [
   { id: 'portfolio', cluster: 'trading', label: { en: 'Portfolio', vi: 'Danh mục' }, note: { en: 'Paper account and history', vi: 'Tài khoản tiền ảo và lịch sử' }, action: { kind: 'page', page: 'portfolio' } },
   { id: 'board', cluster: 'trading', label: { en: 'Prediction board', vi: 'Bảng dự đoán' }, note: { en: 'Every BUY call with 6 agent votes', vi: 'Mọi lệnh MUA kèm 6 phiếu agent' }, action: { kind: 'scroll', id: 'hub-board' } },
   { id: 'kronos', cluster: 'trading', label: { en: 'Kronos shadow test', vi: 'Kronos thi thử' }, note: { en: 'AI candle forecasts graded daily, never traded', vi: 'Dự đoán nến bằng AI, chấm điểm mỗi ngày, không giao dịch' }, action: { kind: 'url', url: `${REPO}/blob/main/docs/kronos-shadow.md` } },
-  { id: 'godseye', cluster: 'world', label: { en: "Argus · God's Eye", vi: "Argus · God's Eye" }, note: { en: 'Live 3D globe: flights, military, satellites, quakes', vi: 'Địa cầu 3D trực tiếp: máy bay, quân sự, vệ tinh, động đất' }, action: { kind: 'page', page: 'godseye' } },
+  { id: 'godseye', cluster: 'world', label: { en: "Iris · God's Eye", vi: "Iris · God's Eye" }, note: { en: 'Live 3D globe: flights, military, satellites, quakes', vi: 'Địa cầu 3D trực tiếp: máy bay, quân sự, vệ tinh, động đất' }, action: { kind: 'page', page: 'godseye' } },
   { id: 'godseye-full', cluster: 'world', label: { en: 'Globe full screen', vi: 'Địa cầu toàn màn hình' }, note: { en: 'The argus Worker on your Cloudflare', vi: 'Worker argus trên Cloudflare của anh' }, action: { kind: 'url', url: GODS_EYE_URL } },
   { id: 'flash', cluster: 'esp32', label: { en: 'Flash a board', vi: 'Nạp firmware' }, note: { en: 'ESP32-S3 / C6 from Chrome over USB', vi: 'ESP32-S3 / C6 qua USB trên Chrome' }, action: { kind: 'page', page: 'ruview-flash' } },
   { id: 'ruview', cluster: 'esp32', label: { en: 'RuView live', vi: 'RuView trực tiếp' }, note: { en: 'Rooms, nodes, presence', vi: 'Phòng, node, có người' }, action: { kind: 'page', page: 'ruview' } },
@@ -52,7 +52,7 @@ export const TOOLS: ToolNode[] = [
   { id: 'dev', cluster: 'build', label: { en: 'Jarvis Dev (offline)', vi: 'Jarvis Dev (offline)' }, note: { en: 'Fix and upgrade on your PC, no Claude needed', vi: 'Sửa và nâng cấp trên máy, không cần Claude' }, action: { kind: 'url', url: `${REPO}/blob/main/tools/jarvis-dev/README.md` } },
   { id: 'prs', cluster: 'build', label: { en: 'Pull requests', vi: 'Pull request' }, note: { en: 'Changes waiting for you to merge', vi: 'Thay đổi chờ anh merge' }, action: { kind: 'url', url: `${REPO}/pulls` } },
   { id: 'repo', cluster: 'build', label: { en: 'Source code', vi: 'Mã nguồn' }, note: { en: 'The whole project on GitHub', vi: 'Toàn bộ dự án trên GitHub' }, action: { kind: 'url', url: REPO } },
-  { id: 'apps', cluster: 'build', label: { en: 'App Builder', vi: 'Tạo app' }, note: { en: 'Jarvis writes small apps for you', vi: 'Jarvis viết app nhỏ cho anh' }, action: { kind: 'soon' } },
+  { id: 'apps', cluster: 'build', label: { en: 'App Builder', vi: 'Tạo app' }, note: { en: 'Neo writes small apps for you', vi: 'Neo viết app nhỏ cho anh' }, action: { kind: 'soon' } },
   { id: 'video', cluster: 'studio', label: { en: 'Nova · Video Studio', vi: 'Nova · Video Studio' }, note: { en: 'Bilingual faceless videos, MP4 + Title Lab', vi: 'Video không lộ mặt song ngữ, MP4 + Title Lab' }, action: { kind: 'page', page: 'studio' } },
   { id: 'media', cluster: 'studio', label: { en: 'Media Lab', vi: 'Media Lab' }, note: { en: 'Image and video tools', vi: 'Công cụ ảnh và video' }, action: { kind: 'soon' } },
   { id: 'viraltech', cluster: 'studio', label: { en: 'Viraltech', vi: 'Viraltech' }, note: { en: 'Social media posts and engagement', vi: 'Bài đăng và tương tác mạng xã hội' }, action: { kind: 'page', page: 'viraltech' } },
@@ -95,7 +95,7 @@ export interface Pt {
   y: number
 }
 /**
- * Graph positions in a 720 x 440 box: Jarvis in the middle, groups on a ring, each group's tools
+ * Graph positions in a 720 x 440 box: Neo in the middle, groups on a ring, each group's tools
  * fanned out away from the middle so lines don't cross.
  */
 export function graphLayout(clusters: Cluster[] = CLUSTERS, tools: ToolNode[] = TOOLS) {

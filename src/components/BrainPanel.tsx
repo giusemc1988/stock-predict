@@ -28,13 +28,13 @@ interface Props {
   onShowTrade?: (id: string) => void
   /** Replay the day's practice trades on the chart. */
   onReplay?: () => void
-  /** Markets Jarvis can recognise by ticker or name in a question. */
+  /** Markets Neo can recognise by ticker or name in a question. */
   known?: { symbol: string; name: string }[]
   /** "Why AAPL?": open that stock and explain it on the chart. */
   onAskStock?: (symbol: string) => void
   /** Carry out an action you confirmed. */
   onAction?: (a: JarvisAction) => void
-  /** Your watchlist symbols, so Jarvis doesn't propose adding one twice. */
+  /** Your watchlist symbols, so Neo doesn't propose adding one twice. */
   watchlist?: string[]
   /** The stock on the chart, for "it" and "this stock". */
   symbol?: string
@@ -42,7 +42,7 @@ interface Props {
 
 type Tab = 'today' | 'lessons' | 'playbook'
 
-/** Jarvis, the Arc Brain: briefing, Ask Jarvis, lessons and the playbook with its evidence. */
+/** Neo, the Arc Brain: briefing, Ask Neo, lessons and the playbook with its evidence. */
 export function BrainPanel({ state, rules, journal, learn, killSwitch, priceOf, onEditRules, onShowTrade, onReplay, known = [], onAskStock, onAction, watchlist = [], symbol }: Props) {
   const lang = useLang()
   const L = (en: string, vi: string) => (lang === 'vi' ? vi : en)
@@ -69,7 +69,7 @@ export function BrainPanel({ state, rules, journal, learn, killSwitch, priceOf, 
     setVoiceMsg(null)
     void speak(lines.map(pick).join(' '), voice, lang, voices, 'brain').then((r) => setVoiceMsg(speakProblem(r, lang)))
   }
-  const testLine = { en: "Hello, I'm Jarvis. This is how I sound.", vi: 'Xin chào, tôi là Jarvis. Đây là giọng của tôi.' }
+  const testLine = { en: "Hello, I'm Neo. This is how I sound.", vi: 'Xin chào, tôi là Neo. Đây là giọng của tôi.' }
   // the Brain tab owns what it starts reading: stop when it closes or the voice is switched off
   useEffect(() => {
     if (!speech) stopSpeaking('brain')
@@ -87,7 +87,7 @@ export function BrainPanel({ state, rules, journal, learn, killSwitch, priceOf, 
     if (next) say(ask(next, ctx))
     else stopSpeaking()
   }
-  // greeting: your name, the time of day and a one-line summary; read aloud once a day when Jarvis speaks
+  // greeting: your name, the time of day and a one-line summary; read aloud once a day when Neo speaks
   const [name, setName] = useLocalStorage('arc.jarvisName.v1', 'Chanh')
   const [editName, setEditName] = useState(false)
   const hello = rules.jarvisGreeting ? greeting(name, state, killSwitch) : null
@@ -103,11 +103,11 @@ export function BrainPanel({ state, rules, journal, learn, killSwitch, priceOf, 
     say([hello])
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [!!hello, speech])
-  // ask anything: typed or spoken, understood as a stock, one of Jarvis's questions, or "replay"
+  // ask anything: typed or spoken, understood as a stock, one of Neo's questions, or "replay"
   const [typed, setTyped] = useState('')
   const [free, setFree] = useState<{ text: string; symbol?: string } | null>(null)
   const linked: AskId[] = ['who', 'skills', 'log', 'reviews', 'learning']
-  // actions: Jarvis proposes, you confirm; both outcomes are logged
+  // actions: Neo proposes, you confirm; both outcomes are logged
   const [pending, setPending] = useState<JarvisAction | null>(null)
   const [actionLog, setActionLog] = useState<ActionLogEntry[]>(loadActionLog)
   const settle = (done: boolean) => {
@@ -206,7 +206,7 @@ export function BrainPanel({ state, rules, journal, learn, killSwitch, priceOf, 
       <div className="brain-head">
         <JarvisAvatar size={48} mood={mood} motion={rules.jarvisMotion} />
         <div>
-          <h3>Jarvis</h3>
+          <h3>Neo</h3>
           <p className="muted al-note">{L("The Arc Brain · your practice trading mentor", 'Bộ não Arc · người hướng dẫn luyện tập giao dịch')}</p>
         </div>
       </div>
@@ -263,7 +263,7 @@ export function BrainPanel({ state, rules, journal, learn, killSwitch, priceOf, 
       </div>
 
       <div className="al-note muted" style={{ fontSize: '0.9em', padding: '8px 0' }}>
-        <strong>Jarvis Phase 1 Status:</strong> Walk-forward validator ready. Router + Learner integration disabled until Phase 2.
+        <strong>Neo Phase 1 Status:</strong> Walk-forward validator ready. Router + Learner integration disabled until Phase 2.
       </div>
 
       <div className="al-tabs" style={{ gridTemplateColumns: `repeat(${tabs.length}, 1fr)` }}>
@@ -278,7 +278,7 @@ export function BrainPanel({ state, rules, journal, learn, killSwitch, priceOf, 
         <>
           {onReplay && (
             <button className="al-save brain-replay" onClick={onReplay}>
-              ▶ {L("Replay today's trades with Jarvis", 'Xem lại các lệnh hôm nay cùng Jarvis')}
+              ▶ {L("Replay today's trades with Neo", 'Xem lại các lệnh hôm nay cùng Neo')}
             </button>
           )}
           {rules.jarvisBriefing && (
@@ -306,7 +306,7 @@ export function BrainPanel({ state, rules, journal, learn, killSwitch, priceOf, 
           {rules.jarvisAsk && (
             <div className="al-card">
               <div className="al-report-head">
-                <div className="al-kicker">{L('ASK JARVIS', 'HỎI JARVIS')}</div>
+                <div className="al-kicker">{L('ASK NEO', 'HỎI NEO')}</div>
                 {rules.jarvisListen && canListen() && (
                   <button className={`brain-mic${listening ? ' on' : ''}`} onClick={mic} aria-label={L('Ask by voice', 'Hỏi bằng giọng nói')}>
                     🎙 {listening ? L('Listening…', 'Đang nghe…') : L('Ask by voice', 'Hỏi bằng giọng nói')}
@@ -321,13 +321,13 @@ export function BrainPanel({ state, rules, journal, learn, killSwitch, priceOf, 
                   if (typed.trim() && handle(typed.trim())) setTyped('')
                 }}
               >
-                <input value={typed} onChange={(e) => setTyped(e.target.value)} placeholder={rules.jarvisAnyStock ? L('Ask me anything, like "why AAPL?"', 'Hỏi gì cũng được, ví dụ "vì sao AAPL?"') : L('Ask me a question', 'Hỏi tôi một câu')} aria-label={L('Ask Jarvis', 'Hỏi Jarvis')} />
+                <input value={typed} onChange={(e) => setTyped(e.target.value)} placeholder={rules.jarvisAnyStock ? L('Ask me anything, like "why AAPL?"', 'Hỏi gì cũng được, ví dụ "vì sao AAPL?"') : L('Ask me a question', 'Hỏi tôi một câu')} aria-label={L('Ask Neo', 'Hỏi Neo')} />
                 <button type="submit" className="pr-rescan">
                   {L('Ask', 'Hỏi')}
                 </button>
               </form>
               {pending && (
-                <div className="brain-confirm" role="alertdialog" aria-label={L('Confirm Jarvis action', 'Xác nhận hành động của Jarvis')}>
+                <div className="brain-confirm" role="alertdialog" aria-label={L('Confirm Neo action', 'Xác nhận hành động của Neo')}>
                   <JarvisAvatar size={24} mood="thinking" motion={rules.jarvisMotion} />
                   <div>
                     <p>
@@ -423,7 +423,7 @@ export function BrainPanel({ state, rules, journal, learn, killSwitch, priceOf, 
           )}
           {!rules.jarvisSpeech && (
             <div className="al-card">
-              <div className="al-kicker">{L("JARVIS'S VOICE", 'GIỌNG JARVIS')}</div>
+              <div className="al-kicker">{L("NEO'S VOICE", 'GIỌNG NEO')}</div>
               <p className="muted al-note">{L("My voice is off, so I won't read anything aloud.", 'Giọng của tôi đang tắt nên tôi sẽ không đọc to.')}</p>
               <button
                 className="pr-rescan"
@@ -432,7 +432,7 @@ export function BrainPanel({ state, rules, journal, learn, killSwitch, priceOf, 
                   say([testLine])
                 }}
               >
-                🔊 {L("Turn on Jarvis's voice", 'Bật giọng Jarvis')}
+                🔊 {L("Turn on Neo's voice", 'Bật giọng Neo')}
               </button>
               {voiceMsg && <p className="brain-voice-msg">{voiceMsg}</p>}
             </div>
@@ -456,7 +456,7 @@ export function BrainPanel({ state, rules, journal, learn, killSwitch, priceOf, 
           )}
           {rules.jarvisSpeech && (
             <div className="al-card">
-              <div className="al-kicker">{L("JARVIS'S VOICE", 'GIỌNG JARVIS')}</div>
+              <div className="al-kicker">{L("NEO'S VOICE", 'GIỌNG NEO')}</div>
               {!canSpeak() ? (
                 <p className="muted al-note">{L("This browser can't speak. Try Chrome, Edge or Safari.", 'Trình duyệt này không đọc được. Hãy thử Chrome, Edge hoặc Safari.')}</p>
               ) : (
@@ -464,7 +464,7 @@ export function BrainPanel({ state, rules, journal, learn, killSwitch, priceOf, 
                   <label>
                     <span>{L('Sound', 'Kiểu giọng')}</span>
                     <select value={voice.gender} onChange={(e) => setVoice({ ...voice, gender: e.target.value as VoicePrefs['gender'], voice: '' })}>
-                      <option value="male">{L('Male (Jarvis)', 'Nam (Jarvis)')}</option>
+                      <option value="male">{L('Male (Neo)', 'Nam (Neo)')}</option>
                       <option value="female">{L('Female', 'Nữ')}</option>
                       <option value="any">{L('Any', 'Bất kỳ')}</option>
                     </select>
@@ -510,7 +510,7 @@ export function BrainPanel({ state, rules, journal, learn, killSwitch, priceOf, 
               )}
             </div>
           )}
-          {!rules.jarvisBriefing && !rules.jarvisAsk && <p className="muted">{L('Briefing and Ask Jarvis are off in AI rules.', 'Bản tin và Hỏi Jarvis đang tắt trong Quy tắc AI.')}</p>}
+          {!rules.jarvisBriefing && !rules.jarvisAsk && <p className="muted">{L('Briefing and Ask Neo are off in AI rules.', 'Bản tin và Hỏi Neo đang tắt trong Quy tắc AI.')}</p>}
         </>
       )}
 
@@ -557,7 +557,7 @@ export function BrainPanel({ state, rules, journal, learn, killSwitch, priceOf, 
             )
           })}
           <button className="al-save" onClick={onEditRules}>
-            {L('Jarvis settings (AI rules)', 'Cài đặt Jarvis (Quy tắc AI)')}
+            {L('Neo settings (AI rules)', 'Cài đặt Neo (Quy tắc AI)')}
           </button>
         </div>
       )}

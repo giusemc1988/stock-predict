@@ -12,6 +12,8 @@ import type { Bi } from '../lib/jarvis'
 import { JarvisAvatar } from './JarvisAvatar'
 import { askCloud, factsForAi } from '../lib/cloudBrain'
 import { detectLanguage } from '../lib/jarvisChat'
+import { HUB_AGENT, agentName, agentProject, hubFactsForAi, introduce, type AppPage, type HubFacts } from '../lib/agents'
+import type { HubPage } from '../lib/toolHub'
 
 interface Props {
   state: PracticeState
@@ -28,14 +30,20 @@ interface Props {
   onAction?: (a: JarvisAction) => void
   /** The stock on the chart, for "it" and "this stock". */
   symbol?: string
+  /** The page on screen: its project's agent answers there (Neo on the Hub). */
+  page?: AppPage
+  /** The hub's state, so any agent can say how a project is doing. */
+  hub?: HubFacts
+  /** Open a project's page, or 'home' for the Hub. */
+  onOpen?: (to: HubPage | 'brief' | 'home') => void
 }
 
 type Phase = 'idle' | 'listening' | 'thinking' | 'speaking'
 
 const stamp = () => Date.now()
 
-/** The floating brain: talk or type to Jarvis from any screen, with the conversation written out. */
-export function JarvisFab({ state, rules, journal, learn, killSwitch, priceOf, known, watchlist, onAskStock, onShowTrade, onReplay, onAction, symbol }: Props) {
+/** The floating brain: talk or type to Neo from any screen, with the conversation written out. */
+export function JarvisFab({ state, rules, journal, learn, killSwitch, priceOf, known, watchlist, onAskStock, onShowTrade, onReplay, onAction, symbol, page, hub, onOpen }: Props) {
   const lang = useLang()
   const L = (en: string, vi: string) => (lang === 'vi' ? vi : en)
   const pick = (b: Bi) => (lang === 'vi' ? b.vi : b.en)
@@ -55,6 +63,12 @@ export function JarvisFab({ state, rules, journal, learn, killSwitch, priceOf, k
   }
   const listRef = useRef<HTMLDivElement>(null)
   const talk = rules.jarvisFabTalk && canSpeak()
+  // the project agents: this page's agent answers, and it knows the whole hub
+  const agents = rules.hubAgents && !!page && !!hub
+  const who = agents && page ? agentName(page) : HUB_AGENT
+  const here = agents && page ? agentProject(page) : null
+  // Atlas pages keep the trading hints; the Hub and the other projects introduce their agent
+  const hello = agents && page && here?.id !== 'atlas' ? introduce(page) : null
   // say why the voice failed once, not after every answer
   const soundWarned = useRef(false)
 
@@ -120,13 +134,14 @@ export function JarvisFab({ state, rules, journal, learn, killSwitch, priceOf, k
       canStock: rules.jarvisAnyStock && !!onAskStock,
       canReplay: rules.jarvisReplay && !!onReplay,
       canShow: rules.jarvisShowMe && !!onShowTrade,
+      hub: agents && page && hub ? { page, facts: hub } : undefined,
     })
     const now = stamp()
     const answer: Bi = { en: r.text.map((x) => x.en).join(' '), vi: r.text.map((x) => x.vi).join(' ') }
     // not understood: our own data came first; now ask the free-AI helper, with those facts
     if (r.unsure && rules.jarvisCloudAi) {
       add({ who: 'me', text: { en: t, vi: t }, time: now })
-      void askCloud(t, userLang, factsForAi(ctx)).then((ai) => {
+      void askCloud(t, userLang, [...(agents && page && hub ? hubFactsForAi(page, hub) : []), ...factsForAi(ctx)]).then((ai) => {
         if (ai) {
           const said: Bi = { en: ai.text, vi: ai.text }
           add({ who: 'jarvis', text: said, time: stamp(), by: ai?.by })
@@ -143,6 +158,7 @@ export function JarvisFab({ state, rules, journal, learn, killSwitch, priceOf, k
       return
     }
     add({ who: 'me', text: { en: t, vi: t }, time: now }, { who: 'jarvis', text: answer, time: now + 1, action: r.action })
+    if (r.open) onOpen?.(r.open)
     // the chart tours read their own steps aloud, so only speak the plain answers
     if (r.stock || r.trade || r.replay) {
       setPhase('idle')
@@ -213,11 +229,14 @@ export function JarvisFab({ state, rules, journal, learn, killSwitch, priceOf, k
   return (
     <>
       {open && (
-        <div className={`jfab-panel${rules.jarvisMotion ? ' anim' : ''}`} role="dialog" aria-label={L('Talk to Jarvis', 'Nói chuyện với Jarvis')}>
+        <div className={`jfab-panel${rules.jarvisMotion ? ' anim' : ''}`} role="dialog" aria-label={L(`Talk to ${who}`, `Nói chuyện với ${who}`)}>
           <div className="jfab-head">
             <JarvisAvatar size={36} mood={mood} motion={rules.jarvisMotion} />
             <div className="jfab-title">
-              <b>Jarvis</b>
+              <b>
+                {who}
+                {here && <small className="jfab-agent"> · {pick(here.what)}</small>}
+              </b>
               <span className={`jfab-status ${phase}`}>{status}</span>
             </div>
             {chat.length > 0 && (
@@ -230,7 +249,8 @@ export function JarvisFab({ state, rules, journal, learn, killSwitch, priceOf, k
             </button>
           </div>
           <div className="jfab-list" ref={listRef}>
-            {!chat.length && !words && (
+            {!chat.length && !words && hello && <p className="jfab-empty">{pick(hello)}</p>}
+            {!chat.length && !words && !hello && (
               <p className="jfab-empty">
                 {L('Ask me about a stock ("why TSLA?"), your risk, what I learned, or say "pause practice". I answer from the app\'s own records; nothing here is real money.', 'Hỏi tôi về một mã ("vì sao TSLA?"), rủi ro, điều tôi học được, hoặc nói "tạm dừng luyện tập". Tôi trả lời từ dữ liệu của ứng dụng; không có tiền thật ở đây.')}
               </p>
@@ -265,14 +285,14 @@ export function JarvisFab({ state, rules, journal, learn, killSwitch, priceOf, k
           </div>
           <form className="jfab-input" onSubmit={send}>
             {canListen() && (
-              <button type="button" className={`jfab-mic${phase === 'listening' ? ' on' : ''}`} onClick={mic} aria-label={phase === 'listening' ? L('Stop listening', 'Dừng nghe') : L('Talk to Jarvis', 'Nói với Jarvis')}>
+              <button type="button" className={`jfab-mic${phase === 'listening' ? ' on' : ''}`} onClick={mic} aria-label={phase === 'listening' ? L('Stop listening', 'Dừng nghe') : L(`Talk to ${who}`, `Nói với ${who}`)}>
                 <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
                   <rect x="9" y="3" width="6" height="11" rx="3" fill="currentColor" />
                   <path d="M6 11a6 6 0 0 0 12 0M12 17v4" stroke="currentColor" strokeWidth="2" fill="none" strokeLinecap="round" />
                 </svg>
               </button>
             )}
-            <input value={typed} onChange={(e) => setTyped(e.target.value)} placeholder={L('Type to Jarvis…', 'Gõ cho Jarvis…')} />
+            <input value={typed} onChange={(e) => setTyped(e.target.value)} placeholder={L(`Type to ${who}…`, `Gõ cho ${who}…`)} />
             <button type="submit" className="al-save" disabled={!typed.trim()}>
               {L('Send', 'Gửi')}
             </button>
@@ -284,7 +304,7 @@ export function JarvisFab({ state, rules, journal, learn, killSwitch, priceOf, k
           </form>
         </div>
       )}
-      <button className={`jfab${open ? ' open' : ''}${phase !== 'idle' ? ' busy' : ''}${rules.jarvisMotion ? '' : ' still'}`} onClick={() => setOpen((o) => !o)} aria-label={open ? L('Hide Jarvis', 'Ẩn Jarvis') : L('Talk to Jarvis', 'Nói chuyện với Jarvis')}>
+      <button className={`jfab${open ? ' open' : ''}${phase !== 'idle' ? ' busy' : ''}${rules.jarvisMotion ? '' : ' still'}`} onClick={() => setOpen((o) => !o)} aria-label={open ? L(`Hide ${who}`, `Ẩn ${who}`) : L(`Talk to ${who}`, `Nói chuyện với ${who}`)}>
         <svg viewBox="0 0 48 48" width="30" height="30" aria-hidden="true">
           <path className="jfab-brain" d="M18 9a6 6 0 0 0-6 6 6 6 0 0 0-4 10 6 6 0 0 0 4 9 6 6 0 0 0 10 4V12a5 5 0 0 0-4-3M30 9a6 6 0 0 1 6 6 6 6 0 0 1 4 10 6 6 0 0 1-4 9 6 6 0 0 1-10 4V12a5 5 0 0 1 4-3" />
           <path className="jfab-synapse" d="M14 20h5M29 20h5M15 29h4M29 29h4M24 16v22" />
