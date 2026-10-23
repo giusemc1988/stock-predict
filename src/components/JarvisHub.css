@@ -472,12 +472,13 @@ button.hg-kb:hover, button.hg-kb:focus-visible { background: rgba(255, 255, 255,
   .hg .hg-face-av { animation: hg-bob 4s ease-in-out infinite; }
   .hg-card:nth-child(2n) .hg-face-av { animation-delay: -1.3s; }
   .hg-card:nth-child(3n) .hg-face-av { animation-delay: -2.6s; }
-  /* the hanging tags hang still; nine swinging layers starved the GPU and some tags drew blank */
-  .hg-hang { animation: none; }
+  /* the hanging tags swing softer; with their logos frozen each tag is drawn once and only turned by the GPU */
+  .hg-hang { animation-name: hg-swing-s; }
   /* the back of a card is not drawn until it turns over */
   .hg-card:not(.on) .hg-back { visibility: hidden; transition: visibility 0s 0.95s; }
 }
 @keyframes hg-bob { 50% { transform: translateY(-4px); } }
+@keyframes hg-swing-s { 0%, 100% { transform: rotate(1.8deg); } 50% { transform: rotate(-1.8deg); } }
 /* loops stop while a card or the tag rail is off screen, and on touch screens while the page scrolls (useOffscreenPause in JarvisHub.tsx) */
 .hg [data-off] *, .hg [data-off] *::before, .hg [data-off] *::after,
 .hg-card:not(.on) .hg-back *, .hg-card:not(.on) .hg-back *::before,
