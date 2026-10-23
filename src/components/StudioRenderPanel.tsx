@@ -4,6 +4,7 @@ import { STUDIO_TEXT, type StudioKey } from '../lib/studio/text'
 import type { RenderLang, RenderVoice, StudioJob } from '../lib/studioJobs'
 
 type JobRow = Omit<StudioJob, 'lines' | 'terms'>
+type KeyKind = 'pexels' | 'github'
 const POLL_MS = 20_000
 const STATUS: Record<StudioJob['status'], StudioKey> = { queued: 'statusQueued', rendering: 'statusRendering', done: 'statusDone', failed: 'statusFailed' }
 
@@ -14,17 +15,16 @@ export function StudioRenderPanel({ topic, topicVi, en, vi, aspect }: { topic: s
   const [langs, setLangs] = useState<RenderLang[]>(['vi'])
   const [voice, setVoice] = useState<RenderVoice>('female')
   const [jobs, setJobs] = useState<JobRow[] | null>(null)
-  const [pexels, setPexels] = useState(false)
-  const [key, setKey] = useState('')
+  const [keys, setKeys] = useState<Record<KeyKind, boolean>>({ pexels: false, github: false })
   const [msg, setMsg] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
 
   const load = useCallback(async () => {
     const r = await fetch('/api/studio/jobs').catch(() => null)
-    const j = (await r?.json().catch(() => null)) as { jobs?: JobRow[]; pexels?: boolean } | null
+    const j = (await r?.json().catch(() => null)) as { jobs?: JobRow[]; pexels?: boolean; github?: boolean } | null
     if (j?.jobs) {
       setJobs(j.jobs)
-      setPexels(!!j.pexels)
+      setKeys({ pexels: !!j.pexels, github: !!j.github })
     }
   }, [])
 
@@ -41,10 +41,10 @@ export function StudioRenderPanel({ topic, topicVi, en, vi, aspect }: { topic: s
     setBusy(true)
     try {
       const r = await fetch('/api/studio/render', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ topic, topicVi, en, vi, langs, voice, aspect }) })
-      const j = (await r.json().catch(() => ({}))) as { error?: string }
+      const j = (await r.json().catch(() => ({}))) as { error?: string; kicked?: boolean }
       if (r.status === 429) setMsg(t('serverBusy'))
       else if (!r.ok) setMsg(`${t('serverFailed')} ${j.error ?? `HTTP ${r.status}`}`)
-      else setMsg(t('serverQueued'))
+      else setMsg(t(j.kicked ? 'serverQueued' : 'serverQueuedSlow'))
       await load()
     } finally {
       setBusy(false)
@@ -54,15 +54,6 @@ export function StudioRenderPanel({ topic, topicVi, en, vi, aspect }: { topic: s
   const remove = async (id: string) => {
     await fetch(`/api/studio/jobs?id=${id}`, { method: 'DELETE' }).catch(() => null)
     await load()
-  }
-
-  const saveKey = async (drop: boolean) => {
-    setMsg(null)
-    const r = await fetch('/api/studio/pexels', drop ? { method: 'DELETE' } : { method: 'PUT', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ key }) })
-    const j = (await r.json().catch(() => ({}))) as { pexels?: boolean; error?: string }
-    if (!r.ok) return setMsg(j.error ?? `HTTP ${r.status}`)
-    setPexels(!!j.pexels)
-    setKey('')
   }
 
   const toggle = (l: RenderLang | 'both') => setLangs(l === 'both' ? ['vi', 'en'] : [l])
@@ -83,7 +74,8 @@ export function StudioRenderPanel({ topic, topicVi, en, vi, aspect }: { topic: s
           <button key={v} className={voice === v ? 'on' : ''} onClick={() => setVoice(v)}>{t(v === 'female' ? 'serverFemale' : 'serverMale')}</button>
         ))}
       </div>
-      <p className="muted small">{t(pexels ? 'footagePexels' : 'footageOpenverse')}</p>
+      <p className="muted small">{t(keys.pexels ? 'footagePexels' : 'footageOpenverse')}</p>
+      {!keys.github && <p className="small warn">{t('githubSlow')}</p>}
       <div className="vs-row">
         <button className="btn primary" disabled={busy || !ready} onClick={() => void make()}>{t('serverMake')}</button>
       </div>
@@ -111,15 +103,36 @@ export function StudioRenderPanel({ topic, topicVi, en, vi, aspect }: { topic: s
         </div>
       ))}
 
-      <details className="vs-pexels">
-        <summary className="small">{t('pexelsKey')}{pexels ? ' ✓' : ''}</summary>
-        <p className="muted small">{t('pexelsHow')}</p>
-        <div className="vs-row">
-          {!pexels && <input value={key} onChange={(e) => setKey(e.target.value)} placeholder="Pexels API key" autoComplete="off" />}
-          {!pexels && <button className="btn small" disabled={key.trim().length < 10} onClick={() => void saveKey(false)}>{t('pexelsSave')}</button>}
-          {pexels && <button className="btn small" onClick={() => void saveKey(true)}>{t('pexelsRemove')}</button>}
-        </div>
-      </details>
+      <KeyBox kind="github" saved={keys.github} title={t('githubKey')} how={t('githubHow')} onSaved={(v) => setKeys((k) => ({ ...k, github: v }))} />
+      <KeyBox kind="pexels" saved={keys.pexels} title={t('pexelsKey')} how={t('pexelsHow')} onSaved={(v) => setKeys((k) => ({ ...k, pexels: v }))} />
     </section>
+  )
+}
+
+/** One optional key for the render farm: paste, check on the server, save; or remove. */
+function KeyBox({ kind, saved, title, how, onSaved }: { kind: KeyKind; saved: boolean; title: string; how: string; onSaved: (saved: boolean) => void }) {
+  const lang = useLang()
+  const t = (k: StudioKey) => STUDIO_TEXT[k][lang]
+  const [key, setKey] = useState('')
+  const [msg, setMsg] = useState<string | null>(null)
+  const save = async (drop: boolean) => {
+    setMsg(null)
+    const r = await fetch(`/api/studio/key?kind=${kind}`, drop ? { method: 'DELETE' } : { method: 'PUT', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ key }) })
+    const j = (await r.json().catch(() => ({}))) as Partial<Record<KeyKind, boolean>> & { error?: string }
+    if (!r.ok) return setMsg(j.error ?? `HTTP ${r.status}`)
+    onSaved(!!j[kind])
+    setKey('')
+  }
+  return (
+    <details className="vs-pexels">
+      <summary className="small">{title}{saved ? ' ✓' : ''}</summary>
+      <p className="muted small">{how}</p>
+      <div className="vs-row">
+        {!saved && <input value={key} onChange={(e) => setKey(e.target.value)} placeholder={kind === 'github' ? 'github_pat_…' : 'Pexels API key'} autoComplete="off" />}
+        {!saved && <button className="btn small" disabled={key.trim().length < 10} onClick={() => void save(false)}>{t('keySave')}</button>}
+        {saved && <button className="btn small" onClick={() => void save(true)}>{t('keyRemove')}</button>}
+      </div>
+      {msg && <p className="small warn">{msg}</p>}
+    </details>
   )
 }

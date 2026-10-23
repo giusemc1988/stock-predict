@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict'
-import { JOB_PREFIX, MAX_ACTIVE, VID_PREFIX, cleanRenderAsk, deleteJob, fallbackTerms, isJobId, listJobs, parseRange, parseTerms, queueJobs, videoResponse, type JobStore } from '../src/lib/studioJobs'
+import { JOB_PREFIX, MAX_ACTIVE, VID_PREFIX, checkGithubToken, cleanRenderAsk, kickFarm, deleteJob, fallbackTerms, isJobId, listJobs, parseRange, parseTerms, queueJobs, videoResponse, type JobStore } from '../src/lib/studioJobs'
 
 /** Map-backed stand-in for the SETTINGS KV binding. */
 function fakeKv(): JobStore & { m: Map<string, string | ArrayBuffer> } {
@@ -83,4 +83,17 @@ assert.equal((await videoResponse(kv, made[1].id, null, false)).status, 404, 'no
 assert.ok(await deleteJob(kv, done.id))
 assert.ok(![...kv.m.keys()].some((k) => k.includes(done.id)))
 assert.equal(await deleteJob(kv, done.id), false)
+
+// the GitHub key starts nova-render.yml on main, and is checked before it is saved
+const calls: { url: string; init?: RequestInit }[] = []
+const gh = (status: number) => (async (url: string, init?: RequestInit) => { calls.push({ url, init }); return new Response(null, { status }) }) as unknown as typeof fetch
+assert.ok(await kickFarm('tok', gh(204)))
+assert.equal(calls[0].url, 'https://api.github.com/repos/giusemc1988/stock-predict/actions/workflows/nova-render.yml/dispatches')
+assert.equal(calls[0].init?.method, 'POST')
+assert.deepEqual(JSON.parse(String(calls[0].init?.body)), { ref: 'main' })
+assert.equal((calls[0].init?.headers as Record<string, string>).authorization, 'Bearer tok')
+assert.equal(await kickFarm('tok', gh(401)), false)
+assert.equal(await kickFarm('tok', (async () => { throw new Error('offline') }) as unknown as typeof fetch), false)
+assert.ok(await checkGithubToken('tok', gh(200)))
+assert.equal(await checkGithubToken('tok', gh(404)), false)
 console.log('novajobs ok')

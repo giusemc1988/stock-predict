@@ -5,10 +5,15 @@
  *   nova:job:<id>       one StudioJob as JSON
  *   nova:vid:<id>:<n>   the MP4 in chunks of job.chunk bytes (KV values stop at 25 MiB)
  *   nova:pexels         optional free Pexels key for real footage (otherwise Openverse photos)
+ *   nova:github         optional GitHub token (Actions: write on NOVA_REPO only) so "Make" starts the farm at once;
+ *                       without it the farm waits for GitHub's cron, which on this repo can lag by hours
  */
 export const JOB_PREFIX = 'nova:job:'
 export const VID_PREFIX = 'nova:vid:'
 export const PEXELS_KEY = 'nova:pexels'
+export const GITHUB_KEY = 'nova:github'
+export const NOVA_REPO = 'giusemc1988/stock-predict'
+export const NOVA_WORKFLOW = 'nova-render.yml'
 /** queued + rendering at once; more waits for the farm to catch up */
 export const MAX_ACTIVE = 4
 const MAX_LINES = 12
@@ -195,4 +200,18 @@ export async function videoResponse(kv: JobStore, id: string, range: string | nu
   if (r) headers['content-range'] = `bytes ${start}-${end}/${size}`
   if (download) headers['content-disposition'] = `attachment; filename="${slug}-${job.lang}.mp4"`
   return new Response(body, { status: r ? 206 : 200, headers })
+}
+
+const GH_HEADERS = (token: string) => ({ authorization: `Bearer ${token}`, accept: 'application/vnd.github+json', 'user-agent': 'nova-studio', 'x-github-api-version': '2022-11-28' })
+
+/** Start the render workflow now. False when GitHub refused (bad or expired token). */
+export async function kickFarm(token: string, f: typeof fetch = fetch): Promise<boolean> {
+  const r = await f(`https://api.github.com/repos/${NOVA_REPO}/actions/workflows/${NOVA_WORKFLOW}/dispatches`, { method: 'POST', headers: { ...GH_HEADERS(token), 'content-type': 'application/json' }, body: JSON.stringify({ ref: 'main' }) }).catch(() => null)
+  return r?.status === 204
+}
+
+/** A saved token must at least see the workflow; a typo shows up here, not in a silent queue. */
+export async function checkGithubToken(token: string, f: typeof fetch = fetch): Promise<boolean> {
+  const r = await f(`https://api.github.com/repos/${NOVA_REPO}/actions/workflows/${NOVA_WORKFLOW}`, { headers: GH_HEADERS(token) }).catch(() => null)
+  return r?.status === 200
 }

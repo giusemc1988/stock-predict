@@ -2,7 +2,7 @@
  * Version and "What's new". Bump APP_VERSION and add an entry to the top of RELEASES
  * with each update. The banner shows once per version, then stays dismissed.
  */
-export const APP_VERSION = '1.42.0'
+export const APP_VERSION = '1.43.0'
 
 export interface Release {
   version: string
@@ -13,6 +13,16 @@ export interface Release {
 }
 
 export const RELEASES: Release[] = [
+  {
+    version: '1.43.0',
+    date: '2026-10-23',
+    changes: [
+      'Nova step 5 has a "GitHub key" box. With the key saved, "Make with voice" starts the render farm at once, so the video is ready in about 5 to 10 minutes instead of waiting hours for GitHub\'s timer. The card shows the phone steps to make the key; it only lets Nova start the render, nothing else.',
+    ],
+    changesVi: [
+      'Nova bước 5 có ô "Key GitHub". Lưu key rồi thì bấm "Tạo video có giọng" là máy render chạy ngay, khoảng 5 đến 10 phút có video thay vì chờ đồng hồ GitHub vài giờ. Thẻ có sẵn các bước làm key trên điện thoại; key chỉ cho Nova bật máy render, không làm gì khác.',
+    ],
+  },
   {
     version: '1.42.0',
     date: '2026-10-23',
