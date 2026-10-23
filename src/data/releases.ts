@@ -2,7 +2,7 @@
  * Version and "What's new". Bump APP_VERSION and add an entry to the top of RELEASES
  * with each update. The banner shows once per version, then stays dismissed.
  */
-export const APP_VERSION = '1.44.1'
+export const APP_VERSION = '1.44.2'
 
 export interface Release {
   version: string
@@ -13,6 +13,12 @@ export interface Release {
 }
 
 export const RELEASES: Release[] = [
+  {
+    version: '1.44.2',
+    date: '2026-10-23',
+    changes: ['When a part of the app breaks, its error box now also says where it broke, so a screenshot is enough to find and fix it. #iris opens Iris (God\'s Eye).'],
+    changesVi: ['Khi một phần của app bị lỗi, khung báo lỗi giờ ghi thêm chỗ bị lỗi, nên chỉ cần chụp màn hình là tìm và sửa được. #iris mở Iris (God\'s Eye).'],
+  },
   {
     version: '1.44.1',
     date: '2026-10-23',

@@ -3,6 +3,7 @@ import { CLUSTERS, TOOLS, fold, graphLayout, searchTools, toolOpen } from '../sr
 import { VIRALTECH, postCounts } from '../src/data/viraltech'
 import { PROJECTS, pageOn, searchHub } from '../src/lib/projects'
 import { historyStep, linkedPage } from '../src/lib/pageHistory'
+import { crashPlace } from '../src/components/PanelGuard'
 
 // accents and hyphens fold away, so Vietnamese and "wifi" searches match
 assert.equal(fold('Tốc độ'), 'toc do')
@@ -73,6 +74,11 @@ assert.equal(linkedPage('#/Atlas'), 'trade')
 assert.equal(linkedPage('#argus'), 'godseye')
 assert.equal(linkedPage(''), null)
 assert.equal(linkedPage('#toString'), null)
+assert.equal(linkedPage('#iris'), 'godseye')
+// a crash names the innermost components (Chrome and Safari stacks)
+assert.equal(crashPlace('\n    at StudioRenderPanel (https://x/a.js:1:2)\n    at section\n    at VideoStudioPage (https://x/a.js:3:4)'), 'StudioRenderPanel < section < VideoStudioPage')
+assert.equal(crashPlace('Hub@https://x/a.js:1:2\nApp@https://x/a.js:3:4'), 'Hub < App')
+assert.equal(crashPlace(undefined), '')
 assert.deepEqual(historyStep('net', 'home', 'home', 1), { kind: 'back', steps: 1 })
 assert.deepEqual(historyStep('brief', 'trade', 'home', 1), { kind: 'replace' })
 assert.deepEqual(historyStep('portfolio', 'home', 'home', 1), { kind: 'back', steps: 1 })
