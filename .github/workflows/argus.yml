@@ -74,6 +74,7 @@ jobs:
       - working-directory: argus
         run: |
           cp _headers dist/_headers
+          sed -i "s/__ARGUS_SNAP_KV__/$(node kv-id.mjs | tail -n 1)/" wrangler.jsonc
           npx -y wrangler@4 deploy
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
