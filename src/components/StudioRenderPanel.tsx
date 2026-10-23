@@ -9,7 +9,7 @@ const POLL_MS = 20_000
 const STATUS: Record<StudioJob['status'], StudioKey> = { queued: 'statusQueued', rendering: 'statusRendering', done: 'statusDone', failed: 'statusFailed' }
 
 /** Nova step 5: queue the script for MoneyPrinterTurbo on GitHub Actions, then play the finished MP4s. */
-export function StudioRenderPanel({ topic, topicVi, en, vi, aspect }: { topic: string; topicVi: string; en: string[]; vi: string[]; aspect: '9:16' | '16:9' }) {
+export function StudioRenderPanel({ topic, topicVi, en, vi, aspect, glass = false }: { topic: string; topicVi: string; en: string[]; vi: string[]; aspect: '9:16' | '16:9'; glass?: boolean }) {
   const lang = useLang()
   const t = (k: StudioKey) => STUDIO_TEXT[k][lang]
   const [langs, setLangs] = useState<RenderLang[]>(['vi'])
@@ -60,9 +60,11 @@ export function StudioRenderPanel({ topic, topicVi, en, vi, aspect }: { topic: s
   const both = langs.length === 2
   const ready = topic.trim() && langs.every((l) => (l === 'vi' ? vi : en).length > 0)
 
+  const card = glass ? 'bf-card nv-card hg-glass' : 'bf-card'
   return (
-    <section className="bf-card">
-      <header><h3>{t('serverTitle')}</h3></header>
+    <>
+    <div className={card}>
+      <header><h3><span className="nv-n" aria-hidden="true">4</span>{t('serverTitle')}</h3></header>
       <p className="muted small">{t('serverNote')}</p>
       <div className="seg small" role="group" aria-label={t('serverLang')}>
         <button className={!both && langs[0] === 'vi' ? 'on' : ''} onClick={() => toggle('vi')}>VI</button>
@@ -80,10 +82,16 @@ export function StudioRenderPanel({ topic, topicVi, en, vi, aspect }: { topic: s
         <button className="btn primary" disabled={busy || !ready} onClick={() => void make()}>{t('serverMake')}</button>
       </div>
       {msg && <p className="small">{msg}</p>}
+      <KeyBox kind="github" saved={keys.github} title={t('githubKey')} how={t('githubHow')} onSaved={(v) => setKeys((k) => ({ ...k, github: v }))} />
+      <KeyBox kind="pexels" saved={keys.pexels} title={t('pexelsKey')} how={t('pexelsHow')} onSaved={(v) => setKeys((k) => ({ ...k, pexels: v }))} />
+    </div>
 
+    <div className={card}>
+      <header><h3>{t('galleryTitle')}</h3>{jobs && jobs.length > 0 && <span className="small muted">{jobs.length}</span>}</header>
       {jobs && !jobs.length && <p className="small muted">{t('serverEmpty')}</p>}
+      <div className="nv-gallery">
       {jobs?.map((j) => (
-        <div key={j.id} className="vs-job">
+        <div key={j.id} className={`vs-job nv-tile s-${j.status}`}>
           <div className="vs-lab-row">
             <span className="small"><strong>{j.lang.toUpperCase()}</strong> · {j.topic}</span>
             <span className={`small ${j.status === 'failed' ? 'warn' : 'muted'}`}>{t(STATUS[j.status])}</span>
@@ -102,10 +110,9 @@ export function StudioRenderPanel({ topic, topicVi, en, vi, aspect }: { topic: s
           </div>
         </div>
       ))}
-
-      <KeyBox kind="github" saved={keys.github} title={t('githubKey')} how={t('githubHow')} onSaved={(v) => setKeys((k) => ({ ...k, github: v }))} />
-      <KeyBox kind="pexels" saved={keys.pexels} title={t('pexelsKey')} how={t('pexelsHow')} onSaved={(v) => setKeys((k) => ({ ...k, pexels: v }))} />
-    </section>
+      </div>
+    </div>
+    </>
   )
 }
 

@@ -91,6 +91,7 @@ export interface AiRules {
   phoneScan: boolean // Android app: the phone scans the Wi-Fi it is on (devices, channels, ping, ports, Wake-on-LAN)
   godsEyeOn: boolean // God's Eye View page: anh's live 3D globe embedded, with a server check of each data layer
   videoStudioOn: boolean // Video Studio page: bilingual faceless videos made in the browser, MP4 + Title Lab
+  novaGlass: boolean // Nova in the Hub's liquid glass look with a sticky 5-step bar; off = the plain cards
   ruviewOn: boolean // RuView sensing page: presence from Wi-Fi signals via ESP32 nodes, runs on the home PC
   toolHub: boolean // Atlas Brief: today's pick sits next to the scoreboard (the Tool Hub graph moved into the Neo Hub search)
   hubLayout: boolean // the home page uses the Hub layout: best pick next to the sphere, prediction board, Studio and devices
@@ -212,6 +213,7 @@ export const DEFAULT_AI_RULES: AiRules = {
   ruviewOn: true,
   godsEyeOn: true,
   videoStudioOn: true,
+  novaGlass: true,
   phoneScan: true,
   webFlash: true,
   briefAi: true,
@@ -336,6 +338,7 @@ export const RULE_FIELDS: RuleField[] = [
   { group: 'jarvis', key: 'ruviewOn', en: 'RuView sensing page: presence at home from Wi-Fi signals with ESP32 nodes, add nodes over USB, pinned RuView version with daily update check (your own home only; needs the home agent and Docker)', vi: 'Trang RuView cảm biến: biết có người trong nhà bằng sóng Wi-Fi với node ESP32, thêm node qua USB, giữ đúng bản RuView và kiểm tra bản mới mỗi ngày (chỉ trong nhà anh; cần chương trình máy nhà và Docker)' },
   { group: 'jarvis', key: 'godsEyeOn', en: "God's Eye View page: the live 3D globe (flights, military aircraft, satellites, ships, earthquakes) inside the Hub, with a clear status for every data layer", vi: "Trang God's Eye View: quả địa cầu 3D trực tiếp (máy bay, máy bay quân sự, vệ tinh, tàu biển, động đất) ngay trong Hub, kèm trạng thái rõ ràng của từng lớp dữ liệu" },
   { group: 'jarvis', key: 'videoStudioOn', en: 'Video Studio page: bilingual (EN + VI) faceless videos made in your browser, 3 modes, MP4 download and Title Lab; never posts by itself', vi: 'Trang Video Studio: video không lộ mặt song ngữ (EN + VI) làm ngay trên trình duyệt, 3 chế độ, tải MP4 và Title Lab; không bao giờ tự đăng' },
+  { group: 'jarvis', key: 'novaGlass', en: 'Nova in the glass look of the Hub: same themes, a 5-step bar (Idea, Script, Footage, Voice & make, Post kit) and a gallery of your videos (off: plain cards)', vi: 'Nova kiểu kính giống Hub: cùng theme, thanh 5 bước (Ý tưởng, Kịch bản, Hình, Giọng & dựng, Bộ đăng bài) và thư viện video (tắt: thẻ thường)' },
   { group: 'jarvis', key: 'toolHub', en: "Atlas Brief: today's pick sits next to the scoreboard (off: the previous Brief layout)", vi: 'Bản tin Atlas: mã chọn hôm nay nằm cạnh bảng điểm (tắt: giao diện Bản tin trước đó)' },
   { group: 'jarvis', key: 'dashMotion', en: 'Dashboard cards and motion: a card per project on the Hub (Trading, RuView, ESP32 Lab, Network, Build, Studio) and clearer number cards with change chips (off: the previous look)', vi: 'Thẻ và hiệu ứng dashboard: mỗi dự án một thẻ trên Hub (Trading, RuView, ESP32 Lab, Mạng, Xây dựng, Studio) và thẻ số liệu rõ hơn kèm chip thay đổi (tắt: giao diện trước đó)' },
   { group: 'jarvis', key: 'hubLayout', en: 'Hub home page: best pick next to the sphere, prediction board with 6 agent dots, Studio and devices (off: the old Neo Brief layout)', vi: 'Trang chủ Hub: mã tốt nhất cạnh quả cầu, bảng dự đoán có 6 chấm agent, Studio và thiết bị (tắt: giao diện Neo Brief cũ)' },

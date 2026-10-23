@@ -1,0 +1,89 @@
+/* ---------- Nova (VideoStudioPage.tsx) in the Hub's liquid glass look ----------
+   Theme variables, the wallpaper (.hg-wall) and the glass recipe (.hg-glass) come from JarvisHub.css;
+   everything here is scoped to .nv so the rest of the app is untouched. Off switch: AI rule novaGlass. */
+
+.nv.hg { font-family: 'Be Vietnam Pro', Inter, system-ui, sans-serif; position: relative; isolation: isolate; background: var(--bg); color: var(--ink); font-size: 15px; line-height: 1.45; display: block; padding: 0; transition: background-color 0.8s ease, color 0.8s ease; }
+.nv-wrap { display: grid; gap: 16px; align-content: start; max-width: 980px; margin: 0 auto; min-width: 0; }
+.nv.hg .nv-wrap { padding-bottom: 48px; }
+.nv .muted { color: var(--mute, var(--muted)); }
+
+/* top bar */
+.nv-bar { display: flex; align-items: center; gap: 10px; min-height: 44px; padding: 4px 8px; border-radius: 14px; }
+.nv-bar-t { flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font: 500 14px var(--display, inherit); letter-spacing: 0.02em; }
+
+/* hero: Nova's character next to the name */
+.nv-hero { display: flex; align-items: center; gap: 16px; margin: 6px 0 2px; min-width: 0; }
+.nv-face { flex: none; width: 96px; height: 96px; }
+.nv-face svg { width: 100%; height: 100%; }
+.nv-hero-t { min-width: 0; }
+.nv-brand { display: flex; align-items: center; gap: 12px; margin: 0; font: 700 clamp(34px, 6vw, 60px)/1 var(--display, inherit); letter-spacing: -0.02em; }
+.nv-logo { width: 0.9em; height: 0.9em; flex: none; }
+.nv-tag { margin: 8px 0 0; color: var(--mute, var(--muted)); max-width: 60ch; }
+
+/* sticky step bar */
+.nv-steps { position: sticky; top: 8px; z-index: 5; display: flex; gap: 4px; padding: 5px; border-radius: 999px; overflow-x: auto; scrollbar-width: none; }
+.nv-steps::-webkit-scrollbar { display: none; }
+.nv-steps button { flex: 1 0 auto; display: inline-flex; align-items: center; justify-content: center; gap: 7px; padding: 8px 12px; border-radius: 999px; border: 0; background: none; color: var(--mute, var(--muted)); cursor: pointer; white-space: nowrap; font-size: 13px; transition: background-color 0.25s ease, color 0.25s ease; }
+.nv-steps button.on { background: color-mix(in srgb, var(--acc, #d6a4ea) 26%, transparent); color: var(--ink, inherit); }
+.nv-steps button:hover { color: var(--ink, inherit); }
+.nv-n { display: inline-grid; place-items: center; width: 22px; height: 22px; flex: none; border-radius: 50%; font: 600 12px var(--display, inherit); background: rgba(255, 255, 255, 0.1); border: 1px solid var(--line); margin-right: 8px; }
+.nv-steps .nv-n { margin-right: 0; }
+.nv-steps button.on .nv-n { background: var(--acc, #d6a4ea); color: #1d1418; border-color: transparent; }
+@media (max-width: 560px) { .nv-steps button:not(.on) .nv-step-t { display: none; } .nv-steps button { flex: 0 0 auto; } .nv-steps button.on { flex: 1 0 auto; } }
+
+/* cards */
+.nv .nv-card { border-radius: 22px; padding: 18px 20px; gap: 12px; scroll-margin-top: 72px; background-color: transparent; }
+.nv.hg .nv-card { border-color: var(--line); }
+.nv .nv-card h3 { display: flex; align-items: center; font: 600 16px var(--display, inherit); letter-spacing: 0.01em; }
+.nv .nv-card .warn { color: var(--acc, var(--gold)); }
+.nv section[id] { scroll-margin-top: 72px; }
+.nv-make { display: grid; gap: 16px; min-width: 0; }
+.nv-two { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; min-width: 0; }
+.nv-inset { background: rgba(0, 0, 0, 0.22); border: 1px solid var(--line); border-radius: 16px; padding: 12px; }
+@media (max-width: 699px) { .nv-two { grid-template-columns: 1fr; } .nv .nv-card { padding: 16px; border-radius: 20px; } .nv-face { width: 72px; height: 72px; } }
+
+/* controls inside the glass */
+.nv.hg :is(.vs-field input, .vs-field textarea, select.btn, .vs-pexels input) { background: rgba(0, 0, 0, 0.26); color: var(--ink); border: 1px solid var(--line); border-radius: 12px; padding: 10px 12px; font: inherit; }
+.nv.hg :is(.vs-field input, .vs-field textarea):focus { border-color: var(--acc); outline: none; }
+.nv.hg select.btn { width: 100%; }
+.nv.hg select.btn option { color: #111; }
+.nv.hg .btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; padding: 9px 16px; border-radius: 999px; border: 1px solid var(--line); background: rgba(255, 255, 255, 0.08); color: var(--ink); font-size: 14px; text-decoration: none; cursor: pointer; transition: background-color 0.2s ease, transform 0.12s ease, border-color 0.2s ease; }
+.nv.hg .btn:hover:not(:disabled) { background: rgba(255, 255, 255, 0.15); border-color: color-mix(in srgb, var(--acc) 50%, var(--line)); }
+.nv.hg .btn:active:not(:disabled) { transform: scale(0.97); }
+.nv.hg .btn:disabled { opacity: 0.45; cursor: default; }
+.nv.hg .btn.primary { background: var(--acc); border-color: transparent; color: #1d1418; font-weight: 600; }
+.nv.hg .btn.primary:hover:not(:disabled) { background: color-mix(in srgb, var(--acc) 85%, #fff); }
+.nv.hg .btn.small { padding: 6px 12px; font-size: 13px; }
+.nv.hg .net-back { padding: 7px 12px; }
+.nv.hg .seg { display: flex; margin: 0; padding: 4px; border-radius: 999px; background: rgba(0, 0, 0, 0.26); border: 1px solid var(--line); }
+.nv.hg .seg button { flex: 1; padding: 7px 10px; border-radius: 999px; color: var(--mute); font-size: 13px; border: 0; background: none; cursor: pointer; }
+.nv.hg .seg button.on { background: rgba(255, 255, 255, 0.16); color: var(--ink); box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.2); }
+.nv.hg .vs-check input { accent-color: var(--acc); }
+.nv.hg .vs-preview, .nv.hg .vs-out video { border-radius: 16px; border-color: var(--line); }
+.nv.hg details.vs-pexels { border-top: 1px solid var(--line); padding-top: 10px; }
+.nv.hg details.vs-pexels summary { cursor: pointer; color: var(--mute); }
+
+/* drop zone for your photos and clips */
+.nv-drop { position: relative; display: grid; place-items: center; min-height: 96px; border-radius: 16px; border: 1.5px dashed color-mix(in srgb, var(--acc, #d6a4ea) 55%, transparent); background: rgba(0, 0, 0, 0.18); color: var(--ink, inherit); cursor: pointer; text-align: center; padding: 12px; }
+.nv-drop input { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
+.nv-drop.off { opacity: 0.5; cursor: default; }
+
+/* gallery of finished server videos */
+.nv-gallery { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 12px; min-width: 0; }
+.nv .nv-tile { border-top: 0; padding: 12px; border-radius: 16px; background: rgba(0, 0, 0, 0.22); border: 1px solid var(--line); align-content: start; }
+.nv .nv-tile .vs-out video { width: 100%; max-height: 52vh; }
+.nv .nv-tile.s-rendering { border-color: color-mix(in srgb, var(--acc, #d6a4ea) 60%, transparent); animation: nv-pulse 2.4s ease-in-out infinite; }
+@keyframes nv-pulse { 50% { box-shadow: 0 0 0 4px color-mix(in srgb, var(--acc, #d6a4ea) 18%, transparent); } }
+@media (max-width: 560px) { .nv-gallery { grid-template-columns: 1fr; } }
+
+@media (prefers-reduced-motion: reduce) {
+  .nv .nv-tile.s-rendering { animation: none; }
+  .nv-steps button, .nv.hg .btn { transition: none; }
+}
+
+/* the sliding highlight (lib/slidePill.ts) as a glass pill */
+.nv.hg .seg > .dm-pill { border-radius: 999px; background: rgba(255, 255, 255, 0.16); box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.2); }
+.nv.hg .seg.has-pill > button.on { background: transparent; box-shadow: none; }
+.nv.hg .nv-steps { background-color: color-mix(in srgb, var(--bg) 72%, transparent); }
+.nv .vs-lab-row .btn, .nv .nv-card > header .btn { flex: none; white-space: nowrap; }
+.nv .nv-tile .vs-lab-row { align-items: flex-start; }
