@@ -5,7 +5,7 @@
 import type { Bi } from './hubText'
 import { GODS_EYE_URL } from './godsEye'
 
-export type HubPage = 'trade' | 'portfolio' | 'net' | 'ruview' | 'ruview-flash' | 'godseye' | 'studio'
+export type HubPage = 'trade' | 'portfolio' | 'net' | 'ruview' | 'ruview-flash' | 'godseye' | 'studio' | 'viraltech'
 export type ToolAction = { kind: 'page'; page: HubPage } | { kind: 'url'; url: string } | { kind: 'scroll'; id: string } | { kind: 'soon' }
 
 export interface ToolNode {
@@ -53,6 +53,7 @@ export const TOOLS: ToolNode[] = [
   { id: 'apps', cluster: 'build', label: { en: 'App Builder', vi: 'Tạo app' }, note: { en: 'Jarvis writes small apps for you', vi: 'Jarvis viết app nhỏ cho anh' }, action: { kind: 'soon' } },
   { id: 'video', cluster: 'studio', label: { en: 'Nova · Video Studio', vi: 'Nova · Video Studio' }, note: { en: 'Bilingual faceless videos, MP4 + Title Lab', vi: 'Video không lộ mặt song ngữ, MP4 + Title Lab' }, action: { kind: 'page', page: 'studio' } },
   { id: 'media', cluster: 'studio', label: { en: 'Media Lab', vi: 'Media Lab' }, note: { en: 'Image and video tools', vi: 'Công cụ ảnh và video' }, action: { kind: 'soon' } },
+  { id: 'viraltech', cluster: 'studio', label: { en: 'Viraltech', vi: 'Viraltech' }, note: { en: 'Social media posts and engagement', vi: 'Bài đăng và tương tác mạng xã hội' }, action: { kind: 'page', page: 'viraltech' } },
   { id: 'outside', cluster: 'studio', label: { en: 'Outside tools', vi: 'Công cụ bên ngoài' }, note: { en: 'CapCut, Canva, Gemini…', vi: 'CapCut, Canva, Gemini…' }, action: { kind: 'scroll', id: 'hub-studio' } },
 ]
 

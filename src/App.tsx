@@ -31,6 +31,7 @@ import { NetPage } from './components/NetPage'
 import { RuViewPage } from './components/RuViewPage'
 import { GodsEyePage } from './components/GodsEyePage'
 import { VideoStudioPage } from './components/VideoStudioPage'
+import { ViralTechPage } from './components/ViralTechPage'
 import { AutoLearnPanel } from './components/AutoLearnPanel'
 import { useAutoLearning } from './hooks/useAutoLearning'
 import { useMigrateKeysToCloud } from './hooks/useMigrateKeysToCloud'
@@ -553,7 +554,7 @@ export default function App() {
 
   return (
     <div
-      className={`app page-${shownPage === 'ruview' || shownPage === 'godseye' || shownPage === 'studio' ? `net page-${shownPage}` : shownPage}`}
+      className={`app page-${shownPage === 'ruview' || shownPage === 'godseye' || shownPage === 'studio' || shownPage === 'viraltech' ? `net page-${shownPage}` : shownPage}`}
       style={
         aiRules.resizePanels
           ? ({
@@ -611,7 +612,7 @@ export default function App() {
         equity={broker.account.equity}
         dayPL={broker.account.dayPL}
       />
-      {shownPage !== 'brief' && shownPage !== 'net' && shownPage !== 'ruview' && shownPage !== 'godseye' && shownPage !== 'studio' && <PanelGuard name="Watchlist"><Watchlist
+      {shownPage !== 'brief' && shownPage !== 'net' && shownPage !== 'ruview' && shownPage !== 'godseye' && shownPage !== 'studio' && shownPage !== 'viraltech' && <PanelGuard name="Watchlist"><Watchlist
         sortRequest={sortRequest}
         aiActive={aiRules.practiceMode && aiRules.practiceWatchlist ? aiActive : null}
         instruments={universe}
@@ -669,6 +670,10 @@ export default function App() {
       ) : shownPage === 'studio' ? (
         <PanelGuard name="Video Studio">
           <VideoStudioPage onBack={() => setPage(briefOn ? 'brief' : 'trade')} />
+        </PanelGuard>
+      ) : shownPage === 'viraltech' ? (
+        <PanelGuard name="Viraltech">
+          <ViralTechPage onBack={() => setPage(briefOn ? 'brief' : 'trade')} />
         </PanelGuard>
       ) : shownPage === 'trade' ? (
         <>
