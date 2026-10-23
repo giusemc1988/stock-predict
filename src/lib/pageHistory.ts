@@ -18,3 +18,11 @@ export function historyStep(from: string, to: string, home: string, depth: numbe
   if (from !== home && ATLAS.has(from) && ATLAS.has(to)) return { kind: 'replace' }
   return { kind: 'push' }
 }
+
+/** Short links into a project, by the names Chanh uses: /#nova opens Nova, /#atlas opens Atlas, and so on. */
+const LINKS: Record<string, string> = { atlas: 'trade', nova: 'studio', echo: 'ruview', nexus: 'net', argus: 'godseye', viraltech: 'viraltech', neo: 'home', jarvis: 'home', hub: 'home' }
+
+/** The page a "#name" link asks for, or null. */
+export function linkedPage(hash: string): string | null {
+  return LINKS[hash.replace(/^#\/?/, '').trim().toLowerCase()] ?? null
+}

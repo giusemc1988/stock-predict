@@ -2,7 +2,7 @@ import assert from 'node:assert/strict'
 import { CLUSTERS, TOOLS, fold, graphLayout, searchTools, toolOpen } from '../src/lib/toolHub'
 import { VIRALTECH, postCounts } from '../src/data/viraltech'
 import { PROJECTS, pageOn, searchHub } from '../src/lib/projects'
-import { historyStep } from '../src/lib/pageHistory'
+import { historyStep, linkedPage } from '../src/lib/pageHistory'
 
 // accents and hyphens fold away, so Vietnamese and "wifi" searches match
 assert.equal(fold('Tốc độ'), 'toc do')
@@ -67,6 +67,12 @@ assert.equal(pageOn('brief', allOn), true)
 assert.equal(pageOn(null, allOn), false)
 // swipe-back: a project opened from the Hub is one step; going home walks back; Atlas tabs don't stack
 assert.deepEqual(historyStep('home', 'net', 'home', 0), { kind: 'push' })
+// short links: /#nova opens Nova, any case, unknown names do nothing
+assert.equal(linkedPage('#nova'), 'studio')
+assert.equal(linkedPage('#/Atlas'), 'trade')
+assert.equal(linkedPage('#argus'), 'godseye')
+assert.equal(linkedPage(''), null)
+assert.equal(linkedPage('#toString'), null)
 assert.deepEqual(historyStep('net', 'home', 'home', 1), { kind: 'back', steps: 1 })
 assert.deepEqual(historyStep('brief', 'trade', 'home', 1), { kind: 'replace' })
 assert.deepEqual(historyStep('portfolio', 'home', 'home', 1), { kind: 'back', steps: 1 })

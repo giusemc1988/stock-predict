@@ -2,7 +2,7 @@
  * Version and "What's new". Bump APP_VERSION and add an entry to the top of RELEASES
  * with each update. The banner shows once per version, then stays dismissed.
  */
-export const APP_VERSION = '1.44.0'
+export const APP_VERSION = '1.44.1'
 
 export interface Release {
   version: string
@@ -13,6 +13,12 @@ export interface Release {
 }
 
 export const RELEASES: Release[] = [
+  {
+    version: '1.44.1',
+    date: '2026-10-23',
+    changes: ['Short links straight into a project: add #nova, #atlas, #echo, #nexus, #argus or #viraltech to the app address. Swiping back still lands on the Hub.'],
+    changesVi: ['Link ngắn mở thẳng vào dự án: thêm #nova, #atlas, #echo, #nexus, #argus hoặc #viraltech vào cuối địa chỉ app. Vuốt quay lại vẫn về Hub.'],
+  },
   {
     version: '1.44.0',
     date: '2026-10-23',

@@ -70,7 +70,7 @@ import { stampData, staleReason } from './lib/dataGuard'
 import { Toasts, type Toast } from './components/Toasts'
 import { PanelGuard } from './components/PanelGuard'
 import { startSlidePills } from './lib/slidePill'
-import { historyStep } from './lib/pageHistory'
+import { historyStep, linkedPage } from './lib/pageHistory'
 
 const NO_CANDLES: Candle[] = []
 
@@ -141,7 +141,15 @@ export default function App() {
   )
   useEffect(() => {
     // the first entry is home: anything older belongs to the site before this app
-    if ((window.history.state as { page?: Page } | null)?.page == null) window.history.replaceState({ page: pageRef.current, d: 0 }, '')
+    if ((window.history.state as { page?: Page } | null)?.page == null) {
+      // a short link like /#nova: home stays underneath, so swipe-back from the project lands on the Hub
+      const linked = linkedPage(window.location.hash) as Page | null
+      window.history.replaceState({ page: pageRef.current, d: 0 }, '', window.location.pathname + window.location.search)
+      if (linked && linked !== pageRef.current) {
+        window.history.pushState({ page: linked, d: 1 }, '')
+        setPageRaw(linked)
+      }
+    }
     const onPop = (e: PopStateEvent) => setPageRaw((e.state as { page?: Page } | null)?.page ?? homePage)
     window.addEventListener('popstate', onPop)
     return () => window.removeEventListener('popstate', onPop)
