@@ -1471,3 +1471,9 @@ body:has(.jfab) .toasts, body:has(.jfab) .jarvis-alert { bottom: 84px; }
 .dm .hub-side > * { --dm-base: 0.4s; }
 .dm .brief-page.hub > .bf-hero { animation: none; }
 }
+
+/* Viraltech page */
+.vt-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.vt-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 12px; border: 1px solid var(--line, #27426b); border-radius: 10px; min-width: 0; }
+.vt-row > div { min-width: 0; }
+.vt-text { margin: 4px 0; overflow-wrap: anywhere; white-space: pre-line; }

@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict'
 import { CLUSTERS, TOOLS, fold, graphLayout, searchTools, toolOpen } from '../src/lib/toolHub'
+import { VIRALTECH, postCounts } from '../src/data/viraltech'
 
 // accents and hyphens fold away, so Vietnamese and "wifi" searches match
 assert.equal(fold('Tốc độ'), 'toc do')
@@ -25,6 +26,13 @@ const on = { net: true, ruview: true }
 assert.equal(toolOpen(TOOLS.find((t) => t.id === 'apps')!, on), false)
 assert.equal(toolOpen(TOOLS.find((t) => t.id === 'wifi')!, { net: false, ruview: true }), false)
 assert.equal(toolOpen(TOOLS.find((t) => t.id === 'desk')!, { net: false, ruview: false }), true)
+
+// Viraltech opens its page, lists the 4 channels once each, and counts posts by status
+assert.ok(searchTools('viraltech').has('viraltech'))
+assert.equal(toolOpen(TOOLS.find((t) => t.id === 'viraltech')!, { net: false, ruview: false }), true)
+assert.deepEqual(VIRALTECH.channels.map((c) => c.platform).sort(), ['facebook', 'instagram', 'tiktok', 'youtube'])
+assert.ok(!Number.isNaN(Date.parse(VIRALTECH.asOf)), 'snapshot has a real time')
+assert.deepEqual(postCounts([{ id: 'a', platform: 'instagram', text: '', status: 'scheduled', at: null, views: null, engagement: null }]), { draft: 0, scheduled: 1, published: 0, failed: 0 })
 
 // layout: every group and tool has a point, all inside the 720 x 440 box
 const lay = graphLayout()

@@ -2,7 +2,7 @@
  * Version and "What's new". Bump APP_VERSION and add an entry to the top of RELEASES
  * with each update. The banner shows once per version, then stays dismissed.
  */
-export const APP_VERSION = '1.31.0'
+export const APP_VERSION = '1.32.0'
 
 export interface Release {
   version: string
@@ -13,6 +13,18 @@ export interface Release {
 }
 
 export const RELEASES: Release[] = [
+  {
+    version: '1.32.0',
+    date: '2026-10-23',
+    changes: [
+      'Viraltech on the Hub: a new project card shows how many of the 4 Viraltech channels are connected and how many posts are scheduled or posted. Tap it to open the Viraltech page.',
+      'The Viraltech page lists Instagram, YouTube, TikTok and Facebook with a link to each, plus every post with its views and interactions. Data comes from Antwork; Claude refreshes it, and the page says when.',
+    ],
+    changesVi: [
+      'Viraltech trên Hub: thẻ dự án mới cho biết bao nhiêu kênh trong 4 kênh Viraltech đã kết nối và bao nhiêu bài đã lên lịch hoặc đã đăng. Bấm vào để mở trang Viraltech.',
+      'Trang Viraltech liệt kê Instagram, YouTube, TikTok và Facebook kèm link từng kênh, cùng mọi bài đăng với lượt xem và tương tác. Dữ liệu lấy từ Antwork; Claude cập nhật, và trang ghi rõ lúc cập nhật.',
+    ],
+  },
   {
     version: '1.31.0',
     date: '2026-10-22',

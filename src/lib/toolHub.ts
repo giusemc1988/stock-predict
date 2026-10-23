@@ -4,7 +4,7 @@
  */
 import type { Bi } from './hubText'
 
-export type HubPage = 'trade' | 'portfolio' | 'net' | 'ruview' | 'ruview-flash'
+export type HubPage = 'trade' | 'portfolio' | 'net' | 'ruview' | 'ruview-flash' | 'viraltech'
 export type ToolAction = { kind: 'page'; page: HubPage } | { kind: 'url'; url: string } | { kind: 'scroll'; id: string } | { kind: 'soon' }
 
 export interface ToolNode {
@@ -47,6 +47,7 @@ export const TOOLS: ToolNode[] = [
   { id: 'repo', cluster: 'build', label: { en: 'Source code', vi: 'Mã nguồn' }, note: { en: 'The whole project on GitHub', vi: 'Toàn bộ dự án trên GitHub' }, action: { kind: 'url', url: REPO } },
   { id: 'apps', cluster: 'build', label: { en: 'App Builder', vi: 'Tạo app' }, note: { en: 'Jarvis writes small apps for you', vi: 'Jarvis viết app nhỏ cho anh' }, action: { kind: 'soon' } },
   { id: 'media', cluster: 'studio', label: { en: 'Media Lab', vi: 'Media Lab' }, note: { en: 'Image and video tools', vi: 'Công cụ ảnh và video' }, action: { kind: 'soon' } },
+  { id: 'viraltech', cluster: 'studio', label: { en: 'Viraltech', vi: 'Viraltech' }, note: { en: 'Social media posts and engagement', vi: 'Bài đăng và tương tác mạng xã hội' }, action: { kind: 'page', page: 'viraltech' } },
   { id: 'outside', cluster: 'studio', label: { en: 'Outside tools', vi: 'Công cụ bên ngoài' }, note: { en: 'CapCut, Canva, Gemini…', vi: 'CapCut, Canva, Gemini…' }, action: { kind: 'scroll', id: 'hub-studio' } },
 ]
 

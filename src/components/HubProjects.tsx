@@ -3,6 +3,7 @@ import { useHubT } from '../lib/hubText'
 import { useLang } from '../lib/i18n'
 import { practiceEquity, PRACTICE_START, type PracticeState } from '../lib/practice'
 import { RUVIEW } from '../lib/ruview'
+import { postCounts, VIRALTECH } from '../data/viraltech'
 import { CLUSTERS, TOOLS, toolOpen, type ClusterId, type HubPage } from '../lib/toolHub'
 import { StatRow, type IconName, type Stat } from './StatCard'
 
@@ -54,6 +55,19 @@ export function HubProjects({ practice, buys, on, onPage }: Props) {
     onClick: () => onPage('ruview'),
     disabled: !on.ruview,
   }
+  const vt = postCounts(VIRALTECH.posts)
+  const vtLinked = VIRALTECH.channels.filter((c) => c.connected).length
+  const viraltech: Stat = {
+    key: 'viraltech',
+    label: 'Viraltech',
+    icon: 'film',
+    accent: '#ff7ab6',
+    value: `${vtLinked}/${VIRALTECH.channels.length}`,
+    chip: vt.scheduled ? { text: vi ? `${vt.scheduled} lên lịch` : `${vt.scheduled} scheduled`, tone: 'info', icon: 'clock' } : { text: vi ? `${vt.published} đã đăng` : `${vt.published} posted`, tone: 'flat', icon: 'check' },
+    sub: vi ? 'kênh đã kết nối' : 'channels connected',
+    title: vi ? 'Bài đăng và tương tác 4 kênh Viraltech' : 'Posts and engagement on the 4 Viraltech channels',
+    onClick: () => onPage('viraltech'),
+  }
   const groups: Stat[] = CLUSTERS.filter((c) => c.id !== 'trading').map((c) => {
     const mine = TOOLS.filter((n) => n.cluster === c.id)
     const ready = mine.filter((n) => toolOpen(n, on)).length
@@ -74,7 +88,7 @@ export function HubProjects({ practice, buys, on, onPage }: Props) {
 
   return (
     <section className="hub-projects" aria-label={t('pjTitle')}>
-      <StatRow items={[trading, ruview, ...groups]} className="sc-projects" />
+      <StatRow items={[trading, ruview, viraltech, ...groups]} className="sc-projects" />
     </section>
   )
 }

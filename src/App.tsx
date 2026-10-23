@@ -29,6 +29,7 @@ import { BottomPanel } from './components/BottomPanel'
 import { PortfolioPage } from './components/PortfolioPage'
 import { NetPage } from './components/NetPage'
 import { RuViewPage } from './components/RuViewPage'
+import { ViralTechPage } from './components/ViralTechPage'
 import { AutoLearnPanel } from './components/AutoLearnPanel'
 import { useAutoLearning } from './hooks/useAutoLearning'
 import { useMigrateKeysToCloud } from './hooks/useMigrateKeysToCloud'
@@ -548,7 +549,7 @@ export default function App() {
 
   return (
     <div
-      className={`app page-${shownPage === 'ruview' ? 'net page-ruview' : shownPage}`}
+      className={`app page-${shownPage === 'ruview' ? 'net page-ruview' : shownPage === 'viraltech' ? 'net page-viraltech' : shownPage}`}
       style={
         aiRules.resizePanels
           ? ({
@@ -606,7 +607,7 @@ export default function App() {
         equity={broker.account.equity}
         dayPL={broker.account.dayPL}
       />
-      {shownPage !== 'brief' && shownPage !== 'net' && shownPage !== 'ruview' && <PanelGuard name="Watchlist"><Watchlist
+      {shownPage !== 'brief' && shownPage !== 'net' && shownPage !== 'ruview' && shownPage !== 'viraltech' && <PanelGuard name="Watchlist"><Watchlist
         sortRequest={sortRequest}
         aiActive={aiRules.practiceMode && aiRules.practiceWatchlist ? aiActive : null}
         instruments={universe}
@@ -656,6 +657,10 @@ export default function App() {
       ) : shownPage === 'ruview' ? (
         <PanelGuard name="RuView">
           <RuViewPage onBack={() => setPage(briefOn ? 'brief' : 'trade')} webFlash={aiRules.webFlash} startAdding={ruviewFlash} />
+        </PanelGuard>
+      ) : shownPage === 'viraltech' ? (
+        <PanelGuard name="Viraltech">
+          <ViralTechPage onBack={() => setPage(briefOn ? 'brief' : 'trade')} />
         </PanelGuard>
       ) : shownPage === 'trade' ? (
         <>
