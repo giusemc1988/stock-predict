@@ -78,4 +78,23 @@ assert.equal(a.settings.hooks, 3)
 assert.deepEqual(a.only, { lang: 'vi', kind: 'caption', platform: 'youtube', avoid: ['x'] })
 assert.equal(cleanKitAsk({ script: { topic: 'Sea' }, only: { lang: 'fr', kind: 'hook' } })!.only, undefined)
 
+// presets: cleaned, one per name (newest wins), newest first, capped
+{
+  const { cleanPresets, MAX_PRESETS } = await import('../src/lib/studio/presets')
+  const list = cleanPresets([
+    { name: '  TikTok  VI ', at: 1, mode: 'trip', aspect: '1:1', kit: { hooks: 99 }, video: { subSize: 1 } },
+    { name: 'tiktok vi', at: 5, mode: 'nope' },
+    { name: '', at: 9 },
+    'junk',
+    { name: 'YT', at: 3, aspect: '4:3' },
+  ])
+  assert.deepEqual(list.map((p) => p.name), ['tiktok vi', 'YT'])
+  assert.equal(list[0].mode, 'faceless')
+  assert.equal(list[1].aspect, '9:16')
+  assert.equal(cleanPresets([{ name: 'A', mode: 'trip', aspect: '1:1', kit: { hooks: 99 }, video: { subSize: 1 } }])[0].kit.hooks, 10)
+  assert.equal(cleanPresets([{ name: 'A', video: { subSize: 1 } }])[0].video.subSize, 36)
+  assert.equal(cleanPresets(Array.from({ length: 30 }, (_, i) => ({ name: `p${i}`, at: i }))).length, MAX_PRESETS)
+  assert.deepEqual(cleanPresets(null), [])
+}
+
 console.log('novapostkit ok')

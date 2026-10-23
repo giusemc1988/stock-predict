@@ -13,6 +13,7 @@ import { StudioRenderPanel } from './StudioRenderPanel'
 import { NovaTrends } from './NovaTrends'
 import { Copy, NovaPostKit } from './NovaPostKit'
 import { NovaUploads } from './NovaUploads'
+import { NovaPresets } from './NovaPresets'
 import type { TrendItem } from '../lib/studioTrends'
 import './JarvisHub.css'
 import './NovaStudio.css'
@@ -75,7 +76,7 @@ async function loadMedia(file: File): Promise<Media> {
 }
 
 /** Bilingual Faceless Video Studio: script EN + VI, preview, MP4 export and Title Lab, all in the browser. */
-export function VideoStudioPage({ onBack, glass = true, trends = true, postKit = true, videoSettings = true, uploads = true }: { onBack: () => void; glass?: boolean; trends?: boolean; postKit?: boolean; videoSettings?: boolean; uploads?: boolean }) {
+export function VideoStudioPage({ onBack, glass = true, trends = true, postKit = true, videoSettings = true, uploads = true, presets = true }: { onBack: () => void; glass?: boolean; trends?: boolean; postKit?: boolean; videoSettings?: boolean; uploads?: boolean; presets?: boolean }) {
   const lang = useLang()
   const theme = useHubTheme()
   const active = useActiveStep()
@@ -94,6 +95,8 @@ export function VideoStudioPage({ onBack, glass = true, trends = true, postKit =
   const [hook, setHook] = useState({ en: '', vi: '' })
   // ids of the user's uploads for the server video, in order
   const [serverMedia, setServerMedia] = useState<string[]>([])
+  // a loaded preset rewrites the saved settings; this remounts the parts that read them
+  const [presetRev, setPresetRev] = useState(0)
   const [fades, setFades] = useState(true)
   const [voice, setVoice] = useState(false)
   const [media, setMedia] = useState<Media[]>([])
@@ -281,6 +284,18 @@ export function VideoStudioPage({ onBack, glass = true, trends = true, postKit =
           ))}
         </nav>
 
+        {presets && (
+          <NovaPresets
+            mode={mode}
+            aspect={aspect}
+            onApply={(pr) => {
+              setMode(pr.mode)
+              setAspect(pr.aspect)
+              setPresetRev((n) => n + 1)
+            }}
+          />
+        )}
+
         <section id="nv-idea" className={card}>
           {head(1, 'stepIdea')}
           {trends && <NovaTrends onPick={(it) => void applyTrend(it)} onAuto={autoTrend} busy={!!busy} />}
@@ -350,7 +365,7 @@ export function VideoStudioPage({ onBack, glass = true, trends = true, postKit =
         </section>
 
         <section id="nv-make" className="nv-make">
-          <StudioRenderPanel topic={topic} topicVi={topicVi} en={script.en} vi={script.vi} aspect={aspect} glass={glass} settings={videoSettings} hook={postKit ? hook : undefined} onClearHook={() => setHook({ en: '', vi: '' })} media={uploads ? serverMedia : []} />
+          <StudioRenderPanel key={presetRev} topic={topic} topicVi={topicVi} en={script.en} vi={script.vi} aspect={aspect} glass={glass} settings={videoSettings} hook={postKit ? hook : undefined} onClearHook={() => setHook({ en: '', vi: '' })} media={uploads ? serverMedia : []} />
 
           <div className={card}>
             <header><h3>{t('quickTitle')}</h3></header>
@@ -385,7 +400,7 @@ export function VideoStudioPage({ onBack, glass = true, trends = true, postKit =
           {postKit ? (
             <>
               {head(5, 'stepPost')}
-              <NovaPostKit script={script} hook={hook} onHook={videoSettings ? (l, x) => setHook((h) => ({ ...h, [l]: x })) : undefined} />
+              <NovaPostKit key={presetRev} script={script} hook={hook} onHook={videoSettings ? (l, x) => setHook((h) => ({ ...h, [l]: x })) : undefined} />
             </>
           ) : (
             <>

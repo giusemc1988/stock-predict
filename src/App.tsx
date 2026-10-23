@@ -777,7 +777,7 @@ export default function App() {
         </PanelGuard>
       ) : shownPage === 'studio' ? (
         <PanelGuard name="Video Studio">
-          <VideoStudioPage onBack={() => setPage(homePage)} glass={aiRules.novaGlass} trends={aiRules.novaTrends} postKit={aiRules.novaPostKit} videoSettings={aiRules.novaVideoSettings} uploads={aiRules.novaUploads} />
+          <VideoStudioPage onBack={() => setPage(homePage)} glass={aiRules.novaGlass} trends={aiRules.novaTrends} postKit={aiRules.novaPostKit} videoSettings={aiRules.novaVideoSettings} uploads={aiRules.novaUploads} presets={aiRules.novaPresets} />
         </PanelGuard>
       ) : shownPage === 'viraltech' ? (
         <PanelGuard name="Viraltech">

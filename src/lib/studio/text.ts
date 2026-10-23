@@ -172,6 +172,15 @@ export const STUDIO_TEXT = {
   upErrFull: { en: 'Upload space is full. Remove some uploads, or wait: they clear after 3 days.', vi: 'Hết chỗ lưu. Xoá bớt file đã tải, hoặc chờ: file tự xoá sau 3 ngày.' },
   upEarlier: { en: 'Move earlier', vi: 'Đưa lên trước' },
   footageUpload: { en: 'Footage: your own photos and clips', vi: 'Hình: ảnh và clip của anh' },
+  presetPick: { en: 'Presets: pick one to load…', vi: 'Preset: chọn để dùng lại…' },
+  presetNone: { en: 'No presets yet', vi: 'Chưa có preset' },
+  presetSave: { en: 'Save as preset', vi: 'Lưu preset' },
+  presetName: { en: 'Preset name, e.g. TikTok facts VI', vi: 'Tên preset, ví dụ TikTok sự thật VI' },
+  presetNote: { en: 'A preset keeps the mode, size, post kit and video settings, on every device.', vi: 'Preset lưu chế độ, khung hình, bộ đăng bài và chỉnh video, dùng được trên mọi máy.' },
+  presetSaved: { en: 'Saved', vi: 'Đã lưu' },
+  presetApplied: { en: 'Loaded', vi: 'Đã dùng' },
+  presetDeleted: { en: 'Deleted', vi: 'Đã xoá' },
+  presetFailed: { en: 'Could not save presets.', vi: 'Chưa lưu được preset.' },
 } satisfies Record<string, Bi>
 
 export type StudioKey = keyof typeof STUDIO_TEXT

@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react'
 import { useLocalStorage } from '../hooks/useLocalStorage'
+import { KIT_STORE } from './NovaPresets'
 import { useLang } from '../lib/i18n'
 import { STUDIO_TEXT, type StudioKey } from '../lib/studio/text'
 import type { Lang, Script } from '../lib/studio/script'
@@ -24,7 +25,7 @@ const LEN_KEY = { short: 'lenShort', medium: 'lenMedium', long: 'lenLong' } as c
 export function NovaPostKit({ script, hook, onHook }: { script: Script; hook?: { en: string; vi: string }; onHook?: (lang: Lang, text: string) => void }) {
   const lang = useLang()
   const t = (k: StudioKey) => STUDIO_TEXT[k][lang]
-  const [saved, setSaved] = useLocalStorage<Partial<KitSettings>>('nova.postkit.v1', {})
+  const [saved, setSaved] = useLocalStorage<Partial<KitSettings>>(KIT_STORE, {})
   const k = useMemo(() => cleanKitSettings(saved), [saved])
   const set = (patch: Partial<KitSettings>) => setSaved({ ...k, ...patch })
   // the AI kit (and the user's edits) belong to the topic they were made for
