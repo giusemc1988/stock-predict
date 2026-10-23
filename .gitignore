@@ -34,3 +34,4 @@ dist-ssr
 .wrangler
 .agent
 argus/dist
+__pycache__/

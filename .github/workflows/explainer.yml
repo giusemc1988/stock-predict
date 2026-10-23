@@ -1,0 +1,107 @@
+# Viraltech explainer videos: renders a folder in viraltech/explainers/<name>/ (script.md + scenes.js +
+# video.json, written by Claude) with explainroo, a free MIT tool: local Kokoro voice, Whisper word timing,
+# Chrome draws the frames, ffmpeg makes the MP4. English narration only (explainroo has no Vietnamese voice).
+# Free: no API key, no secrets; public repos have unlimited Actions minutes.
+# Run it from the phone: Actions > Explainer video > Run workflow, type the folder name. The MP4 (+ .srt)
+# is under the run's Artifacts. A push that changes a folder renders that folder on its own.
+name: Explainer video
+
+on:
+  workflow_dispatch:
+    inputs:
+      name:
+        description: 'Folder in viraltech/explainers/ (for example how-dns-works)'
+        required: true
+        default: how-dns-works
+      size:
+        description: 'auto (the size in the folder''s video.json), vertical (Shorts, TikTok, Reels), youtube, instagram or square'
+        required: true
+        default: auto
+  push:
+    branches: [main]
+    paths: ['viraltech/explainers/**']
+
+permissions:
+  contents: read
+
+concurrency:
+  group: explainer-${{ github.ref }}
+  cancel-in-progress: false
+
+env:
+  # explainroo 0.4.1, pinned so an upstream change can't break or alter a render
+  EXPLAINROO_SHA: e95232c8d535ed2aa390e7b1caee0d1326dd9e83
+
+jobs:
+  render:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+
+      - name: Pick folders
+        id: pick
+        env:
+          INPUT_NAME: ${{ inputs.name }}
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            names="$INPUT_NAME"
+          else
+            names=$(git diff --name-only HEAD~1 HEAD -- viraltech/explainers | cut -d/ -f3 | sort -u | tr '\n' ' ')
+          fi
+          for n in $names; do
+            case "$n" in *[!a-z0-9-]*|'') echo "Bad folder name: $n (use a-z, 0-9 and -)"; exit 1;; esac
+            [ -f "viraltech/explainers/$n/script.md" ] || { echo "viraltech/explainers/$n/script.md not found"; exit 1; }
+          done
+          echo "names=$names" >> "$GITHUB_OUTPUT"
+
+      - uses: actions/setup-node@v4
+        if: steps.pick.outputs.names != ''
+        with:
+          node-version: 22
+
+      - name: Install explainroo
+        if: steps.pick.outputs.names != ''
+        run: |
+          sudo apt-get update -qq && sudo apt-get install -y -qq ffmpeg
+          git clone -q https://github.com/vincentsch/explainroo.git "$RUNNER_TEMP/explainroo"
+          cd "$RUNNER_TEMP/explainroo" && git checkout -q "$EXPLAINROO_SHA"
+          npm ci --no-audit --no-fund
+
+      - uses: actions/cache@v4
+        if: steps.pick.outputs.names != ''
+        with:
+          path: ~/.cache
+          key: explainroo-models-${{ env.EXPLAINROO_SHA }}
+
+      - name: Check tools and fetch voice models (~400 MB, cached after the first run)
+        if: steps.pick.outputs.names != ''
+        working-directory: ${{ runner.temp }}/explainroo
+        run: node bin/explainroo.js doctor --fetch
+
+      - name: Render
+        if: steps.pick.outputs.names != ''
+        working-directory: ${{ runner.temp }}/explainroo
+        env:
+          NAMES: ${{ steps.pick.outputs.names }}
+          SIZE: ${{ inputs.size || 'auto' }}
+        run: |
+          case "$SIZE" in *[!a-z0-9:-]*) echo "Bad size: $SIZE"; exit 1;; esac
+          size=(); [ "$SIZE" = auto ] || size=(--size "$SIZE")
+          mkdir -p "$RUNNER_TEMP/out"
+          for n in $NAMES; do
+            mkdir -p videos && cp -r "$GITHUB_WORKSPACE/viraltech/explainers/$n" "videos/$n"
+            node bin/explainroo.js check "videos/$n" "${size[@]}" || echo "::warning::layout check found problems in $n (see above)"
+            node bin/explainroo.js render "videos/$n" "${size[@]}"
+            mkdir -p "$RUNNER_TEMP/out/$n" && cp videos/$n/out/* "$RUNNER_TEMP/out/$n/"
+          done
+          ls -lR "$RUNNER_TEMP/out"
+
+      - uses: actions/upload-artifact@v4
+        if: steps.pick.outputs.names != ''
+        with:
+          name: explainer-videos
+          path: ${{ runner.temp }}/out
+          retention-days: 14

@@ -89,10 +89,10 @@ async function flights(url: URL, env: Env): Promise<Response> {
   if (url.searchParams.has('lat') && Number.isFinite(lat) && Number.isFinite(lon) && Math.abs(lat) <= 90 && Math.abs(lon) <= 180) {
     const rl = Math.round(lat * 4) / 4
     const ro = Math.round(lon * 4) / 4
-    // adsb.lol first, adsb.fi when it refuses (both free, no key, same readsb format)
+    // adsb.lol first, then adsb.fi, then airplanes.live (all free, no key, same readsb format)
     const near = await cached(`near/${rl},${ro}`, 15, async () => {
       const why: string[] = []
-      for (const [src, u] of [['adsb.lol', `https://api.adsb.lol/v2/lat/${rl}/lon/${ro}/dist/250`], ['adsb.fi', `https://opendata.adsb.fi/api/v2/lat/${rl}/lon/${ro}/dist/250`]]) {
+      for (const [src, u] of [['adsb.lol', `https://api.adsb.lol/v2/lat/${rl}/lon/${ro}/dist/250`], ['adsb.fi', `https://opendata.adsb.fi/api/v2/lat/${rl}/lon/${ro}/dist/250`], ['airplanes.live', `https://api.airplanes.live/v2/point/${rl}/${ro}/250`]]) {
         const r = await get(u, 6000).catch((e: Error) => (why.push(`${src} ${e.name}`), null))
         if (r && !r.ok) why.push(`${src} HTTP ${r.status}`)
         if (!r?.ok) continue
@@ -109,7 +109,7 @@ async function flights(url: URL, env: Env): Promise<Response> {
     return r.ok ? new Response(r.body, { headers: { 'content-type': 'application/json', 'x-flight-source': 'OpenSky Network', 'x-flight-coverage': 'global' } }) : r
   })
   if (open.ok) return open
-  return (await fromSnapshot(env, 'flights')) ?? json({ error: 'Flights unavailable', detail: `Home relay off, no recent snapshot, and adsb.lol, adsb.fi and OpenSky all refused. ${nearWhy}`.trim() }, 502)
+  return (await fromSnapshot(env, 'flights')) ?? json({ error: 'Flights unavailable', detail: `Home relay off, no recent snapshot, and adsb.lol, adsb.fi, airplanes.live and OpenSky all refused. ${nearWhy}`.trim() }, 502)
 }
 
 export default {
@@ -129,7 +129,9 @@ export default {
       }
       const direct = await cached('military', 12, async () => {
         const r = await get('https://api.adsb.lol/v2/mil', 6000).catch(() => null)
-        return r?.ok ? r : get('https://opendata.adsb.fi/api/v2/mil', 6000)
+        if (r?.ok) return r
+        const fi = await get('https://opendata.adsb.fi/api/v2/mil', 6000).catch(() => null)
+        return fi?.ok ? fi : get('https://api.airplanes.live/v2/mil', 6000)
       })
       return direct.ok ? direct : ((await fromSnapshot(env, 'military')) ?? direct)
     }
