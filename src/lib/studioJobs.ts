@@ -97,7 +97,9 @@ export interface StudioJob {
   chunk?: number
   duration?: number | null
   /** gradient = no photo source answered, so plain colour backgrounds were used */
-  footage?: 'pexels' | 'openverse' | 'gradient'
+  footage?: 'pexels' | 'openverse' | 'gradient' | 'upload'
+  /** the user's own uploads (src/lib/studioMedia.ts) used as footage */
+  media?: string[]
   run?: string
   /** missing on jobs made before v1.52: the defaults */
   opts?: RenderOpts
@@ -114,6 +116,8 @@ export interface RenderAsk {
   opts: RenderOpts
   /** a hook from the post kit, put first in each language's video */
   hook: { en: string; vi: string }
+  /** upload ids, checked against the store by the Worker before queueing */
+  media: string[]
 }
 
 /** KV with list(): the Worker binding, or a Map-backed fake in tests. */
@@ -145,6 +149,7 @@ export function cleanRenderAsk(body: unknown): RenderAsk | null {
     voice: b?.voice === 'male' ? 'male' : 'female',
     aspect: b?.aspect === '16:9' || b?.aspect === '1:1' ? b.aspect : '9:16',
     opts: cleanRenderOpts(b?.opts),
+    media: (Array.isArray(b?.media) ? b.media : []).filter(isJobId).slice(0, 10),
     hook: { en: clean((b?.hook as Record<string, unknown> | undefined)?.en, MAX_LINE), vi: clean((b?.hook as Record<string, unknown> | undefined)?.vi, MAX_LINE) },
   }
 }
@@ -190,6 +195,7 @@ export async function queueJobs(kv: JobStore, ask: RenderAsk, terms: string[], n
     lines: withHook(lang === 'vi' ? ask.vi : ask.en, ask.hook[lang]),
     terms,
     opts: ask.opts,
+    ...(ask.media.length ? { media: ask.media } : {}),
   }))
   await Promise.all(made.map((j) => kv.put(JOB_PREFIX + j.id, JSON.stringify(j))))
   return made

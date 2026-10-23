@@ -1,6 +1,7 @@
 // Nova render queue on the runner side. Talks to the Worker's SETTINGS KV through the Cloudflare API
 // (CLOUDFLARE_API_TOKEN, the same secret the deploy uses), so Chanh never has to create a GitHub token.
-//   node nova/queue.mjs pick <workdir>          up to 3 queued jobs -> <workdir>/jobs/<id>.json (+ pexels.txt)
+//   node nova/queue.mjs pick <workdir>          up to 3 queued jobs -> <workdir>/jobs/<id>.json (+ pexels.txt,
+//                                               + the user's uploads in <workdir>/media/<id>/<n>.<ext>)
 //   node nova/queue.mjs store <workdir> <id>    uploads <workdir>/out/<id>.mp4 in chunks, marks the job done or failed
 // Key layout (shared with src/lib/studioJobs.ts): nova:job:<id>, nova:vid:<id>:<n>, nova:pexels
 import { appendFileSync, existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
@@ -8,6 +9,9 @@ import { appendFileSync, existsSync, mkdirSync, readFileSync, writeFileSync } fr
 const JOB = 'nova:job:'
 const VID = 'nova:vid:'
 const PEXELS = 'nova:pexels'
+// the user's own photos and clips (src/lib/studioMedia.ts); the repo is public, so never log anything about them but a count
+const MEDIA = 'nova:media:'
+const EXT = { 'image/jpeg': 'jpg', 'image/png': 'png', 'image/webp': 'webp', 'video/mp4': 'mp4', 'video/quicktime': 'mov', 'video/webm': 'webm' }
 // KV values are capped at 25 MiB; 20 MiB chunks leave room
 const CHUNK = 20 * 1024 * 1024
 const KEEP_DONE = 12
@@ -55,6 +59,10 @@ async function get(key) {
   const r = await cf(await keyPath(key))
   return r.status === 404 ? null : r.text()
 }
+async function getBytes(key) {
+  const r = await cf(await keyPath(key))
+  return r.status === 404 ? null : Buffer.from(await r.arrayBuffer())
+}
 async function put(key, body) {
   await cf(await keyPath(key), { method: 'PUT', body, headers: { 'content-type': 'application/octet-stream' } })
 }
@@ -75,6 +83,25 @@ async function jobs() {
   const all = await Promise.all((await list(JOB)).map(async (k) => JSON.parse((await get(k)) ?? 'null')))
   return all.filter(Boolean)
 }
+/** Downloads a job's uploads in order; one that expired or never finished is skipped. Returns how many arrived. */
+async function fetchMedia(dir, job) {
+  const ids = (Array.isArray(job.media) ? job.media : []).filter((m) => UUID.test(m))
+  if (!ids.length) return 0
+  const out = `${dir}/media/${job.id}`
+  mkdirSync(out, { recursive: true })
+  let n = 0
+  for (const id of ids) {
+    const meta = JSON.parse((await get(MEDIA + id)) ?? 'null')
+    const ext = EXT[meta?.type]
+    if (!meta?.done || !ext) continue
+    const parts = []
+    for (let i = 0; i < meta.parts; i++) parts.push(await getBytes(`${MEDIA}${id}:${i}`))
+    if (parts.some((p) => !p)) continue
+    writeFileSync(`${out}/${String(n).padStart(2, '0')}.${ext}`, Buffer.concat(parts))
+    n++
+  }
+  return n
+}
 const saveJob = (job) => put(JOB + job.id, JSON.stringify(job))
 const output = (line) => process.env.GITHUB_OUTPUT && appendFileSync(process.env.GITHUB_OUTPUT, line + '\n')
 
@@ -92,6 +119,8 @@ async function pick(dir) {
     await saveJob({ ...j, status: 'rendering', startedAt: now, run, retried: j.retried || retried })
     // only what the renderer needs; the key goes in its own file
     writeFileSync(`${dir}/jobs/${j.id}.json`, JSON.stringify({ id: j.id, topic: j.topic, lang: j.lang, voice: j.voice, aspect: j.aspect, lines: j.lines, terms: j.terms, opts: j.opts }))
+    const own = await fetchMedia(dir, j)
+    if (own) console.log(`job ${j.id}: ${own} uploaded file(s)`)
   }
   const key = runnable.length ? ((await get(PEXELS)) ?? '').trim() : ''
   if (key) {

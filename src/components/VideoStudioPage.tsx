@@ -12,6 +12,7 @@ import { STUDIO_TEXT, type StudioKey } from '../lib/studio/text'
 import { StudioRenderPanel } from './StudioRenderPanel'
 import { NovaTrends } from './NovaTrends'
 import { Copy, NovaPostKit } from './NovaPostKit'
+import { NovaUploads } from './NovaUploads'
 import type { TrendItem } from '../lib/studioTrends'
 import './JarvisHub.css'
 import './NovaStudio.css'
@@ -74,7 +75,7 @@ async function loadMedia(file: File): Promise<Media> {
 }
 
 /** Bilingual Faceless Video Studio: script EN + VI, preview, MP4 export and Title Lab, all in the browser. */
-export function VideoStudioPage({ onBack, glass = true, trends = true, postKit = true, videoSettings = true }: { onBack: () => void; glass?: boolean; trends?: boolean; postKit?: boolean; videoSettings?: boolean }) {
+export function VideoStudioPage({ onBack, glass = true, trends = true, postKit = true, videoSettings = true, uploads = true }: { onBack: () => void; glass?: boolean; trends?: boolean; postKit?: boolean; videoSettings?: boolean; uploads?: boolean }) {
   const lang = useLang()
   const theme = useHubTheme()
   const active = useActiveStep()
@@ -91,6 +92,8 @@ export function VideoStudioPage({ onBack, glass = true, trends = true, postKit =
   const [scenes, setScenes] = useState(5)
   // the post kit's chosen hook opens the server video
   const [hook, setHook] = useState({ en: '', vi: '' })
+  // ids of the user's uploads for the server video, in order
+  const [serverMedia, setServerMedia] = useState<string[]>([])
   const [fades, setFades] = useState(true)
   const [voice, setVoice] = useState(false)
   const [media, setMedia] = useState<Media[]>([])
@@ -343,10 +346,11 @@ export function VideoStudioPage({ onBack, glass = true, trends = true, postKit =
           ) : (
             <p className="muted small">{t('footageAuto')}</p>
           )}
+          {uploads && <NovaUploads onChange={setServerMedia} />}
         </section>
 
         <section id="nv-make" className="nv-make">
-          <StudioRenderPanel topic={topic} topicVi={topicVi} en={script.en} vi={script.vi} aspect={aspect} glass={glass} settings={videoSettings} hook={postKit ? hook : undefined} onClearHook={() => setHook({ en: '', vi: '' })} />
+          <StudioRenderPanel topic={topic} topicVi={topicVi} en={script.en} vi={script.vi} aspect={aspect} glass={glass} settings={videoSettings} hook={postKit ? hook : undefined} onClearHook={() => setHook({ en: '', vi: '' })} media={uploads ? serverMedia : []} />
 
           <div className={card}>
             <header><h3>{t('quickTitle')}</h3></header>

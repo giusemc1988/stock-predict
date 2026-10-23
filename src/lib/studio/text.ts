@@ -159,6 +159,19 @@ export const STUDIO_TEXT = {
   vsHookNone: { en: 'No hook chosen. In the post kit (step 5), tap ★ on a hook to open the video with it.', vi: 'Chưa chọn hook. Trong Bộ đăng bài (bước 5), bấm ★ ở một hook để video mở đầu bằng câu đó.' },
   kitUseHook: { en: 'Open the video with this hook', vi: 'Dùng hook này mở đầu video' },
   scenesCount: { en: 'Scenes for AI', vi: 'Số cảnh khi AI viết' },
+  upTitle: { en: 'Your own photos and clips for the voiced video', vi: 'Ảnh và clip của anh cho video có giọng' },
+  upAdd: { en: 'Add photos or clips', vi: 'Thêm ảnh hoặc clip' },
+  upNote: { en: 'Up to 10 files, 50 MB each, clips up to 60 seconds, at least 480 px. The server video uses them in this order instead of stock photos. They are kept 3 days, then deleted.', vi: 'Tối đa 10 file, mỗi file 50 MB, clip tối đa 60 giây, cạnh ngắn ít nhất 480 px. Video máy chủ dùng chúng theo đúng thứ tự này thay cho ảnh có sẵn. File được giữ 3 ngày rồi tự xoá.' },
+  upUploading: { en: 'Uploading', vi: 'Đang tải lên' },
+  upReady: { en: 'Ready', vi: 'Sẵn sàng' },
+  upFailed: { en: 'Upload failed, remove it and try again', vi: 'Tải lên lỗi, xoá rồi thử lại' },
+  upErrType: { en: 'Use JPG, PNG, WebP, MP4, MOV or WebM.', vi: 'Chỉ nhận JPG, PNG, WebP, MP4, MOV hoặc WebM.' },
+  upErrSize: { en: 'Over 50 MB.', vi: 'Quá 50 MB.' },
+  upErrLong: { en: 'Clip is over 60 seconds.', vi: 'Clip dài quá 60 giây.' },
+  upErrSmall: { en: 'Too small (under 480 px).', vi: 'Quá nhỏ (dưới 480 px).' },
+  upErrFull: { en: 'Upload space is full. Remove some uploads, or wait: they clear after 3 days.', vi: 'Hết chỗ lưu. Xoá bớt file đã tải, hoặc chờ: file tự xoá sau 3 ngày.' },
+  upEarlier: { en: 'Move earlier', vi: 'Đưa lên trước' },
+  footageUpload: { en: 'Footage: your own photos and clips', vi: 'Hình: ảnh và clip của anh' },
 } satisfies Record<string, Bi>
 
 export type StudioKey = keyof typeof STUDIO_TEXT

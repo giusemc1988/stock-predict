@@ -6,6 +6,7 @@ import { cleanKey, sameOrigin, withSavedKeys, type KeyStore } from '../lib/brain
 import type { BrainEnv } from '../lib/brainServer'
 import { cleanKitAsk, writeKitItem, writePostKit, writeTerms } from '../lib/studioServer'
 import { TRENDS_CACHE, TRENDS_TTL_MS, YOUTUBE_KEY, fetchTrends, type TrendGeo, type TrendsResult } from '../lib/studioTrends'
+import { MEDIA_CHUNK, deleteMedia, finishMedia, putMediaPart, readyMedia, startMedia, type MediaStore } from '../lib/studioMedia'
 import { GITHUB_KEY, PEXELS_KEY, checkGithubToken, cleanRenderAsk, kickFarm, deleteJob, isJobId, listJobs, queueJobs, videoResponse, type JobStore } from '../lib/studioJobs'
 
 const json = (data: unknown, status = 200) => new Response(JSON.stringify(data), { status, headers: { 'content-type': 'application/json', 'cache-control': 'no-store' } })
@@ -44,6 +45,7 @@ export async function novaRoute(req: Request, pathname: string, env: BrainEnv, s
     if (!sameOrigin(req)) return json({ error: 'Not allowed' }, 403)
     const ask = cleanRenderAsk(await req.json().catch(() => null))
     if (!ask) return json({ error: 'Add a topic and at least one script line' }, 400)
+    ask.media = await readyMedia(kv as unknown as MediaStore, ask.media)
     const terms = await writeTerms(ask.topic, ask.en.length ? ask.en : ask.vi, await withSavedKeys(env, settings))
     const jobs = await queueJobs(kv, ask, terms)
     if (!jobs) return json({ error: 'busy' }, 429)
@@ -73,6 +75,24 @@ export async function novaRoute(req: Request, pathname: string, env: BrainEnv, s
     await kv.put(k.slot, key)
     if (kind === 'youtube') await Promise.all([kv.delete(TRENDS_CACHE('VN')), kv.delete(TRENDS_CACHE('US'))])
     return json({ [kind]: true })
+  }
+  if (pathname === '/api/studio/media') {
+    // POST {type,size} starts an upload; PUT ?id=&i= sends one part; PATCH ?id= finishes; DELETE ?id= removes
+    if (!sameOrigin(req)) return json({ error: 'Not allowed' }, 403)
+    const store = kv as unknown as MediaStore
+    const id = url.searchParams.get('id') ?? ''
+    if (req.method === 'POST') {
+      const r = await startMedia(store, await req.json().catch(() => null))
+      if ('error' in r) return json({ error: r.error }, r.error === 'full' ? 507 : 400)
+      return json({ id: r.item.id, chunk: MEDIA_CHUNK, parts: r.item.parts })
+    }
+    if (req.method === 'PUT') {
+      const r = await putMediaPart(store, id, Number(url.searchParams.get('i')), await req.arrayBuffer())
+      return r === 'ok' ? json({ ok: true }) : json({ error: r }, r === 'missing' ? 404 : 400)
+    }
+    if (req.method === 'PATCH') return (await finishMedia(store, id)) ? json({ ok: true }) : json({ error: 'parts missing' }, 409)
+    if (req.method === 'DELETE') return (await deleteMedia(store, id)) ? json({ ok: true }) : json({ error: 'missing' }, 404)
+    return json({ error: 'POST, PUT, PATCH or DELETE' }, 405)
   }
   if (pathname === '/api/studio/postkit') {
     if (req.method !== 'POST') return json({ error: 'POST only' }, 405)
