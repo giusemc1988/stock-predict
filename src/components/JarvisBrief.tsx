@@ -27,6 +27,8 @@ import { hubText } from '../lib/hubText'
 import { useNews } from '../hooks/useNews'
 import { HubProjects } from './HubProjects'
 import { StatRow } from './StatCard'
+import { SkRows } from './Skeleton'
+import { ActivityFeed, type FeedItem } from './ActivityFeed'
 
 interface Props {
   rules: AiRules
@@ -124,6 +126,8 @@ export function JarvisBrief(p: Props) {
   const acctChange = (practiceEquity(p.practice) / PRACTICE_START - 1) * 100
   const lossUsed = p.lossLimitOn && p.lossLimit > 0 ? Math.round((Math.max(0, -p.dayPL) / p.lossLimit) * 100) : null
   const learnCalls = learnIn.right + learnIn.wrong
+  // the first scan of the day has not finished: show the pick and board as grey placeholders
+  const scanLoading = dash && inputs.scan.on && p.scan.busy && !p.scan.at
   const briefBlock = (
         <div className="bf-brief">
           <div className="bf-status">
@@ -208,6 +212,7 @@ export function JarvisBrief(p: Props) {
             {vi ? "Nguồn" : "Source"}: {p.serverMode ? (vi ? "máy chủ luyện tập, quét mã biến động hôm nay" : "server practice scan of today's movers") : vi ? "quét luyện tập trong trình duyệt" : "practice scan in this browser"}
           </p>
           {!inputs.scan.on && <p className="warn">{vi ? 'Quét luyện tập đang tắt (Cài đặt > Quy tắc AI).' : 'The practice scan is off (Settings > AI rules).'}</p>}
+          {dash && inputs.scan.on && p.scan.busy && !p.scan.at && <SkRows rows={4} cols={4} />}
           {inputs.scan.on && !p.scan.at && <p className="muted">{p.scan.busy ? (vi ? 'Đang quét…' : 'Scanning…') : vi ? 'Chưa có lần quét nào.' : 'No scan yet.'}</p>}
           {p.scan.at && !buys.length && <p className="muted">{vi ? 'Lần quét gần nhất không có lệnh MUA nào đạt quy tắc.' : 'The last scan found no BUY call that passes the rules.'}</p>}
           {p.scan.noStockData && <p className="warn">{vi ? 'Chưa quét cổ phiếu: cần key Alpaca paper ở trang Danh mục.' : 'Stocks skipped: add an Alpaca paper key on the Portfolio page.'}</p>}
@@ -246,6 +251,12 @@ export function JarvisBrief(p: Props) {
           {moverTab === 'stock' && lists.stocksNeedKey && <p className="warn">{vi ? 'Cần key Alpaca paper ở trang Danh mục để có danh sách cổ phiếu trực tiếp.' : 'Add an Alpaca paper key on the Portfolio page for the live stock list.'}</p>}
           {moverTab === 'stock' && lists.stockError && <p className="warn">{lists.stockError}</p>}
           {moverTab === 'crypto' && lists.cryptoError && <p className="warn">{lists.cryptoError}</p>}
+          {dash && !moverRows && (lists.loading || !lists.updatedAt) && !(moverTab === 'stock' ? lists.stocksNeedKey || lists.stockError : lists.cryptoError) && (
+            <div className="bf-movers-2">
+              <SkRows rows={5} cols={2} />
+              <SkRows rows={5} cols={2} />
+            </div>
+          )}
           {moverRows && (
             <div className="bf-movers-2">
               <Movers title={vi ? 'Tăng mạnh nhất' : 'Top gainers'} rows={moverRows.gainers} onPick={openRow} />
@@ -305,6 +316,16 @@ export function JarvisBrief(p: Props) {
   const tools = p.rules.toolHub && !!p.onTool
   const voteCtx: VoteContext = { flow: { symbol: p.flow.symbol, buyShare: p.flow.buyShare }, headlines: news.map((n) => n.headline), learner: { right: learnIn.right, wrong: learnIn.wrong }, risk: { killSwitch: p.killSwitch, dayPL: p.dayPL, lossLimit: p.lossLimit, lossLimitOn: p.lossLimitOn } }
   // project cards open the same pages as the Tool Hub; without it, the hub's own buttons
+  // Recent activity on the Hub: the newest practice events, logged decisions and learner notes, merged by time
+  const activity: FeedItem[] = dash
+    ? [
+        ...p.practice.events.slice(0, 12).map((e): FeedItem => ({ id: `e${e.id}`, time: e.time, kind: e.kind, text: L(e), sub: e.symbol })),
+        ...(p.practice.audit ?? []).slice(0, 12).map((a): FeedItem => ({ id: `a${a.id}`, time: a.time, kind: a.accepted ? 'ok' : 'no', text: L(a), sub: `${a.symbol} · ${vi ? 'nhật ký quyết định' : 'decision log'}` })),
+        ...p.learn.log.slice(0, 12).map((l, i): FeedItem => ({ id: `l${l.time}${i}`, time: l.time, kind: 'learn', text: L(l), sub: vi ? 'bộ tự học' : 'learner' })),
+      ]
+        .sort((a, b) => b.time - a.time)
+        .slice(0, 8)
+    : []
   const toPage = (pg: HubPage) => (p.onTool ? p.onTool(pg) : pg === 'net' ? p.onNet?.() : pg === 'ruview' || pg === 'ruview-flash' ? p.onRuview?.() : p.onDesk())
   const openPick = (b: PickRow) => p.onSymbol(b.symbol, b.symbol.includes('/') ? 'crypto' : 'stock')
 
@@ -315,26 +336,26 @@ export function JarvisBrief(p: Props) {
           <span className="hub-hello">{L(hello).split('. ')[0]}.</span>
           <LangSwitch />
         </div>
-        {dash && <HubProjects practice={p.practice} buys={buys.length} on={{ net: !!p.onNet, ruview: !!p.onRuview }} onPage={toPage} />}
+        {dash && <HubProjects practice={p.practice} buys={buys.length} on={{ net: !!p.onNet, ruview: !!p.onRuview, godseye: p.rules.godsEyeOn, studio: p.rules.videoStudioOn }} onPage={toPage} />}
         <section className="bf-hero hub-hero">
         <BrainCore nodes={nodes} memory={memory} thinking={p.scan.busy || brief.writing} motion={p.rules.jarvisMotion} onNode={p.onNode} />
           {tools ? (
             // today's signal and the scoreboard side by side: "should I trust today's call?" in one glance
             <div className="hub-today">
-              <HubBestPick picks={buys} ctx={voteCtx} nodes={nodes} scanOn={inputs.scan.on} onOpen={openPick} onWhy={openSignalFlow} onDesk={p.onDesk} />
+              <HubBestPick loading={scanLoading} picks={buys} ctx={voteCtx} nodes={nodes} scanOn={inputs.scan.on} onOpen={openPick} onWhy={openSignalFlow} onDesk={p.onDesk} />
               {scoreCard}
             </div>
           ) : (
-            <HubBestPick picks={buys} ctx={voteCtx} nodes={nodes} scanOn={inputs.scan.on} onOpen={openPick} onWhy={openSignalFlow} onDesk={p.onDesk} />
+            <HubBestPick loading={scanLoading} picks={buys} ctx={voteCtx} nodes={nodes} scanOn={inputs.scan.on} onOpen={openPick} onWhy={openSignalFlow} onDesk={p.onDesk} />
           )}
         </section>
         <div className="hub-cols">
           <div className="hub-main">
-            <HubBoard picks={buys} ctx={voteCtx} nodes={nodes} onOpen={openPick} onWhy={openSignalFlow} />
+            <HubBoard loading={scanLoading} picks={buys} ctx={voteCtx} nodes={nodes} onOpen={openPick} onWhy={openSignalFlow} />
             {tools ? (
               <ToolHub
                 onPage={p.onTool!}
-                on={{ net: !!p.onNet, ruview: !!p.onRuview }}
+                on={{ net: !!p.onNet, ruview: !!p.onRuview, godseye: p.rules.godsEyeOn, studio: p.rules.videoStudioOn }}
                 status={{ desk: hubText(lang, 'thOpenTrades', { n: p.practice.open.length }), board: hubText(lang, 'thCalls', { n: buys.length }) }}
               />
             ) : (
@@ -351,6 +372,15 @@ export function JarvisBrief(p: Props) {
             </div>
           </div>
           <aside className="hub-side">
+            {dash && (
+              <section className="bf-card hub-activity">
+                <header>
+                  <h3>{vi ? 'Hoạt động gần đây' : 'Recent activity'}</h3>
+                </header>
+                <p className="bf-source">{vi ? 'Nguồn: tài khoản luyện tập, nhật ký quyết định, bộ tự học' : 'Source: practice account, decision log, learner'}</p>
+                <ActivityFeed items={activity} empty={vi ? 'Chưa có gì. Lệnh, quyết định và bài học sẽ hiện ở đây khi xảy ra.' : 'Nothing yet. Trades, decisions and lessons show up here as they happen.'} />
+              </section>
+            )}
             <HubStudio />
             {!tools && <HubDevices onNet={p.onNet} onRuview={p.onRuview} />}
           </aside>

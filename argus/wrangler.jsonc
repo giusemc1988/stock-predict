@@ -1,0 +1,18 @@
+// Argus (God's Eye View): the upstream bilawalsidhu/gods-eye-view browser app, built at a pinned
+// commit by .github/workflows/argus.yml, served with our own small API in worker.ts.
+// No keys, no debug routes. Deployed as its own Worker so the trading app stays untouched.
+{
+  "name": "argus",
+  "main": "worker.ts",
+  "compatibility_date": "2025-09-01",
+  "assets": {
+    "directory": "./dist",
+    "binding": "ASSETS",
+    "not_found_handling": "single-page-application",
+    "run_worker_first": ["/api/*"]
+  },
+  // live aircraft through the home PC: the Hub already holds the home agent secrets
+  "services": [{ "binding": "HUB", "service": "stock-predict" }],
+  // aircraft snapshots from GitHub Actions; the workflow fills in the namespace id (it creates "argus-snap" once)
+  "kv_namespaces": [{ "binding": "SNAP", "id": "__ARGUS_SNAP_KV__" }]
+}

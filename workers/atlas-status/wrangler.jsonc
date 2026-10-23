@@ -1,0 +1,10 @@
+// Atlas (Stock Predictor) read-only status endpoint — public, no Cloudflare Access
+// Deployed separately to atlas-status.chanhmn1011.workers.dev
+{
+  "name": "atlas-status",
+  "main": "worker.ts",
+  "compatibility_date": "2025-09-01",
+  "kv_namespaces": [
+    { "binding": "PRACTICE", "id": "c7406fc64a454ccfa114c6aa39f35c64" }
+  ]
+}

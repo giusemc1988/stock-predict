@@ -5,6 +5,7 @@ import { useHubT, type Bi, type HubKey } from '../lib/hubText'
 import { setLang, useLang } from '../lib/i18n'
 import type { PickRow } from '../lib/practice'
 import { pickSourceLabel } from '../lib/practicePicks'
+import { SkRows } from './Skeleton'
 
 const rgb = (i: number, a = 1) => `rgba(${AGENT_COLORS[i].join(',')},${a})`
 
@@ -42,14 +43,23 @@ interface PickProps {
   onOpen: (p: PickRow) => void
   onWhy: (p: PickRow) => void
   onDesk: () => void
+  /** The first scan has not finished yet (Dashboard cards and motion): show grey placeholders. */
+  loading?: boolean
 }
 
 /** Today's best pick next to the sphere: the scanner's #1 BUY with what each agent thinks of it. */
-export function HubBestPick({ picks, ctx, nodes, scanOn, onOpen, onWhy, onDesk }: PickProps) {
+export function HubBestPick({ picks, ctx, nodes, scanOn, onOpen, onWhy, onDesk, loading }: PickProps) {
   const vi = useLang() === 'vi'
   const t = useHubT()
   const L = (b: Bi) => (vi ? b.vi : b.en)
   const top = picks[0]
+  if (!top && loading)
+    return (
+      <section className="hub-pick empty" aria-busy="true">
+        <span className="hub-tag">{t('bestPick')}</span>
+        <SkRows rows={3} cols={1} className="sk-pick" />
+      </section>
+    )
   if (!top)
     return (
       <section className="hub-pick empty">
@@ -103,7 +113,7 @@ export function HubBestPick({ picks, ctx, nodes, scanOn, onOpen, onWhy, onDesk }
 }
 
 /** The prediction board: every BUY call with its score and the six agent dots. */
-export function HubBoard({ picks, ctx, nodes, onOpen, onWhy }: Omit<PickProps, 'onDesk' | 'scanOn'>) {
+export function HubBoard({ picks, ctx, nodes, onOpen, onWhy, loading }: Omit<PickProps, 'onDesk' | 'scanOn'>) {
   const t = useHubT()
   return (
     <section className="bf-card hub-board" id="hub-board">
@@ -111,7 +121,7 @@ export function HubBoard({ picks, ctx, nodes, onOpen, onWhy }: Omit<PickProps, '
         <h3>{t('board')}</h3>
         <span className="muted small">{t('boardDots')}</span>
       </header>
-      {!picks.length && <p className="muted">{t('boardEmpty')}</p>}
+      {!picks.length && (loading ? <SkRows rows={4} cols={3} /> : <p className="muted">{t('boardEmpty')}</p>)}
       {picks.slice(0, 8).map((p) => (
         <div key={p.symbol} className="hub-brow">
           <button className="hub-brow-main" onClick={() => onOpen(p)}>

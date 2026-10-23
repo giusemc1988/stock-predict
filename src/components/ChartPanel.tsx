@@ -23,6 +23,7 @@ import { RobotIcon } from './RobotIcon'
 import { sma, stdev } from '../lib/indicators'
 import { CHART_RANGES, loadChartConfig, RANGE_TF, rangeDays, saveChartConfig, type ChartConfig, type ChartRange } from '../lib/chartConfig'
 import { useAiRules } from '../lib/aiRules'
+import { SkChart } from './Skeleton'
 import { useT } from '../lib/i18n'
 import type { PracticeEvent } from '../lib/practice'
 import { JarvisAvatar } from './JarvisAvatar'
@@ -644,7 +645,7 @@ export function ChartPanel(props: Props) {
           {showForecast && prediction && <span className="legend-ema" style={{ color: COLORS.forecast }}>AI forecast ±1σ</span>}
         </div>
       )}
-      {!candles.length && <div className="chart-empty">Loading market data…</div>}
+      {!candles.length && (rules.dashMotion ? <SkChart label="Loading market data…" /> : <div className="chart-empty">Loading market data…</div>)}
       <div className="chart-key">
         {showRobots && (
           <>

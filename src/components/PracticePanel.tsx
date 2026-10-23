@@ -5,7 +5,8 @@ import type { PracticeScan } from '../hooks/usePractice'
 import { pickSourceLabel } from '../lib/practicePicks'
 import { loadRobotAudit, type AuditEntry } from '../lib/audit'
 import { fmtPct, tone } from '../lib/format'
-import { StatRow } from './StatCard'
+import { Icon, StatRow } from './StatCard'
+import { ActivityFeed, type FeedItem } from './ActivityFeed'
 import { buildDailyReport } from '../lib/dailyReport'
 import { DATA_LABEL } from '../lib/dataGuard'
 import { BUCKET_LABEL, REVIEW_FAIL, reviewCounts, type ReviewBucket } from '../lib/review'
@@ -49,7 +50,7 @@ function Curve({ points }: { points: { t: number; equity: number }[] }) {
   return (
     <svg className="pr-curve" viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none" role="img" aria-label="equity curve">
       <line x1="0" x2={W} y1={y(PRACTICE_START)} y2={y(PRACTICE_START)} className="pr-base" />
-      <path d={d} className={up ? 'up' : 'down'} />
+      <path pathLength={1} d={d} className={up ? 'up' : 'down'} />
     </svg>
   )
 }
@@ -411,7 +412,12 @@ export function PracticePanel({ state, rules, symbol, priceOf, onReset, scan, on
 
           <div className="al-card">
             <div className="al-kicker">{L('ACTIVITY', 'HOẠT ĐỘNG')}</div>
-            {state.events.length === 0 ? (
+            {rules.dashMotion ? (
+              <ActivityFeed
+                items={state.events.slice(0, 40).map((e): FeedItem => ({ id: e.id, time: e.time, kind: e.kind, text: L(e.en, e.vi), sub: e.symbol }))}
+                empty={L('Nothing yet. Orders and skipped setups show up here as they happen.', 'Chưa có gì. Lệnh và các lần bỏ qua sẽ hiện ở đây khi xảy ra.')}
+              />
+            ) : state.events.length === 0 ? (
               <p className="muted al-note">{L('Nothing yet. Orders and skipped setups show up here as they happen.', 'Chưa có gì. Lệnh và các lần bỏ qua sẽ hiện ở đây khi xảy ra.')}</p>
             ) : (
               <ul className="pr-feed">
@@ -603,6 +609,11 @@ export function PracticePanel({ state, rules, symbol, priceOf, onReset, scan, on
                 {shownLog.map((e) => (
                   <li key={e.id} className={e.accepted ? 'ok' : 'no'}>
                     <div className="pr-trade-head">
+                      {rules.dashMotion && (
+                        <i className={`af-ico af-${e.accepted ? 'ok' : 'no'}`}>
+                          <Icon name={e.accepted ? 'check' : 'x'} size={12} />
+                        </i>
+                      )}
                       <span className={`al-tag ${e.accepted ? 'up' : 'down'}`}>{e.accepted ? L('ACCEPTED', 'CHẤP NHẬN') : L('REJECTED', 'TỪ CHỐI')}</span>
                       <b>{e.symbol}</b>
                       <span className="muted">{e.account === 'robot' ? L('robot', 'robot') : L('practice', 'luyện tập')}</span>

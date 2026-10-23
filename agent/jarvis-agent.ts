@@ -8,6 +8,7 @@
  *   - lists the Wi-Fi networks your PC already sees, with channels (Windows netsh, Linux nmcli)
  *   - ping, open-port check and Wake-on-LAN, only for private addresses (192.168.x.x, 10.x, 172.16-31.x)
  *   - a download/upload speed test against speed.cloudflare.com
+ *   - aircraft relay for Argus: fetches the free adsb.lol / adsb.fi feeds from this home IP (they refuse cloud servers)
  *   - RuView sensing: passes a few read-only calls to the RuView server on this PC (npm run ruview) and keeps the node list
  * It never captures traffic, never joins or attacks other networks, and only listens on 127.0.0.1.
  * Reach it from the app through a Cloudflare Tunnel behind Cloudflare Access (see agent/README.md).
@@ -23,7 +24,7 @@ import { join } from 'node:path'
 import { isPrivateIPv4, parseArp, parseNetsh, parseNmcli, type LanDevice } from '../src/lib/netParse'
 import { boardOf, RUVIEW_IMAGE, type RegistryNode } from '../src/lib/ruview'
 
-const VERSION = '1.1.0'
+const VERSION = '1.2.0'
 const PORT = Number(process.env.AGENT_PORT ?? 8787)
 const HOME = process.env.AGENT_HOME ?? join(os.homedir(), '.jarvis-agent')
 const ORIGINS = (process.env.AGENT_ORIGINS ?? 'https://stock-predict.chanhmn1011.workers.dev,http://localhost:5173').split(',').map((s) => s.trim())
@@ -210,6 +211,27 @@ function saveNode(b: Record<string, unknown>) {
   saveJson('ruview-nodes.json', [...reg.filter((x) => x.id !== id), clean].sort((a, c) => a.id - c.id))
 }
 
+/** Public aircraft data for the Argus globe, fetched from this PC's home IP. Kept 10 s so many viewers make one request. */
+const air = new Map<string, { at: number; data: unknown }>()
+async function aircraft(kind: 'flights' | 'military', lat: number, lon: number) {
+  const near = (host: string) => `https://${host}/v2/lat/${lat}/lon/${lon}/dist/250`
+  const urls = kind === 'military' ? ['https://api.adsb.lol/v2/mil', 'https://opendata.adsb.fi/api/v2/mil'] : [near('api.adsb.lol'), near('opendata.adsb.fi/api')]
+  const key = urls[0]
+  const hit = air.get(key)
+  if (hit && Date.now() - hit.at < 10_000) return hit.data
+  const why: string[] = []
+  for (const u of urls) {
+    const r = await fetch(u, { headers: { accept: 'application/json', 'user-agent': `jarvis-agent/${VERSION}` }, signal: AbortSignal.timeout(8000) }).catch((e: Error) => (why.push(e.name), null))
+    if (r && !r.ok) why.push(`${new URL(u).host} HTTP ${r.status}`)
+    if (!r?.ok) continue
+    const data = await r.json()
+    if (air.size > 100) air.clear()
+    air.set(key, { at: Date.now(), data })
+    return data
+  }
+  throw new Error(`aircraft feeds refused: ${why.join(', ')}`)
+}
+
 async function body(req: http.IncomingMessage): Promise<Record<string, unknown>> {
   let s = ''
   for await (const c of req) {
@@ -258,6 +280,12 @@ export function start() {
         return send(200, { ok: true })
       }
       if (url.pathname === '/api/speed') return send(200, await speed())
+      if (url.pathname === '/api/flights' || url.pathname === '/api/military') {
+        const lat = Math.round(Number(url.searchParams.get('lat') ?? 0) * 4) / 4
+        const lon = Math.round(Number(url.searchParams.get('lon') ?? 0) * 4) / 4
+        if (!Number.isFinite(lat) || !Number.isFinite(lon) || Math.abs(lat) > 90 || Math.abs(lon) > 180) return send(400, { error: 'bad lat/lon' })
+        return send(200, await aircraft(url.pathname === '/api/military' ? 'military' : 'flights', lat, lon))
+      }
       if (url.pathname === '/api/ruview/status') return send(200, await ruviewStatus())
       if (url.pathname === '/api/ruview/registry' && req.method === 'GET') return send(200, { nodes: loadJson<RegistryNode[]>('ruview-nodes.json', []), me: myIps() })
       if (url.pathname === '/api/ruview/registry' && req.method === 'POST') {

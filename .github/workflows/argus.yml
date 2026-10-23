@@ -1,0 +1,80 @@
+# Argus (God's Eye View): builds the upstream gods-eye-view app at the commit pinned in
+# argus/upstream.json and deploys it with argus/worker.ts as the "argus" Worker.
+# The upstream install/build runs in a job WITHOUT secrets; only the static output
+# reaches the deploy job, which holds the Cloudflare token.
+name: Deploy Argus
+
+on:
+  push:
+    branches: [main]
+    paths: ['argus/**', '.github/workflows/argus.yml']
+  workflow_dispatch:
+  # satellite orbits (TLE) are baked into the build; CelesTrak updates them every 2 hours
+  schedule:
+    - cron: '17 */2 * * *'
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: argus/upstream.json
+          sparse-checkout-cone-mode: false
+      - id: pin
+        run: |
+          echo "repo=$(jq -r .repo argus/upstream.json)" >> "$GITHUB_OUTPUT"
+          echo "commit=$(jq -r .commit argus/upstream.json)" >> "$GITHUB_OUTPUT"
+      - run: |
+          git init upstream
+          cd upstream
+          git remote add origin "${{ steps.pin.outputs.repo }}"
+          git fetch --depth 1 origin "${{ steps.pin.outputs.commit }}"
+          git checkout --quiet FETCH_HEAD
+          # production must not ship debug routes
+          rm -rf functions/api/debug
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - working-directory: upstream
+        run: |
+          npm ci --no-audit --no-fund
+          npx vite build
+      - name: Satellite orbits
+        # Cloudflare's shared IPs get refused by CelesTrak, so the runner fetches them and ships them as files
+        run: |
+          mkdir -p upstream/dist/tle
+          for g in active stations visual gps-ops weather starlink; do
+            curl -fsS -m 60 -A "argus-hub/1.0 (+https://github.com/giusemc1988/stock-predict)" \
+              "https://celestrak.org/NORAD/elements/gp.php?GROUP=$g&FORMAT=tle" -o "upstream/dist/tle/$g.txt" \
+              && grep -q '^1 ' "upstream/dist/tle/$g.txt" || { echo "::warning::CelesTrak $g not fetched"; rm -f "upstream/dist/tle/$g.txt"; }
+          done
+          ls -la upstream/dist/tle
+      - uses: actions/upload-artifact@v4
+        with:
+          name: argus-dist
+          path: upstream/dist
+          retention-days: 3
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: argus-dist
+          path: argus/dist
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - working-directory: argus
+        run: |
+          cp _headers dist/_headers
+          sed -i "s/__ARGUS_SNAP_KV__/$(node kv-id.mjs | tail -n 1)/" wrangler.jsonc
+          npx -y wrangler@4 deploy
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}

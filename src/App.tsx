@@ -29,6 +29,8 @@ import { BottomPanel } from './components/BottomPanel'
 import { PortfolioPage } from './components/PortfolioPage'
 import { NetPage } from './components/NetPage'
 import { RuViewPage } from './components/RuViewPage'
+import { GodsEyePage } from './components/GodsEyePage'
+import { VideoStudioPage } from './components/VideoStudioPage'
 import { ViralTechPage } from './components/ViralTechPage'
 import { AutoLearnPanel } from './components/AutoLearnPanel'
 import { useAutoLearning } from './hooks/useAutoLearning'
@@ -61,6 +63,7 @@ import { logRobot } from './lib/audit'
 import { stampData, staleReason } from './lib/dataGuard'
 import { Toasts, type Toast } from './components/Toasts'
 import { PanelGuard } from './components/PanelGuard'
+import { startSlidePills } from './lib/slidePill'
 
 const NO_CANDLES: Candle[] = []
 
@@ -110,7 +113,7 @@ export default function App() {
   const skillTags = useMemo(() => approvedTags(rawRules, skillStatuses, skillFails), [rawRules, skillStatuses, skillFails])
   const [page, setPageRaw] = useState<Page>(() => (rawRules.briefHome && rawRules.jarvisOn ? 'brief' : 'trade'))
   const briefOn = aiRules.briefHome && aiRules.jarvisOn
-  const shownPage: Page = (page === 'brief' && !briefOn) || (page === 'net' && !aiRules.netTools) || (page === 'ruview' && !aiRules.ruviewOn) ? 'trade' : page
+  const shownPage: Page = (page === 'brief' && !briefOn) || (page === 'net' && !aiRules.netTools) || (page === 'ruview' && !aiRules.ruviewOn) || (page === 'godseye' && !aiRules.godsEyeOn) || (page === 'studio' && !aiRules.videoStudioOn) ? 'trade' : page
   const setPage = setPageRaw
   // the Tool Hub's "Flash a board" opens RuView with the add-node wizard already open
   const [ruviewFlash, setRuviewFlash] = useState(false)
@@ -182,6 +185,8 @@ export default function App() {
   // Settings > AI rules > Dashboard cards and motion: one class on <html> turns the entrance motion on (index.css, .dm)
   useEffect(() => {
     document.documentElement.classList.toggle('dm', aiRules.dashMotion)
+    // tab bars get a highlight that slides to the chosen tab
+    return aiRules.dashMotion ? startSlidePills() : undefined
   }, [aiRules.dashMotion])
 
   // Call Jarvis router when a bar closes
@@ -549,7 +554,7 @@ export default function App() {
 
   return (
     <div
-      className={`app page-${shownPage === 'ruview' ? 'net page-ruview' : shownPage === 'viraltech' ? 'net page-viraltech' : shownPage}`}
+      className={`app page-${shownPage === 'ruview' || shownPage === 'godseye' || shownPage === 'studio' || shownPage === 'viraltech' ? `net page-${shownPage}` : shownPage}`}
       style={
         aiRules.resizePanels
           ? ({
@@ -607,7 +612,7 @@ export default function App() {
         equity={broker.account.equity}
         dayPL={broker.account.dayPL}
       />
-      {shownPage !== 'brief' && shownPage !== 'net' && shownPage !== 'ruview' && shownPage !== 'viraltech' && <PanelGuard name="Watchlist"><Watchlist
+      {shownPage !== 'brief' && shownPage !== 'net' && shownPage !== 'ruview' && shownPage !== 'godseye' && shownPage !== 'studio' && shownPage !== 'viraltech' && <PanelGuard name="Watchlist"><Watchlist
         sortRequest={sortRequest}
         aiActive={aiRules.practiceMode && aiRules.practiceWatchlist ? aiActive : null}
         instruments={universe}
@@ -657,6 +662,14 @@ export default function App() {
       ) : shownPage === 'ruview' ? (
         <PanelGuard name="RuView">
           <RuViewPage onBack={() => setPage(briefOn ? 'brief' : 'trade')} webFlash={aiRules.webFlash} startAdding={ruviewFlash} />
+        </PanelGuard>
+      ) : shownPage === 'godseye' ? (
+        <PanelGuard name="God's Eye">
+          <GodsEyePage onBack={() => setPage(briefOn ? 'brief' : 'trade')} />
+        </PanelGuard>
+      ) : shownPage === 'studio' ? (
+        <PanelGuard name="Video Studio">
+          <VideoStudioPage onBack={() => setPage(briefOn ? 'brief' : 'trade')} />
         </PanelGuard>
       ) : shownPage === 'viraltech' ? (
         <PanelGuard name="Viraltech">

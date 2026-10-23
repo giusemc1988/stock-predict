@@ -1,0 +1,41 @@
+# Argus aircraft snapshot: adsb.lol / adsb.fi refuse Cloudflare's servers but answer GitHub's,
+# so every ~10 minutes the runner collects aircraft around busy areas (argus/snapshot.ts)
+# and stores them in the Worker's KV. The globe uses it when the home relay is off.
+# Free: public repos have unlimited Actions minutes. GitHub may run the cron late when busy.
+name: Argus aircraft snapshot
+
+on:
+  schedule:
+    - cron: '*/10 * * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: argus-snapshot
+  cancel-in-progress: false
+
+jobs:
+  snapshot:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: argus
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - name: Collect aircraft
+        run: ARGUS_SNAPSHOT_OUT=snap node argus/snapshot.ts
+      - name: Store in KV
+        working-directory: argus
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        run: |
+          id=$(node kv-id.mjs | tail -n 1)
+          for f in flights military; do
+            [ -f "../snap/$f.json" ] || continue
+            npx -y wrangler@4 kv key put --remote --namespace-id "$id" "argus:$f" --path "../snap/$f.json"
+          done

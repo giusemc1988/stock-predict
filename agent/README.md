@@ -57,6 +57,49 @@ Cần làm Cách 1 trước, và để `npm run agent` chạy.
 
 Xong, mở trang web như bình thường. Khi máy nhà tắt, trang hiện lần quét gần nhất.
 
+## Argus: máy bay thời gian thực qua máy nhà
+
+Các nguồn máy bay miễn phí (adsb.lol, adsb.fi) chặn máy chủ Cloudflare, nhưng mạng nhà thì không bị chặn.
+Khi chương trình máy nhà đang chạy và đã nối Cloudflare Tunnel như Cách 2 ở trên, Argus tự lấy máy bay qua máy nhà: dữ liệu thời gian thực, $0.
+Không cần thêm secret nào, vì Argus mượn đường của Hub (`stock-predict`). Hub đã giữ sẵn `HOME_AGENT_URL` và `HOME_AGENT_TOKEN`.
+
+Argus thử lần lượt từng nguồn:
+1. **Máy nhà**: thời gian thực.
+2. **Gọi thẳng** adsb.lol hoặc adsb.fi: thường bị chặn.
+3. **Ảnh chụp từ GitHub**, khoảng 10 phút một lần (workflow `Argus aircraft snapshot`): trễ khoảng 10–15 phút, nhưng chạy cả khi máy nhà tắt.
+
+Header `x-flight-source` cho biết nguồn nào đang được dùng.
+
+Lưu ý: link `trycloudflare.com` đổi mỗi lần chạy lại tunnel, nên sau khi máy khởi động lại phải sửa `HOME_AGENT_URL`. Muốn link cố định thì dùng cách có tên miền.
+
+## Chuyển sang Mac (MacBook hoặc Mac mini)
+
+Mọi thứ của anh nằm trên GitHub và Cloudflare, không nằm trên máy. Chuyển máy chỉ cần cài lại chương trình máy nhà.
+Mở **Terminal** trên Mac rồi chạy từng dòng:
+
+```bash
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+brew install node git cloudflared
+git clone https://github.com/giusemc1988/stock-predict.git ~/stock-predict
+cd ~/stock-predict && npm install
+bash agent/mac-autostart.sh
+```
+
+Lệnh cuối làm chương trình tự chạy mỗi khi Mac bật, và in ra **Token**.
+
+Tunnel tự chạy, cách dễ nhất là tạo trên dashboard:
+1. Vào Cloudflare **Zero Trust** > Networks > **Tunnels** > Create tunnel, chọn macOS.
+2. Dán lệnh `sudo cloudflared service install ...` mà trang đưa cho anh vào Terminal. Lệnh này cài tunnel thành dịch vụ, tự bật lại sau khi khởi động máy.
+3. Thêm **Public hostname** trỏ tới `http://127.0.0.1:8787`. Bước này cần một tên miền trên Cloudflare.
+
+Xong thì đổi `HOME_AGENT_URL` và `HOME_AGENT_TOKEN` của Worker **stock-predict** sang giá trị mới (Settings > Variables and Secrets), làm được từ điện thoại.
+
+Mac mini để ở nhà: vào System Settings > Users & Groups, bật **tự đăng nhập**. Vào Energy, bật **khởi động lại sau khi mất điện**. Chương trình chạy theo user, nên chỉ chạy khi user đã đăng nhập.
+
+Tắt tự chạy: `bash agent/mac-autostart.sh off`.
+
+Trên Mac, trang Wi-Fi chưa liệt kê được mạng xung quanh (macOS không có lệnh như netsh). Các phần khác (thiết bị, ping, cổng, tốc độ, Argus) vẫn chạy.
+
 ## RuView
 
 Cảm biến bằng sóng Wi-Fi.

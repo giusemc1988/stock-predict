@@ -2,7 +2,7 @@
  * Version and "What's new". Bump APP_VERSION and add an entry to the top of RELEASES
  * with each update. The banner shows once per version, then stays dismissed.
  */
-export const APP_VERSION = '1.32.0'
+export const APP_VERSION = '1.39.0'
 
 export interface Release {
   version: string
@@ -14,7 +14,7 @@ export interface Release {
 
 export const RELEASES: Release[] = [
   {
-    version: '1.32.0',
+    version: '1.39.0',
     date: '2026-10-23',
     changes: [
       'Viraltech on the Hub: a new project card shows how many of the 4 Viraltech channels are connected and how many posts are scheduled or posted. Tap it to open the Viraltech page.',
@@ -23,6 +23,90 @@ export const RELEASES: Release[] = [
     changesVi: [
       'Viraltech trên Hub: thẻ dự án mới cho biết bao nhiêu kênh trong 4 kênh Viraltech đã kết nối và bao nhiêu bài đã lên lịch hoặc đã đăng. Bấm vào để mở trang Viraltech.',
       'Trang Viraltech liệt kê Instagram, YouTube, TikTok và Facebook kèm link từng kênh, cùng mọi bài đăng với lượt xem và tương tác. Dữ liệu lấy từ Antwork; Claude cập nhật, và trang ghi rõ lúc cập nhật.',
+    ],
+  },
+  {
+    version: '1.38.0',
+    date: '2026-10-23',
+    changes: ["Argus aircraft now have two backups: live through your home PC when the home agent and tunnel are on, and a snapshot GitHub takes about every 10 minutes when the PC is off (about 6,000 aircraft over 32 busy areas, plus military). Moving to a Mac: agent/README.md has the steps and a script that starts the agent by itself."],
+    changesVi: ["Máy bay trên Argus giờ có hai đường dự phòng: thời gian thực qua máy nhà khi chương trình máy nhà và tunnel đang chạy, và ảnh chụp GitHub làm khoảng 10 phút một lần khi máy tắt (khoảng 6.000 máy bay ở 32 vùng đông, cộng máy bay quân sự). Chuyển sang Mac: agent/README.md có các bước và script tự bật chương trình máy nhà."],
+  },
+  {
+    version: '1.37.0',
+    date: '2026-10-22',
+    changes: ["Argus now runs on your own Cloudflare as the argus Worker, built from the original God's Eye View repo at a pinned commit, with no keys and no debug routes (the old link was someone else's site). Satellites (orbits refreshed every 2 hours) and earthquakes work. Live aircraft come from free feeds (adsb.lol, adsb.fi, OpenSky) that often refuse Cloudflare's servers; when they do, the layer says which feed refused."],
+    changesVi: ["Argus giờ chạy trên Cloudflare của anh thành Worker argus, build từ repo God's Eye View gốc ở commit đã ghim, không key, không đường debug (link cũ là trang của người khác). Vệ tinh (quỹ đạo cập nhật mỗi 2 giờ) và động đất chạy được. Máy bay trực tiếp lấy từ nguồn miễn phí (adsb.lol, adsb.fi, OpenSky) hay từ chối máy chủ Cloudflare; khi đó lớp này ghi rõ nguồn nào từ chối."],
+  },
+  {
+    version: '1.36.0',
+    date: '2026-10-22',
+    changes: [
+      'Tabs feel smoother: the highlight slides to the tab you pick (top menu, chart timeframes, the right-panel tabs, Practice sub-tabs, language and other switches) instead of jumping.',
+      'Cards on the Hub lift a little with a soft shadow when you hover them, and buttons and tabs press in slightly when you click.',
+      'Off with "reduce motion" on your device or Settings > AI rules > Dashboard cards and motion (tabs and cards look exactly as before).',
+    ],
+    changesVi: [
+      'Tab mượt hơn: ô sáng trượt sang tab bạn chọn (menu trên cùng, khung thời gian biểu đồ, tab bảng phải, tab con Luyện tập, ngôn ngữ và các nút gạt khác) thay vì nhảy.',
+      'Thẻ trên Hub nhích lên một chút với bóng mờ khi rê chuột, và nút, tab hơi lún xuống khi bấm.',
+      'Tắt bằng "giảm chuyển động" trên thiết bị hoặc Cài đặt > Quy tắc AI > Thẻ và hiệu ứng dashboard (tab và thẻ trở lại y như cũ).',
+    ],
+  },
+  {
+    version: '1.35.0',
+    date: '2026-10-22',
+    changes: [
+      'New on the Hub: Recent activity. The newest practice trades, logged AI decisions and learner notes in one feed, each with a round icon for its type (buy, sell, skip, accepted, rejected, lesson) and how long ago it happened.',
+      'The Practice tab\'s Activity list uses the same feed, and the Decision log gets the same accepted / rejected icons. New items slide in from the top.',
+      'Off with Settings > AI rules > Dashboard cards and motion (the old lists come back).',
+    ],
+    changesVi: [
+      'Mới trên Hub: Hoạt động gần đây. Lệnh luyện tập, quyết định AI đã ghi và bài học mới nhất gom vào một dòng, mỗi mục có biểu tượng tròn theo loại (mua, bán, bỏ qua, chấp nhận, từ chối, bài học) và cách đây bao lâu.',
+      'Danh sách Hoạt động trong tab Luyện tập dùng cùng kiểu này, và Nhật ký quyết định có biểu tượng chấp nhận / từ chối. Mục mới trượt vào từ trên.',
+      'Tắt trong Cài đặt > Quy tắc AI > Thẻ và hiệu ứng dashboard (danh sách cũ quay lại).',
+    ],
+  },
+  {
+    version: '1.34.0',
+    date: '2026-10-22',
+    changes: [
+      'Charts draw themselves when they appear: the Portfolio equity curve draws left to right with its fill fading in (again when you switch 1D / 1M / 3M), the Tool Hub graph draws its lines out from Jarvis, and watchlist sparklines and the practice equity curve draw in.',
+      'The Portfolio equity curve has a dark bubble that follows your cursor with the value and time. Bars (invested share, Trade Score, confidence) grow from the left.',
+      'Argus now has its own card (globe icon) in the Hub\'s project row, and the row stays on one line on wide screens.',
+      'Off with "reduce motion" on your device or Settings > AI rules > Dashboard cards and motion.',
+    ],
+    changesVi: [
+      'Biểu đồ tự vẽ khi hiện ra: đường tài sản ở Danh mục vẽ từ trái sang phải và vùng tô hiện dần (vẽ lại khi đổi 1D / 1M / 3M), đồ thị Tool Hub vẽ đường tỏa ra từ Jarvis, sparkline trong danh sách theo dõi và đường tài sản luyện tập cũng tự vẽ.',
+      'Đường tài sản ở Danh mục có bong bóng tối đi theo con trỏ, hiện giá trị và thời gian. Các thanh (phần đã đầu tư, Điểm GD, độ tin cậy) mọc từ trái sang.',
+      'Argus giờ có thẻ riêng (biểu tượng quả địa cầu) trong hàng thẻ dự án trên Hub, và hàng thẻ nằm gọn một dòng trên màn hình rộng.',
+      'Tắt khi máy bật "giảm chuyển động" hoặc trong Cài đặt > Quy tắc AI > Thẻ và hiệu ứng dashboard.',
+    ],
+  },
+  {
+    version: '1.33.0',
+    date: '2026-10-22',
+    changes: [
+      "New in the Hub: Argus (God's Eye View). Your live 3D globe opens inside the app, with a status for every data layer checked from the server (flights, military aircraft, satellites, ships, earthquakes), so a dead layer says why instead of staying empty.",
+      'New in the Hub: Nova (Video Studio). Bilingual faceless videos made in your browser: Faceless, Philosophy and My Trip modes, EN and VI scripts written separately (AI with your free Gemini or Groq key, or the built-in library), no watermark, voice off by default, generated music at about -24.5 LUFS, smooth 0.7 s transitions, MP4 1080x1920 or 1920x1080 at 30 fps in BT.709 limited range, and a Title Lab to copy titles, hashtags and captions. It never posts by itself.',
+      'ESP32-DIV is now in the ESP32 Lab group. Both new pages have their own switch in Settings > AI rules.',
+      'Safety: home actions (Wake-on-LAN, port checks, RuView node changes) are refused unless they come from the app itself.',
+    ],
+    changesVi: [
+      "Mới trong Hub: Argus (God's Eye View). Quả địa cầu 3D của anh mở ngay trong app, kèm trạng thái từng lớp dữ liệu kiểm tra từ máy chủ (máy bay, quân sự, vệ tinh, tàu biển, động đất); lớp nào chết sẽ nói rõ lý do.",
+      'Mới trong Hub: Nova (Video Studio). Video không lộ mặt song ngữ làm ngay trên trình duyệt: chế độ Faceless, Triết lý và Chuyến đi; kịch bản EN và VI viết riêng (AI bằng key Gemini hoặc Groq miễn phí của anh, hoặc thư viện có sẵn); không watermark; giọng đọc mặc định tắt; nhạc nền tự tạo khoảng -24.5 LUFS; chuyển cảnh mượt 0.7 giây; MP4 1080x1920 hoặc 1920x1080, 30 fps, BT.709 limited range; Title Lab để copy tiêu đề, hashtag, caption. Không bao giờ tự đăng.',
+      'ESP32-DIV đã vào nhóm ESP32 Lab. Hai trang mới đều có công tắc riêng trong Cài đặt > Quy tắc AI.',
+      'An toàn: lệnh ở nhà (đánh thức máy, kiểm tra cổng, sửa node RuView) bị từ chối nếu không đến từ chính app.',
+    ],
+  },
+  {
+    version: '1.32.0',
+    date: '2026-10-22',
+    changes: [
+      'While data loads, you now see grey placeholders in the shape of the real layout instead of empty space: the price chart, the watchlist, Market movers, and the Hub\'s best pick and prediction board during the first scan.',
+      'Off with Settings > AI rules > Dashboard cards and motion (the shimmer stops with "reduce motion").',
+    ],
+    changesVi: [
+      'Khi đang tải dữ liệu, giờ có khung xám đúng hình bố cục thật thay vì chỗ trống: biểu đồ giá, danh sách theo dõi, Biến động thị trường, và mã tốt nhất cùng bảng dự đoán trên Hub trong lần quét đầu.',
+      'Tắt trong Cài đặt > Quy tắc AI > Thẻ và hiệu ứng dashboard (vệt sáng dừng khi máy bật "giảm chuyển động").',
     ],
   },
   {
