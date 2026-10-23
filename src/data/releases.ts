@@ -2,7 +2,7 @@
  * Version and "What's new". Bump APP_VERSION and add an entry to the top of RELEASES
  * with each update. The banner shows once per version, then stays dismissed.
  */
-export const APP_VERSION = '1.49.0'
+export const APP_VERSION = '1.50.0'
 
 export interface Release {
   version: string
@@ -13,6 +13,18 @@ export interface Release {
 }
 
 export const RELEASES: Release[] = [
+  {
+    version: '1.50.0',
+    date: '2026-10-23',
+    changes: [
+      'Atlas card on the Hub: tap a symbol in the Kronos 5-day list and, right in the same box, the 7 agents light up one by one, then the forecast line draws after the last 30 real closes, with a shaded band for the usual range. Tap All to go back. Watch only, never traded.',
+      'Turn the Atlas card over (the arrows button) to see the council: 7 agents in glass cards round a living brain that breathes, leans toward whoever is speaking and lights up inside while it thinks. Each card shows that agent\'s real vote on today\'s top BUY call, and the verdict sits below. Off switch: Settings > AI rules.',
+    ],
+    changesVi: [
+      'Thẻ Atlas trên Hub: bấm một mã trong danh sách Kronos 5 phiên, ngay trong ô đó 7 agent lần lượt sáng lên, rồi vẽ đường dự báo nối sau 30 giá đóng cửa thật gần nhất, có vùng mờ là biên độ thường gặp. Bấm Tất cả để quay lại. Chỉ theo dõi, không vào lệnh.',
+      'Lật thẻ Atlas (nút mũi tên) để xem hội đồng: 7 agent trong thẻ kính mờ quanh bộ não biết thở, nghiêng về agent đang nói và lóe sáng bên trong khi suy nghĩ. Mỗi thẻ hiện phiếu thật của agent cho lệnh MUA tốt nhất hôm nay, kết luận nằm bên dưới. Tắt trong Cài đặt > Quy tắc AI.',
+    ],
+  },
   {
     version: '1.49.0',
     date: '2026-10-23',

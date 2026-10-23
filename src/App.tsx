@@ -697,6 +697,7 @@ export default function App() {
           {aiRules.hubGlass ? (
             <JarvisHub
               flipAuto={aiRules.hubFlip}
+              council={aiRules.atlasCouncil}
               practice={practice.state}
               picks={buyCalls(practice.scan.candidates)}
               scanning={aiRules.practiceMode && (aiRules.practiceAutoPick || practice.serverMode)}

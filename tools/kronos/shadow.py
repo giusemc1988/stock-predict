@@ -138,6 +138,8 @@ def forecast(kronos_dir: str, frames: dict[str, pd.DataFrame], as_of_run: str) -
             'asOf': x['timestamps'].iloc[-1].strftime('%Y-%m-%d'),
             'lastClose': round(float(x['close'].iloc[-1]), 6),
             'pred': {str(h): round(float(p['close'].iloc[h - 1]), 6) for h in HORIZONS},
+            # every predicted close, so the Hub can draw the whole forecast line
+            'path': [round(float(c), 6) for c in p['close'].iloc[:max(HORIZONS)]],
             'actual': {},
             'run': as_of_run,
         })
@@ -202,6 +204,8 @@ def main() -> int:
     else:
         print('Every symbol already has a forecast for its latest bar.')
     log['updated'] = run
+    # the last 30 closes per symbol, for the price line the Hub draws before the forecast
+    log['recent'] = {k: [round(float(c), 6) for c in v['close'].tail(30)] for k, v in frames.items()}
     log['score'] = score(log)
     print(json.dumps(log['score'], indent=1))
     if not a.dry_run:
