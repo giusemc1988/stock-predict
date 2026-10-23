@@ -28,14 +28,16 @@ interface Props {
   brief: boolean
   equity: number
   dayPL: number
+  /** Back to the Jarvis Hub, the app's main page (undefined when the Hub is switched off). */
+  onHome?: () => void
 }
 
-export type Page = 'brief' | 'trade' | 'portfolio' | 'net' | 'ruview' | 'godseye' | 'studio' | 'viraltech'
+export type Page = 'home' | 'brief' | 'trade' | 'portfolio' | 'net' | 'ruview' | 'godseye' | 'studio' | 'viraltech'
 
 const STATUS_KEY = { connecting: 'feedConnecting', live: 'feedLive', polling: 'feedDelayed', demo: 'feedSimulated', error: 'feedError' } as const satisfies Record<FeedStatus, string>
 const CONF_KEY = { Low: 'confLow', Medium: 'confMedium', High: 'confHigh' } as const
 
-export function TopBar({ inst, quote, lastPrice, tf, onTf, status, source, error, toggles, onToggle, onSettings, analysis, buyShare, onAnalyst, page, onPage, equity, dayPL, brief }: Props) {
+export function TopBar({ inst, quote, lastPrice, tf, onTf, status, source, error, toggles, onToggle, onSettings, analysis, buyShare, onAnalyst, page, onPage, equity, dayPL, brief, onHome }: Props) {
   const t = useT()
   const vi = useLang() === 'vi'
   const chg = quote?.change ?? 0
@@ -44,16 +46,24 @@ export function TopBar({ inst, quote, lastPrice, tf, onTf, status, source, error
       <div className="brand">
         <ArcLogo size={28} />
         <div>
-          <b>Arc Analyst</b>
+          <b>{onHome ? 'Atlas' : 'Arc Analyst'}</b>
           <span>
             {t('tagline')} · <i className="app-ver">v{APP_VERSION}</i>
           </span>
         </div>
       </div>
       <nav className="nav">
+        {onHome && (
+          <button className="nav-hub" onClick={onHome} title={vi ? 'Về Jarvis Hub, trang chính' : 'Back to the Jarvis Hub, the main page'}>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+              <path d="M4 4h6v6H4zM14 4h6v6h-6zM4 14h6v6H4zM14 14h6v6h-6z" />
+            </svg>
+            Hub
+          </button>
+        )}
         {brief && (
           <button className={page === 'brief' ? 'on' : ''} onClick={() => onPage('brief')}>
-            Jarvis Brief
+            {onHome ? (vi ? 'Bản tin' : 'Brief') : 'Jarvis Brief'}
           </button>
         )}
         <button className={page === 'trade' ? 'on' : ''} onClick={() => onPage('trade')}>

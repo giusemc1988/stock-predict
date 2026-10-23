@@ -2,7 +2,7 @@
  * Version and "What's new". Bump APP_VERSION and add an entry to the top of RELEASES
  * with each update. The banner shows once per version, then stays dismissed.
  */
-export const APP_VERSION = '1.39.0'
+export const APP_VERSION = '1.40.0'
 
 export interface Release {
   version: string
@@ -13,6 +13,20 @@ export interface Release {
 }
 
 export const RELEASES: Release[] = [
+  {
+    version: '1.40.0',
+    date: '2026-10-23',
+    changes: [
+      'New main page: the Jarvis Hub. Every project has its own card with its live state (Atlas, Argus, Echo, Volt, Nexus, Nova, Viraltech, Lumi, Forge). Tap a card to open the project, or tap a quick link on it.',
+      'A search bar at the top opens any project or tool straight away: type "wifi", "flash" or "Nova" (Vietnamese works too, with or without accents). On a computer, press / to jump to it.',
+      'Atlas (the stock predictor: Brief, Trading desk, Portfolio) is now one project in the Hub, with a Hub button to go back. The old Tool Hub graph is gone; its search lives on in the Hub. Settings > AI rules can switch the Hub off to open Atlas first.',
+    ],
+    changesVi: [
+      'Trang chính mới: Jarvis Hub. Mỗi dự án có một thẻ riêng với trạng thái thật (Atlas, Argus, Echo, Volt, Nexus, Nova, Viraltech, Lumi, Forge). Bấm vào thẻ để mở dự án, hoặc bấm link nhanh trên thẻ.',
+      'Ô tìm ở trên cùng mở ngay dự án hay công cụ nào: gõ "wifi", "nạp firmware" hay "Nova" (gõ tiếng Việt có dấu hay không dấu đều được). Trên máy tính, bấm / để nhảy vào ô tìm.',
+      'Atlas (dự đoán cổ phiếu: Bản tin, Bàn giao dịch, Danh mục) giờ là một dự án trong Hub, có nút Hub để quay lại. Đồ thị Tool Hub cũ đã bỏ; phần tìm kiếm của nó nằm trong Hub. Cài đặt > Quy tắc AI có thể tắt Hub để mở Atlas trước.',
+    ],
+  },
   {
     version: '1.39.0',
     date: '2026-10-23',

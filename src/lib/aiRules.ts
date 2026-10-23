@@ -81,6 +81,7 @@ export interface AiRules {
   jarvisFabTalk: boolean // the floating brain reads its answers aloud
   aiKeyBoxes: boolean // Settings shows boxes to type the free AI keys (saved on the server, never in the browser)
   jarvisCloudAi: boolean // when Jarvis doesn't understand, ask a free AI helper (keys live on the server)
+  jarvisHub: boolean // the Jarvis Hub is the main page: every project with its live state and a quick search; off = Atlas opens first as before
   briefHome: boolean // Jarvis Brief is the home page; off opens the Trading desk as before
   netTools: boolean // Wi-Fi & Bluetooth page for your own network (needs the home agent for scans)
   webFlash: boolean // RuView page: flash a board's firmware from Chrome/Edge over USB
@@ -88,7 +89,7 @@ export interface AiRules {
   godsEyeOn: boolean // God's Eye View page: anh's live 3D globe embedded, with a server check of each data layer
   videoStudioOn: boolean // Video Studio page: bilingual faceless videos made in the browser, MP4 + Title Lab
   ruviewOn: boolean // RuView sensing page: presence from Wi-Fi signals via ESP32 nodes, runs on the home PC
-  toolHub: boolean // Hub: Tool Hub graph/list of every tool and project; today's pick sits next to the scoreboard
+  toolHub: boolean // Atlas Brief: today's pick sits next to the scoreboard (the Tool Hub graph moved into the Jarvis Hub search)
   hubLayout: boolean // the home page uses the Hub layout: best pick next to the sphere, prediction board, Studio and devices
   dashMotion: boolean // dashboard cards and motion: project cards on the Hub, stat cards with change chips; off = the previous look
   briefAi: boolean // a free AI helper writes the Jarvis Brief from the page's real data (once per scan)
@@ -192,6 +193,7 @@ export const DEFAULT_AI_RULES: AiRules = {
   jarvisFabTalk: true,
   aiKeyBoxes: true,
   jarvisCloudAi: true,
+  jarvisHub: true,
   briefHome: true,
   hubLayout: true,
   toolHub: true,
@@ -324,9 +326,10 @@ export const RULE_FIELDS: RuleField[] = [
   { group: 'jarvis', key: 'ruviewOn', en: 'RuView sensing page: presence at home from Wi-Fi signals with ESP32 nodes, add nodes over USB, pinned RuView version with daily update check (your own home only; needs the home agent and Docker)', vi: 'Trang RuView cảm biến: biết có người trong nhà bằng sóng Wi-Fi với node ESP32, thêm node qua USB, giữ đúng bản RuView và kiểm tra bản mới mỗi ngày (chỉ trong nhà anh; cần chương trình máy nhà và Docker)' },
   { group: 'jarvis', key: 'godsEyeOn', en: "God's Eye View page: the live 3D globe (flights, military aircraft, satellites, ships, earthquakes) inside the Hub, with a clear status for every data layer", vi: "Trang God's Eye View: quả địa cầu 3D trực tiếp (máy bay, máy bay quân sự, vệ tinh, tàu biển, động đất) ngay trong Hub, kèm trạng thái rõ ràng của từng lớp dữ liệu" },
   { group: 'jarvis', key: 'videoStudioOn', en: 'Video Studio page: bilingual (EN + VI) faceless videos made in your browser, 3 modes, MP4 download and Title Lab; never posts by itself', vi: 'Trang Video Studio: video không lộ mặt song ngữ (EN + VI) làm ngay trên trình duyệt, 3 chế độ, tải MP4 và Title Lab; không bao giờ tự đăng' },
-  { group: 'jarvis', key: 'toolHub', en: 'Tool Hub on the home page: every tool and project (Trading, ESP32 Lab, Network, Build, Studio) as a graph or list, with search; today\'s pick sits next to the scoreboard (off: the previous Hub layout)', vi: 'Tool Hub trên trang chủ: mọi công cụ và dự án (Trading, ESP32 Lab, Mạng, Xây dựng, Studio) dạng đồ thị hoặc danh sách, có ô tìm; mã chọn hôm nay nằm cạnh bảng điểm (tắt: giao diện Hub trước đó)' },
+  { group: 'jarvis', key: 'toolHub', en: "Atlas Brief: today's pick sits next to the scoreboard (off: the previous Brief layout)", vi: 'Bản tin Atlas: mã chọn hôm nay nằm cạnh bảng điểm (tắt: giao diện Bản tin trước đó)' },
   { group: 'jarvis', key: 'dashMotion', en: 'Dashboard cards and motion: a card per project on the Hub (Trading, RuView, ESP32 Lab, Network, Build, Studio) and clearer number cards with change chips (off: the previous look)', vi: 'Thẻ và hiệu ứng dashboard: mỗi dự án một thẻ trên Hub (Trading, RuView, ESP32 Lab, Mạng, Xây dựng, Studio) và thẻ số liệu rõ hơn kèm chip thay đổi (tắt: giao diện trước đó)' },
   { group: 'jarvis', key: 'hubLayout', en: 'Hub home page: best pick next to the sphere, prediction board with 6 agent dots, Studio and devices (off: the old Jarvis Brief layout)', vi: 'Trang chủ Hub: mã tốt nhất cạnh quả cầu, bảng dự đoán có 6 chấm agent, Studio và thiết bị (tắt: giao diện Jarvis Brief cũ)' },
+  { group: 'jarvis', key: 'jarvisHub', en: 'Jarvis Hub as the main page: every project (Atlas, Argus, Echo, Volt, Nexus, Nova, Viraltech, Lumi, Forge) with its live state, and a search that opens any project or tool (off: Atlas opens first)', vi: 'Jarvis Hub là trang chính: mọi dự án (Atlas, Argus, Echo, Volt, Nexus, Nova, Viraltech, Lumi, Forge) kèm trạng thái thật, và ô tìm mở ngay dự án hay công cụ nào (tắt: mở Atlas trước)' },
   { group: 'jarvis', key: 'briefHome', en: 'Jarvis Brief as the home page (off: open the Trading desk first)', vi: 'Jarvis Brief là trang chủ (tắt: mở Bàn giao dịch trước)' },
   { group: 'jarvis', key: 'briefAi', en: 'Free AI writes the Jarvis Brief from real data (once per scan; plain text if every AI key fails)', vi: 'AI miễn phí viết Jarvis Brief từ dữ liệu thật (mỗi lần quét một lần; nếu mọi key AI lỗi thì dùng văn bản thường)' },
   { group: 'jarvis', key: 'localExplain', en: 'Local AI explains your trades (on your device, no cloud keys)', vi: 'AI cục bộ giải thích lệnh của bạn (trên máy, không cần key đám mây)' },

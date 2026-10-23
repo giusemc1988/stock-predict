@@ -19,6 +19,8 @@ import { analyze } from './lib/analyst'
 import { fmtPrice, fmtUsd } from './lib/format'
 import { TopBar, type Page } from './components/TopBar'
 import { JarvisBrief } from './components/JarvisBrief'
+import { JarvisHub } from './components/JarvisHub'
+import { buyCalls } from './lib/brief'
 import type { NodeId } from './lib/brief'
 import { Watchlist } from './components/Watchlist'
 import { ChartPanel } from './components/ChartPanel'
@@ -111,9 +113,12 @@ export default function App() {
   const skillFails = useMemo(() => new Set(runSkillTests().filter((t) => !t.ok).map((t) => t.id)), [])
   const aiRules = useMemo(() => effectiveRules(rawRules, skillStatuses, skillFails), [rawRules, skillStatuses, skillFails])
   const skillTags = useMemo(() => approvedTags(rawRules, skillStatuses, skillFails), [rawRules, skillStatuses, skillFails])
-  const [page, setPageRaw] = useState<Page>(() => (rawRules.briefHome && rawRules.jarvisOn ? 'brief' : 'trade'))
+  const [page, setPageRaw] = useState<Page>(() => (rawRules.jarvisHub ? 'home' : rawRules.briefHome && rawRules.jarvisOn ? 'brief' : 'trade'))
   const briefOn = aiRules.briefHome && aiRules.jarvisOn
-  const shownPage: Page = (page === 'brief' && !briefOn) || (page === 'net' && !aiRules.netTools) || (page === 'ruview' && !aiRules.ruviewOn) || (page === 'godseye' && !aiRules.godsEyeOn) || (page === 'studio' && !aiRules.videoStudioOn) ? 'trade' : page
+  const hubOn = aiRules.jarvisHub
+  // where a project page's back button goes: the Jarvis Hub, or Atlas's first page when the Hub is off
+  const homePage: Page = hubOn ? 'home' : briefOn ? 'brief' : 'trade'
+  const shownPage: Page = page === 'home' && !hubOn ? (briefOn ? 'brief' : 'trade') : (page === 'brief' && !briefOn) || (page === 'net' && !aiRules.netTools) || (page === 'ruview' && !aiRules.ruviewOn) || (page === 'godseye' && !aiRules.godsEyeOn) || (page === 'studio' && !aiRules.videoStudioOn) ? 'trade' : page
   const setPage = setPageRaw
   // the Tool Hub's "Flash a board" opens RuView with the add-node wizard already open
   const [ruviewFlash, setRuviewFlash] = useState(false)
@@ -588,7 +593,8 @@ export default function App() {
           onClose={closeAlert}
         />
       )}
-      <TopBar
+      {shownPage !== 'home' && <TopBar
+        onHome={hubOn ? () => setPage('home') : undefined}
         inst={inst}
         quote={quotes[inst.symbol]}
         lastPrice={lastClose}
@@ -611,8 +617,8 @@ export default function App() {
         brief={briefOn}
         equity={broker.account.equity}
         dayPL={broker.account.dayPL}
-      />
-      {shownPage !== 'brief' && shownPage !== 'net' && shownPage !== 'ruview' && shownPage !== 'godseye' && shownPage !== 'studio' && shownPage !== 'viraltech' && <PanelGuard name="Watchlist"><Watchlist
+      />}
+      {shownPage !== 'home' && shownPage !== 'brief' && shownPage !== 'net' && shownPage !== 'ruview' && shownPage !== 'godseye' && shownPage !== 'studio' && shownPage !== 'viraltech' && <PanelGuard name="Watchlist"><Watchlist
         sortRequest={sortRequest}
         aiActive={aiRules.practiceMode && aiRules.practiceWatchlist ? aiActive : null}
         instruments={universe}
@@ -629,7 +635,28 @@ export default function App() {
         tf={prefs.tf}
         scanOn={aiRules.watchlistScan}
       /></PanelGuard>}
-      {shownPage === 'brief' ? (
+      {shownPage === 'home' ? (
+        <PanelGuard name="Jarvis Hub">
+          <JarvisHub
+            practice={practice.state}
+            picks={buyCalls(practice.scan.candidates)}
+            scanning={aiRules.practiceMode && (aiRules.practiceAutoPick || practice.serverMode)}
+            learn={autoLearn.state}
+            killSwitch={prefs.killSwitch}
+            on={{ net: aiRules.netTools, ruview: aiRules.ruviewOn, godseye: aiRules.godsEyeOn, studio: aiRules.videoStudioOn }}
+            webFlash={aiRules.webFlash}
+            onOpen={(pg) => {
+              setRuviewFlash(pg === 'ruview-flash')
+              setPage(pg === 'ruview-flash' ? 'ruview' : pg === 'brief' && !briefOn ? 'trade' : pg)
+            }}
+            onAtlasBlock={(id) => {
+              setPage(briefOn ? 'brief' : 'trade')
+              setTimeout(() => document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 350)
+            }}
+            onSettings={() => setSettingsOpen(true)}
+          />
+        </PanelGuard>
+      ) : shownPage === 'brief' ? (
         <PanelGuard name="Jarvis Brief">
         <JarvisBrief
           rules={aiRules}
@@ -649,6 +676,7 @@ export default function App() {
           onDesk={() => setPage('trade')}
           onNet={aiRules.netTools ? () => setPage('net') : undefined}
           onRuview={aiRules.ruviewOn ? () => setPage('ruview') : undefined}
+          onHub={hubOn ? () => setPage('home') : undefined}
           onTool={(pg) => {
             setRuviewFlash(pg === 'ruview-flash')
             setPage(pg === 'ruview-flash' ? 'ruview' : pg)
@@ -657,19 +685,19 @@ export default function App() {
         </PanelGuard>
       ) : shownPage === 'net' ? (
         <PanelGuard name="Wi-Fi">
-          <NetPage onBack={() => setPage(briefOn ? 'brief' : 'trade')} phoneScan={aiRules.phoneScan} />
+          <NetPage onBack={() => setPage(homePage)} phoneScan={aiRules.phoneScan} />
         </PanelGuard>
       ) : shownPage === 'ruview' ? (
         <PanelGuard name="RuView">
-          <RuViewPage onBack={() => setPage(briefOn ? 'brief' : 'trade')} webFlash={aiRules.webFlash} startAdding={ruviewFlash} />
+          <RuViewPage onBack={() => setPage(homePage)} webFlash={aiRules.webFlash} startAdding={ruviewFlash} />
         </PanelGuard>
       ) : shownPage === 'godseye' ? (
         <PanelGuard name="God's Eye">
-          <GodsEyePage onBack={() => setPage(briefOn ? 'brief' : 'trade')} />
+          <GodsEyePage onBack={() => setPage(homePage)} />
         </PanelGuard>
       ) : shownPage === 'studio' ? (
         <PanelGuard name="Video Studio">
-          <VideoStudioPage onBack={() => setPage(briefOn ? 'brief' : 'trade')} />
+          <VideoStudioPage onBack={() => setPage(homePage)} />
         </PanelGuard>
       ) : shownPage === 'viraltech' ? (
         <PanelGuard name="Viraltech">
