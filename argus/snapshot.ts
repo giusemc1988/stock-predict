@@ -92,13 +92,13 @@ async function main(out: string) {
   mkdirSync(out, { recursive: true })
   const answers = []
   for (const [name, lat, lon] of AREAS) {
-    const a = await getJson([`https://api.adsb.lol/v2/lat/${lat}/lon/${lon}/dist/250`, `https://opendata.adsb.fi/api/v2/lat/${lat}/lon/${lon}/dist/250`])
+    const a = await getJson([`https://api.adsb.lol/v2/lat/${lat}/lon/${lon}/dist/250`, `https://opendata.adsb.fi/api/v2/lat/${lat}/lon/${lon}/dist/250`, `https://api.airplanes.live/v2/point/${lat}/${lon}/250`])
     console.log(`${name}: ${a ? (a.ac ?? a.aircraft ?? []).length : 'failed'}`)
     if (a) answers.push(a)
-    await sleep(1100) // both feeds ask for about one request a second
+    await sleep(1100) // the feeds ask for about one request a second
   }
   const flights = merge(answers)
-  const mil = await getJson(['https://api.adsb.lol/v2/mil', 'https://opendata.adsb.fi/api/v2/mil'])
+  const mil = await getJson(['https://api.adsb.lol/v2/mil', 'https://opendata.adsb.fi/api/v2/mil', 'https://api.airplanes.live/v2/mil'])
   const military = mil ? merge([mil]) : null
   console.log(`flights: ${flights.ac.length} aircraft from ${answers.length}/${AREAS.length} areas; military: ${military ? military.ac.length : 'failed'}`)
   if (answers.length) writeFileSync(`${out}/flights.json`, JSON.stringify(flights))

@@ -1,0 +1,61 @@
+# Vietnamese (and English) narration with VieNeu-TTS v3 Turbo, on the runner's CPU: no GPU, no API key.
+# Code and model are Apache-2.0; the preset voices may be used in monetised videos. Only clone a voice
+# (ref_audio) you have the right to use.
+# Use from a workflow step:
+#   - uses: ./.github/actions/vieneu-voice
+#     with: { text-file: job/script.txt, voice: 'Hải Đăng', out: job/voice.wav }
+name: VieNeu voice
+description: Turns text into a 48 kHz WAV with VieNeu-TTS on CPU.
+
+inputs:
+  text:
+    description: Text to read. Use text-file instead for anything long.
+    required: false
+    default: ''
+  text-file:
+    description: UTF-8 file with the text to read; blank lines split paragraphs.
+    required: false
+    default: ''
+  voice:
+    description: Preset voice name, for example "Hải Đăng", "Ngọc Huyền", "Thái Sơn" (python tools/vieneu/speak.py --list).
+    required: false
+    default: Hải Đăng
+  out:
+    description: Where to write the WAV.
+    required: true
+
+outputs:
+  seconds:
+    description: Length of the narration.
+    value: ${{ steps.speak.outputs.seconds }}
+
+runs:
+  using: composite
+  steps:
+    - uses: actions/setup-python@v5
+      with:
+        python-version: '3.12'
+
+    - uses: actions/cache@v4
+      with:
+        path: |
+          ~/.cache/pip
+          ~/.cache/huggingface
+        key: vieneu-${{ hashFiles('tools/vieneu/requirements.txt') }}
+
+    - name: Install VieNeu-TTS
+      shell: bash
+      run: python -m pip install -q -r "$GITHUB_WORKSPACE/tools/vieneu/requirements.txt"
+
+    - name: Speak
+      id: speak
+      shell: bash
+      env:
+        VN_TEXT: ${{ inputs.text }}
+        VN_TEXT_FILE: ${{ inputs.text-file }}
+        VN_VOICE: ${{ inputs.voice }}
+        VN_OUT: ${{ inputs.out }}
+      run: |
+        if [ -n "$VN_TEXT_FILE" ]; then src=(--text-file "$VN_TEXT_FILE"); else src=(--text "$VN_TEXT"); fi
+        python "$GITHUB_WORKSPACE/tools/vieneu/speak.py" "${src[@]}" --voice "$VN_VOICE" --out "$VN_OUT" | tee "$RUNNER_TEMP/vieneu.log"
+        echo "seconds=$(tail -1 "$RUNNER_TEMP/vieneu.log" | sed -n 's/.* \([0-9.]*\) s$/\1/p')" >> "$GITHUB_OUTPUT"

@@ -1,0 +1,35 @@
+# Try a VieNeu-TTS voice from the phone: Actions > VieNeu voice test > Run workflow.
+# The WAV is under the run's Artifacts. Nova's renderer uses the same action for "voice: vieneu".
+name: VieNeu voice test
+
+on:
+  workflow_dispatch:
+    inputs:
+      text:
+        description: Text to read (Vietnamese or English)
+        required: true
+        default: Xin chào, đây là giọng đọc tiếng Việt của Nova. Hello, this is Nova's English voice.
+      voice:
+        description: Preset voice (Hải Đăng, Ngọc Huyền, Thái Sơn, Mai Anh, Trúc Ly…)
+        required: true
+        default: Hải Đăng
+
+permissions:
+  contents: read
+
+jobs:
+  speak:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/vieneu-voice
+        with:
+          text: ${{ inputs.text }}
+          voice: ${{ inputs.voice }}
+          out: ${{ runner.temp }}/vieneu.wav
+      - uses: actions/upload-artifact@v4
+        with:
+          name: vieneu-voice
+          path: ${{ runner.temp }}/vieneu.wav
+          retention-days: 7

@@ -43,6 +43,7 @@ export const TOOLS: ToolNode[] = [
   { id: 'flash', cluster: 'esp32', label: { en: 'Flash a board', vi: 'Nạp firmware' }, note: { en: 'ESP32-S3 / C6 from Chrome over USB', vi: 'ESP32-S3 / C6 qua USB trên Chrome' }, action: { kind: 'page', page: 'ruview-flash' } },
   { id: 'ruview', cluster: 'esp32', label: { en: 'RuView live', vi: 'RuView trực tiếp' }, note: { en: 'Rooms, nodes, presence', vi: 'Phòng, node, có người' }, action: { kind: 'page', page: 'ruview' } },
   { id: 'firmware', cluster: 'esp32', label: { en: 'Firmware releases', vi: 'Các bản firmware' }, note: { en: 'RuView on GitHub', vi: 'RuView trên GitHub' }, action: { kind: 'url', url: 'https://github.com/ruvnet/ruview/releases' } },
+  { id: 'espconnect', cluster: 'esp32', label: { en: 'ESPConnect', vi: 'ESPConnect' }, note: { en: 'Inspect, back up and flash any ESP32 in Chrome over USB', vi: 'Xem, sao lưu và nạp mọi ESP32 trên Chrome qua USB' }, action: { kind: 'url', url: 'https://thelastoutpostworkshop.github.io/ESPConnect/' } },
   { id: 'esp32div', cluster: 'esp32', label: { en: 'ESP32-DIV', vi: 'ESP32-DIV' }, note: { en: 'Your ESP32-DIV fork on GitHub', vi: 'Bản ESP32-DIV của anh trên GitHub' }, action: { kind: 'url', url: 'https://github.com/giusemc1988/ESP32-DIV' } },
   { id: 'wifi', cluster: 'network', label: { en: 'Wi-Fi scan', vi: 'Quét Wi-Fi' }, note: { en: 'Devices and channels on your Wi-Fi', vi: 'Thiết bị và kênh trong Wi-Fi của anh' }, action: { kind: 'page', page: 'net' } },
   { id: 'speed', cluster: 'network', label: { en: 'Speed test', vi: 'Đo tốc độ' }, note: { en: 'Download, upload, ping', vi: 'Tải xuống, tải lên, ping' }, action: { kind: 'page', page: 'net' } },
@@ -54,6 +55,7 @@ export const TOOLS: ToolNode[] = [
   { id: 'video', cluster: 'studio', label: { en: 'Nova · Video Studio', vi: 'Nova · Video Studio' }, note: { en: 'Bilingual faceless videos, MP4 + Title Lab', vi: 'Video không lộ mặt song ngữ, MP4 + Title Lab' }, action: { kind: 'page', page: 'studio' } },
   { id: 'media', cluster: 'studio', label: { en: 'Media Lab', vi: 'Media Lab' }, note: { en: 'Image and video tools', vi: 'Công cụ ảnh và video' }, action: { kind: 'soon' } },
   { id: 'viraltech', cluster: 'studio', label: { en: 'Viraltech', vi: 'Viraltech' }, note: { en: 'Social media posts and engagement', vi: 'Bài đăng và tương tác mạng xã hội' }, action: { kind: 'page', page: 'viraltech' } },
+  { id: 'explainers', cluster: 'studio', label: { en: 'Explainer videos', vi: 'Video giải thích' }, note: { en: 'English explainers rendered free on GitHub (explainroo)', vi: 'Video giải thích tiếng Anh, render miễn phí trên GitHub (explainroo)' }, action: { kind: 'url', url: `${REPO}/actions/workflows/explainer.yml` } },
   { id: 'outside', cluster: 'studio', label: { en: 'Outside tools', vi: 'Công cụ bên ngoài' }, note: { en: 'CapCut, Canva, Gemini…', vi: 'CapCut, Canva, Gemini…' }, action: { kind: 'scroll', id: 'hub-studio' } },
 ]
 

@@ -91,3 +91,13 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ```
 
+
+## Media tools run in GitHub Actions
+
+These are not part of the app bundle. The workflows download them at a pinned version when they run.
+
+| Project | License | Used for | File(s) here |
+|---|---|---|---|
+| [explainroo](https://github.com/vincentsch/explainroo) | MIT | Viraltech English explainer videos; the sample `how-dns-works` comes from its examples | `.github/workflows/explainer.yml`, `viraltech/explainers/` (notice in `LICENSE-explainroo`) |
+| [VieNeu-TTS](https://github.com/pnnbao97/VieNeu-TTS) | Apache-2.0 (code and v3 Turbo model) | Vietnamese and English narration on CPU | `tools/vieneu/`, `.github/actions/vieneu-voice/` |
+| [airplanes.live](https://airplanes.live) | free public API, non-commercial | Argus third aircraft feed after adsb.lol and adsb.fi | `argus/worker.ts`, `argus/snapshot.ts`, `agent/jarvis-agent.ts` |

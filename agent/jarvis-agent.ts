@@ -8,7 +8,7 @@
  *   - lists the Wi-Fi networks your PC already sees, with channels (Windows netsh, Linux nmcli)
  *   - ping, open-port check and Wake-on-LAN, only for private addresses (192.168.x.x, 10.x, 172.16-31.x)
  *   - a download/upload speed test against speed.cloudflare.com
- *   - aircraft relay for Argus: fetches the free adsb.lol / adsb.fi feeds from this home IP (they refuse cloud servers)
+ *   - aircraft relay for Argus: fetches the free adsb.lol / adsb.fi / airplanes.live feeds from this home IP (they refuse cloud servers)
  *   - RuView sensing: passes a few read-only calls to the RuView server on this PC (npm run ruview) and keeps the node list
  * It never captures traffic, never joins or attacks other networks, and only listens on 127.0.0.1.
  * Reach it from the app through a Cloudflare Tunnel behind Cloudflare Access (see agent/README.md).
@@ -24,7 +24,7 @@ import { join } from 'node:path'
 import { isPrivateIPv4, parseArp, parseNetsh, parseNmcli, type LanDevice } from '../src/lib/netParse'
 import { boardOf, RUVIEW_IMAGE, type RegistryNode } from '../src/lib/ruview'
 
-const VERSION = '1.2.0'
+const VERSION = '1.2.1'
 const PORT = Number(process.env.AGENT_PORT ?? 8787)
 const HOME = process.env.AGENT_HOME ?? join(os.homedir(), '.jarvis-agent')
 const ORIGINS = (process.env.AGENT_ORIGINS ?? 'https://stock-predict.chanhmn1011.workers.dev,http://localhost:5173').split(',').map((s) => s.trim())
@@ -215,7 +215,10 @@ function saveNode(b: Record<string, unknown>) {
 const air = new Map<string, { at: number; data: unknown }>()
 async function aircraft(kind: 'flights' | 'military', lat: number, lon: number) {
   const near = (host: string) => `https://${host}/v2/lat/${lat}/lon/${lon}/dist/250`
-  const urls = kind === 'military' ? ['https://api.adsb.lol/v2/mil', 'https://opendata.adsb.fi/api/v2/mil'] : [near('api.adsb.lol'), near('opendata.adsb.fi/api')]
+  // airplanes.live is the third free feed: same readsb answer, but it refuses cloud servers, so a home IP is where it helps
+  const urls = kind === 'military'
+    ? ['https://api.adsb.lol/v2/mil', 'https://opendata.adsb.fi/api/v2/mil', 'https://api.airplanes.live/v2/mil']
+    : [near('api.adsb.lol'), near('opendata.adsb.fi/api'), `https://api.airplanes.live/v2/point/${lat}/${lon}/250`]
   const key = urls[0]
   const hit = air.get(key)
   if (hit && Date.now() - hit.at < 10_000) return hit.data
