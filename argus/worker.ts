@@ -7,6 +7,39 @@ import { toOpenSky } from './adsbLol'
 
 interface Env {
   ASSETS: { fetch: (r: Request) => Promise<Response> }
+  /** The Hub Worker (service binding): reaches the home agent relay with the Hub's own secrets, no Access login. */
+  HUB?: { fetch: (r: Request) => Promise<Response> }
+  /** Aircraft snapshots written by GitHub Actions every ~10 min (argus/snapshot.ts). */
+  SNAP?: { get: (key: string) => Promise<string | null> }
+}
+
+type Feed = 'flights' | 'military'
+
+/** Live data through the home PC (residential IP): the Hub forwards /api/home/<feed> to the agent. Null when it is off or not set up. */
+async function viaHome(env: Env, feed: Feed, search = ''): Promise<Response | null> {
+  if (!env.HUB) return null
+  try {
+    const r = await env.HUB.fetch(new Request(`https://hub/api/home/${feed}${search}`, { signal: AbortSignal.timeout(7000) }))
+    if (!r.ok) return null
+    const data = (await r.json()) as { offline?: boolean; ac?: unknown[]; aircraft?: unknown[] }
+    if (data.offline || !(Array.isArray(data.ac) || Array.isArray(data.aircraft))) return null
+    const body = toOpenSky(data as Parameters<typeof toOpenSky>[0])
+    return json(body, 200, { 'x-flight-source': 'home relay', 'x-flight-count': String(body.states.length) })
+  } catch {
+    return null
+  }
+}
+
+/** The last GitHub Actions snapshot; minutes old, so it is the last resort. */
+async function fromSnapshot(env: Env, feed: Feed): Promise<Response | null> {
+  const text = await env.SNAP?.get(`argus:${feed}`).catch(() => null)
+  if (!text) return null
+  const snap = JSON.parse(text) as { now: number; ac: unknown[] }
+  const age = Math.round((Date.now() - snap.now) / 1000)
+  if (age > 6 * 3600) return null
+  if (feed === 'military') return json(snap, 200, { 'x-flight-source': 'snapshot', 'x-flight-age': String(age) })
+  const body = toOpenSky(snap as Parameters<typeof toOpenSky>[0])
+  return json(body, 200, { 'x-flight-source': 'snapshot', 'x-flight-age': String(age), 'x-flight-count': String(body.states.length) })
 }
 
 const UA = 'argus-hub/1.0 (+https://github.com/giusemc1988/stock-predict)'
@@ -47,7 +80,9 @@ const get = (url: string, ms = 12000) => fetch(url, { headers: { accept: 'applic
  * Flights: with a view position, adsb.lol 250 nm around it (fast, free, no key); without one, OpenSky's
  * global snapshot (it often refuses cloud servers, so it is only the second choice).
  */
-async function flights(url: URL): Promise<Response> {
+async function flights(url: URL, env: Env): Promise<Response> {
+  const home = await viaHome(env, 'flights', url.search)
+  if (home) return home
   let nearWhy = ''
   const lat = Number(url.searchParams.get('lat'))
   const lon = Number(url.searchParams.get('lon'))
@@ -73,7 +108,8 @@ async function flights(url: URL): Promise<Response> {
     const r = await get('https://opensky-network.org/api/states/all?extended=1', 8000)
     return r.ok ? new Response(r.body, { headers: { 'content-type': 'application/json', 'x-flight-source': 'OpenSky Network', 'x-flight-coverage': 'global' } }) : r
   })
-  return open.ok ? open : json({ error: 'Flights unavailable', detail: `adsb.lol, adsb.fi and OpenSky all refused. ${nearWhy}`.trim() }, 502)
+  if (open.ok) return open
+  return (await fromSnapshot(env, 'flights')) ?? json({ error: 'Flights unavailable', detail: `Home relay off, no recent snapshot, and adsb.lol, adsb.fi and OpenSky all refused. ${nearWhy}`.trim() }, 502)
 }
 
 export default {
@@ -83,12 +119,20 @@ export default {
     // static files are served before the Worker runs; their headers live in _headers
     if (!p.startsWith('/api/')) return env.ASSETS.fetch(req)
     if (req.method !== 'GET' && req.method !== 'HEAD') return json({ error: 'GET only' }, 405)
-    if (p === '/api/flights') return flights(url)
-    if (p === '/api/military')
-      return cached('military', 12, async () => {
+    if (p === '/api/flights') return flights(url, env)
+    if (p === '/api/military') {
+      // home relay (live) > direct feeds > GitHub snapshot
+      const home = await env.HUB?.fetch(new Request('https://hub/api/home/military', { signal: AbortSignal.timeout(7000) })).catch(() => null)
+      if (home?.ok) {
+        const text = await home.text()
+        if (!/"offline"\s*:\s*true/.test(text)) return new Response(text, { headers: { 'content-type': 'application/json', 'x-flight-source': 'home relay', ...API_HEADERS } })
+      }
+      const direct = await cached('military', 12, async () => {
         const r = await get('https://api.adsb.lol/v2/mil', 6000).catch(() => null)
         return r?.ok ? r : get('https://opendata.adsb.fi/api/v2/mil', 6000)
       })
+      return direct.ok ? direct : ((await fromSnapshot(env, 'military')) ?? direct)
+    }
     const sat = /^\/api\/celestrak\/([a-z0-9-]{1,40})$/i.exec(p)
     if (sat) {
       const group = sat[1].toLowerCase()

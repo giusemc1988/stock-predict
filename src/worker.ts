@@ -35,7 +35,7 @@ interface Env extends BrainEnv, PracticeEnv {
 }
 
 /** Paths the Wi-Fi and RuView pages may ask the home agent for. */
-const HOME_PATHS = new Set(['health', 'devices', 'wifi', 'ping', 'ports', 'wol', 'speed', 'ruview/status', 'ruview/latest', 'ruview/nodes', 'ruview/vitals', 'ruview/registry'])
+const HOME_PATHS = new Set(['health', 'devices', 'wifi', 'ping', 'ports', 'wol', 'speed', 'ruview/status', 'ruview/latest', 'ruview/nodes', 'ruview/vitals', 'ruview/registry', 'flights', 'military'])
 /** Home agent answers kept in KV so the page can show the last scan while the PC is off (not the live RuView feed: it polls every few seconds). */
 const HOME_SNAPSHOT = new Set(['devices', 'wifi', 'ruview/registry'])
 

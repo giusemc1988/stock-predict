@@ -7,6 +7,7 @@ import { cleanWriteAsk } from '../src/lib/studioServer'
 import { STUDIO_TEXT } from '../src/lib/studio/text'
 import { debugExposed, layerState, GE_TEXT } from '../src/lib/godsEye'
 import { toOpenSky } from '../argus/adsbLol'
+import { AREAS, merge, slim } from '../argus/snapshot'
 
 // AI answers are cleaned into scene lines
 assert.deepEqual(parseScenes('1. First line\n- Second line\n\n"Third"\n```', 5), ['First line', 'Second line', 'Third'])
@@ -80,6 +81,15 @@ assert.deepEqual(os.states[0].slice(0, 2), ['abc123', 'DAL1'])
 assert.ok(Math.abs((os.states[0][7] as number) - 304.8) < 1e-9 && Math.abs((os.states[0][9] as number) - 51.4444) < 1e-9)
 
 assert.equal(toOpenSky({ now: 1, aircraft: [{ hex: 'aa', lat: 1, lon: 2 }] }).states.length, 1)
+
+// Argus snapshot: keeps only the fields the globe reads, one row per aircraft (freshest wins), and still converts
+assert.deepEqual(slim({ hex: 'a1', lat: 1, lon: 2, gs: 3, emergency: 'none', mlat: [] }), { hex: 'a1', lat: 1, lon: 2, gs: 3 })
+assert.equal(slim({ hex: 'a1', lat: null, lon: 2 }), null)
+const snap = merge([{ ac: [{ hex: 'A1', lat: 1, lon: 2, seen: 5 }] }, { aircraft: [{ hex: 'a1', lat: 3, lon: 4, seen: 1 }, { hex: 'b2', lat: 5, lon: 6 }] }], 1_700_000_000_000)
+assert.equal(snap.ac.length, 2)
+assert.equal(snap.ac.find((r) => String(r.hex).toLowerCase() === 'a1')?.lat, 3)
+assert.equal(toOpenSky(snap).states.length, 2)
+assert.ok(AREAS.length >= 20 && AREAS.every(([, la, lo]) => Math.abs(la) <= 90 && Math.abs(lo) <= 180))
 
 // every label has both languages
 for (const [k, v] of Object.entries({ ...STUDIO_TEXT, ...GE_TEXT })) assert.ok(v.en.trim() && v.vi.trim(), k)
