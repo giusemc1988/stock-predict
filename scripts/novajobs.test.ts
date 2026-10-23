@@ -1,0 +1,86 @@
+import assert from 'node:assert/strict'
+import { JOB_PREFIX, MAX_ACTIVE, VID_PREFIX, cleanRenderAsk, deleteJob, fallbackTerms, isJobId, listJobs, parseRange, parseTerms, queueJobs, videoResponse, type JobStore } from '../src/lib/studioJobs'
+
+/** Map-backed stand-in for the SETTINGS KV binding. */
+function fakeKv(): JobStore & { m: Map<string, string | ArrayBuffer> } {
+  const m = new Map<string, string | ArrayBuffer>()
+  return {
+    m,
+    async get(k: string, type?: 'text' | 'arrayBuffer') {
+      const v = m.get(k)
+      if (v === undefined) return null
+      return (type === 'arrayBuffer' ? v : v) as never
+    },
+    async put(k, v) { m.set(k, v) },
+    async delete(k) { m.delete(k) },
+    async list({ prefix }) { return { keys: [...m.keys()].filter((k) => k.startsWith(prefix)).map((name) => ({ name })), list_complete: true } },
+  }
+}
+
+// asks are cleaned: no topic or no lines for the chosen language -> refused
+assert.equal(cleanRenderAsk({ topic: '', vi: ['a'], langs: ['vi'] }), null)
+assert.equal(cleanRenderAsk({ topic: 'x', vi: [], en: ['a'], langs: ['vi'] }), null)
+const ask = cleanRenderAsk({ topic: ' Why  the sea is blue ', topicVi: 'Vì sao biển xanh', en: ['One', ' ', 'Two'], vi: ['Một', 'Hai'], langs: ['vi', 'en', 'vi', 'fr'], voice: 'male', aspect: '16:9' })!
+assert.deepEqual(ask.langs, ['vi', 'en'])
+assert.equal(ask.topic, 'Why the sea is blue')
+assert.deepEqual(ask.en, ['One', 'Two'])
+assert.equal(ask.voice, 'male')
+assert.equal(cleanRenderAsk({ topic: 'x', en: ['a'], langs: ['en'], aspect: 'weird' })!.aspect, '9:16')
+assert.equal(cleanRenderAsk({ topic: 'x', en: Array(30).fill('line'), langs: ['en'] })!.en.length, 12)
+
+// search terms: AI lists are cleaned, the topic is the fallback
+assert.deepEqual(parseTerms('1. Ocean Waves\n- "sunrise beach"\n* deep water.'), ['ocean waves', 'sunrise beach', 'deep water'])
+assert.deepEqual(parseTerms('ocean, sky , ocean'), ['ocean', 'sky'])
+assert.ok(fallbackTerms('Why the ocean is blue').includes('ocean blue'))
+assert.deepEqual(fallbackTerms('?!'), ['nature landscape'])
+
+// one job per language, in the order asked; the farm takes at most MAX_ACTIVE at once
+const kv = fakeKv()
+let n = 0
+const uuid = () => `00000000-0000-4000-8000-${String(++n).padStart(12, '0')}`
+const made = (await queueJobs(kv, ask, ['ocean'], 1000, uuid))!
+assert.equal(made.length, 2)
+assert.equal(made[0].lang, 'vi')
+assert.equal(made[0].topic, 'Vì sao biển xanh')
+assert.deepEqual(made[1].lines, ['One', 'Two'])
+assert.ok(made.every((j) => j.status === 'queued' && isJobId(j.id)))
+assert.equal((await listJobs(kv))[0].lang, 'en', 'newest first')
+assert.ok(await queueJobs(kv, ask, ['ocean'], 2000, uuid))
+assert.equal(MAX_ACTIVE, 4)
+assert.equal(await queueJobs(kv, ask, ['ocean'], 3000, uuid), null, 'a fifth job waits')
+
+// ids must be the Worker's own UUIDs
+assert.ok(!isJobId('../x'))
+assert.ok(!isJobId('00000000-0000-4000-8000-00000000000Z'))
+
+// ranges, as phones ask for them
+assert.equal(parseRange(null, 10), null)
+assert.deepEqual(parseRange('bytes=0-', 10), [0, 9])
+assert.deepEqual(parseRange('bytes=2-4', 10), [2, 4])
+assert.deepEqual(parseRange('bytes=-3', 10), [7, 9])
+assert.deepEqual(parseRange('bytes=5-99', 10), [5, 9])
+assert.equal(parseRange('bytes=10-', 10), 'bad')
+assert.equal(parseRange('items=0-1', 10), 'bad')
+
+// a finished video in 3-byte chunks is served whole or by range across chunk edges
+const done = { ...made[0], status: 'done' as const, size: 8, parts: 3, chunk: 3 }
+await kv.put(JOB_PREFIX + done.id, JSON.stringify(done))
+const bytes = [[0, 1, 2], [3, 4, 5], [6, 7]]
+bytes.forEach((b, i) => kv.m.set(`${VID_PREFIX}${done.id}:${i}`, new Uint8Array(b).buffer))
+const whole = await videoResponse(kv, done.id, null, false)
+assert.equal(whole.status, 200)
+assert.deepEqual([...new Uint8Array(await whole.arrayBuffer())], [0, 1, 2, 3, 4, 5, 6, 7])
+const part = await videoResponse(kv, done.id, 'bytes=2-6', true)
+assert.equal(part.status, 206)
+assert.equal(part.headers.get('content-range'), 'bytes 2-6/8')
+assert.equal(part.headers.get('content-length'), '5')
+assert.match(part.headers.get('content-disposition') ?? '', /attachment; filename="vi-sao-bien-xanh-vi\.mp4"/)
+assert.deepEqual([...new Uint8Array(await part.arrayBuffer())], [2, 3, 4, 5, 6])
+assert.equal((await videoResponse(kv, done.id, 'bytes=9-', false)).status, 416)
+assert.equal((await videoResponse(kv, made[1].id, null, false)).status, 404, 'not done yet')
+
+// deleting removes the job and every chunk
+assert.ok(await deleteJob(kv, done.id))
+assert.ok(![...kv.m.keys()].some((k) => k.includes(done.id)))
+assert.equal(await deleteJob(kv, done.id), false)
+console.log('novajobs ok')

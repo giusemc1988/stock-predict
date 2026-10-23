@@ -19,7 +19,8 @@ const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/
 
 const token = process.env.CLOUDFLARE_API_TOKEN
 if (!token) throw new Error('CLOUDFLARE_API_TOKEN is not set')
-const api = 'https://api.cloudflare.com/client/v4'
+// NOVA_CF_API only points tests at a fake Cloudflare
+const api = process.env.NOVA_CF_API ?? 'https://api.cloudflare.com/client/v4'
 const auth = { authorization: `Bearer ${token}` }
 
 /** The SETTINGS namespace id, read from wrangler.jsonc so it lives in one place. */
