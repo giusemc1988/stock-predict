@@ -24,6 +24,8 @@ VOICES = {
 }
 OPENVERSE_ASPECT = {"9:16": "tall", "16:9": "wide", "1:1": "square"}
 MAX_PHOTOS = 12
+# photo URLs already saved, so the any-shape second pass does not repeat the first
+_SEEN: set[str] = set()
 
 
 def write_config(pexels_key: str) -> None:
@@ -40,21 +42,21 @@ def write_config(pexels_key: str) -> None:
         toml.dump(cfg, f)
 
 
-def openverse_photos(terms: list[str], aspect: str, dest: str) -> list[str]:
-    """Large CC0 / public-domain photos for the terms, saved into MoneyPrinterTurbo's local folder."""
+def openverse_photos(terms: list[str], aspect: str | None, dest: str) -> list[str]:
+    """Large CC0 / public-domain photographs for the terms, saved into MoneyPrinterTurbo's local folder.
+    category=photograph keeps out museum scans (paintings, quilts) that match a word but not the story."""
     import requests
 
     os.makedirs(dest, exist_ok=True)
     headers = {"User-Agent": "Nova-Video-Studio/1.0 (+https://github.com/giusemc1988/stock-predict)"}
     files: list[str] = []
-    seen: set[str] = set()
     for term in terms:
         if len(files) >= MAX_PHOTOS:
             break
         try:
             r = requests.get(
                 "https://api.openverse.org/v1/images/",
-                params={"q": term, "license": "cc0,pdm", "size": "large", "aspect_ratio": OPENVERSE_ASPECT.get(aspect, "tall"), "page_size": 6, "mature": "false"},
+                params={"q": term, "license": "cc0,pdm", "category": "photograph", "size": "large", "page_size": 6, "mature": "false", **({"aspect_ratio": OPENVERSE_ASPECT.get(aspect, "tall")} if aspect else {})},
                 headers=headers,
                 timeout=20,
             )
@@ -64,16 +66,16 @@ def openverse_photos(terms: list[str], aspect: str, dest: str) -> list[str]:
             continue
         for item in results[:3]:
             url = item.get("url") or ""
-            if not url or url in seen or (item.get("width") or 0) < 720 or (item.get("height") or 0) < 720:
+            if not url or url in _SEEN or (item.get("width") or 0) < 720 or (item.get("height") or 0) < 720:
                 continue
-            seen.add(url)
+            _SEEN.add(url)
             try:
                 img = requests.get(url, headers=headers, timeout=30)
                 if not img.ok or not img.headers.get("content-type", "").startswith("image/"):
                     continue
             except Exception:  # noqa: BLE001
                 continue
-            name = f"nova-{len(files):02d}.jpg"
+            name = f"nova-{len(os.listdir(dest)):02d}.jpg"
             with open(os.path.join(dest, name), "wb") as f:
                 f.write(img.content)
             files.append(name)
@@ -93,7 +95,11 @@ def render(job: dict, pexels_key: str) -> dict:
     source = "pexels" if pexels_key else "local"
     materials = None
     if source == "local":
-        photos = openverse_photos(terms, aspect, utils.storage_dir("local_videos", create=True))
+        folder = utils.storage_dir("local_videos", create=True)
+        photos = openverse_photos(terms, aspect, folder)
+        if len(photos) < 3:
+            # few photos in this shape: take any shape, the "cover" fit crops them
+            photos += openverse_photos(terms, None, folder)[: MAX_PHOTOS - len(photos)]
         if not photos:
             return {"ok": False, "error": "No footage: Openverse returned no photos and no Pexels key is saved."}
         materials = [MaterialInfo(provider="local", url=p) for p in photos]
