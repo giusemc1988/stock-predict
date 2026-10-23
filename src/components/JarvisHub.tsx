@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState, type CSSProperties } from 'react'
 import { agentVotes, type Vote } from '../lib/hub'
 import { fmtPct, tone } from '../lib/format'
 import { toolsOf, type ProjectId, type ProjectState } from '../lib/projects'
-import { THEMES, setHubTheme, swatchBg, useHubTheme } from '../lib/themes'
+import { useHubTheme } from '../lib/themes'
 import { useLocalStorage } from '../hooks/useLocalStorage'
 import { ActivityFeed } from './ActivityFeed'
 import { AgentFace } from './AgentFace'
@@ -28,7 +28,6 @@ const GX = {
   back: { en: 'Back', vi: 'Quay lại' },
   working: { en: 'Working now', vi: 'Đang làm' },
   autoFlip: { en: 'Flip cards', vi: 'Tự lật thẻ' },
-  themeLabel: { en: 'Theme', vi: 'Theme' },
   hubTop: { en: 'Back to top', vi: 'Lên đầu trang' },
   openAtlas: { en: 'Open Atlas', vi: 'Mở Atlas' },
   openPortfolio: { en: 'Open portfolio', vi: 'Mở danh mục' },
@@ -267,11 +266,6 @@ export function JarvisHub(p: HubProps & { flipAuto: boolean }) {
             </span>
             <span className="hg-hide-s">{day}</span>
             <span>{clock}</span>
-            <span className="hg-themes" role="group" aria-label={G('themeLabel')}>
-              {THEMES.map((t) => (
-                <button key={t.id} className={t.id === theme ? 'on' : ''} style={{ background: swatchBg(t) }} onClick={() => setHubTheme(t.id)} aria-pressed={t.id === theme} aria-label={`${G('themeLabel')} ${vi ? t.name.vi : t.name.en}`} title={vi ? t.name.vi : t.name.en} />
-              ))}
-            </span>
             <LangSwitch />
             <button className="hg-icon" onClick={p.onSettings} aria-label={L('settings')} title={L('settings')}>
               <svg viewBox="0 0 24 24" aria-hidden="true">
