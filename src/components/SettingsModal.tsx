@@ -3,6 +3,7 @@ import type { ApiKeys } from '../data/providers'
 import { setLang, useLang, useT } from '../lib/i18n'
 import { APP_VERSION } from '../data/releases'
 import { useAiRules } from '../lib/aiRules'
+import { THEMES, setHubTheme, swatchBg, useHubTheme } from '../lib/themes'
 import { AiKeysSection } from './AiKeysSection'
 import { checkPaperKey, looksLikeAlphaVantage, type AlpacaKeys } from '../broker/alpaca'
 
@@ -54,6 +55,7 @@ function AlpacaKeyField({ value, onSave }: { value: AlpacaKeys; onSave: (k: Alpa
 export function SettingsModal({ keys, onSave, onClose, onOpenAiRules, alpacaKeys, onAlpacaKeys }: { keys: ApiKeys; onSave: (k: ApiKeys) => void; onClose: () => void; onOpenAiRules: () => void; alpacaKeys: AlpacaKeys; onAlpacaKeys: (k: AlpacaKeys) => void }) {
   const t = useT()
   const lang = useLang()
+  const hubTheme = useHubTheme()
   const rules = useAiRules()
   const [draft, setDraft] = useState(keys)
   const [checkingKeys, setCheckingKeys] = useState(false)
@@ -123,6 +125,17 @@ export function SettingsModal({ keys, onSave, onClose, onOpenAiRules, alpacaKeys
             <button className={lang === 'vi' ? 'on' : ''} onClick={() => setLang('vi')}>
               Tiếng Việt
             </button>
+          </div>
+        </div>
+        <div className="field">
+          <span>{t('hubTheme')}</span>
+          <div className="seg theme-seg">
+            {THEMES.map((th) => (
+              <button key={th.id} className={hubTheme === th.id ? 'on' : ''} onClick={() => setHubTheme(th.id)} aria-pressed={hubTheme === th.id}>
+                <i className="theme-dot" style={{ background: swatchBg(th) }} aria-hidden="true" />
+                {lang === 'vi' ? th.name.vi : th.name.en}
+              </button>
+            ))}
           </div>
         </div>
         <div className="field">

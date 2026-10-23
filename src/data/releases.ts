@@ -2,7 +2,7 @@
  * Version and "What's new". Bump APP_VERSION and add an entry to the top of RELEASES
  * with each update. The banner shows once per version, then stays dismissed.
  */
-export const APP_VERSION = '1.46.1'
+export const APP_VERSION = '1.47.0'
 
 export interface Release {
   version: string
@@ -13,6 +13,24 @@ export interface Release {
 }
 
 export const RELEASES: Release[] = [
+  {
+    version: '1.47.0',
+    date: '2026-10-23',
+    changes: [
+      'The Hub has a new liquid glass look, like a macOS dashboard: frosted glass panels over a slowly drifting colour wallpaper, a menu bar on top and a dock at the bottom.',
+      'Every agent is now a character of their own, each from a different background, holding the tool of their project. They blink, glance around and tilt their head while they think, and each card shows what its agent is thinking, taken from the project\'s real numbers.',
+      'Your projects hang on a rail under Neo, each with a moving logo. Tap one to open it. Now and then a card turns over to show its agent at work; turn this off with the dock switch or in Settings > AI rules.',
+      'Atlas\'s card shows the real Kronos 5-day forecasts (watch only, never traded) and how each agent votes on today\'s top BUY call.',
+      'Three themes: Amber, Plum and Moss. Pick one in Settings or with the dots in the menu bar; the app remembers it. The classic Hub is still there: Settings > AI rules > Liquid glass Hub.',
+    ],
+    changesVi: [
+      'Hub có giao diện kính mờ mới giống dashboard macOS: các tấm kính mờ trên nền màu trôi chậm, thanh menu ở trên và dock ở dưới.',
+      'Mỗi agent giờ là một nhân vật riêng, mỗi người một quốc tịch, cầm đồ nghề của dự án mình. Họ chớp mắt, liếc quanh và nghiêng đầu khi suy nghĩ; mỗi thẻ hiện agent đang nghĩ gì, lấy từ số liệu thật của dự án.',
+      'Các dự án treo trên một thanh dưới Neo, mỗi cái có logo động. Bấm vào để mở. Thỉnh thoảng một thẻ tự lật để xem agent đang làm việc; tắt bằng nút trên dock hoặc trong Cài đặt > Quy tắc AI.',
+      'Thẻ Atlas hiện dự báo 5 phiên thật của Kronos (chỉ theo dõi, không vào lệnh) và cách từng agent bỏ phiếu cho lệnh MUA tốt nhất hôm nay.',
+      'Ba theme: Hổ phách, Mận và Rêu. Chọn trong Cài đặt hoặc bấm các chấm trên thanh menu; app nhớ lựa chọn của anh. Hub kiểu cũ vẫn còn: Cài đặt > Quy tắc AI > Hub kính mờ.',
+    ],
+  },
   {
     version: '1.46.1',
     date: '2026-10-23',

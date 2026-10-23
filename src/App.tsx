@@ -20,6 +20,7 @@ import { fmtPrice, fmtUsd } from './lib/format'
 import { TopBar, type Page } from './components/TopBar'
 import { JarvisBrief } from './components/JarvisBrief'
 import { JarvisHub } from './components/JarvisHub'
+import { JarvisHubClassic } from './components/JarvisHubClassic'
 import { buyCalls } from './lib/brief'
 import type { NodeId } from './lib/brief'
 import { Watchlist } from './components/Watchlist'
@@ -693,24 +694,46 @@ export default function App() {
       /></PanelGuard>}
       {shownPage === 'home' ? (
         <PanelGuard name="Neo Hub">
-          <JarvisHub
-            practice={practice.state}
-            picks={buyCalls(practice.scan.candidates)}
-            scanning={aiRules.practiceMode && (aiRules.practiceAutoPick || practice.serverMode)}
-            learn={autoLearn.state}
-            killSwitch={prefs.killSwitch}
-            on={{ net: aiRules.netTools, ruview: aiRules.ruviewOn, godseye: aiRules.godsEyeOn, studio: aiRules.videoStudioOn }}
-            webFlash={aiRules.webFlash}
-            onOpen={(pg) => {
-              setRuviewFlash(pg === 'ruview-flash')
-              setPage(pg === 'ruview-flash' ? 'ruview' : pg === 'brief' && !briefOn ? 'trade' : pg)
-            }}
-            onAtlasBlock={(id) => {
-              setPage(briefOn ? 'brief' : 'trade')
-              setTimeout(() => document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 350)
-            }}
-            onSettings={() => setSettingsOpen(true)}
-          />
+          {aiRules.hubGlass ? (
+            <JarvisHub
+              flipAuto={aiRules.hubFlip}
+              practice={practice.state}
+              picks={buyCalls(practice.scan.candidates)}
+              scanning={aiRules.practiceMode && (aiRules.practiceAutoPick || practice.serverMode)}
+              learn={autoLearn.state}
+              killSwitch={prefs.killSwitch}
+              on={{ net: aiRules.netTools, ruview: aiRules.ruviewOn, godseye: aiRules.godsEyeOn, studio: aiRules.videoStudioOn }}
+              webFlash={aiRules.webFlash}
+              onOpen={(pg) => {
+                setRuviewFlash(pg === 'ruview-flash')
+                setPage(pg === 'ruview-flash' ? 'ruview' : pg === 'brief' && !briefOn ? 'trade' : pg)
+              }}
+              onAtlasBlock={(id) => {
+                setPage(briefOn ? 'brief' : 'trade')
+                setTimeout(() => document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 350)
+              }}
+              onSettings={() => setSettingsOpen(true)}
+            />
+          ) : (
+            <JarvisHubClassic
+              practice={practice.state}
+              picks={buyCalls(practice.scan.candidates)}
+              scanning={aiRules.practiceMode && (aiRules.practiceAutoPick || practice.serverMode)}
+              learn={autoLearn.state}
+              killSwitch={prefs.killSwitch}
+              on={{ net: aiRules.netTools, ruview: aiRules.ruviewOn, godseye: aiRules.godsEyeOn, studio: aiRules.videoStudioOn }}
+              webFlash={aiRules.webFlash}
+              onOpen={(pg) => {
+                setRuviewFlash(pg === 'ruview-flash')
+                setPage(pg === 'ruview-flash' ? 'ruview' : pg === 'brief' && !briefOn ? 'trade' : pg)
+              }}
+              onAtlasBlock={(id) => {
+                setPage(briefOn ? 'brief' : 'trade')
+                setTimeout(() => document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 350)
+              }}
+              onSettings={() => setSettingsOpen(true)}
+            />
+          )}
         </PanelGuard>
       ) : shownPage === 'brief' ? (
         <PanelGuard name="Neo Brief">
