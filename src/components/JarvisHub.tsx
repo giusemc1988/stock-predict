@@ -6,6 +6,8 @@ import { useHubTheme } from '../lib/themes'
 import { useLocalStorage } from '../hooks/useLocalStorage'
 import { ActivityFeed } from './ActivityFeed'
 import { AgentFace } from './AgentFace'
+import { NeoFace } from './NeoFace'
+import { useAiRules } from '../lib/aiRules'
 import { AtlasCouncil, type CouncilVote } from './AtlasCouncil'
 import { CountUp } from './CountUp'
 import { LangSwitch } from './HubPanels'
@@ -198,6 +200,7 @@ export function JarvisHub(p: HubProps & { flipAuto: boolean; council: boolean })
   const { vi, L, cards, stats, activity, q, setQ, inputRef, hits, canOpen, openTool, toolOk, openHit, hitOk, hello, homeUp, working } = m
   const G = (k: GxKey, vars?: Record<string, string | number>): string => Object.entries(vars ?? {}).reduce<string>((s, [a, b]) => s.replace(`{${a}}`, String(b)), GX[k][m.lang])
   const theme = useHubTheme()
+  const rules = useAiRules()
   const [flipPref, setFlipPref] = useLocalStorage('arc.hubFlip.v1', true)
   const flipping = p.flipAuto && flipPref
   const rootRef = useRef<HTMLElement>(null)
@@ -339,7 +342,7 @@ export function JarvisHub(p: HubProps & { flipAuto: boolean; council: boolean })
         <section className="hg-hero">
           <div className="hg-hero-l">
             <div className="hg-jbot" style={{ '--k': HUE.jarvis } as CSSProperties}>
-              <AgentFace id="jarvis" hue={HUE.jarvis} />
+              {rules.neoFace ? <NeoFace motion={rules.jarvisMotion} className="hg-neo" /> : <AgentFace id="jarvis" hue={HUE.jarvis} />}
             </div>
             <div className="hg-hero-t">
               <h1 className="hg-brand">{HUB_NAME}</h1>
