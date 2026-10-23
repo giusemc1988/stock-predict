@@ -4,7 +4,8 @@
  * two calls, each told to write natively in its own language, never to translate the other.
  */
 import { PROVIDERS, callHelper, type BrainEnv } from './brainServer'
-import { parseScenes, studioPrompt, type StudioMode } from './studio/script'
+import { parseScenes, studioPrompt, type Script, type StudioMode } from './studio/script'
+import { cleanKitSettings, fallbackKit, fillKit, itemPrompt, kitPrompt, parseItem, parseKit, PLATFORMS, type KitKind, type KitSettings, type Platform, type PostKit } from './studio/postkit'
 import { fallbackTerms, parseTerms } from './studioJobs'
 
 export interface WriteAsk {
@@ -58,4 +59,51 @@ export async function writeTerms(topic: string, lines: string[], e: BrainEnv): P
   const r = await ask(e, system, `Topic: ${topic}\nScript:\n${lines.join('\n')}`)
   const terms = r ? parseTerms(r.text) : []
   return terms.length >= 3 ? terms : fallbackTerms(topic)
+}
+
+export interface KitAsk {
+  script: Script
+  settings: KitSettings
+  /** one item only: a new hook, title or caption for one language */
+  only?: { lang: 'en' | 'vi'; kind: KitKind; platform?: Platform; avoid: string[] }
+}
+
+const line = (v: unknown, max: number) => (typeof v === 'string' ? v.replace(/\s+/g, ' ').trim().slice(0, max) : '')
+const lines = (v: unknown) => (Array.isArray(v) ? v.map((l) => line(l, 300)).filter(Boolean).slice(0, 12) : [])
+
+export function cleanKitAsk(body: unknown): KitAsk | null {
+  const b = body as { script?: Record<string, unknown>; settings?: unknown; only?: Record<string, unknown> } | null
+  const sc = b?.script
+  const topic = line(sc?.topic, 200)
+  if (!topic) return null
+  const script: Script = { topic: { en: topic, vi: line(sc?.topicVi, 200) || topic }, mode: MODES.includes(sc?.mode as StudioMode) ? (sc!.mode as StudioMode) : 'faceless', en: lines(sc?.en), vi: lines(sc?.vi) }
+  const settings = cleanKitSettings(b?.settings)
+  const o = b?.only
+  const kind = (['hook', 'title', 'caption'] as const).find((k) => k === o?.kind)
+  const only = o && kind && (o.lang === 'en' || o.lang === 'vi')
+    ? { lang: o.lang as 'en' | 'vi', kind, platform: PLATFORMS.find((p) => p.id === o.platform)?.id, avoid: (Array.isArray(o.avoid) ? o.avoid : []).map((a) => line(a, 300)).filter(Boolean).slice(0, 10) }
+    : undefined
+  return { script, settings, only }
+}
+
+/** The whole kit: one AI call per language, padded from the no-AI kit. by = null when no AI answered. */
+export async function writePostKit(a: KitAsk, e: BrainEnv): Promise<{ kit: PostKit; by: string | null }> {
+  const base = fallbackKit(a.script, a.settings)
+  const answers = await Promise.all(a.settings.langs.map((lang) => ask(e, ...kitPrompt(lang, a.settings, a.script))))
+  const kit: PostKit = {}
+  const by = new Set<string>()
+  a.settings.langs.forEach((lang, i) => {
+    const parsed = answers[i] ? parseKit(answers[i]!.text, a.settings) : null
+    if (parsed) by.add(answers[i]!.by)
+    kit[lang] = fillKit(parsed, base[lang]!, a.settings)
+  })
+  return { kit, by: by.size ? [...by].join(' + ') : null }
+}
+
+/** One new item, or null when no AI answered. */
+export async function writeKitItem(a: KitAsk, e: BrainEnv): Promise<{ text: string; by: string } | null> {
+  if (!a.only) return null
+  const r = await ask(e, ...itemPrompt(a.only.lang, a.settings, a.script, a.only.kind, a.only.avoid, a.only.platform))
+  const text = r ? parseItem(r.text, a.only.kind) : ''
+  return text ? { text, by: r!.by } : null
 }

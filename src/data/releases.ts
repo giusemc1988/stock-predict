@@ -2,7 +2,7 @@
  * Version and "What's new". Bump APP_VERSION and add an entry to the top of RELEASES
  * with each update. The banner shows once per version, then stays dismissed.
  */
-export const APP_VERSION = '1.50.0'
+export const APP_VERSION = '1.51.0'
 
 export interface Release {
   version: string
@@ -13,6 +13,12 @@ export interface Release {
 }
 
 export const RELEASES: Release[] = [
+  {
+    version: '1.51.0',
+    date: '2026-10-23',
+    changes: ['Nova\'s post kit is now fully adjustable: 1 to 10 hooks and 1 to 10 titles, a caption for each of TikTok, Instagram, YouTube and Facebook, 0 to 15 hashtags, a tone (curious, friendly, bold, calm, funny, expert), short, medium or long captions, emoji and call to action on or off, and English, Vietnamese or both. It is filled from your script at once with no AI; "Write the post kit with AI" writes better ones. Edit any line, tap ↻ to rewrite just that one, and copy each caption with its hashtags. Off switch: Settings > AI rules > Nova post kit.'],
+    changesVi: ['Bộ đăng bài của Nova giờ tùy chỉnh hết được: 1 đến 10 hook và 1 đến 10 tiêu đề, caption riêng cho TikTok, Instagram, YouTube và Facebook, 0 đến 15 hashtag, giọng văn (tò mò, thân thiện, mạnh mẽ, nhẹ nhàng, hài hước, chuyên gia), caption ngắn, vừa hoặc dài, bật tắt emoji và câu kêu gọi, tiếng Việt, tiếng Anh hoặc cả hai. Có sẵn ngay từ kịch bản, không cần AI; bấm "AI viết bộ đăng bài" để có bản hay hơn. Sửa được từng dòng, bấm ↻ để viết lại riêng dòng đó, và copy caption kèm hashtag. Tắt trong Cài đặt > Luật AI > Bộ đăng bài Nova.'],
+  },
   {
     version: '1.50.0',
     date: '2026-10-23',
