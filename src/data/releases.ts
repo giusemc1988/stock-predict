@@ -20,6 +20,20 @@ export const RELEASES: Release[] = [
     changesVi: ['Bước 3 của Nova giờ nhận ảnh và clip của anh cho video máy chủ có giọng: tối đa 10 file, mỗi file 50 MB, clip tối đa 60 giây. File được tải lên từng phần nhỏ (rớt mạng thì tự thử lại), anh xếp thứ tự tuỳ ý, và video dùng đúng thứ tự đó thay cho ảnh có sẵn. File tự xoá sau 3 ngày. Tắt trong Cài đặt > Luật AI > Nova dùng ảnh và clip của anh.'],
   },
   {
+    version: '1.52.1',
+    date: '2026-10-23',
+    changes: [
+      'Fixed the "Still in CONNECTING state" error that sometimes broke a panel when you picked a stock or moved between pages: the live price feed now waits until it is connected before sending.',
+      'Hub cards: the tool buttons at the bottom now wrap onto a second line, so nothing is cut off on a phone or tablet.',
+      'Smoother scrolling on phones and tablets: cards skip the live glass blur there, the background no longer re-blurs on every frame, and animations pause while a card is off screen.',
+    ],
+    changesVi: [
+      'Sửa lỗi "Still in CONNECTING state" thỉnh thoảng làm hỏng một khung khi chọn mã hoặc chuyển trang: luồng giá trực tiếp giờ đợi kết nối xong rồi mới gửi.',
+      'Thẻ Hub: các nút công cụ ở dưới giờ xuống dòng, không còn bị cắt trên điện thoại hay máy tính bảng.',
+      'Cuộn mượt hơn trên điện thoại và máy tính bảng: thẻ bỏ hiệu ứng làm mờ kính trực tiếp, nền không còn làm mờ lại mỗi khung hình, và hoạt ảnh tạm dừng khi thẻ nằm ngoài màn hình.',
+    ],
+  },
+  {
     version: '1.52.0',
     date: '2026-10-23',
     changes: ['Nova\'s server video can now be tuned in step 4: voice speed and volume, background music on or off and its volume, seconds per footage clip, a transition, and subtitle size, colour, outline and height, with word-by-word subtitles, a pop-in effect or a dark box behind the text. Videos can be square (1:1), and AI can write 3 to 12 scenes. In the post kit, tap ★ on a hook to open the video with it (spoken and shown first). Off switch: Settings > AI rules > Nova video settings.'],

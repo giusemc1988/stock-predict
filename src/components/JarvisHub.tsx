@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, type CSSProperties } from 'react'
+import { useEffect, useMemo, useRef, useState, type CSSProperties, type RefObject } from 'react'
 import { agentVotes, type Vote } from '../lib/hub'
 import { fmtPct, tone } from '../lib/format'
 import { toolsOf, type ProjectId, type ProjectState } from '../lib/projects'
@@ -168,6 +168,25 @@ function Demo({ id }: { id: ProjectId }) {
   )
 }
 
+/** Marks cards and the tag rail with data-off while they are off screen, so their CSS loops pause (JarvisHub.css). */
+function useOffscreenPause(root: RefObject<HTMLElement | null>, count: number) {
+  useEffect(() => {
+    const el = root.current
+    if (!el || typeof IntersectionObserver === 'undefined') return
+    const io = new IntersectionObserver(
+      (entries) => {
+        for (const e of entries) {
+          if (e.isIntersecting) e.target.removeAttribute('data-off')
+          else e.target.setAttribute('data-off', '')
+        }
+      },
+      { rootMargin: '120px 0px' },
+    )
+    el.querySelectorAll('.hg-card, .hg-tags, .hg-hero').forEach((n) => io.observe(n))
+    return () => io.disconnect()
+  }, [root, count])
+}
+
 /**
  * The main page in the liquid glass look: a macOS-style menu bar, Neo (the hub agent) with a speech bubble, the
  * projects hanging on a rail, one glass card per project (its agent, what it is thinking, its numbers
@@ -181,6 +200,8 @@ export function JarvisHub(p: HubProps & { flipAuto: boolean; council: boolean })
   const theme = useHubTheme()
   const [flipPref, setFlipPref] = useLocalStorage('arc.hubFlip.v1', true)
   const flipping = p.flipAuto && flipPref
+  const rootRef = useRef<HTMLElement>(null)
+  useOffscreenPause(rootRef, cards.length)
 
   // one shared beat: thoughts, Jarvis's bubble and the agent votes move on together
   const [tick, setTick] = useState(0)
@@ -281,7 +302,7 @@ export function JarvisHub(p: HubProps & { flipAuto: boolean; council: boolean })
   const day = now.toLocaleDateString(vi ? 'vi-VN' : 'en-US', { weekday: 'long', day: 'numeric', month: 'numeric' })
 
   return (
-    <main className="jh hg" id="hub-top" data-theme={theme}>
+    <main ref={rootRef} className="jh hg" id="hub-top" data-theme={theme}>
       <div className="hg-wall" aria-hidden="true">
         <i className="hg-b1" />
         <i className="hg-b2" />

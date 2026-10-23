@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import { watchOnScreen } from '../lib/onScreen'
 import type { Vote } from '../lib/hub'
 import { COUNCIL_IDS, type CouncilId } from '../lib/kronosView'
 
@@ -82,7 +83,13 @@ export function AtlasCouncil({ votes, active, label, voteText }: { votes: Counci
       return R * k * (1 + 0.025 * Math.sin(t * 0.0021))
     }
 
+    const seen = watchOnScreen(st)
     const frame = (t: number) => {
+      // scrolled away: keep the loop alive but draw nothing
+      if (!reduce && !seen.visible) {
+        raf = requestAnimationFrame(frame)
+        return
+      }
       const w = st.clientWidth
       const h = st.clientHeight
       const R = Math.min(w, h) * 0.165
@@ -231,6 +238,7 @@ export function AtlasCouncil({ votes, active, label, voteText }: { votes: Counci
     return () => {
       cancelAnimationFrame(raf)
       ro.disconnect()
+      seen.stop()
     }
   }, [active])
 
