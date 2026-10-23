@@ -6,6 +6,7 @@ import { cleanKey, sameOrigin, withSavedKeys, type KeyStore } from '../lib/brain
 import type { BrainEnv } from '../lib/brainServer'
 import { cleanKitAsk, writeKitItem, writePostKit, writeTerms } from '../lib/studioServer'
 import { TRENDS_CACHE, TRENDS_TTL_MS, YOUTUBE_KEY, fetchTrends, type TrendGeo, type TrendsResult } from '../lib/studioTrends'
+import { PRESETS_KEY, cleanPresets } from '../lib/studio/presets'
 import { MEDIA_CHUNK, deleteMedia, finishMedia, putMediaPart, readyMedia, startMedia, type MediaStore } from '../lib/studioMedia'
 import { GITHUB_KEY, PEXELS_KEY, checkGithubToken, cleanRenderAsk, kickFarm, deleteJob, isJobId, listJobs, queueJobs, videoResponse, type JobStore } from '../lib/studioJobs'
 
@@ -93,6 +94,14 @@ export async function novaRoute(req: Request, pathname: string, env: BrainEnv, s
     if (req.method === 'PATCH') return (await finishMedia(store, id)) ? json({ ok: true }) : json({ error: 'parts missing' }, 409)
     if (req.method === 'DELETE') return (await deleteMedia(store, id)) ? json({ ok: true }) : json({ error: 'missing' }, 404)
     return json({ error: 'POST, PUT, PATCH or DELETE' }, 405)
+  }
+  if (pathname === '/api/studio/presets') {
+    if (req.method === 'GET') return json({ presets: cleanPresets(JSON.parse((await kv.get(PRESETS_KEY)) ?? '[]')) })
+    if (req.method !== 'PUT') return json({ error: 'GET or PUT only' }, 405)
+    if (!sameOrigin(req)) return json({ error: 'Not allowed' }, 403)
+    const presets = cleanPresets(((await req.json().catch(() => null)) as { presets?: unknown } | null)?.presets)
+    await kv.put(PRESETS_KEY, JSON.stringify(presets))
+    return json({ presets })
   }
   if (pathname === '/api/studio/postkit') {
     if (req.method !== 'POST') return json({ error: 'POST only' }, 405)

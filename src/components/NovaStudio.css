@@ -160,3 +160,11 @@
 .nv-up-act { position: absolute; top: 4px; right: 4px; display: flex; gap: 4px; }
 .nv.hg .nv-up-act .btn.small { padding: 3px 8px; font-size: 12px; background: rgba(0, 0, 0, 0.55); }
 .nv-up-s { font-size: 11px; overflow-wrap: anywhere; }
+
+/* presets (NovaPresets.tsx) */
+.nv-presets { display: grid; gap: 6px; min-width: 0; }
+.nv-presets-row { display: flex; gap: 8px; align-items: center; min-width: 0; }
+.nv-presets-row select.btn { flex: 1; min-width: 0; box-sizing: border-box; }
+.nv-presets-row input { flex: 1; min-width: 0; }
+.nv.hg .nv-presets-row input { background: rgba(0, 0, 0, 0.26); color: var(--ink); border: 1px solid var(--line); border-radius: 12px; padding: 9px 11px; font: inherit; font-size: 14px; }
+.nv-presets-row .btn { flex: none; white-space: nowrap; }

@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useLocalStorage } from '../hooks/useLocalStorage'
+import { VIDEO_STORE } from './NovaPresets'
 import { useLang } from '../lib/i18n'
 import { STUDIO_TEXT, type StudioKey } from '../lib/studio/text'
 import { DEFAULT_RENDER_OPTS, TRANSITIONS, cleanRenderOpts, type RenderAspect, type RenderLang, type RenderOpts, type RenderVoice, type StudioJob } from '../lib/studioJobs'
@@ -19,7 +20,7 @@ export function StudioRenderPanel({ topic, topicVi, en, vi, aspect, glass = fals
   const [keys, setKeys] = useState<Record<'pexels' | 'github', boolean>>({ pexels: false, github: false })
   const [msg, setMsg] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
-  const [savedOpts, setSavedOpts] = useLocalStorage<Partial<RenderOpts>>('nova.video.v1', {})
+  const [savedOpts, setSavedOpts] = useLocalStorage<Partial<RenderOpts>>(VIDEO_STORE, {})
   // video settings (AI rule novaVideoSettings); off = Nova's defaults
   const opts = useMemo(() => (settings ? cleanRenderOpts(savedOpts) : DEFAULT_RENDER_OPTS), [settings, savedOpts])
 

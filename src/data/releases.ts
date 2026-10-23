@@ -2,7 +2,7 @@
  * Version and "What's new". Bump APP_VERSION and add an entry to the top of RELEASES
  * with each update. The banner shows once per version, then stays dismissed.
  */
-export const APP_VERSION = '1.53.0'
+export const APP_VERSION = '1.54.0'
 
 export interface Release {
   version: string
@@ -13,6 +13,12 @@ export interface Release {
 }
 
 export const RELEASES: Release[] = [
+  {
+    version: '1.54.0',
+    date: '2026-10-23',
+    changes: ['Nova presets: save the mode, size, post kit settings and video settings under a name (for example "TikTok facts VI"), then load them again in one tap from the list at the top of Nova. Presets are kept on the server, so they show up on every device. Off switch: Settings > AI rules > Nova presets.'],
+    changesVi: ['Preset cho Nova: lưu chế độ, khung hình, cài đặt bộ đăng bài và chỉnh video thành một tên (ví dụ "TikTok sự thật VI"), rồi chạm một lần ở danh sách đầu trang Nova là dùng lại. Preset lưu trên máy chủ nên máy nào cũng thấy. Tắt trong Cài đặt > Luật AI > Preset cho Nova.'],
+  },
   {
     version: '1.53.0',
     date: '2026-10-23',
