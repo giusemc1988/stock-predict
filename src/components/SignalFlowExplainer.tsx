@@ -8,7 +8,7 @@ import { useLang } from '../lib/i18n'
 
 interface Signal {
   symbol: string
-  source: 'watchlist' | 'gainer' | 'active'
+  source: 'watchlist' | 'gainer' | 'active' | 'loser'
   gainPct: number | null
   volVsAvg: number | null
   tradeScore: number | null

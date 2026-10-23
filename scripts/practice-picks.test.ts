@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict'
-import { gainToday, pickWhy, rankCandidates, rankScore, volumeVsAvg } from '../src/lib/practicePicks'
+import { gainToday, moverSource, pickSourceLabel, pickWhy, rankCandidates, rankScore, volumeVsAvg } from '../src/lib/practicePicks'
 import type { Analysis, Candle } from '../src/types'
 
 const bar = (t: number, close: number, volume = 100): Candle => ({ time: t, open: close, high: close, low: close, close, volume })
@@ -26,4 +26,11 @@ const ranked = rankCandidates([
 assert.deepEqual(ranked.map((c) => c.symbol), ['BEST', 'OK', 'HOLDME'])
 assert.deepEqual(ranked.map((c) => c.place), [1, 2, null])
 assert.match(pickWhy(ranked[0], 2).en, /#1 of 2 BUY calls, \+4\.0% today, volume 2\.5x normal, Trade Score 85, from top gainers today/)
+// a mover source the labels don't know (older servers sent "+5.2%") must not crash the page
+assert.match(pickWhy({ ...ranked[0], source: '+5.2%' as never }, 2).en, /from the scanner$/)
+assert.equal(pickSourceLabel['nope' as never].vi, 'máy quét')
+assert.equal(moverSource('+5.2%'), 'gainer')
+assert.equal(moverSource('-3.1%'), 'loser')
+assert.equal(moverSource('active'), 'active')
+assert.equal(moverSource(undefined), 'gainer')
 console.log('practice picker tests passed')

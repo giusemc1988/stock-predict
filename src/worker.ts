@@ -209,8 +209,8 @@ async function alpacaMovers(k: AlpacaDataKeys, limit: number, minPrice: number):
   const plain = (s: string) => /^[A-Z]{1,5}$/.test(s)
   type Move = { symbol: string; percent_change: number; price: number }
   const mv = (await alpacaData<{ gainers?: Move[]; losers?: Move[] }>(k, `/v1beta1/screener/stocks/movers?top=50`)) as any
-  const gainers = (mv.gainers ?? []).filter((g: Move) => plain(g.symbol) && g.price >= minPrice).slice(0, limit).map((g: Move) => ({ symbol: g.symbol, source: `+${g.percent_change.toFixed(1)}%` }))
-  const losers = (mv.losers ?? []).filter((l: Move) => plain(l.symbol) && l.price >= minPrice).slice(0, limit).map((l: Move) => ({ symbol: l.symbol, source: `${l.percent_change.toFixed(1)}%` }))
+  const gainers = (mv.gainers ?? []).filter((g: Move) => plain(g.symbol) && g.price >= minPrice).slice(0, limit).map((g: Move) => ({ symbol: g.symbol, source: 'gainer' }))
+  const losers = (mv.losers ?? []).filter((l: Move) => plain(l.symbol) && l.price >= minPrice).slice(0, limit).map((l: Move) => ({ symbol: l.symbol, source: 'loser' }))
   return [...gainers, ...losers].slice(0, limit * 2)
 }
 
