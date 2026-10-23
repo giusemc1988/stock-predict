@@ -21,7 +21,7 @@ const LEN_KEY = { short: 'lenShort', medium: 'lenMedium', long: 'lenLong' } as c
  * Nova step 5: hooks, titles, captions per platform and hashtags, every count and style adjustable.
  * It starts from the script (no AI); "Write with AI" replaces it, and each item can be edited or rewritten.
  */
-export function NovaPostKit({ script }: { script: Script }) {
+export function NovaPostKit({ script, hook, onHook }: { script: Script; hook?: { en: string; vi: string }; onHook?: (lang: Lang, text: string) => void }) {
   const lang = useLang()
   const t = (k: StudioKey) => STUDIO_TEXT[k][lang]
   const [saved, setSaved] = useLocalStorage<Partial<KitSettings>>('nova.postkit.v1', {})
@@ -140,6 +140,9 @@ export function NovaPostKit({ script }: { script: Script }) {
         <div key={i} className="nv-kit-row">
           <span className="nv-kit-i">{i + 1}</span>
           <input value={x} onChange={(e) => editAt('hooks', i, e.target.value)} aria-label={`${t('kitHooks')} ${i + 1}`} />
+          {onHook && (
+            <button className={`btn small star${hook?.[cur] === x ? ' on' : ''}`} aria-pressed={hook?.[cur] === x} aria-label={t('kitUseHook')} title={t('kitUseHook')} onClick={() => onHook(cur, hook?.[cur] === x ? '' : x)}>★</button>
+          )}
           {regen('hook', i)}
           <Copy text={x} label={t('copy')} />
         </div>

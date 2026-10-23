@@ -61,7 +61,7 @@ assert.deepEqual([...yuv], [16, 16, 16, 16, 128, 128])
 
 // server input is cleaned
 assert.equal(cleanWriteAsk({ topic: '  ' }), null)
-assert.deepEqual(cleanWriteAsk({ topic: 'x', mode: 'nope', scenes: 99 }), { topic: 'x', topicVi: 'x', mode: 'faceless', scenes: 8 })
+assert.deepEqual(cleanWriteAsk({ topic: 'x', mode: 'nope', scenes: 99 }), { topic: 'x', topicVi: 'x', mode: 'faceless', scenes: 12 })
 
 // God's Eye layer reading
 const J = 'application/json'

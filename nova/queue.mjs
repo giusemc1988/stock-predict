@@ -91,7 +91,7 @@ async function pick(dir) {
     const retried = j.status === 'rendering'
     await saveJob({ ...j, status: 'rendering', startedAt: now, run, retried: j.retried || retried })
     // only what the renderer needs; the key goes in its own file
-    writeFileSync(`${dir}/jobs/${j.id}.json`, JSON.stringify({ id: j.id, topic: j.topic, lang: j.lang, voice: j.voice, aspect: j.aspect, lines: j.lines, terms: j.terms }))
+    writeFileSync(`${dir}/jobs/${j.id}.json`, JSON.stringify({ id: j.id, topic: j.topic, lang: j.lang, voice: j.voice, aspect: j.aspect, lines: j.lines, terms: j.terms, opts: j.opts }))
   }
   const key = runnable.length ? ((await get(PEXELS)) ?? '').trim() : ''
   if (key) {

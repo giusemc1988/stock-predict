@@ -111,6 +111,18 @@ def gradient_backgrounds(aspect: str, dest: str, count: int = 5) -> list[str]:
     return files
 
 
+def opt(opts: dict, key: str, default, lo=None, hi=None):
+    """One setting from Nova's video settings (job["opts"]); a missing or odd value keeps Nova's default."""
+    v = opts.get(key, default)
+    if isinstance(default, bool):
+        return v if isinstance(v, bool) else default
+    if isinstance(default, (int, float)):
+        if not isinstance(v, (int, float)) or isinstance(v, bool):
+            return default
+        return max(lo, min(hi, v)) if lo is not None else v
+    return v if isinstance(v, str) and v else default
+
+
 def render(job: dict, pexels_key: str) -> dict:
     from app.models.schema import MaterialInfo, VideoParams
     from app.services import state as sm
@@ -118,6 +130,9 @@ def render(job: dict, pexels_key: str) -> dict:
     from app.utils import utils
 
     aspect = job.get("aspect") if job.get("aspect") in ("9:16", "16:9", "1:1") else "9:16"
+    o = job.get("opts") if isinstance(job.get("opts"), dict) else {}
+    transition = opt(o, "transition", "none")
+    sub_mode = opt(o, "subMode", "sentence")
     terms = [t for t in job.get("terms", []) if t][:8] or [job["topic"]]
     source = "pexels" if pexels_key else "local"
     footage = "pexels"
@@ -142,21 +157,27 @@ def render(job: dict, pexels_key: str) -> dict:
         video_aspect=aspect,
         video_source=source,
         video_materials=materials,
-        video_clip_duration=4,
+        video_clip_duration=int(opt(o, "clip", 4, 2, 8)),
         video_concat_mode="sequential" if source == "local" else "random",
+        video_transition_mode=transition if transition in ("FadeIn", "SlideIn", "ZoomIn", "Shuffle") else None,
         video_language="vi-VN" if job["lang"] == "vi" else "en-US",
         voice_name=VOICES.get((job["lang"], job.get("voice", "female")), VOICES[("vi", "female")]),
-        voice_rate=1.0,
-        bgm_type="random",
-        bgm_volume=0.15,
+        voice_rate=float(opt(o, "voiceRate", 1.0, 0.7, 1.5)),
+        voice_volume=float(opt(o, "voiceVolume", 1.0, 0.5, 1.5)),
+        bgm_type="random" if opt(o, "music", True) else "",
+        bgm_volume=float(opt(o, "musicVolume", 0.15, 0.0, 0.5)),
         subtitle_enabled=True,
         subtitle_position="custom",
-        custom_position=72.0,
+        custom_position=float(opt(o, "subPos", 72.0, 10, 90)),
+        subtitle_display_mode=sub_mode if sub_mode in ("sentence", "word_by_word") else "sentence",
+        subtitle_animation="pop_spring" if opt(o, "subPop", False) else "none",
         font_name=FONT,
-        font_size=64 if aspect == "9:16" else 56,
-        text_fore_color="#FFFFFF",
+        font_size=int(opt(o, "subSize", 64 if aspect == "9:16" else 56, 36, 110)),
+        text_fore_color=opt(o, "subColor", "#FFFFFF"),
+        text_background_color="#000000" if opt(o, "subBox", False) else False,
+        rounded_subtitle_background=bool(opt(o, "subBox", False)),
         stroke_color="#000000",
-        stroke_width=2.0,
+        stroke_width=float(opt(o, "subStroke", 2.0, 0, 5)),
         n_threads=4,
     )
     result = tm.start(job["id"], params, stop_at="video")

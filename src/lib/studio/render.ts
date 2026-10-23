@@ -4,11 +4,11 @@
  */
 import type { Script, StudioMode } from './script'
 
-export type Aspect = '9:16' | '16:9'
+export type Aspect = '9:16' | '16:9' | '1:1'
 export const FPS = 30
 export const FADE = 0.7
 
-export const sizeOf = (a: Aspect) => (a === '9:16' ? { w: 1080, h: 1920 } : { w: 1920, h: 1080 })
+export const sizeOf = (a: Aspect) => (a === '9:16' ? { w: 1080, h: 1920 } : a === '1:1' ? { w: 1080, h: 1080 } : { w: 1920, h: 1080 })
 
 /** A picture for a scene. `still` marks a frame taken from one of the person's clips. */
 export interface Media {

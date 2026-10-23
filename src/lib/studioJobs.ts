@@ -21,7 +21,62 @@ const MAX_LINE = 300
 
 export type RenderLang = 'vi' | 'en'
 export type RenderVoice = 'female' | 'male'
-export type RenderAspect = '9:16' | '16:9'
+export type RenderAspect = '9:16' | '16:9' | '1:1'
+export const TRANSITIONS = ['none', 'FadeIn', 'SlideIn', 'ZoomIn', 'Shuffle'] as const
+export type Transition = (typeof TRANSITIONS)[number]
+
+/** How the server video looks and sounds; each field maps to one MoneyPrinterTurbo setting in nova/render.py. */
+export interface RenderOpts {
+  /** speech speed, 1 = normal */
+  voiceRate: number
+  voiceVolume: number
+  music: boolean
+  musicVolume: number
+  /** seconds per footage clip */
+  clip: number
+  transition: Transition
+  subSize: number
+  subColor: string
+  subStroke: number
+  /** a dark rounded box behind the subtitles */
+  subBox: boolean
+  /** subtitle height, % from the top */
+  subPos: number
+  /** whole sentences, or one word at a time */
+  subMode: 'sentence' | 'word_by_word'
+  subPop: boolean
+}
+
+export const DEFAULT_RENDER_OPTS: RenderOpts = { voiceRate: 1, voiceVolume: 1, music: true, musicVolume: 0.15, clip: 4, transition: 'none', subSize: 64, subColor: '#FFFFFF', subStroke: 2, subBox: false, subPos: 72, subMode: 'sentence', subPop: false }
+
+const num = (v: unknown, lo: number, hi: number, d: number, step = 0.01) => (typeof v === 'number' && Number.isFinite(v) ? Number((Math.round(Math.max(lo, Math.min(hi, v)) / step) * step).toFixed(2)) : d)
+
+export function cleanRenderOpts(v: unknown): RenderOpts {
+  const o = (v ?? {}) as Partial<Record<keyof RenderOpts, unknown>>
+  const d = DEFAULT_RENDER_OPTS
+  return {
+    voiceRate: num(o.voiceRate, 0.7, 1.5, d.voiceRate),
+    voiceVolume: num(o.voiceVolume, 0.5, 1.5, d.voiceVolume),
+    music: o.music === undefined ? d.music : !!o.music,
+    musicVolume: num(o.musicVolume, 0, 0.5, d.musicVolume),
+    clip: num(o.clip, 2, 8, d.clip, 1),
+    transition: TRANSITIONS.includes(o.transition as Transition) ? (o.transition as Transition) : d.transition,
+    subSize: num(o.subSize, 36, 110, d.subSize, 1),
+    subColor: typeof o.subColor === 'string' && /^#[0-9a-f]{6}$/i.test(o.subColor) ? o.subColor.toUpperCase() : d.subColor,
+    subStroke: num(o.subStroke, 0, 5, d.subStroke, 0.5),
+    subBox: !!o.subBox,
+    subPos: num(o.subPos, 10, 90, d.subPos, 1),
+    subMode: o.subMode === 'word_by_word' ? 'word_by_word' : 'sentence',
+    subPop: !!o.subPop,
+  }
+}
+
+/** The chosen hook opens the video: spoken and subtitled as the first line, unless it already is. */
+export function withHook(lines: string[], hook: string): string[] {
+  const h = hook.trim()
+  if (!h || lines[0]?.trim().toLowerCase() === h.toLowerCase()) return lines
+  return [h, ...lines].slice(0, MAX_LINES)
+}
 
 export interface StudioJob {
   id: string
@@ -44,6 +99,8 @@ export interface StudioJob {
   /** gradient = no photo source answered, so plain colour backgrounds were used */
   footage?: 'pexels' | 'openverse' | 'gradient'
   run?: string
+  /** missing on jobs made before v1.52: the defaults */
+  opts?: RenderOpts
 }
 
 export interface RenderAsk {
@@ -54,6 +111,9 @@ export interface RenderAsk {
   langs: RenderLang[]
   voice: RenderVoice
   aspect: RenderAspect
+  opts: RenderOpts
+  /** a hook from the post kit, put first in each language's video */
+  hook: { en: string; vi: string }
 }
 
 /** KV with list(): the Worker binding, or a Map-backed fake in tests. */
@@ -83,7 +143,9 @@ export function cleanRenderAsk(body: unknown): RenderAsk | null {
     vi,
     langs: usable,
     voice: b?.voice === 'male' ? 'male' : 'female',
-    aspect: b?.aspect === '16:9' ? '16:9' : '9:16',
+    aspect: b?.aspect === '16:9' || b?.aspect === '1:1' ? b.aspect : '9:16',
+    opts: cleanRenderOpts(b?.opts),
+    hook: { en: clean((b?.hook as Record<string, unknown> | undefined)?.en, MAX_LINE), vi: clean((b?.hook as Record<string, unknown> | undefined)?.vi, MAX_LINE) },
   }
 }
 
@@ -125,8 +187,9 @@ export async function queueJobs(kv: JobStore, ask: RenderAsk, terms: string[], n
     lang,
     voice: ask.voice,
     aspect: ask.aspect,
-    lines: lang === 'vi' ? ask.vi : ask.en,
+    lines: withHook(lang === 'vi' ? ask.vi : ask.en, ask.hook[lang]),
     terms,
+    opts: ask.opts,
   }))
   await Promise.all(made.map((j) => kv.put(JOB_PREFIX + j.id, JSON.stringify(j))))
   return made
