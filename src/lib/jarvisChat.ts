@@ -8,6 +8,7 @@ import { alreadySo, describeAction, parseCommand, type JarvisAction } from './ja
 import { ask, greeting, stockMemory, type AskContext, type Bi } from './jarvis'
 import { answerHub, introduce, parseHubAsk, type AppPage, type HubFacts } from './agents'
 import type { HubPage } from './toolHub'
+import { asksRuns } from './hubRuns'
 
 /** Detect if text is Vietnamese (has Vietnamese characters or common words). */
 export function detectLanguage(text: string): 'vi' | 'en' {
@@ -41,6 +42,8 @@ export interface ChatReply {
   unsure?: boolean
   /** Open this page: a project, or 'home' for the Hub. */
   open?: HubPage | 'brief' | 'home'
+  /** Fetch and read out how the hub's workflows last ran. */
+  runs?: boolean
 }
 
 export interface ChatDeps {
@@ -52,6 +55,8 @@ export interface ChatDeps {
   canStock: boolean
   canReplay: boolean
   canShow: boolean
+  /** Neo may propose starting one of the hub's workflows. */
+  canRun?: boolean
   /** The page the chat is on and the hub's state, when the project agents are switched on. */
   hub?: { page: AppPage; facts: HubFacts }
 }
@@ -60,10 +65,12 @@ const HELLO = /^\s*(hi|hello|hey|good (morning|afternoon|evening)|yo|chào|xin c
 
 export function chatReply(text: string, d: ChatDeps): ChatReply {
   const { ctx } = d
-  const cmd = d.canAct ? parseCommand(text, d.known) : null
+  if (d.canRun && asksRuns(text)) return { text: [{ en: 'Checking the latest runs…', vi: 'Em xem các lần chạy gần nhất…' }], runs: true }
+  const cmd = d.canAct ? parseCommand(text, d.known, { runs: d.canRun }) : null
   if (cmd) {
     const what = describeAction(cmd)
     if (alreadySo(cmd, ctx.rules, ctx.killSwitch, d.watchlist)) return { text: [{ en: `Already set: ${what.en}.`, vi: `Rồi: ${what.vi}.` }] }
+    if (cmd.kind === 'run') return { text: [{ en: `I can start this on GitHub: ${what.en}. Start it?`, vi: `Em có thể chạy việc này trên GitHub: ${what.vi}. Chạy luôn không?` }], action: cmd }
     return { text: [{ en: `OK, I can ${what.en.charAt(0).toLowerCase()}${what.en.slice(1)}. Want me to do it?`, vi: `Được, em có thể ${what.vi}. Bạn muốn em làm không?` }], action: cmd }
   }
   const h = d.hub ? parseHubAsk(text, d.hub.page) : null

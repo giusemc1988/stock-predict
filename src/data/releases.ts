@@ -2,7 +2,7 @@
  * Version and "What's new". Bump APP_VERSION and add an entry to the top of RELEASES
  * with each update. The banner shows once per version, then stays dismissed.
  */
-export const APP_VERSION = '1.44.1'
+export const APP_VERSION = '1.45.0'
 
 export interface Release {
   version: string
@@ -13,6 +13,16 @@ export interface Release {
 }
 
 export const RELEASES: Release[] = [
+  {
+    version: '1.45.0',
+    date: '2026-10-23',
+    changes: [
+      'Neo can now run hub jobs for you. Say or type "render the Nova videos", "refresh the Iris snapshot", "build the Android app", "run the Kronos test" or "back up the data", tap Do it, and Neo starts it on GitHub with the GitHub key you saved in Nova (step 5). Ask "how did the last runs go?" to hear how each one finished. Only a short safe list can run; nothing deploys or touches money. Off switch: Settings > AI rules.',
+    ],
+    changesVi: [
+      'Neo giờ chạy được việc trong hub cho anh. Nói hoặc gõ "dựng video Nova", "làm mới snapshot Iris", "build app Android", "chạy thử Kronos" hay "sao lưu dữ liệu", bấm Làm đi là Neo chạy trên GitHub bằng key GitHub anh đã lưu ở Nova (bước 5). Hỏi "lần chạy gần nhất thế nào?" để nghe từng việc xong ra sao. Chỉ một danh sách ngắn, an toàn được chạy; không deploy, không đụng tiền. Tắt trong Cài đặt > Luật AI.',
+    ],
+  },
   {
     version: '1.44.1',
     date: '2026-10-23',

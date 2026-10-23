@@ -12,6 +12,7 @@ import { upstreamAsset } from './lib/webFlash'
 import { DEBUG_PATHS, GODS_EYE_URL, LAYERS, debugExposed, layerState, type Probe } from './lib/godsEye'
 import { cleanWriteAsk, writeScript } from './lib/studioServer'
 import { novaRoute } from './worker/nova'
+import { hubRoute } from './worker/hub'
 
 interface Env extends BrainEnv, PracticeEnv {
   ASSETS: { fetch: (r: Request) => Promise<Response> }
@@ -332,6 +333,8 @@ export default {
     }
     const nova = await novaRoute(req, pathname, env, env.SETTINGS)
     if (nova) return nova
+    const hub = await hubRoute(req, pathname, env.SETTINGS)
+    if (hub) return hub
     if (pathname === '/api/brain/status') {
       const e = await withSavedKeys(env, env.SETTINGS)
       return json({ providers: brainStatus(e), keys: await keySources(env, env.SETTINGS), canSave: !!env.SETTINGS })
