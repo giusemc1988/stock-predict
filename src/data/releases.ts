@@ -2,7 +2,7 @@
  * Version and "What's new". Bump APP_VERSION and add an entry to the top of RELEASES
  * with each update. The banner shows once per version, then stays dismissed.
  */
-export const APP_VERSION = '1.40.0'
+export const APP_VERSION = '1.41.0'
 
 export interface Release {
   version: string
@@ -13,6 +13,18 @@ export interface Release {
 }
 
 export const RELEASES: Release[] = [
+  {
+    version: '1.41.0',
+    date: '2026-10-23',
+    changes: [
+      'Atlas Telegram alerts are shorter and in Vietnamese: buys show size, target and stop with their %, and why the stock was picked; sells lead with WIN or LOSS, the P&L and why it closed.',
+      'A daily summary goes to Telegram after the US close: net result, wins and losses, each trade with why it closed, the lessons of the day, and the learner and brake status.',
+    ],
+    changesVi: [
+      'Tin Telegram của Atlas ngắn gọn hơn và bằng tiếng Việt: lệnh mua ghi số lượng, chốt lời, cắt lỗ kèm %, và lý do chọn mã; lệnh bán ghi THẮNG hay THUA, lời lỗ và lý do đóng.',
+      'Mỗi ngày sau khi thị trường Mỹ đóng cửa, Telegram nhận một bản tổng kết: kết quả ròng, số lệnh thắng thua, từng lệnh và lý do đóng, bài học trong ngày, trạng thái tự học và phanh.',
+    ],
+  },
   {
     version: '1.40.0',
     date: '2026-10-23',

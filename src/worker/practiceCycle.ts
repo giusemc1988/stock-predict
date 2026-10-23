@@ -3,14 +3,15 @@
  * Reads state from KV, runs one scan cycle, writes state back.
  * Paper only: nothing here places an order.
  */
-import { buyText, sellText } from '../lib/telegramText'
+import { buyText, sellText, summaryText } from '../lib/telegramText'
+import { buildDailyReport } from '../lib/dailyReport'
 import type { Candle } from '../types'
 import { INSTRUMENTS } from '../data/instruments'
 import { DEFAULT_AI_RULES } from '../lib/aiRules'
 import { SKILLS, skillTag } from '../lib/skills'
 import { parseState } from '../lib/autoLearn'
 import type { JournalEntry } from '../lib/journal'
-import { emptyPractice, nextBaseline, parsePractice, PENNY_MIN_PRICE, PENNY_PRICE, sessionEnd, type PracticeState } from '../lib/practice'
+import { dayKey, emptyPractice, kindOf, nextBaseline, parsePractice, PENNY_MIN_PRICE, PENNY_PRICE, sessionEnd, type PracticeState } from '../lib/practice'
 import { cryptoMovers, scanCycle, scanMarkets, withOpenMarkets, type Mover, type ScanMarket } from '../lib/practiceScan'
 
 /** Buy-and-hold yardstick for the scoreboard. */
@@ -199,6 +200,20 @@ function kellyMultiplier(trades: { pnl: number; entry: number; exit: number }[])
 }
 
 const PRACTICE_START = 10_000
+/** Summary goes out on the first run at least this long after the stock session ends (15:55 ET), so every day trade is closed. */
+const SUMMARY_DELAY_MS = 10 * 60_000
+
+async function sendDailySummary(env: WorkerEnv, s: PracticeState, now: number, cfg: { token: string; chatId: string }, learning: string, brakes: string) {
+  if (now < sessionEnd('stock', now) + SUMMARY_DELAY_MS) return
+  const day = dayKey(now)
+  if ((await env.PRACTICE.get('telegramSummaryDay').catch(() => null)) === day) return
+  await env.PRACTICE.put('telegramSummaryDay', day)
+  const report = buildDailyReport(s, day)
+  // market holiday: nothing traded, nothing to say
+  if (!report.trades && !report.opened) return
+  const trades = s.trades.filter((t) => dayKey(t.closedAt) === day)
+  await sendTelegram(summaryText({ day, report, trades, equity: PRACTICE_START + s.realized, totalRetPct: (s.realized / PRACTICE_START) * 100, learning, brakes }), cfg.token, cfg.chatId)
+}
 
 export async function practiceCycle(env: WorkerEnv): Promise<{ state: PracticeState; message: string; alerts?: TradeAlert[] }> {
 
@@ -303,7 +318,12 @@ export async function practiceCycle(env: WorkerEnv): Promise<{ state: PracticeSt
     /* no telegram config */
   }
   if (telegramConfig?.token && telegramConfig?.chatId) {
-    for (const alert of alerts) await sendTelegram(buyText({ ...alert, at: alert.openedAt }), telegramConfig.token, telegramConfig.chatId)
+    for (const p of newTrades)
+      await sendTelegram(
+        buyText({ symbol: p.symbol, qty: p.qty, entry: p.entry, stop: p.stop, target: p.target, reason: p.info?.pick?.vi ?? p.info?.reason ?? 'AI signal', at: p.openedAt, kind: kindOf(p) }),
+        telegramConfig.token,
+        telegramConfig.chatId,
+      )
     const seenClosed = new Set(prev.trades.map((t) => t.id))
     for (const t of next.trades.filter((x) => !seenClosed.has(x.id))) await sendTelegram(sellText({ symbol: t.symbol, qty: t.qty, entry: t.entry, exit: t.exit, pnl: t.pnl, retPct: t.retPct, reason: t.exitReason, at: t.closedAt }), telegramConfig.token, telegramConfig.chatId)
   }
@@ -323,6 +343,12 @@ export async function practiceCycle(env: WorkerEnv): Promise<{ state: PracticeSt
       // If alerts storage fails, still continue
       console.log('Alert storage failed, continuing anyway')
     }
+  }
+
+  if (telegramConfig?.token && telegramConfig?.chatId) {
+    const learning = pauseLearning ? `tạm dừng (WR ${Math.round(wr! * 100)}%)` : wr != null ? `đang chạy (WR ${Math.round(wr * 100)}%)` : 'chưa đủ dữ liệu'
+    const brakes = brakeMult === 1 ? 'bình thường' : brakeMult === 0.5 ? 'giảm 1/2 (-3%)' : brakeMult === 0.25 ? 'giảm 3/4 (-6%)' : 'DỪNG (-15%)'
+    await sendDailySummary(env, next, now, telegramConfig, learning, brakes)
   }
 
   const learningStatus = pauseLearning ? `PAUSED (WR ${(wr! * 100).toFixed(0)}% < 40%)` : wr != null ? `active (WR ${(wr * 100).toFixed(0)}%)` : 'n/a'
