@@ -1,0 +1,32 @@
+# Neo's code tasks: the hub asks for a code change ("fix the X button", "make an app that..."),
+# this files it as an issue labeled agent-task. A scheduled Claude session picks those up, opens a
+# pull request, and Chanh merges. Started only by the Worker (/api/hub/task) with the GitHub key.
+name: Agent task
+
+on:
+  workflow_dispatch:
+    inputs:
+      title:
+        description: Short title of the change
+        required: true
+      body:
+        description: What Chanh asked for, in his words, plus where he was in the app
+        required: true
+
+permissions:
+  issues: write
+
+jobs:
+  file:
+    runs-on: ubuntu-latest
+    steps:
+      - name: File the issue
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          TITLE: ${{ inputs.title }}
+          BODY: ${{ inputs.body }}
+        run: |
+          gh label create agent-task --color 7aa7ff --description "Code task from Neo, picked up by Claude" 2>/dev/null || true
+          printf '%s\n\n---\n_Filed by Neo from the hub. Claude picks this up on its next scheduled run and opens a pull request._\n' "$BODY" > body.md
+          gh issue create --title "${TITLE:0:120}" --body-file body.md --label agent-task

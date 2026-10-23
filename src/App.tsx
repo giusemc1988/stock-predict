@@ -572,7 +572,7 @@ export default function App() {
     ? (a: JarvisAction) => {
         if (a.kind === 'rule') setAiRules({ ...rawRules, [a.key]: a.value })
         else if (a.kind === 'killSwitch') setPrefs((p) => ({ ...p, killSwitch: a.value }))
-        else addInstrument(chartUniverse.find((i) => i.symbol === a.symbol) ?? { symbol: a.symbol, name: a.symbol, assetClass: a.symbol.includes('/') ? 'crypto' : 'stock', feedId: a.symbol.replace('/', ''), demoPrice: 100, demoVol: 0.4 })
+        else if (a.kind === 'watch') addInstrument(chartUniverse.find((i) => i.symbol === a.symbol) ?? { symbol: a.symbol, name: a.symbol, assetClass: a.symbol.includes('/') ? 'crypto' : 'stock', feedId: a.symbol.replace('/', ''), demoPrice: 100, demoVol: 0.4 })
       }
     : undefined
   const showAnalysis = showMeOn && analysis && candles.length ? () => startTour(analysisTour(analysis, inst.symbol, candles[candles.length - 1].time)) : undefined

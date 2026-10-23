@@ -2,7 +2,7 @@
  * Version and "What's new". Bump APP_VERSION and add an entry to the top of RELEASES
  * with each update. The banner shows once per version, then stays dismissed.
  */
-export const APP_VERSION = '1.44.2'
+export const APP_VERSION = '1.46.1'
 
 export interface Release {
   version: string
@@ -14,10 +14,30 @@ export interface Release {
 
 export const RELEASES: Release[] = [
   {
-    version: '1.44.2',
+    version: '1.46.1',
     date: '2026-10-23',
     changes: ['When a part of the app breaks, its error box now also says where it broke, so a screenshot is enough to find and fix it. #iris opens Iris (God\'s Eye).'],
     changesVi: ['Khi một phần của app bị lỗi, khung báo lỗi giờ ghi thêm chỗ bị lỗi, nên chỉ cần chụp màn hình là tìm và sửa được. #iris mở Iris (God\'s Eye).'],
+  },
+  {
+    version: '1.46.0',
+    date: '2026-10-23',
+    changes: [
+      'Ask Neo for code changes. Say "fix the ... button", "add a feature that ..." or "make an app that ...", tap Do it, and Neo files it on GitHub for Claude. About once an hour Claude picks it up and opens a pull request for you to check; nothing in the app changes until you merge. Ask "how are the code tasks?" to hear where each one stands. Uses the same GitHub key saved in Nova. Off switch: Settings > AI rules.',
+    ],
+    changesVi: [
+      'Nhờ Neo sửa code. Nói "sửa lỗi nút ...", "thêm tính năng ..." hay "tạo app ...", bấm Làm đi là Neo ghi việc lên GitHub cho Claude. Khoảng mỗi giờ Claude nhận việc và mở PR để anh duyệt; chưa merge thì app chưa đổi gì. Hỏi "việc code thế nào?" để nghe từng việc tới đâu. Dùng chung key GitHub đã lưu ở Nova. Tắt trong Cài đặt > Luật AI.',
+    ],
+  },
+  {
+    version: '1.45.0',
+    date: '2026-10-23',
+    changes: [
+      'Neo can now run hub jobs for you. Say or type "render the Nova videos", "refresh the Iris snapshot", "build the Android app", "run the Kronos test" or "back up the data", tap Do it, and Neo starts it on GitHub with the GitHub key you saved in Nova (step 5). Ask "how did the last runs go?" to hear how each one finished. Only a short safe list can run; nothing deploys or touches money. Off switch: Settings > AI rules.',
+    ],
+    changesVi: [
+      'Neo giờ chạy được việc trong hub cho anh. Nói hoặc gõ "dựng video Nova", "làm mới snapshot Iris", "build app Android", "chạy thử Kronos" hay "sao lưu dữ liệu", bấm Làm đi là Neo chạy trên GitHub bằng key GitHub anh đã lưu ở Nova (bước 5). Hỏi "lần chạy gần nhất thế nào?" để nghe từng việc xong ra sao. Chỉ một danh sách ngắn, an toàn được chạy; không deploy, không đụng tiền. Tắt trong Cài đặt > Luật AI.',
+    ],
   },
   {
     version: '1.44.1',

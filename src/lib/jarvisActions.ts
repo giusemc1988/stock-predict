@@ -6,10 +6,12 @@
  */
 import { RULE_FIELDS, type AiRules } from './aiRules'
 import type { Bi } from './jarvis'
+import { parseRun, workflowById } from './hubRuns'
+import { asksCodeChange } from './hubTasks'
 
 type BoolKey = { [K in keyof AiRules]: AiRules[K] extends boolean ? K : never }[keyof AiRules]
 
-export type JarvisAction = { kind: 'rule'; key: BoolKey; value: boolean } | { kind: 'killSwitch'; value: boolean } | { kind: 'watch'; symbol: string }
+export type JarvisAction = { kind: 'rule'; key: BoolKey; value: boolean } | { kind: 'killSwitch'; value: boolean } | { kind: 'watch'; symbol: string } | { kind: 'run'; id: string } | { kind: 'task'; text: string }
 
 const BOOL_FIELDS = RULE_FIELDS.filter((f) => f.min == null)
 
@@ -38,11 +40,16 @@ function findRule(text: string): BoolKey | null {
 }
 
 /** A command Neo can propose, from a typed or spoken sentence (English or Vietnamese). */
-export function parseCommand(text: string, known: { symbol: string; name: string }[]): JarvisAction | null {
+export function parseCommand(text: string, known: { symbol: string; name: string }[], opts: { runs?: boolean; tasks?: boolean } = {}): JarvisAction | null {
   const t = text.toLowerCase()
   if (/kill switch|dừng khẩn cấp|stop all buy/.test(t)) return { kind: 'killSwitch', value: !/\b(off|disable)\b|tắt/.test(t) }
   if (/(pause|stop|turn off|switch off|disable) (the )?practice|tạm dừng luyện tập|tắt luyện tập|dừng luyện tập/.test(t)) return { kind: 'rule', key: 'practiceMode', value: false }
   if (/(resume|start|turn on|switch on|enable) (the )?practice|tiếp tục luyện tập|bật luyện tập/.test(t)) return { kind: 'rule', key: 'practiceMode', value: true }
+  // a code change for Claude ("fix ...", "make an app ..."), filed as an issue (Neo's floating chat only)
+  if (opts.tasks && asksCodeChange(text)) return { kind: 'task', text: text.trim() }
+  // start one of the hub's whitelisted workflows (Neo's floating chat only)
+  const run = opts.runs ? parseRun(text) : null
+  if (run) return { kind: 'run', id: run.id }
   const watch = /(add|put) (.+?) (to|on|in) (my |the )?watch ?list|^watch (.+)$|thêm (.+?) vào (danh sách|watchlist)/.exec(t)
   if (watch) {
     const raw = (watch[2] ?? watch[5] ?? watch[6] ?? '').trim()
@@ -66,6 +73,11 @@ const ruleLabel = (key: string) => RULE_FIELDS.find((f) => f.key === key)
 export function describeAction(a: JarvisAction): Bi {
   if (a.kind === 'killSwitch') return a.value ? { en: 'Turn the kill switch ON (no new buys anywhere)', vi: 'BẬT công tắc dừng khẩn cấp (không mua mới)' } : { en: 'Turn the kill switch off', vi: 'Tắt công tắc dừng khẩn cấp' }
   if (a.kind === 'watch') return { en: `Add ${a.symbol} to your watchlist`, vi: `Thêm ${a.symbol} vào danh sách theo dõi` }
+  if (a.kind === 'task') return { en: `Ask Claude to change the code: "${a.text}"`, vi: `Nhờ Claude sửa code: "${a.text}"` }
+  if (a.kind === 'run') {
+    const w = workflowById(a.id)
+    return { en: `${w?.project ?? 'Neo'}: ${w?.label.en ?? a.id}`, vi: `${w?.project ?? 'Neo'}: ${w?.label.vi ?? a.id}` }
+  }
   if (a.key === 'practiceMode') return a.value ? { en: 'Resume practice trading', vi: 'Tiếp tục giao dịch luyện tập' } : { en: 'Pause practice trading', vi: 'Tạm dừng giao dịch luyện tập' }
   const f = ruleLabel(a.key)
   return { en: `Turn ${a.value ? 'on' : 'off'}: ${f?.en ?? a.key}`, vi: `${a.value ? 'Bật' : 'Tắt'}: ${f?.vi ?? a.key}` }
@@ -75,6 +87,7 @@ export function describeAction(a: JarvisAction): Bi {
 export function alreadySo(a: JarvisAction, rules: AiRules, killSwitch: boolean, watchlist: string[]) {
   if (a.kind === 'killSwitch') return killSwitch === a.value
   if (a.kind === 'watch') return watchlist.includes(a.symbol)
+  if (a.kind === 'run' || a.kind === 'task') return false
   return rules[a.key] === a.value
 }
 

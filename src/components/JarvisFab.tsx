@@ -14,6 +14,8 @@ import { askCloud, factsForAi } from '../lib/cloudBrain'
 import { detectLanguage } from '../lib/jarvisChat'
 import { HUB_AGENT, agentName, agentProject, hubFactsForAi, introduce, type AppPage, type HubFacts } from '../lib/agents'
 import type { HubPage } from '../lib/toolHub'
+import { fetchRuns, requestRun } from '../lib/hubRuns'
+import { fetchTasks, requestTask } from '../lib/hubTasks'
 
 interface Props {
   state: PracticeState
@@ -135,6 +137,8 @@ export function JarvisFab({ state, rules, journal, learn, killSwitch, priceOf, k
       canReplay: rules.jarvisReplay && !!onReplay,
       canShow: rules.jarvisShowMe && !!onShowTrade,
       hub: agents && page && hub ? { page, facts: hub } : undefined,
+      canRun: rules.hubRuns && rules.jarvisActions && !!onAction,
+      canTask: rules.hubTasks && rules.jarvisActions && !!onAction,
     })
     const now = stamp()
     const answer: Bi = { en: r.text.map((x) => x.en).join(' '), vi: r.text.map((x) => x.vi).join(' ') }
@@ -159,6 +163,14 @@ export function JarvisFab({ state, rules, journal, learn, killSwitch, priceOf, k
     }
     add({ who: 'me', text: { en: t, vi: t }, time: now }, { who: 'jarvis', text: answer, time: now + 1, action: r.action })
     if (r.open) onOpen?.(r.open)
+    if (r.runs || r.tasks) {
+      void (r.tasks ? fetchTasks() : fetchRuns()).then((lines) => {
+        const said: Bi = { en: lines.map((x) => x.en).join(' '), vi: lines.map((x) => x.vi).join(' ') }
+        add({ who: 'jarvis', text: said, time: stamp() })
+        say([said])
+      })
+      return setPhase('idle')
+    }
     // the chart tours read their own steps aloud, so only speak the plain answers
     if (r.stock || r.trade || r.replay) {
       setPhase('idle')
@@ -176,8 +188,19 @@ export function JarvisFab({ state, rules, journal, learn, killSwitch, priceOf, k
   const settle = (i: number, done: boolean) => {
     const turn = chat[i]
     if (!turn?.action || turn.settled || (done && !canAct)) return
-    if (done) onAction?.(turn.action)
-    logAction({ time: stamp(), label: describeAction(turn.action), result: done ? 'done' : 'cancelled' })
+    const a = turn.action
+    // runs and code tasks go to the server; the answer comes back into the chat
+    const remote = a.kind === 'run' || a.kind === 'task'
+    if (done && !remote) onAction?.(a)
+    logAction({ time: stamp(), label: describeAction(a), result: done ? 'done' : 'cancelled' })
+    if (done && (a.kind === 'run' || a.kind === 'task')) {
+      setChat((c) => c.map((x, j) => (j === i ? { ...x, settled: 'done' as const } : x)))
+      void (a.kind === 'run' ? requestRun(a.id) : requestTask(a.text, `${who} (${page ?? 'home'} page)`)).then((said) => {
+        add({ who: 'jarvis', text: said, time: stamp() })
+        say([said])
+      })
+      return
+    }
     const reply: Bi = done ? { en: 'Done. It’s in my action log in the Brain tab.', vi: 'Xong. Đã ghi vào nhật ký hành động trong tab Bộ não.' } : { en: 'Okay, I left it as it is.', vi: 'Được, tôi giữ nguyên.' }
     setChat((c) => [...c.map((x, j) => (j === i ? { ...x, settled: done ? ('done' as const) : ('cancelled' as const) } : x)), { who: 'jarvis' as const, text: reply, time: stamp() }].slice(-MAX_CHAT))
     say([reply])
