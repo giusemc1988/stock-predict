@@ -3,15 +3,17 @@ import { useLocalStorage } from '../hooks/useLocalStorage'
 import { VIDEO_STORE } from './NovaPresets'
 import { useLang } from '../lib/i18n'
 import { STUDIO_TEXT, type StudioKey } from '../lib/studio/text'
-import { DEFAULT_RENDER_OPTS, TRANSITIONS, cleanRenderOpts, type RenderAspect, type RenderLang, type RenderOpts, type RenderVoice, type StudioJob } from '../lib/studioJobs'
+import { DEFAULT_RENDER_OPTS, TRANSITIONS, cleanRenderOpts, type LemoFallback, type RenderAspect, type RenderEngine, type RenderLang, type RenderOpts, type RenderVoice, type StudioJob } from '../lib/studioJobs'
 
 type JobRow = Omit<StudioJob, 'lines' | 'terms'>
 export type KeyKind = 'pexels' | 'github' | 'youtube'
 const POLL_MS = 20_000
 const STATUS: Record<StudioJob['status'], StudioKey> = { queued: 'statusQueued', rendering: 'statusRendering', done: 'statusDone', failed: 'statusFailed' }
+const LEMO_STATUS: Partial<Record<StudioJob['status'], StudioKey>> = { queued: 'statusLemoQueued', rendering: 'statusLemoRendering' }
+const FALLBACK: Record<LemoFallback, StudioKey> = { 'pc-offline': 'fbPcOffline', 'pc-timeout': 'fbPcTimeout', uploads: 'fbUploads' }
 
-/** Nova step 5: queue the script for MoneyPrinterTurbo on GitHub Actions, then play the finished MP4s. */
-export function StudioRenderPanel({ topic, topicVi, en, vi, aspect, glass = false, settings = false, hook, onClearHook, media = [] }: { topic: string; topicVi: string; en: string[]; vi: string[]; aspect: RenderAspect; glass?: boolean; settings?: boolean; hook?: { en: string; vi: string }; onClearHook?: () => void; media?: string[] }) {
+/** Nova step 5: queue the script for MoneyPrinterTurbo on GitHub Actions (or Lemo-Opuscar on the home PC), then play the finished MP4s. */
+export function StudioRenderPanel({ topic, topicVi, en, vi, aspect, glass = false, settings = false, hook, onClearHook, media = [], lemo = false, handoff = false }: { topic: string; topicVi: string; en: string[]; vi: string[]; aspect: RenderAspect; glass?: boolean; settings?: boolean; hook?: { en: string; vi: string }; onClearHook?: () => void; media?: string[]; lemo?: boolean; handoff?: boolean }) {
   const lang = useLang()
   const t = (k: StudioKey) => STUDIO_TEXT[k][lang]
   const [langs, setLangs] = useState<RenderLang[]>(['vi'])
@@ -23,13 +25,18 @@ export function StudioRenderPanel({ topic, topicVi, en, vi, aspect, glass = fals
   const [savedOpts, setSavedOpts] = useLocalStorage<Partial<RenderOpts>>(VIDEO_STORE, {})
   // video settings (AI rule novaVideoSettings); off = Nova's defaults
   const opts = useMemo(() => (settings ? cleanRenderOpts(savedOpts) : DEFAULT_RENDER_OPTS), [settings, savedOpts])
+  // Lemo-Opuscar on the home PC (AI rule novaLemo); the Worker still picks the server when the PC is off
+  const [savedEngine, setEngine] = useLocalStorage<RenderEngine>('nova-engine', 'lemo')
+  const engine: RenderEngine = lemo && savedEngine === 'lemo' ? 'lemo' : 'turbo'
+  const [pc, setPc] = useState({ setup: false, online: false })
 
   const load = useCallback(async () => {
     const r = await fetch('/api/studio/jobs').catch(() => null)
-    const j = (await r?.json().catch(() => null)) as { jobs?: JobRow[]; pexels?: boolean; github?: boolean } | null
+    const j = (await r?.json().catch(() => null)) as { jobs?: JobRow[]; pexels?: boolean; github?: boolean; pc?: { setup?: boolean; online?: boolean } } | null
     if (j?.jobs) {
       setJobs(j.jobs)
       setKeys({ pexels: !!j.pexels, github: !!j.github })
+      setPc({ setup: !!j.pc?.setup, online: !!j.pc?.online })
     }
   }, [])
 
@@ -45,11 +52,12 @@ export function StudioRenderPanel({ topic, topicVi, en, vi, aspect, glass = fals
     setMsg(null)
     setBusy(true)
     try {
-      const r = await fetch('/api/studio/render', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ topic, topicVi, en, vi, langs, voice, aspect, opts, hook: settings ? hook : undefined, media }) })
-      const j = (await r.json().catch(() => ({}))) as { error?: string; kicked?: boolean }
+      const r = await fetch('/api/studio/render', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ topic, topicVi, en, vi, langs, voice, aspect, opts, hook: settings ? hook : undefined, media, engine }) })
+      const j = (await r.json().catch(() => ({}))) as { error?: string; kicked?: boolean; engine?: RenderEngine; fallback?: LemoFallback | null }
       if (r.status === 429) setMsg(t('serverBusy'))
       else if (!r.ok) setMsg(`${t('serverFailed')} ${j.error ?? `HTTP ${r.status}`}`)
-      else setMsg(t(j.kicked ? 'serverQueued' : 'serverQueuedSlow'))
+      else if (j.engine === 'lemo') setMsg(t('lemoQueued'))
+      else setMsg(`${j.fallback ? `${t(FALLBACK[j.fallback])} ` : ''}${t(j.kicked ? 'serverQueued' : 'serverQueuedSlow')}`)
       await load()
     } finally {
       setBusy(false)
@@ -58,6 +66,11 @@ export function StudioRenderPanel({ topic, topicVi, en, vi, aspect, glass = fals
 
   const remove = async (id: string) => {
     await fetch(`/api/studio/jobs?id=${id}`, { method: 'DELETE' }).catch(() => null)
+    await load()
+  }
+
+  const sendToViraltech = async (j: JobRow) => {
+    await fetch(`/api/studio/handoff?id=${j.id}`, { method: j.handoff ? 'DELETE' : 'POST' }).catch(() => null)
     await load()
   }
 
@@ -81,6 +94,19 @@ export function StudioRenderPanel({ topic, topicVi, en, vi, aspect, glass = fals
           <button key={v} className={voice === v ? 'on' : ''} onClick={() => setVoice(v)}>{t(v === 'female' ? 'serverFemale' : 'serverMale')}</button>
         ))}
       </div>
+      {lemo && (
+        <>
+          <div className="seg small" role="group" aria-label={t('engineTitle')}>
+            <button className={engine === 'lemo' ? 'on' : ''} onClick={() => setEngine('lemo')}>{t('engineLemo')}</button>
+            <button className={engine === 'turbo' ? 'on' : ''} onClick={() => setEngine('turbo')}>{t('engineTurbo')}</button>
+          </div>
+          {engine === 'lemo' && (
+            <p className={`small ${pc.setup && pc.online && !media.length ? 'up' : 'warn'}`}>
+              {t(!pc.setup ? 'pcNotSetup' : media.length ? 'lemoUploads' : pc.online ? 'pcOnline' : 'pcOffline')}
+            </p>
+          )}
+        </>
+      )}
       {settings && <VideoSettings opts={opts} onChange={(o) => setSavedOpts(o)} />}
       {settings && hook && (
         <p className="small nv-hook-line">
@@ -112,8 +138,15 @@ export function StudioRenderPanel({ topic, topicVi, en, vi, aspect, glass = fals
         <div key={j.id} className={`vs-job nv-tile s-${j.status}`}>
           <div className="vs-lab-row">
             <span className="small"><strong>{j.lang.toUpperCase()}</strong> · {j.topic}</span>
-            <span className={`small ${j.status === 'failed' ? 'warn' : 'muted'}`}>{t(STATUS[j.status])}</span>
+            <span className={`small ${j.status === 'failed' ? 'warn' : 'muted'}`}>{t((j.engine === 'lemo' && LEMO_STATUS[j.status]) || STATUS[j.status])}</span>
           </div>
+          {lemo && (
+            <p className="small muted">
+              {t(j.engine === 'lemo' ? 'madeLemo' : 'madeTurbo')}
+              {j.style && ` · ${j.style}`}
+              {j.fallback && ` · ${t(FALLBACK[j.fallback])}`}
+            </p>
+          )}
           {j.status === 'failed' && j.error && <p className="small muted">{j.error}</p>}
           {j.status === 'done' && j.footage === 'gradient' && <p className="small muted">{t('footageGradient')}</p>}
           {j.status === 'done' && (
@@ -123,9 +156,11 @@ export function StudioRenderPanel({ topic, topicVi, en, vi, aspect, glass = fals
           )}
           <div className="vs-row">
             {j.status === 'done' && <a className="btn small primary" href={`/api/studio/video?id=${j.id}&download`}>{t('download')}{j.size ? ` (${(j.size / 1e6).toFixed(1)} MB)` : ''}</a>}
+            {handoff && j.status === 'done' && <button className={`btn small${j.handoff ? ' on' : ''}`} onClick={() => void sendToViraltech(j)}>{t(j.handoff ? 'handoffSent' : 'handoffSend')}</button>}
             {j.run && j.status !== 'done' && <a className="btn small" href={j.run} target="_blank" rel="noreferrer">{t('serverLog')}</a>}
             {j.status !== 'rendering' && <button className="btn small" onClick={() => void remove(j.id)}>{t('serverDelete')}</button>}
           </div>
+          {handoff && j.handoff && <p className="small muted">{t('handoffNote')}</p>}
         </div>
       ))}
       </div>

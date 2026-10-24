@@ -7,6 +7,8 @@
  *   nova:pexels         optional free Pexels key for real footage (otherwise Openverse photos)
  *   nova:github         optional GitHub token (Actions: write on NOVA_REPO only) so "Make" starts the farm at once;
  *                       without it the farm waits for GitHub's cron, which on this repo can lag by hours
+ *   nova:lemo:seen      last time the home PC asked for Lemo-Opuscar work (ms)
+ *   nova:lemo:count:<day>  Lemo films handed to the PC that UTC day
  */
 export const JOB_PREFIX = 'nova:job:'
 export const VID_PREFIX = 'nova:vid:'
@@ -16,10 +18,28 @@ export const NOVA_REPO = 'giusemc1988/stock-predict'
 export const NOVA_WORKFLOW = 'nova-render.yml'
 /** queued + rendering at once; more waits for the farm to catch up */
 export const MAX_ACTIVE = 4
+/**
+ * Lemo-Opuscar renders on the home PC (agent/lemo-render.ts), never on GitHub. The PC asks the Worker for work
+ * every minute with HOME_AGENT_TOKEN; each ask is written to nova:lemo:seen, and that time is how Nova knows the PC is on.
+ */
+export const LEMO_SEEN_KEY = 'nova:lemo:seen'
+/** the PC asks every minute; three missed asks = off */
+export const PC_ONLINE_MS = 3 * 60_000
+/** a Lemo job nobody picked this long goes to the server farm instead (nova/queue.mjs keeps the same number) */
+export const LEMO_WAIT_MS = 30 * 60_000
+/** a Lemo film takes long; one still "rendering" after this was lost with the PC and goes to the server farm */
+export const LEMO_STALE_MS = 3 * 3600_000
+/** Lemo films the PC makes per day at most, so a flood of asks can't keep the PC busy */
+export const LEMO_DAILY = 6
+export const LEMO_COUNT_KEY = (day: string) => `nova:lemo:count:${day}`
 const MAX_LINES = 12
 const MAX_LINE = 300
 
 export type RenderLang = 'vi' | 'en'
+/** lemo = Lemo-Opuscar on the home PC; turbo = MoneyPrinterTurbo on GitHub Actions */
+export type RenderEngine = 'lemo' | 'turbo'
+/** why a Lemo ask was made on the server instead */
+export type LemoFallback = 'pc-offline' | 'pc-timeout' | 'uploads'
 export type RenderVoice = 'female' | 'male'
 export type RenderAspect = '9:16' | '16:9' | '1:1'
 export const TRANSITIONS = ['none', 'FadeIn', 'SlideIn', 'ZoomIn', 'Shuffle'] as const
@@ -103,6 +123,14 @@ export interface StudioJob {
   run?: string
   /** missing on jobs made before v1.52: the defaults */
   opts?: RenderOpts
+  /** missing on jobs made before v1.57: turbo */
+  engine?: RenderEngine
+  /** set when Lemo was asked for but the server farm made it */
+  fallback?: LemoFallback
+  /** the Lemo-Opuscar style the PC chose */
+  style?: string
+  /** when it was sent to Viraltech to post (after Chanh approves there) */
+  handoff?: number
 }
 
 export interface RenderAsk {
@@ -118,11 +146,13 @@ export interface RenderAsk {
   hook: { en: string; vi: string }
   /** upload ids, checked against the store by the Worker before queueing */
   media: string[]
+  /** asked for; the Worker makes it turbo when the PC is off */
+  engine: RenderEngine
 }
 
 /** KV with list(): the Worker binding, or a Map-backed fake in tests. */
 export interface JobStore {
-  put(key: string, value: string): Promise<void>
+  put(key: string, value: string | ArrayBuffer): Promise<void>
   delete(key: string): Promise<void>
   list(o: { prefix: string; cursor?: string }): Promise<{ keys: { name: string }[]; list_complete: boolean; cursor?: string }>
   get(key: string, type?: 'text'): Promise<string | null>
@@ -151,6 +181,7 @@ export function cleanRenderAsk(body: unknown): RenderAsk | null {
     opts: cleanRenderOpts(b?.opts),
     media: (Array.isArray(b?.media) ? b.media : []).filter(isJobId).slice(0, 10),
     hook: { en: clean((b?.hook as Record<string, unknown> | undefined)?.en, MAX_LINE), vi: clean((b?.hook as Record<string, unknown> | undefined)?.vi, MAX_LINE) },
+    engine: b?.engine === 'lemo' ? 'lemo' : 'turbo',
   }
 }
 
@@ -180,10 +211,18 @@ export async function listJobs(kv: JobStore): Promise<StudioJob[]> {
   return jobs.filter((j): j is StudioJob => !!j).sort((a, b) => b.createdAt - a.createdAt)
 }
 
+/** Lemo only when it was asked for, the PC is on and no uploads came along (Lemo films are drawn in code). */
+export function pickEngine(ask: Pick<RenderAsk, 'engine' | 'media'>, pcOnline: boolean): { engine: RenderEngine; fallback?: LemoFallback } {
+  if (ask.engine !== 'lemo') return { engine: 'turbo' }
+  if (ask.media.length) return { engine: 'turbo', fallback: 'uploads' }
+  return pcOnline ? { engine: 'lemo' } : { engine: 'turbo', fallback: 'pc-offline' }
+}
+
 /** One job per language. Returns null when the farm already has MAX_ACTIVE waiting. */
-export async function queueJobs(kv: JobStore, ask: RenderAsk, terms: string[], now = Date.now(), uuid = () => crypto.randomUUID()): Promise<StudioJob[] | null> {
+export async function queueJobs(kv: JobStore, ask: RenderAsk, terms: string[], now = Date.now(), uuid = () => crypto.randomUUID(), pcOnline = false): Promise<StudioJob[] | null> {
   const active = (await listJobs(kv)).filter((j) => j.status === 'queued' || j.status === 'rendering').length
   if (active + ask.langs.length > MAX_ACTIVE) return null
+  const how = pickEngine(ask, pcOnline)
   const made = ask.langs.map((lang, i): StudioJob => ({
     id: uuid(),
     status: 'queued',
@@ -196,9 +235,77 @@ export async function queueJobs(kv: JobStore, ask: RenderAsk, terms: string[], n
     terms,
     opts: ask.opts,
     ...(ask.media.length ? { media: ask.media } : {}),
+    ...how,
   }))
   await Promise.all(made.map((j) => kv.put(JOB_PREFIX + j.id, JSON.stringify(j))))
   return made
+}
+
+/** Is the home PC asking for Lemo work right now? */
+export async function pcOnline(kv: JobStore, now = Date.now()): Promise<boolean> {
+  const seen = Number(await kv.get(LEMO_SEEN_KEY))
+  return Number.isFinite(seen) && now - seen < PC_ONLINE_MS
+}
+
+const day = (now: number) => new Date(now).toISOString().slice(0, 10)
+
+/**
+ * The home PC asks for work: marks it online, then hands over the oldest waiting Lemo job (as "rendering"),
+ * unless today's LEMO_DAILY films are made. Jobs older than LEMO_WAIT_MS are left to the server farm.
+ * take = false only says "still here" while the PC is busy with a film.
+ */
+export async function pickLemo(kv: JobStore, now = Date.now(), take = true): Promise<StudioJob | null> {
+  await kv.put(LEMO_SEEN_KEY, String(now))
+  if (!take) return null
+  const made = Number(await kv.get(LEMO_COUNT_KEY(day(now)))) || 0
+  if (made >= LEMO_DAILY) return null
+  const job = (await listJobs(kv))
+    .filter((j) => j.engine === 'lemo' && j.status === 'queued' && now - j.createdAt < LEMO_WAIT_MS)
+    .sort((a, b) => a.createdAt - b.createdAt)[0]
+  if (!job) return null
+  const taken: StudioJob = { ...job, status: 'rendering', startedAt: now }
+  await kv.put(JOB_PREFIX + job.id, JSON.stringify(taken))
+  await kv.put(LEMO_COUNT_KEY(day(now)), String(made + 1))
+  return taken
+}
+
+/** KV values stop at 25 MiB; the PC sends 20 MiB chunks, like nova/queue.mjs */
+export const LEMO_CHUNK = 20 * 1024 * 1024
+/** 20 chunks = 400 MiB, far above a short film */
+const LEMO_MAX_PARTS = 20
+
+/** One chunk of a Lemo MP4 from the PC; only for a job the PC is rendering. */
+export async function putLemoPart(kv: JobStore, id: string, i: number, data: ArrayBuffer): Promise<'ok' | 'missing' | 'bad'> {
+  const job = await getJob(kv, id)
+  if (!job || job.engine !== 'lemo' || job.status !== 'rendering') return 'missing'
+  if (!Number.isInteger(i) || i < 0 || i >= LEMO_MAX_PARTS || !data.byteLength || data.byteLength > LEMO_CHUNK) return 'bad'
+  await kv.put(`${VID_PREFIX}${id}:${i}`, data)
+  return 'ok'
+}
+
+/** The PC is done: the video is in its chunks, or it failed. */
+export async function finishLemo(kv: JobStore, id: string, body: unknown, now = Date.now()): Promise<boolean> {
+  const job = await getJob(kv, id)
+  if (!job || job.engine !== 'lemo' || job.status !== 'rendering') return false
+  const b = (body ?? {}) as Record<string, unknown>
+  const size = Number(b.size)
+  const parts = Number(b.parts)
+  if (b.ok !== true || !(size > 0) || !Number.isInteger(parts) || parts < 1 || parts > LEMO_MAX_PARTS || size > parts * LEMO_CHUNK) {
+    await kv.put(JOB_PREFIX + id, JSON.stringify({ ...job, status: 'failed', doneAt: now, error: clean(b.error, 300) || 'the PC could not make the video' }))
+    return true
+  }
+  const done: StudioJob = { ...job, status: 'done', doneAt: now, size, parts, chunk: LEMO_CHUNK, duration: Number(b.duration) > 0 ? Number(b.duration) : null, style: clean(b.style, 60) || undefined, error: undefined }
+  await kv.put(JOB_PREFIX + id, JSON.stringify(done))
+  return true
+}
+
+/** Send a finished video to Viraltech's waiting list, or take it back. Nothing is posted here. */
+export async function setHandoff(kv: JobStore, id: string, on: boolean, now = Date.now()): Promise<StudioJob | null> {
+  const job = await getJob(kv, id)
+  if (!job || job.status !== 'done') return null
+  const next: StudioJob = { ...job, handoff: on ? now : undefined }
+  await kv.put(JOB_PREFIX + id, JSON.stringify(next))
+  return next
 }
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/

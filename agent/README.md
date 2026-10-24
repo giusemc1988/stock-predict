@@ -127,6 +127,34 @@ RuView cảm nhận được người qua tường: chỉ dùng trong nhà anh v
 
 Trước khi nạp firmware cho board, gửi Claude ảnh chụp nắp kim loại trên module (N4, N8 hoặc N16R8) để chọn đúng file.
 
+## Lemo-Opuscar cho Nova (video trên máy nhà)
+
+Nova có 2 cách làm video:
+- **Máy chủ** (MoneyPrinterTurbo trên GitHub): nhanh, luôn chạy, dùng hình có sẵn.
+- **Lemo-Opuscar** (máy nhà): phim vẽ hoàn toàn bằng code, mỗi phim một style khác, mất 30 đến 90 phút. Chỉ chạy khi máy nhà đang mở và đang chạy `npm run lemo`.
+
+Máy nhà tắt thì Nova **không** dùng Lemo-Opuscar: Nova báo rõ trên trang và làm video bằng máy chủ. Việc Lemo nào máy nhà không nhận trong 30 phút cũng tự chuyển sang máy chủ.
+
+Cài một lần:
+1. Máy nhà cần Claude Code và plugin lemo-opuscar:
+   ```powershell
+   claude plugin marketplace add lemomo-ai/lemo-opuscar
+   claude plugin install lemo-opuscar@lemolab
+   ```
+2. Chạy `npm run agent` một lần để có token (file `%USERPROFILE%\.jarvis-agent\token`).
+3. Đặt `HOME_AGENT_TOKEN` của Worker **stock-predict** đúng bằng token đó (Settings > Variables and Secrets). Nếu đã đặt từ trước cho trang Wi-Fi thì không cần làm lại.
+
+Mỗi lần dùng, để một cửa sổ PowerShell chạy:
+```powershell
+cd C:\Users\chanh\stock-predict; git pull; npm install
+npm run lemo
+```
+Cửa sổ còn chạy là Nova thấy "Máy nhà đang mở". Phim lưu ở `%USERPROFILE%\lemo-films`, rồi tự gửi về Nova.
+
+An toàn: ai biết địa chỉ trang cũng có thể gửi việc cho Nova, nên chữ trong việc (chủ đề, kịch bản) chỉ được đưa cho Claude như dữ liệu, không phải lệnh. Claude chạy ở chế độ `auto` (bộ kiểm tra an toàn của Claude vẫn bật), không dùng WebFetch hay WebSearch, và mỗi ngày làm tối đa 6 phim. Mỗi phim dùng lượt Claude của anh.
+
+Gửi sang Viraltech: video xong bấm **Gửi sang Viraltech** trong Nova. Video nằm chờ ở trang Viraltech; không gì tự đăng. Muốn đăng thì nhắn Claude trong thread Viraltech, Claude chỉ đăng khi anh đồng ý.
+
 ## An toàn
 
 - Token mới được tạo lần chạy đầu, lưu ở `%USERPROFILE%\.jarvis-agent\token`. Muốn đổi thì xóa file đó rồi chạy lại.

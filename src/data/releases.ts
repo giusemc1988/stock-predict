@@ -2,7 +2,7 @@
  * Version and "What's new". Bump APP_VERSION and add an entry to the top of RELEASES
  * with each update. The banner shows once per version, then stays dismissed.
  */
-export const APP_VERSION = '1.56.2'
+export const APP_VERSION = '1.57.0'
 
 export interface Release {
   version: string
@@ -13,6 +13,18 @@ export interface Release {
 }
 
 export const RELEASES: Release[] = [
+  {
+    version: '1.57.0',
+    date: '2026-10-24',
+    changes: [
+      'Nova can make a video with Lemo-Opuscar (film styles drawn entirely in code) on your home PC: pick "Lemo-Opuscar (home PC)" in step 4. Nova says plainly which one makes each video: when the PC is off it does not use Lemo-Opuscar and makes the video on the server instead, and a Lemo job the PC does not take within 30 minutes also goes to the server. Each film picks a style different from the last 8. On the PC: "npm run lemo" (see agent/README.md). Off switch: Settings > AI rules > Nova can make the video with Lemo-Opuscar.',
+      'Send to Viraltech: a finished Nova video can go to a "waiting for your OK" list on the Viraltech page, with play and download. Nothing is posted by itself; Claude posts in the Viraltech thread only after you say yes. Off switch: Settings > AI rules > Send a finished Nova video to Viraltech.',
+    ],
+    changesVi: [
+      'Nova có thể làm video bằng Lemo-Opuscar (phong cách phim vẽ hoàn toàn bằng code) trên máy nhà: chọn "Lemo-Opuscar (máy nhà)" ở bước 4. Nova ghi rõ video nào do ai làm: máy nhà tắt thì KHÔNG dùng Lemo-Opuscar mà làm bằng máy chủ, và việc Lemo nào máy nhà không nhận trong 30 phút cũng chuyển sang máy chủ. Mỗi phim chọn style khác 8 phim gần nhất. Trên máy nhà: "npm run lemo" (xem agent/README.md). Tắt trong Cài đặt > Luật AI > Nova có thể làm video bằng Lemo-Opuscar.',
+      'Gửi sang Viraltech: video Nova đã xong có thể gửi vào danh sách "chờ anh duyệt" ở trang Viraltech, xem và tải về được. Không video nào tự đăng; Claude chỉ đăng trong thread Viraltech khi anh đồng ý. Tắt trong Cài đặt > Luật AI > Gửi video Nova đã xong sang Viraltech.',
+    ],
+  },
   {
     version: '1.56.2',
     date: '2026-10-24',

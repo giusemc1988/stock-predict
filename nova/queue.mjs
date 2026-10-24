@@ -18,6 +18,10 @@ const KEEP_DONE = 12
 const MAX_PICK = 3
 // a job stuck in "rendering" this long was killed with its runner: try it once more
 const STALE_MS = 50 * 60 * 1000
+// Lemo-Opuscar jobs belong to the home PC; the farm makes them only when the PC never took one this long,
+// or lost one while rendering (same numbers as LEMO_WAIT_MS and LEMO_STALE_MS in src/lib/studioJobs.ts)
+const LEMO_WAIT_MS = 30 * 60 * 1000
+const LEMO_STALE_MS = 3 * 3600 * 1000
 // ids reach the shell in the workflow, so only the Worker's own UUIDs are accepted
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/
 
@@ -105,18 +109,23 @@ async function fetchMedia(dir, job) {
 const saveJob = (job) => put(JOB + job.id, JSON.stringify(job))
 const output = (line) => process.env.GITHUB_OUTPUT && appendFileSync(process.env.GITHUB_OUTPUT, line + '\n')
 
+/** A Lemo job the home PC never took, or lost: from now on the farm makes it. */
+const lemoGivenUp = (j, now) =>
+  (j.status === 'queued' && now - j.createdAt > LEMO_WAIT_MS) || (j.status === 'rendering' && now - (j.startedAt ?? 0) > LEMO_STALE_MS)
+
 async function pick(dir) {
   const now = Date.now()
   const runnable = (await jobs())
     .filter((j) => UUID.test(j.id))
-    .filter((j) => j.status === 'queued' || (j.status === 'rendering' && now - (j.startedAt ?? 0) > STALE_MS && !j.retried))
+    .filter((j) => (j.engine === 'lemo' ? lemoGivenUp(j, now) : j.status === 'queued' || (j.status === 'rendering' && now - (j.startedAt ?? 0) > STALE_MS && !j.retried)))
     .sort((a, b) => a.createdAt - b.createdAt)
     .slice(0, MAX_PICK)
   mkdirSync(`${dir}/jobs`, { recursive: true })
   const run = process.env.GITHUB_RUN_ID ? `${process.env.GITHUB_SERVER_URL}/${process.env.GITHUB_REPOSITORY}/actions/runs/${process.env.GITHUB_RUN_ID}` : undefined
   for (const j of runnable) {
-    const retried = j.status === 'rendering'
-    await saveJob({ ...j, status: 'rendering', startedAt: now, run, retried: j.retried || retried })
+    const lemo = j.engine === 'lemo'
+    const retried = j.status === 'rendering' && !lemo
+    await saveJob({ ...j, status: 'rendering', startedAt: now, run, retried: j.retried || retried, ...(lemo ? { engine: 'turbo', fallback: 'pc-timeout' } : {}) })
     // only what the renderer needs; the key goes in its own file
     writeFileSync(`${dir}/jobs/${j.id}.json`, JSON.stringify({ id: j.id, topic: j.topic, lang: j.lang, voice: j.voice, aspect: j.aspect, lines: j.lines, terms: j.terms, opts: j.opts }))
     const own = await fetchMedia(dir, j)

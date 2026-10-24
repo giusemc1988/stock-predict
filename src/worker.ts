@@ -331,7 +331,7 @@ export default {
       const r = await writeScript(ask, await withSavedKeys(env, env.SETTINGS))
       return r ? json(r) : json({ error: 'No AI helper answered. Add a free Gemini or Groq key in Settings.' }, 503)
     }
-    const nova = await novaRoute(req, pathname, env, env.SETTINGS)
+    const nova = await novaRoute(req, pathname, env, env.SETTINGS, env.HOME_AGENT_TOKEN)
     if (nova) return nova
     const hub = await hubRoute(req, pathname, env.SETTINGS)
     if (hub) return hub

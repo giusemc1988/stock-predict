@@ -1,6 +1,9 @@
 /**
  * /api/studio/render, /jobs, /video, /key: Nova's server renders. The queue lives in the SETTINGS KV
  * (see src/lib/studioJobs.ts); .github/workflows/nova-render.yml does the rendering.
+ * /api/studio/lemo/*: the home PC (agent/lemo-render.ts) takes Lemo-Opuscar jobs and sends the MP4 back,
+ * with HOME_AGENT_TOKEN, the secret the Worker already shares with the home agent.
+ * /api/studio/handoff: puts a finished video on Viraltech's waiting list; posting stays with Chanh.
  */
 import { cleanKey, sameOrigin, withSavedKeys, type KeyStore } from '../lib/brainKeys'
 import type { BrainEnv } from '../lib/brainServer'
@@ -8,7 +11,7 @@ import { cleanKitAsk, writeKitItem, writePostKit, writeTerms } from '../lib/stud
 import { TRENDS_CACHE, TRENDS_TTL_MS, YOUTUBE_KEY, fetchTrends, type TrendGeo, type TrendsResult } from '../lib/studioTrends'
 import { PRESETS_KEY, cleanPresets } from '../lib/studio/presets'
 import { MEDIA_CHUNK, deleteMedia, finishMedia, putMediaPart, readyMedia, startMedia, type MediaStore } from '../lib/studioMedia'
-import { GITHUB_KEY, PEXELS_KEY, checkGithubToken, cleanRenderAsk, kickFarm, deleteJob, isJobId, listJobs, queueJobs, videoResponse, type JobStore } from '../lib/studioJobs'
+import { GITHUB_KEY, PEXELS_KEY, checkGithubToken, cleanRenderAsk, finishLemo, kickFarm, deleteJob, isJobId, listJobs, pcOnline, pickLemo, putLemoPart, queueJobs, setHandoff, videoResponse, type JobStore } from '../lib/studioJobs'
 
 const json = (data: unknown, status = 200) => new Response(JSON.stringify(data), { status, headers: { 'content-type': 'application/json', 'cache-control': 'no-store' } })
 
@@ -29,14 +32,44 @@ const KEYS = {
 } as const
 type KeyKind = keyof typeof KEYS
 
-export async function novaRoute(req: Request, pathname: string, env: BrainEnv, settings?: KeyStore): Promise<Response | null> {
+/** Same length and same bytes, without stopping at the first difference. */
+function sameSecret(a: string, b: string): boolean {
+  if (!a || a.length !== b.length) return false
+  let d = 0
+  for (let i = 0; i < a.length; i++) d |= a.charCodeAt(i) ^ b.charCodeAt(i)
+  return d === 0
+}
+
+export async function novaRoute(req: Request, pathname: string, env: BrainEnv, settings?: KeyStore, homeToken?: string): Promise<Response | null> {
   if (!pathname.startsWith('/api/studio/') || pathname === '/api/studio/write') return null
   if (!settings) return json({ error: 'Storage is not set up on this server yet' }, 501)
   const kv = settings as unknown as JobStore
   const url = new URL(req.url)
 
+  if (pathname.startsWith('/api/studio/lemo/')) {
+    // only the home PC: no token on the Worker means Lemo is not set up
+    if (!homeToken || !sameSecret(req.headers.get('authorization') ?? '', `Bearer ${homeToken}`)) return json({ error: 'Not allowed' }, 403)
+    const id = url.searchParams.get('id') ?? ''
+    if (pathname === '/api/studio/lemo/pick' && req.method === 'POST') {
+      const job = await pickLemo(kv, Date.now(), !url.searchParams.has('busy'))
+      return json({ job: job && { id: job.id, topic: job.topic, lang: job.lang, voice: job.voice, aspect: job.aspect, lines: job.lines } })
+    }
+    if (pathname === '/api/studio/lemo/part' && req.method === 'PUT') {
+      const r = await putLemoPart(kv, id, Number(url.searchParams.get('i')), await req.arrayBuffer())
+      return r === 'ok' ? json({ ok: true }) : json({ error: r }, r === 'missing' ? 404 : 400)
+    }
+    if (pathname === '/api/studio/lemo/done' && req.method === 'POST') return (await finishLemo(kv, id, await req.json().catch(() => null))) ? json({ ok: true }) : json({ error: 'No such job' }, 404)
+    return json({ error: 'Not found' }, 404)
+  }
+  if (pathname === '/api/studio/handoff') {
+    if (req.method !== 'POST' && req.method !== 'DELETE') return json({ error: 'POST or DELETE only' }, 405)
+    if (!sameOrigin(req)) return json({ error: 'Not allowed' }, 403)
+    const job = await setHandoff(kv, url.searchParams.get('id') ?? '', req.method === 'POST')
+    return job ? json({ handoff: job.handoff ?? null }) : json({ error: 'Only a finished video can go to Viraltech' }, 404)
+  }
+
   if (pathname === '/api/studio/jobs') {
-    if (req.method === 'GET') return json({ jobs: (await listJobs(kv)).map(({ lines: _l, terms: _t, ...j }) => j), pexels: !!(await kv.get(PEXELS_KEY)), github: !!(await kv.get(GITHUB_KEY)), youtube: !!(await kv.get(YOUTUBE_KEY)) })
+    if (req.method === 'GET') return json({ jobs: (await listJobs(kv)).map(({ lines: _l, terms: _t, ...j }) => j), pexels: !!(await kv.get(PEXELS_KEY)), github: !!(await kv.get(GITHUB_KEY)), youtube: !!(await kv.get(YOUTUBE_KEY)), pc: { setup: !!homeToken, online: !!homeToken && (await pcOnline(kv)) } })
     if (req.method !== 'DELETE') return json({ error: 'GET or DELETE only' }, 405)
     if (!sameOrigin(req)) return json({ error: 'Not allowed' }, 403)
     return (await deleteJob(kv, url.searchParams.get('id') ?? '')) ? json({ ok: true }) : json({ error: 'No such video' }, 404)
@@ -48,11 +81,13 @@ export async function novaRoute(req: Request, pathname: string, env: BrainEnv, s
     if (!ask) return json({ error: 'Add a topic and at least one script line' }, 400)
     ask.media = await readyMedia(kv as unknown as MediaStore, ask.media)
     const terms = await writeTerms(ask.topic, ask.en.length ? ask.en : ask.vi, await withSavedKeys(env, settings))
-    const jobs = await queueJobs(kv, ask, terms)
+    const jobs = await queueJobs(kv, ask, terms, Date.now(), undefined, !!homeToken && (await pcOnline(kv)))
     if (!jobs) return json({ error: 'busy' }, 429)
-    const token = await kv.get(GITHUB_KEY)
+    const engine = jobs[0].engine ?? 'turbo'
+    // Lemo jobs wait for the home PC; only server jobs start the farm
+    const token = engine === 'turbo' ? await kv.get(GITHUB_KEY) : null
     const kicked = token ? await kickFarm(token) : false
-    return json({ jobs: jobs.map((j) => j.id), terms, kicked })
+    return json({ jobs: jobs.map((j) => j.id), terms, kicked, engine, fallback: jobs[0].fallback ?? null })
   }
   if (pathname === '/api/studio/video') {
     const id = url.searchParams.get('id')
