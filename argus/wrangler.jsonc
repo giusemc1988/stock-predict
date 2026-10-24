@@ -14,5 +14,7 @@
   // live aircraft through the home PC: the Hub already holds the home agent secrets
   "services": [{ "binding": "HUB", "service": "stock-predict" }],
   // aircraft snapshots from GitHub Actions; the workflow fills in the namespace id (it creates "argus-snap" once)
+  // the upstream server for every other /api route (argus/space/, deployed by iris-space.yml)
+  "vars": { "IRIS_SPACE": "https://chanhmn-iris-gods-eye.hf.space" },
   "kv_namespaces": [{ "binding": "SNAP", "id": "__ARGUS_SNAP_KV__" }]
 }

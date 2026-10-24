@@ -2,7 +2,7 @@
  * Version and "What's new". Bump APP_VERSION and add an entry to the top of RELEASES
  * with each update. The banner shows once per version, then stays dismissed.
  */
-export const APP_VERSION = '1.62.0'
+export const APP_VERSION = '1.63.0'
 
 export interface Release {
   version: string
@@ -13,6 +13,12 @@ export interface Release {
 }
 
 export const RELEASES: Release[] = [
+  {
+    version: '1.63.0',
+    date: '2026-10-24',
+    changes: ["Iris gets the rest of the original God's Eye back: CCTV cameras, Overpass (ALPR cameras, building outlines, mapped sites), weather, traffic, radio, transit and more now come from the original server running free on a Hugging Face Space. Flights, satellites and ships stay on Cloudflare. After two idle days the Space sleeps and takes about a minute to wake."],
+    changesVi: ["Iris có lại phần còn thiếu của God's Eye gốc: camera CCTV, Overpass (camera ALPR, viền toà nhà, địa điểm), thời tiết, giao thông, radio, giao thông công cộng… giờ lấy từ máy chủ gốc chạy miễn phí trên Hugging Face Space. Máy bay, vệ tinh, tàu vẫn chạy trên Cloudflare. Nếu 2 ngày không ai dùng thì Space ngủ, lần mở sau mất khoảng 1 phút."],
+  },
   {
     version: '1.62.0',
     date: '2026-10-24',
