@@ -13,6 +13,10 @@ interface Env {
   HUB?: { fetch: (r: Request) => Promise<Response> }
   /** Aircraft snapshots written by GitHub Actions every ~10 min (argus/snapshot.ts). */
   SNAP?: { get: (key: string) => Promise<string | null> }
+  /** The Hugging Face Space running the upstream server (argus/space/), for every route not answered here. */
+  IRIS_SPACE?: string
+  /** Shared key the Space's gate checks (set by .github/workflows/iris-space.yml). */
+  IRIS_KEY?: string
 }
 
 type Feed = 'flights' | 'military'
@@ -134,15 +138,17 @@ export default {
     const p = url.pathname
     // static files are served before the Worker runs; their headers live in _headers
     if (!p.startsWith('/api/')) return env.ASSETS.fetch(req)
-    if (p === '/api/overpass' && req.method === 'POST') return overpass(await req.text())
-    if (req.method !== 'GET' && req.method !== 'HEAD') return json({ error: 'GET only' }, 405)
-    if (p === '/api/health') return health(url, env)
-    return api(url, env)
+    if (req.method === 'GET' || req.method === 'HEAD') {
+      if (p === '/api/health') return health(url, env)
+      const own = await api(url, env)
+      if (own) return own
+    }
+    return viaSpace(req, url, env)
   },
 }
 
-/** Every GET /api route the globe reads. */
-async function api(url: URL, env: Env): Promise<Response> {
+/** The GET routes answered here (fast, cached at the edge); null for everything the Space serves. */
+async function api(url: URL, env: Env): Promise<Response | null> {
   const p = url.pathname
   if (p === '/api/flights') return flights(url, env)
   if (p === '/api/military') {
@@ -172,36 +178,35 @@ async function api(url: URL, env: Env): Promise<Response> {
     })
   }
   if (p === '/api/vessels') return vessels()
-  if (p === '/api/overpass/status') return json({ configured: true })
-  return json({ error: 'Not available on this deploy' }, 404)
+  return null
 }
 
-/** Public Overpass instances (free, no key), tried in order; the app sends the query as a form body. */
-const OVERPASS = ['https://overpass-api.de/api/interpreter', 'https://overpass.private.coffee/api/interpreter', 'https://maps.mail.ru/osm/tools/overpass/api/interpreter']
-
 /**
- * OSM features for building outlines, ALPR cameras and mapped sites. Answers are kept 30 min per query;
- * when every instance refuses, a 503 with Retry-After lets the app back off instead of hammering them.
+ * Every other route (CCTV, Overpass, weather, traffic, radio, transit, …) goes to the upstream server
+ * on the Iris Space. A Space asleep after two idle days takes about a minute to wake; the app retries.
  */
-async function overpass(body: string): Promise<Response> {
-  if (!body.startsWith('data=') || body.length > 20_000) return json({ error: 'Overpass query expected as data=' }, 400)
-  const key = `overpass/${Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(body))), (b) => b.toString(16).padStart(2, '0')).join('')}`
-  const r = await cached(key, 1800, async () => {
-    let last: Response | null = null
-    for (const u of OVERPASS) {
-      const res = await fetch(u, { method: 'POST', body, headers: { 'content-type': 'application/x-www-form-urlencoded', accept: 'application/json', 'user-agent': UA }, signal: AbortSignal.timeout(25000) }).catch(() => null)
-      if (!res?.ok || !/json/i.test(res.headers.get('content-type') ?? '')) {
-        last = res
-        continue
-      }
-      const text = await res.text()
-      // some instances answer 200 with a runtime error in "remark"; the next one may manage
-      if (/"remark"\s*:\s*"[^"]*(runtime error|timed out|out of memory)/i.test(text)) continue
-      return new Response(text, { headers: { 'content-type': 'application/json', 'x-overpass-source': new URL(u).host } })
-    }
-    return last ?? new Response('', { status: 502 })
-  })
-  return r.ok ? r : json({ error: 'Overpass unavailable' }, 503, { 'retry-after': '120' })
+async function viaSpace(req: Request, url: URL, env: Env): Promise<Response> {
+  if (!env.IRIS_SPACE || !env.IRIS_KEY) return json({ error: 'Not available on this deploy' }, 404)
+  const headers = new Headers()
+  for (const h of ['accept', 'content-type', 'range', 'if-none-match', 'if-modified-since']) {
+    const v = req.headers.get(h)
+    if (v) headers.set(h, v)
+  }
+  headers.set('x-iris-key', env.IRIS_KEY)
+  try {
+    const r = await fetch(new URL(url.pathname + url.search, env.IRIS_SPACE), {
+      method: req.method,
+      headers,
+      body: req.method === 'GET' || req.method === 'HEAD' ? undefined : req.body,
+      signal: AbortSignal.timeout(55000),
+    })
+    const out = new Headers(r.headers)
+    out.delete('set-cookie')
+    for (const [k, v] of Object.entries(API_HEADERS)) out.set(k, v)
+    return new Response(r.body, { status: r.status, headers: out })
+  } catch {
+    return json({ error: 'Iris Space is waking up, try again in a minute' }, 503, { 'retry-after': '30' })
+  }
 }
 
 /**
@@ -212,6 +217,7 @@ async function health(url: URL, env: Env): Promise<Response> {
   const probe = async (path: string): Promise<Probe | null> => {
     try {
       const r = path.startsWith('http') ? await get(path, 10000) : await api(new URL(path, url), env)
+      if (!r) return null
       return { status: r.status, contentType: r.headers.get('content-type') ?? '', body: (await r.text()).slice(0, 400) }
     } catch {
       return null
