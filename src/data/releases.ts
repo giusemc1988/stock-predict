@@ -20,6 +20,12 @@ export const RELEASES: Release[] = [
     changesVi: ['Nova có thể dựng video bằng Lemo-Opuscar trên máy PC: cả phim vẽ bằng code, mỗi lần một style khác. Nova hiện máy PC đang bật hay tắt; khi tắt, Lemo bị mờ, không gửi gì cho nó và video dựng bằng MoneyPrinterTurbo như trước. Video Lemo chờ quá 30 phút mà máy PC tắt sẽ báo lỗi và ghi rõ lý do. Tắt được trong Cài đặt > Quy tắc AI.'],
   },
   {
+    version: '1.56.3',
+    date: '2026-10-24',
+    changes: ['Atlas practice exits are more honest: when a price opens below the stop (a gap), the trade now closes at that opening price like a real stop order, not at the stop.'],
+    changesVi: ['Atlas ghi lệnh thoát sát thực tế hơn: khi giá mở cửa nhảy xuống dưới mức cắt lỗ, lệnh giờ đóng ở giá mở cửa như lệnh cắt lỗ thật, không phải ở giá cắt lỗ.'],
+  },
+  {
     version: '1.56.2',
     date: '2026-10-24',
     changes: ['The Atlas Brief shows only trading now: the Studio (video tools) and Devices cards moved out; those live in their own projects in the Hub (Nova, Lumi, Nexus, Echo).'],
