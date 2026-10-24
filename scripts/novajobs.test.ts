@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict'
-import { JOB_PREFIX, MAX_ACTIVE, VID_PREFIX, checkGithubToken, cleanRenderAsk, kickFarm, deleteJob, fallbackTerms, isJobId, listJobs, parseRange, parseTerms, queueJobs, videoResponse, type JobStore } from '../src/lib/studioJobs'
+import { JOB_PREFIX, LEMO_GIVE_UP_MS, LEMO_OFFLINE_ERROR, LEMO_OFFLINE_MS, LEMO_SEEN, MAX_ACTIVE, VID_PREFIX, checkGithubToken, expireLemoJobs, lemoOnline, cleanRenderAsk, kickFarm, deleteJob, fallbackTerms, isJobId, listJobs, parseRange, parseTerms, queueJobs, videoResponse, type JobStore } from '../src/lib/studioJobs'
 
 /** Map-backed stand-in for the SETTINGS KV binding. */
 function fakeKv(): JobStore & { m: Map<string, string | ArrayBuffer> } {
@@ -132,5 +132,36 @@ assert.equal(await checkGithubToken('tok', gh(404)), false)
   assert.deepEqual(vi2.lines, ['Bạn có biết?', 'Một'])
   assert.deepEqual(en2.lines, ['One'])
   assert.equal(vi2.opts!.subSize, 80)
+}
+
+// Lemo-Opuscar: chosen per video, only while the PC pings; never moved to another engine
+{
+  assert.equal(cleanRenderAsk({ topic: 'x', en: ['a'], langs: ['en'] })!.engine, 'mpt')
+  assert.equal(cleanRenderAsk({ topic: 'x', en: ['a'], langs: ['en'], engine: 'lemo' })!.engine, 'lemo')
+  assert.equal(cleanRenderAsk({ topic: 'x', en: ['a'], langs: ['en'], engine: 'rm -rf' })!.engine, 'mpt')
+
+  const kv3 = fakeKv()
+  assert.equal(await lemoOnline(kv3, 10_000), false, 'never pinged = offline')
+  await kv3.put(LEMO_SEEN, '10000')
+  assert.equal(await lemoOnline(kv3, 10_000 + LEMO_OFFLINE_MS - 1), true)
+  assert.equal(await lemoOnline(kv3, 10_000 + LEMO_OFFLINE_MS), false, 'no ping for 3 minutes = offline')
+  await kv3.put(LEMO_SEEN, 'garbage')
+  assert.equal(await lemoOnline(kv3, 10_000), false)
+
+  const lemoAsk = cleanRenderAsk({ topic: 'Sea', en: ['One'], langs: ['en'], engine: 'lemo' })!
+  const [lj] = (await queueJobs(kv3, lemoAsk, ['sea'], 0, uuid))!
+  assert.equal(lj.engine, 'lemo')
+  const [mj] = (await queueJobs(kv3, ask, ['sea'], 0, uuid))!
+  assert.equal(mj.engine, undefined, 'MoneyPrinterTurbo jobs look as before')
+
+  const all = await listJobs(kv3)
+  assert.deepEqual(await expireLemoJobs(kv3, all, true, LEMO_GIVE_UP_MS * 2), all, 'PC on: nothing expires')
+  assert.ok((await expireLemoJobs(kv3, all, false, LEMO_GIVE_UP_MS - 1)).every((j) => j.status === 'queued'), 'not yet 30 minutes')
+  const later = await expireLemoJobs(kv3, all, false, LEMO_GIVE_UP_MS)
+  const failed = later.find((j) => j.id === lj.id)!
+  assert.equal(failed.status, 'failed')
+  assert.equal(failed.error, LEMO_OFFLINE_ERROR)
+  assert.equal(JSON.parse(kv3.m.get(JOB_PREFIX + lj.id) as string).status, 'failed', 'stored')
+  assert.ok(later.filter((j) => j.engine !== 'lemo').every((j) => j.status === 'queued'), 'other jobs untouched')
 }
 console.log('novajobs ok')

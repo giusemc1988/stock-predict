@@ -97,6 +97,7 @@ export interface AiRules {
   novaVideoSettings: boolean // Nova server video: voice speed/volume, music, clip length, transition, subtitle size/colour/outline/height/style, 3-12 scenes, 1:1, the post kit's hook first
   novaUploads: boolean // Nova step 3: upload your own photos and clips (10 files, 50 MB, 60 s) as footage for the server video
   novaPresets: boolean // Nova presets: save mode, size, post kit and video settings under a name (KV nova:presets) and load them in one tap
+  novaLemo: boolean // Nova can make the video with Lemo-Opuscar on the PC while nova/lemo-bridge.mjs runs there; with the PC off Lemo is greyed out and nothing is sent to it
   novaGlass: boolean // Nova in the Hub's liquid glass look with a sticky 5-step bar; off = the plain cards
   ruviewOn: boolean // RuView sensing page: presence from Wi-Fi signals via ESP32 nodes, runs on the home PC
   toolHub: boolean // Atlas Brief: today's pick sits next to the scoreboard (the Tool Hub graph moved into the Neo Hub search)
@@ -223,6 +224,7 @@ export const DEFAULT_AI_RULES: AiRules = {
   godsEyeOn: true,
   videoStudioOn: true,
   novaGlass: true,
+  novaLemo: true,
   novaTrends: true,
   novaPostKit: true,
   novaVideoSettings: true,
@@ -353,6 +355,7 @@ export const RULE_FIELDS: RuleField[] = [
   { group: 'jarvis', key: 'ruviewOn', en: 'RuView sensing page: presence at home from Wi-Fi signals with ESP32 nodes, add nodes over USB, pinned RuView version with daily update check (your own home only; needs the home agent and Docker)', vi: 'Trang RuView cảm biến: biết có người trong nhà bằng sóng Wi-Fi với node ESP32, thêm node qua USB, giữ đúng bản RuView và kiểm tra bản mới mỗi ngày (chỉ trong nhà anh; cần chương trình máy nhà và Docker)' },
   { group: 'jarvis', key: 'godsEyeOn', en: "God's Eye View page: the live 3D globe (flights, military aircraft, satellites, ships, earthquakes) inside the Hub, with a clear status for every data layer", vi: "Trang God's Eye View: quả địa cầu 3D trực tiếp (máy bay, máy bay quân sự, vệ tinh, tàu biển, động đất) ngay trong Hub, kèm trạng thái rõ ràng của từng lớp dữ liệu" },
   { group: 'jarvis', key: 'videoStudioOn', en: 'Video Studio page: bilingual (EN + VI) faceless videos made in your browser, 3 modes, MP4 download and Title Lab; never posts by itself', vi: 'Trang Video Studio: video không lộ mặt song ngữ (EN + VI) làm ngay trên trình duyệt, 3 chế độ, tải MP4 và Title Lab; không bao giờ tự đăng' },
+  { group: 'jarvis', key: 'novaLemo', en: 'Nova can make the video with Lemo-Opuscar on your PC: a whole film drawn in code, a different style each time. Only while the PC is on and runs nova/lemo-bridge.mjs; when it is off, Lemo is greyed out and nothing is sent to it', vi: 'Nova có thể dựng video bằng Lemo-Opuscar trên máy PC: cả phim vẽ bằng code, mỗi lần một style khác. Chỉ khi máy PC bật và chạy nova/lemo-bridge.mjs; máy tắt thì Lemo bị mờ và không gửi gì cho nó' },
   { group: 'jarvis', key: 'novaGlass', en: 'Nova in the glass look of the Hub: same themes, a 5-step bar (Idea, Script, Footage, Voice & make, Post kit) and a gallery of your videos (off: plain cards)', vi: 'Nova kiểu kính giống Hub: cùng theme, thanh 5 bước (Ý tưởng, Kịch bản, Hình, Giọng & dựng, Bộ đăng bài) và thư viện video (tắt: thẻ thường)' },
   { group: 'jarvis', key: 'novaPresets', en: 'Nova presets: save the mode, size, post kit and video settings under a name and load them again in one tap, on any device', vi: 'Preset cho Nova: lưu chế độ, khung hình, bộ đăng bài và chỉnh video thành một tên, chạm một lần là dùng lại, trên mọi máy' },
   { group: 'jarvis', key: 'novaUploads', en: 'Nova uses your own photos and clips for the voiced server video: up to 10 files, 50 MB each, clips up to 60 seconds, in the order you set; kept 3 days', vi: 'Nova dùng ảnh và clip của anh cho video máy chủ có giọng: tối đa 10 file, mỗi file 50 MB, clip tối đa 60 giây, theo thứ tự anh xếp; giữ 3 ngày' },

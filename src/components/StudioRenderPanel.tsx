@@ -3,15 +3,19 @@ import { useLocalStorage } from '../hooks/useLocalStorage'
 import { VIDEO_STORE } from './NovaPresets'
 import { useLang } from '../lib/i18n'
 import { STUDIO_TEXT, type StudioKey } from '../lib/studio/text'
-import { DEFAULT_RENDER_OPTS, TRANSITIONS, cleanRenderOpts, type RenderAspect, type RenderLang, type RenderOpts, type RenderVoice, type StudioJob } from '../lib/studioJobs'
+import { DEFAULT_RENDER_OPTS, TRANSITIONS, cleanRenderOpts, type RenderAspect, type RenderEngine, type RenderLang, type RenderOpts, type RenderVoice, type StudioJob } from '../lib/studioJobs'
 
 type JobRow = Omit<StudioJob, 'lines' | 'terms'>
 export type KeyKind = 'pexels' | 'github' | 'youtube'
 const POLL_MS = 20_000
+const IDLE_POLL_MS = 60_000
 const STATUS: Record<StudioJob['status'], StudioKey> = { queued: 'statusQueued', rendering: 'statusRendering', done: 'statusDone', failed: 'statusFailed' }
 
-/** Nova step 5: queue the script for MoneyPrinterTurbo on GitHub Actions, then play the finished MP4s. */
-export function StudioRenderPanel({ topic, topicVi, en, vi, aspect, glass = false, settings = false, hook, onClearHook, media = [] }: { topic: string; topicVi: string; en: string[]; vi: string[]; aspect: RenderAspect; glass?: boolean; settings?: boolean; hook?: { en: string; vi: string }; onClearHook?: () => void; media?: string[] }) {
+/**
+ * Nova step 5: queue the script for MoneyPrinterTurbo on GitHub Actions, or for Lemo-Opuscar on the PC while it is on,
+ * then play the finished MP4s.
+ */
+export function StudioRenderPanel({ topic, topicVi, en, vi, aspect, glass = false, settings = false, hook, onClearHook, media = [], lemo = false }: { topic: string; topicVi: string; en: string[]; vi: string[]; aspect: RenderAspect; glass?: boolean; settings?: boolean; hook?: { en: string; vi: string }; onClearHook?: () => void; media?: string[]; lemo?: boolean }) {
   const lang = useLang()
   const t = (k: StudioKey) => STUDIO_TEXT[k][lang]
   const [langs, setLangs] = useState<RenderLang[]>(['vi'])
@@ -20,34 +24,45 @@ export function StudioRenderPanel({ topic, topicVi, en, vi, aspect, glass = fals
   const [keys, setKeys] = useState<Record<'pexels' | 'github', boolean>>({ pexels: false, github: false })
   const [msg, setMsg] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
+  const [picked, setPicked] = useState<RenderEngine>('mpt')
+  // the PC pings the Worker every minute while nova/lemo-bridge.mjs runs; off = Lemo cannot be chosen
+  const [pcOn, setPcOn] = useState(false)
+  const engine: RenderEngine = lemo && pcOn ? picked : 'mpt'
   const [savedOpts, setSavedOpts] = useLocalStorage<Partial<RenderOpts>>(VIDEO_STORE, {})
   // video settings (AI rule novaVideoSettings); off = Nova's defaults
   const opts = useMemo(() => (settings ? cleanRenderOpts(savedOpts) : DEFAULT_RENDER_OPTS), [settings, savedOpts])
 
   const load = useCallback(async () => {
     const r = await fetch('/api/studio/jobs').catch(() => null)
-    const j = (await r?.json().catch(() => null)) as { jobs?: JobRow[]; pexels?: boolean; github?: boolean } | null
+    const j = (await r?.json().catch(() => null)) as { jobs?: JobRow[]; pexels?: boolean; github?: boolean; lemo?: boolean } | null
     if (j?.jobs) {
       setJobs(j.jobs)
       setKeys({ pexels: !!j.pexels, github: !!j.github })
+      setPcOn(!!j.lemo)
     }
   }, [])
 
   const waiting = !!jobs?.some((j) => j.status === 'queued' || j.status === 'rendering')
   useEffect(() => {
     void load()
-    if (!waiting) return
-    const id = setInterval(() => void load(), POLL_MS)
+    // with Lemo on, keep checking so the PC's on/off shows without a reload
+    if (!waiting && !lemo) return
+    // idle checks only watch the PC; slower, to stay well inside the free KV reads
+    const id = setInterval(() => void load(), waiting ? POLL_MS : IDLE_POLL_MS)
     return () => clearInterval(id)
-  }, [load, waiting])
+  }, [load, waiting, lemo])
 
   const make = async () => {
     setMsg(null)
     setBusy(true)
     try {
-      const r = await fetch('/api/studio/render', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ topic, topicVi, en, vi, langs, voice, aspect, opts, hook: settings ? hook : undefined, media }) })
+      const r = await fetch('/api/studio/render', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ topic, topicVi, en, vi, langs, voice, aspect, opts, hook: settings ? hook : undefined, media, engine }) })
       const j = (await r.json().catch(() => ({}))) as { error?: string; kicked?: boolean }
       if (r.status === 429) setMsg(t('serverBusy'))
+      else if (r.status === 409) {
+        setPcOn(false)
+        setMsg(t('lemoOffline'))
+      } else if (r.ok && engine === 'lemo') setMsg(t('lemoQueued'))
       else if (!r.ok) setMsg(`${t('serverFailed')} ${j.error ?? `HTTP ${r.status}`}`)
       else setMsg(t(j.kicked ? 'serverQueued' : 'serverQueuedSlow'))
       await load()
@@ -71,6 +86,15 @@ export function StudioRenderPanel({ topic, topicVi, en, vi, aspect, glass = fals
     <div className={card}>
       <header><h3><span className="nv-n" aria-hidden="true">4</span>{t('serverTitle')}</h3></header>
       <p className="muted small">{t('serverNote')}</p>
+      {lemo && (
+        <>
+          <div className="seg small" role="group" aria-label={t('engineLabel')}>
+            <button className={engine === 'mpt' ? 'on' : ''} onClick={() => setPicked('mpt')}>{t('engineMpt')}</button>
+            <button className={engine === 'lemo' ? 'on' : ''} disabled={!pcOn} onClick={() => setPicked('lemo')}>{t('engineLemo')}</button>
+          </div>
+          <p className={`small ${pcOn ? '' : 'muted'}`}>{t(pcOn ? 'lemoOn' : 'lemoOff')}</p>
+        </>
+      )}
       <div className="seg small" role="group" aria-label={t('serverLang')}>
         <button className={!both && langs[0] === 'vi' ? 'on' : ''} onClick={() => toggle('vi')}>VI</button>
         <button className={!both && langs[0] === 'en' ? 'on' : ''} onClick={() => toggle('en')}>EN</button>
@@ -95,7 +119,7 @@ export function StudioRenderPanel({ topic, topicVi, en, vi, aspect, glass = fals
         </p>
       )}
       <p className="muted small">{media.length ? `${t('footageUpload')} (${media.length}).` : t(keys.pexels ? 'footagePexels' : 'footageOpenverse')}</p>
-      {!keys.github && <p className="small warn">{t('githubSlow')}</p>}
+      {engine === 'mpt' && !keys.github && <p className="small warn">{t('githubSlow')}</p>}
       <div className="vs-row">
         <button className="btn primary" disabled={busy || !ready} onClick={() => void make()}>{t('serverMake')}</button>
       </div>
@@ -111,8 +135,8 @@ export function StudioRenderPanel({ topic, topicVi, en, vi, aspect, glass = fals
       {jobs?.map((j) => (
         <div key={j.id} className={`vs-job nv-tile s-${j.status}`}>
           <div className="vs-lab-row">
-            <span className="small"><strong>{j.lang.toUpperCase()}</strong> · {j.topic}</span>
-            <span className={`small ${j.status === 'failed' ? 'warn' : 'muted'}`}>{t(STATUS[j.status])}</span>
+            <span className="small"><strong>{j.lang.toUpperCase()}</strong>{j.engine === 'lemo' ? ' · Lemo' : ''} · {j.topic}</span>
+            <span className={`small ${j.status === 'failed' ? 'warn' : 'muted'}`}>{t(j.engine === 'lemo' && j.status === 'queued' ? 'statusLemoQueued' : j.engine === 'lemo' && j.status === 'rendering' ? 'statusLemoRendering' : STATUS[j.status])}</span>
           </div>
           {j.status === 'failed' && j.error && <p className="small muted">{j.error}</p>}
           {j.status === 'done' && j.footage === 'gradient' && <p className="small muted">{t('footageGradient')}</p>}

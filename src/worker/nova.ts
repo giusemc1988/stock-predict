@@ -8,7 +8,7 @@ import { cleanKitAsk, writeKitItem, writePostKit, writeTerms } from '../lib/stud
 import { TRENDS_CACHE, TRENDS_TTL_MS, YOUTUBE_KEY, fetchTrends, type TrendGeo, type TrendsResult } from '../lib/studioTrends'
 import { PRESETS_KEY, cleanPresets } from '../lib/studio/presets'
 import { MEDIA_CHUNK, deleteMedia, finishMedia, putMediaPart, readyMedia, startMedia, type MediaStore } from '../lib/studioMedia'
-import { GITHUB_KEY, PEXELS_KEY, checkGithubToken, cleanRenderAsk, kickFarm, deleteJob, isJobId, listJobs, queueJobs, videoResponse, type JobStore } from '../lib/studioJobs'
+import { GITHUB_KEY, PEXELS_KEY, checkGithubToken, cleanRenderAsk, expireLemoJobs, kickFarm, deleteJob, isJobId, lemoOnline, listJobs, queueJobs, videoResponse, type JobStore } from '../lib/studioJobs'
 
 const json = (data: unknown, status = 200) => new Response(JSON.stringify(data), { status, headers: { 'content-type': 'application/json', 'cache-control': 'no-store' } })
 
@@ -36,7 +36,11 @@ export async function novaRoute(req: Request, pathname: string, env: BrainEnv, s
   const url = new URL(req.url)
 
   if (pathname === '/api/studio/jobs') {
-    if (req.method === 'GET') return json({ jobs: (await listJobs(kv)).map(({ lines: _l, terms: _t, ...j }) => j), pexels: !!(await kv.get(PEXELS_KEY)), github: !!(await kv.get(GITHUB_KEY)), youtube: !!(await kv.get(YOUTUBE_KEY)) })
+    if (req.method === 'GET') {
+      const lemo = await lemoOnline(kv)
+      const jobs = await expireLemoJobs(kv, await listJobs(kv), lemo)
+      return json({ jobs: jobs.map(({ lines: _l, terms: _t, ...j }) => j), pexels: !!(await kv.get(PEXELS_KEY)), github: !!(await kv.get(GITHUB_KEY)), youtube: !!(await kv.get(YOUTUBE_KEY)), lemo })
+    }
     if (req.method !== 'DELETE') return json({ error: 'GET or DELETE only' }, 405)
     if (!sameOrigin(req)) return json({ error: 'Not allowed' }, 403)
     return (await deleteJob(kv, url.searchParams.get('id') ?? '')) ? json({ ok: true }) : json({ error: 'No such video' }, 404)
@@ -46,12 +50,15 @@ export async function novaRoute(req: Request, pathname: string, env: BrainEnv, s
     if (!sameOrigin(req)) return json({ error: 'Not allowed' }, 403)
     const ask = cleanRenderAsk(await req.json().catch(() => null))
     if (!ask) return json({ error: 'Add a topic and at least one script line' }, 400)
+    // Lemo runs only on the PC: with the PC off nothing is queued for it
+    if (ask.engine === 'lemo' && !(await lemoOnline(kv))) return json({ error: 'pc-offline' }, 409)
     ask.media = await readyMedia(kv as unknown as MediaStore, ask.media)
     const terms = await writeTerms(ask.topic, ask.en.length ? ask.en : ask.vi, await withSavedKeys(env, settings))
     const jobs = await queueJobs(kv, ask, terms)
     if (!jobs) return json({ error: 'busy' }, 429)
-    const token = await kv.get(GITHUB_KEY)
-    const kicked = token ? await kickFarm(token) : false
+    // the PC bridge checks every minute; only MoneyPrinterTurbo jobs need GitHub started
+    const token = ask.engine === 'mpt' ? await kv.get(GITHUB_KEY) : null
+    const kicked = ask.engine === 'lemo' || (token ? await kickFarm(token) : false)
     return json({ jobs: jobs.map((j) => j.id), terms, kicked })
   }
   if (pathname === '/api/studio/video') {
