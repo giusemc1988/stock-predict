@@ -1,7 +1,7 @@
 import type { BriefNode } from '../lib/brief'
 import { fmtPct, tone } from '../lib/format'
 import { AGENT_COLORS, agentVotes, agreeCount, type AgentVote, type VoteContext } from '../lib/hub'
-import { useHubT, type Bi, type HubKey } from '../lib/hubText'
+import { useHubT, type Bi } from '../lib/hubText'
 import { setLang, useLang } from '../lib/i18n'
 import type { PickRow } from '../lib/practice'
 import { pickSourceLabel } from '../lib/practicePicks'
@@ -134,91 +134,6 @@ export function HubBoard({ picks, ctx, nodes, onOpen, onWhy, loading }: Omit<Pic
         </div>
       ))}
       <p className="bf-source">{t('boardLegend')}</p>
-    </section>
-  )
-}
-
-const STUDIO: { k: string; t: HubKey; d: HubKey; c: string }[] = [
-  { k: 'lab', t: 'mediaLab', d: 'mediaLabNote', c: '#ff8a6b' },
-  { k: 'img', t: 'imageEdit', d: 'imageEditNote', c: '#4fe0c0' },
-  { k: 'vid', t: 'videoEdit', d: 'videoEditNote', c: '#f2c45a' },
-]
-
-const OUTSIDE: { n: string; url: string; d: HubKey }[] = [
-  { n: 'Kling', url: 'https://klingai.com', d: 'klingNote' },
-  { n: 'CapCut', url: 'https://www.capcut.com', d: 'capcutNote' },
-  { n: 'OpusClip', url: 'https://www.opus.pro', d: 'opusNote' },
-  { n: 'Gemini', url: 'https://gemini.google.com', d: 'geminiNote' },
-]
-
-/** Studio: the creative tools around the predictor. The in-app tools come in later steps; the outside tools open in a new tab. */
-export function HubStudio() {
-  const t = useHubT()
-  return (
-    <section className="bf-card hub-studio" id="hub-studio">
-      <header>
-        <h3>{t('studio')}</h3>
-        <span className="muted small">{t('comingSoon')}</span>
-      </header>
-      <div className="hub-tools">
-        {STUDIO.map((s) => (
-          <div key={s.k} className="hub-tool" style={{ ['--k' as string]: s.c }} aria-disabled="true">
-            <b>{t(s.t)}</b>
-            <span>{t(s.d)}</span>
-            <em>{t('soon')}</em>
-          </div>
-        ))}
-      </div>
-      <details className="hub-outside">
-        <summary>{t('outside')}</summary>
-        {OUTSIDE.map((o) => (
-          <a key={o.n} href={o.url} target="_blank" rel="noreferrer noopener">
-            <b>{o.n}</b>
-            <span>{t(o.d)}</span>
-          </a>
-        ))}
-        <p className="bf-source">{t('outsideNote')}</p>
-      </details>
-    </section>
-  )
-}
-
-const DEVICES: { k: string; t: HubKey | null; name?: string; d: HubKey; agent?: boolean; net?: boolean; rv?: boolean }[] = [
-  { k: 'esp32', t: 'esp32', d: 'esp32Note' },
-  { k: 'bay', t: null, name: 'BayReady', d: 'bayNote', agent: true },
-  { k: 'net', t: 'homeNet', d: 'homeNetNote', net: true },
-  { k: 'ble', t: 'ble', d: 'bleNote', net: true },
-  { k: 'ruview', t: 'ruview', d: 'ruviewNote', rv: true },
-]
-
-/** Projects, devices and home network: what the hub connects to. Home network and Bluetooth open the Wi-Fi page, RuView its own page; the rest come in later steps. */
-export function HubDevices({ onNet, onRuview }: { onNet?: () => void; onRuview?: () => void }) {
-  const t = useHubT()
-  return (
-    <section className="bf-card hub-devices" id="hub-devices">
-      <header>
-        <h3>{t('devices')}</h3>
-        <span className="muted small">{t('yoursOnly')}</span>
-      </header>
-      {DEVICES.map((d) => {
-        const open = d.net ? onNet : d.rv ? onRuview : undefined
-        const inner = (
-          <>
-            <i className={`led${open ? ' on' : ''}`} />
-            <div>
-              <b>{d.t ? t(d.t) : d.name}</b>
-              <span>{t(d.d)}</span>
-            </div>
-            <em>{open ? t('openTool') : t('soon')}</em>
-          </>
-        )
-        return open ? (
-          <button key={d.k} className="hub-dev live" onClick={open}>{inner}</button>
-        ) : (
-          <div key={d.k} className={`hub-dev${d.agent ? ' agent' : ''}`}>{inner}</div>
-        )
-      })}
-      <p className="bf-source">{t('devicesNote')}</p>
     </section>
   )
 }
