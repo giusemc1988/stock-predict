@@ -21,3 +21,17 @@ jobs:
           now=$(date -u +%Y-%m-%dT%H:%M:%SZ)
           q=$(jq -n --arg a "$acct" --arg s "$since" --arg e "$now" '{query: "query($a:String!,$s:Time!,$e:Time!){viewer{accounts(filter:{accountTag:$a}){workersInvocationsAdaptive(limit:500,filter:{scriptName:\"stock-predict\",datetime_geq:$s,datetime_leq:$e},orderBy:[datetimeHour_ASC]){sum{requests errors subrequests} quantiles{cpuTimeP99} dimensions{datetimeHour status}}}}}", variables: {a: $a, s: $s, e: $e}}')
           api -X POST https://api.cloudflare.com/client/v4/graphql --data "$q" | jq -c '.errors // (.data.viewer.accounts[0].workersInvocationsAdaptive[] | {h: .dimensions.datetimeHour, status: .dimensions.status, req: .sum.requests, err: .sum.errors, sub: .sum.subrequests, cpuP99: .quantiles.cpuTimeP99})'
+      - name: Cron events and deployments
+        run: |
+          api() { curl -s -H "Authorization: Bearer $CF" -H 'content-type: application/json' "$@"; }
+          acct=$(api https://api.cloudflare.com/client/v4/accounts | jq -r '.result[0].id')
+          since=$(date -u -d '48 hours ago' +%Y-%m-%dT%H:%M:%SZ)
+          now=$(date -u +%Y-%m-%dT%H:%M:%SZ)
+          echo "== cron events (stock-predict), last 48h"
+          q=$(jq -n --arg a "$acct" --arg s "$since" --arg e "$now" '{query: "query($a:String!,$s:Time!,$e:Time!){viewer{accounts(filter:{accountTag:$a}){workersInvocationsScheduled(limit:300,filter:{scriptName:\"stock-predict\",datetime_geq:$s,datetime_leq:$e},orderBy:[datetime_DESC]){datetime cron status cpuTimeUs}}}}", variables: {a: $a, s: $s, e: $e}}')
+          api -X POST https://api.cloudflare.com/client/v4/graphql --data "$q" | jq -c '.errors // (.data.viewer.accounts[0].workersInvocationsScheduled[] )' | head -60
+          echo "== deployments"
+          api "https://api.cloudflare.com/client/v4/accounts/$acct/workers/scripts/stock-predict/deployments" | jq -c '.errors, (.result.deployments[:8][] | {created_on, source, strategy, versions: [.versions[] | {version_id, percentage}]})'
+          echo "== subscription / plan"
+          api "https://api.cloudflare.com/client/v4/accounts/$acct/workers/account-settings" | jq -c '.result // .errors'
+          api "https://api.cloudflare.com/client/v4/accounts/$acct/subscriptions" | jq -c '.result[]? | {product: .rate_plan.id, state, current_period_end}' 
