@@ -2,7 +2,7 @@
  * Version and "What's new". Bump APP_VERSION and add an entry to the top of RELEASES
  * with each update. The banner shows once per version, then stays dismissed.
  */
-export const APP_VERSION = '1.58.0'
+export const APP_VERSION = '1.61.0'
 
 export interface Release {
   version: string
@@ -14,10 +14,36 @@ export interface Release {
 
 export const RELEASES: Release[] = [
   {
+    version: '1.61.0',
+    date: '2026-10-24',
+    changes: ['Atlas Brief, Echo, Nexus, Viraltech and Max now open in the same glass look as the Neo Hub and Nova: the Hub wallpaper and theme, the agent\'s character next to its name, and glass cards. The Trading desk and Portfolio take the Hub theme\'s colours (the chart keeps a dark background so candles stay clear), and the top menu is a glass bar where a highlight glides to the tab under your mouse. Neo\'s brain button, chat box and pop-up notes take the same glass on every page. Max has its own page: app version, the code tasks Claude is working on, the latest updates and a box to ask for a fix or a new feature. Viraltech\'s back button now returns to the Hub. Off switch in Settings > AI rules.'],
+    changesVi: ['Brief của Atlas, Echo, Nexus, Viraltech và Max giờ mở ra cùng kiểu kính như Neo Hub và Nova: cùng hình nền và theme của Hub, nhân vật của agent cạnh tên, thẻ kính. Bàn giao dịch và Portfolio đổi sang màu theme của Hub (biểu đồ vẫn nền tối cho nến rõ), menu phía trên thành thanh kính, có vệt sáng lướt theo chuột. Nút bộ não, khung chat và thông báo của Neo cũng theo kiểu kính trên mọi trang. Max có trang riêng: phiên bản app, các việc code Claude đang làm, cập nhật gần đây và ô nhờ sửa lỗi hay thêm tính năng. Nút quay lại của Viraltech giờ về Hub. Tắt được trong Cài đặt > Quy tắc AI.'],
+  },
+  {
+    version: '1.60.0',
+    date: '2026-10-24',
+    changes: ['A finished Nova video has a "Send to Viraltech" button. The Viraltech page lists the videos waiting for your OK, to watch, download or take back. Nothing is posted by itself: tell Claude which video and channel, and it posts only after you say yes. Off switch in Settings > AI rules.'],
+    changesVi: ['Video Nova đã xong có nút "Gửi sang Viraltech". Trang Viraltech có mục video chờ anh duyệt: xem, tải về hoặc lấy lại. Không video nào tự đăng: anh nhắn Claude video nào, kênh nào, Claude chỉ đăng khi anh đồng ý. Tắt được trong Cài đặt > Quy tắc AI.'],
+  },
+  {
+    version: '1.59.0',
+    date: '2026-10-24',
+    changes: [
+      "Iris (God's Eye) is cleaner on phone and tablet: the decorative HUD text is gone, the Data layers and Context boxes open from one small bar as a drawer that scrolls, and the voice box (it needs an OpenAI key) is hidden.",
+      'The "Overpass temporarily unavailable" banner no longer shows, and ships now come from the free Digitraffic feed (Baltic Sea) with no key.',
+      'The Iris page in the Hub fits the screen with no scrolling, and the layer check is right again: flights, military aircraft and satellites were working all along, only the check said 404.',
+    ],
+    changesVi: [
+      'Iris (God\'s Eye) gọn hơn trên điện thoại và máy tính bảng: bỏ chữ trang trí trên màn hình, hộp Lớp dữ liệu và Bối cảnh mở từ một thanh nhỏ thành ngăn kéo cuộn được, ẩn hộp giọng nói (cần key OpenAI).',
+      'Không còn dòng báo "Overpass temporarily unavailable", và tàu biển giờ lấy từ nguồn miễn phí Digitraffic (biển Baltic), không cần key.',
+      'Trang Iris trong Hub vừa khít màn hình, không phải cuộn, và phần kiểm tra lớp đã đúng: máy bay, máy bay quân sự và vệ tinh vẫn chạy từ trước, chỉ phần kiểm tra báo 404.',
+    ],
+  },
+  {
     version: '1.58.0',
     date: '2026-10-24',
-    changes: ['Atlas Brief, Echo, Nexus, Viraltech and Max now open in the same glass look as the Neo Hub and Nova: the Hub wallpaper and theme, the agent\'s character next to its name, and glass cards. The Trading desk and Portfolio take the Hub theme\'s colours (the chart keeps a dark background so candles stay clear), and the top menu is a glass bar where a highlight glides to the tab under your mouse. Max has its own page: app version, the code tasks Claude is working on, the latest updates and a box to ask for a fix or a new feature. Viraltech\'s back button now returns to the Hub. Off switch in Settings > AI rules.'],
-    changesVi: ['Brief của Atlas, Echo, Nexus, Viraltech và Max giờ mở ra cùng kiểu kính như Neo Hub và Nova: cùng hình nền và theme của Hub, nhân vật của agent cạnh tên, thẻ kính. Bàn giao dịch và Portfolio đổi sang màu theme của Hub (biểu đồ vẫn nền tối cho nến rõ), menu phía trên thành thanh kính, có vệt sáng lướt theo chuột. Max có trang riêng: phiên bản app, các việc code Claude đang làm, cập nhật gần đây và ô nhờ sửa lỗi hay thêm tính năng. Nút quay lại của Viraltech giờ về Hub. Tắt được trong Cài đặt > Quy tắc AI.'],
+    changes: ['Nova ideas now follow Viraltech: a topic switch (Tech + Philosophy, New tech, Philosophy, Everything) with new free sources for new tech (Hacker News, Product Hunt, r/technology) and philosophy (r/philosophy, Aeon essays, Stanford Encyclopedia of Philosophy). Google News (never answered) and YouTube (needed a key) are gone; the YouTube Trending link stays under Filters.'],
+    changesVi: ['Ý tưởng của Nova giờ theo đúng Viraltech: có nút chọn chủ đề (Công nghệ + Triết học, Công nghệ mới, Triết học, Tất cả) với nguồn miễn phí mới cho công nghệ mới (Hacker News, Product Hunt, r/technology) và triết học (r/philosophy, bài luận Aeon, Bách khoa Triết học Stanford). Đã bỏ Google News (không bao giờ trả lời) và YouTube (cần key); link YouTube Trending vẫn còn trong Bộ lọc.'],
   },
   {
     version: '1.57.0',

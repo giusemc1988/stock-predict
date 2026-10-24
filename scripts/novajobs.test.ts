@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict'
-import { JOB_PREFIX, LEMO_GIVE_UP_MS, LEMO_OFFLINE_ERROR, LEMO_OFFLINE_MS, LEMO_SEEN, MAX_ACTIVE, VID_PREFIX, checkGithubToken, expireLemoJobs, lemoOnline, cleanRenderAsk, kickFarm, deleteJob, fallbackTerms, isJobId, listJobs, parseRange, parseTerms, queueJobs, videoResponse, type JobStore } from '../src/lib/studioJobs'
+import { JOB_PREFIX, LEMO_GIVE_UP_MS, LEMO_OFFLINE_ERROR, LEMO_OFFLINE_MS, LEMO_SEEN, MAX_ACTIVE, VID_PREFIX, checkGithubToken, expireLemoJobs, lemoOnline, setHandoff, cleanRenderAsk, kickFarm, deleteJob, fallbackTerms, isJobId, listJobs, parseRange, parseTerms, queueJobs, videoResponse, type JobStore } from '../src/lib/studioJobs'
 
 /** Map-backed stand-in for the SETTINGS KV binding. */
 function fakeKv(): JobStore & { m: Map<string, string | ArrayBuffer> } {
@@ -163,5 +163,17 @@ assert.equal(await checkGithubToken('tok', gh(404)), false)
   assert.equal(failed.error, LEMO_OFFLINE_ERROR)
   assert.equal(JSON.parse(kv3.m.get(JOB_PREFIX + lj.id) as string).status, 'failed', 'stored')
   assert.ok(later.filter((j) => j.engine !== 'lemo').every((j) => j.status === 'queued'), 'other jobs untouched')
+}
+
+// Viraltech handoff: only finished videos, and it can be taken back
+{
+  const kv4 = fakeKv()
+  const [j] = (await queueJobs(kv4, ask, ['sea'], 0, uuid))!
+  assert.equal(await setHandoff(kv4, j.id, true, 5), null, 'not finished yet')
+  await kv4.put(JOB_PREFIX + j.id, JSON.stringify({ ...j, status: 'done' }))
+  assert.equal((await setHandoff(kv4, j.id, true, 5))!.handoff, 5)
+  assert.equal(JSON.parse(kv4.m.get(JOB_PREFIX + j.id) as string).handoff, 5, 'stored')
+  assert.equal((await setHandoff(kv4, j.id, false, 6))!.handoff, undefined, 'taken back')
+  assert.equal(await setHandoff(kv4, '../x', true), null)
 }
 console.log('novajobs ok')

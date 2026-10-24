@@ -5,7 +5,8 @@ import { lufs, normalise, SAMPLE_RATE, TARGET_LUFS } from '../src/lib/studio/aud
 import { rgbaToI420 } from '../src/lib/studio/encode'
 import { cleanWriteAsk } from '../src/lib/studioServer'
 import { STUDIO_TEXT } from '../src/lib/studio/text'
-import { debugExposed, layerState, GE_TEXT } from '../src/lib/godsEye'
+import { layerState, GE_TEXT } from '../src/lib/godsEye'
+import { digitrafficRows } from '../argus/digitraffic'
 import { toOpenSky } from '../argus/adsbLol'
 import { AREAS, merge, slim } from '../argus/snapshot'
 
@@ -70,8 +71,17 @@ assert.equal(layerState('vessels', { status: 503, contentType: J, body: '{"statu
 assert.equal(layerState('satellites', { status: 200, contentType: 'text/html', body: '<!DOCTYPE html>' }).state, 'noproxy')
 assert.equal(layerState('flights', { status: 502, contentType: J, body: '{"error":"Flights unavailable"}' }).detail, 'HTTP 502 · Flights unavailable')
 assert.equal(layerState('flights', null).state, 'down')
-assert.equal(debugExposed({ status: 200, contentType: J, body: '[]' }), true)
-assert.equal(debugExposed({ status: 200, contentType: 'text/html', body: '' }), false)
+
+// Iris ships: Digitraffic AIS becomes upstream vessel rows; AIS "not available" codes become null
+const dt = digitrafficRows(
+  { features: [{ geometry: { coordinates: [24.9, 60.1] }, properties: { mmsi: 230000001, sog: 102.3, cog: 360, heading: 511, timestampExternal: 1_700_000_000_000 } }, { geometry: { coordinates: [25, 60] }, properties: { mmsi: 230000002, sog: 12.5, cog: 90, heading: 88, timestampExternal: 1_700_000_100_000 } }, { properties: { mmsi: 3 } }] },
+  [{ mmsi: 230000002, name: ' VIKING ', shipType: 60, destination: 'FIHEL' }],
+)
+assert.equal(dt.status, 'live')
+assert.equal(dt.rows.length, 2)
+assert.deepEqual([dt.rows[0].mmsi, dt.rows[0].name, dt.rows[0].type, dt.rows[0].speed, dt.rows[0].heading], ['230000002', 'VIKING', '60', 12.5, 88])
+assert.deepEqual([dt.rows[1].name, dt.rows[1].speed, dt.rows[1].course, dt.rows[1].heading], ['MMSI 230000001', null, null, null])
+assert.equal(layerState('vessels', { status: 200, contentType: J, body: JSON.stringify(dt).slice(0, 400) }).state, 'ok')
 
 // Argus flights fallback: adsb.lol rows become OpenSky vectors (adsb.fi "aircraft" too), bad rows and duplicates dropped
 const os = toOpenSky({ now: 1_700_000_000_000, ac: [{ hex: 'ABC123', flight: 'DAL1 ', lat: 40, lon: -74, alt_baro: 1000, gs: 100, track: 90 }, { hex: 'abc123', lat: 1, lon: 1 }, { hex: 'x', lat: 95, lon: 0 }] })

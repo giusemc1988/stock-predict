@@ -5,10 +5,10 @@
 import { cleanKey, sameOrigin, withSavedKeys, type KeyStore } from '../lib/brainKeys'
 import type { BrainEnv } from '../lib/brainServer'
 import { cleanKitAsk, writeKitItem, writePostKit, writeTerms } from '../lib/studioServer'
-import { TRENDS_CACHE, TRENDS_TTL_MS, YOUTUBE_KEY, fetchTrends, type TrendGeo, type TrendsResult } from '../lib/studioTrends'
+import { TRENDS_CACHE, TRENDS_TTL_MS, fetchTrends, type TrendGeo, type TrendsResult } from '../lib/studioTrends'
 import { PRESETS_KEY, cleanPresets } from '../lib/studio/presets'
 import { MEDIA_CHUNK, deleteMedia, finishMedia, putMediaPart, readyMedia, startMedia, type MediaStore } from '../lib/studioMedia'
-import { GITHUB_KEY, PEXELS_KEY, checkGithubToken, cleanRenderAsk, expireLemoJobs, kickFarm, deleteJob, isJobId, lemoOnline, listJobs, queueJobs, videoResponse, type JobStore } from '../lib/studioJobs'
+import { GITHUB_KEY, PEXELS_KEY, checkGithubToken, cleanRenderAsk, expireLemoJobs, kickFarm, deleteJob, isJobId, lemoOnline, listJobs, queueJobs, setHandoff, videoResponse, type JobStore } from '../lib/studioJobs'
 
 const json = (data: unknown, status = 200) => new Response(JSON.stringify(data), { status, headers: { 'content-type': 'application/json', 'cache-control': 'no-store' } })
 
@@ -22,10 +22,6 @@ const KEYS = {
     },
   },
   github: { slot: GITHUB_KEY, check: (key: string) => checkGithubToken(key) },
-  youtube: {
-    slot: YOUTUBE_KEY,
-    check: async (key: string) => (await fetch(`https://www.googleapis.com/youtube/v3/videos?part=id&chart=mostPopular&maxResults=1&regionCode=US&key=${encodeURIComponent(key)}`).catch(() => null))?.status === 200,
-  },
 } as const
 type KeyKind = keyof typeof KEYS
 
@@ -35,11 +31,18 @@ export async function novaRoute(req: Request, pathname: string, env: BrainEnv, s
   const kv = settings as unknown as JobStore
   const url = new URL(req.url)
 
+  if (pathname === '/api/studio/handoff') {
+    // only puts a finished video on Viraltech's waiting list; posting stays with Chanh
+    if (req.method !== 'POST' && req.method !== 'DELETE') return json({ error: 'POST or DELETE only' }, 405)
+    if (!sameOrigin(req)) return json({ error: 'Not allowed' }, 403)
+    const job = await setHandoff(kv, url.searchParams.get('id') ?? '', req.method === 'POST')
+    return job ? json({ handoff: job.handoff ?? null }) : json({ error: 'Only a finished video can go to Viraltech' }, 404)
+  }
   if (pathname === '/api/studio/jobs') {
     if (req.method === 'GET') {
       const lemo = await lemoOnline(kv)
       const jobs = await expireLemoJobs(kv, await listJobs(kv), lemo)
-      return json({ jobs: jobs.map(({ lines: _l, terms: _t, ...j }) => j), pexels: !!(await kv.get(PEXELS_KEY)), github: !!(await kv.get(GITHUB_KEY)), youtube: !!(await kv.get(YOUTUBE_KEY)), lemo })
+      return json({ jobs: jobs.map(({ lines: _l, terms: _t, ...j }) => j), pexels: !!(await kv.get(PEXELS_KEY)), github: !!(await kv.get(GITHUB_KEY)), lemo })
     }
     if (req.method !== 'DELETE') return json({ error: 'GET or DELETE only' }, 405)
     if (!sameOrigin(req)) return json({ error: 'Not allowed' }, 403)
@@ -79,9 +82,8 @@ export async function novaRoute(req: Request, pathname: string, env: BrainEnv, s
       return json({ [kind]: false })
     }
     const key = cleanKey(((await req.json().catch(() => null)) as { key?: unknown } | null)?.key)
-    if (!key || !(await k.check(key))) return json({ error: `${kind === 'github' ? 'GitHub' : kind === 'youtube' ? 'YouTube' : 'Pexels'} refused this key` }, 400)
+    if (!key || !(await k.check(key))) return json({ error: `${kind === 'github' ? 'GitHub' : 'Pexels'} refused this key` }, 400)
     await kv.put(k.slot, key)
-    if (kind === 'youtube') await Promise.all([kv.delete(TRENDS_CACHE('VN')), kv.delete(TRENDS_CACHE('US'))])
     return json({ [kind]: true })
   }
   if (pathname === '/api/studio/media') {
@@ -128,7 +130,7 @@ export async function novaRoute(req: Request, pathname: string, env: BrainEnv, s
       const hit = JSON.parse((await kv.get(TRENDS_CACHE(geo))) ?? 'null') as TrendsResult | null
       if (hit && Date.now() - hit.at < TRENDS_TTL_MS) return json(hit)
     }
-    const fresh = await fetchTrends(geo, await kv.get(YOUTUBE_KEY))
+    const fresh = await fetchTrends(geo)
     if (fresh.items.length) await kv.put(TRENDS_CACHE(geo), JSON.stringify(fresh))
     return json(fresh)
   }

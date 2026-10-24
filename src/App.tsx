@@ -787,11 +787,11 @@ export default function App() {
         </PanelGuard>
       ) : shownPage === 'studio' ? (
         <PanelGuard name="Video Studio">
-          <VideoStudioPage onBack={() => setPage(homePage)} glass={aiRules.novaGlass} trends={aiRules.novaTrends} postKit={aiRules.novaPostKit} videoSettings={aiRules.novaVideoSettings} uploads={aiRules.novaUploads} presets={aiRules.novaPresets} lemo={aiRules.novaLemo} />
+          <VideoStudioPage onBack={() => setPage(homePage)} glass={aiRules.novaGlass} trends={aiRules.novaTrends} postKit={aiRules.novaPostKit} videoSettings={aiRules.novaVideoSettings} uploads={aiRules.novaUploads} presets={aiRules.novaPresets} lemo={aiRules.novaLemo} handoff={aiRules.novaHandoff} />
         </PanelGuard>
       ) : shownPage === 'viraltech' ? (
         <PanelGuard name="Viraltech">
-          <ViralTechPage onBack={() => setPage(homePage)} glass={aiRules.agentGlass} />
+          <ViralTechPage onBack={() => setPage(homePage)} glass={aiRules.agentGlass} nova={aiRules.novaHandoff} />
         </PanelGuard>
       ) : shownPage === 'max' ? (
         <PanelGuard name="Max">

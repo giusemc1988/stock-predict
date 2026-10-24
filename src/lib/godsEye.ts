@@ -1,12 +1,14 @@
 /**
  * Argus (God's Eye View): the bilawalsidhu/gods-eye-view globe (MIT), built at a pinned commit and
  * served by our own "argus" Worker (argus/ in this repo, deployed by .github/workflows/argus.yml).
- * The Hub embeds it and checks each data layer from our Worker, so a dead layer says why.
+ * The Hub embeds it and asks that Worker's /api/health for every data layer, so a dead layer says why.
  */
 import type { Bi } from './hubText'
 
 export const GODS_EYE_URL = 'https://argus.chanhmn1011.workers.dev'
 export const GODS_EYE_REPO = 'https://github.com/bilawalsidhu/gods-eye-view'
+/** The argus Worker checks its own layers (a Worker cannot fetch another Worker's workers.dev URL). */
+export const GODS_EYE_HEALTH = `${GODS_EYE_URL}/api/health`
 
 export type LayerId = 'flights' | 'military' | 'satellites' | 'vessels' | 'quakes'
 export type LayerState = 'ok' | 'key' | 'noproxy' | 'down'
@@ -14,7 +16,7 @@ export type LayerState = 'ok' | 'key' | 'noproxy' | 'down'
 export interface Layer {
   id: LayerId
   label: Bi
-  /** what we ask: a path on the God's Eye site, or a full URL for a public feed it reads directly */
+  /** what argus/worker.ts asks: one of its own routes, or a full URL for a public feed the globe reads directly */
   probe: string
 }
 
@@ -25,9 +27,6 @@ export const LAYERS: Layer[] = [
   { id: 'vessels', label: { en: 'Ships (AIS)', vi: 'Tàu biển (AIS)' }, probe: '/api/vessels' },
   { id: 'quakes', label: { en: 'Earthquakes', vi: 'Động đất' }, probe: 'https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_hour.geojson' },
 ]
-
-/** Debug routes that must not be public on a production deploy. */
-export const DEBUG_PATHS = ['/api/debug/overpass']
 
 export interface Probe {
   status: number
@@ -58,24 +57,20 @@ export function layerState(id: LayerId, p: Probe | null): LayerResult {
   return { id, state: 'down', detail: [`HTTP ${p.status}`, j.error, j.detail].filter(Boolean).join(' · ').slice(0, 100) }
 }
 
-/** A debug route is exposed when it answers 2xx with data (not the site's HTML fallback). */
-export const debugExposed = (p: Probe | null) => !!p && p.status >= 200 && p.status < 300 && !/text\/html/i.test(p.contentType)
-
 export const GE_TEXT = {
   title: { en: "Iris · God's Eye", vi: "Iris · God's Eye" },
   sub: { en: 'Live 3D globe: flights, military aircraft, satellites, ships, earthquakes', vi: 'Địa cầu 3D trực tiếp: máy bay, máy bay quân sự, vệ tinh, tàu biển, động đất' },
   back: { en: '← Hub', vi: '← Hub' },
-  open: { en: 'Open full screen ↗', vi: 'Mở toàn màn hình ↗' },
-  layers: { en: 'Data layers (checked from the server)', vi: 'Các lớp dữ liệu (kiểm tra từ máy chủ)' },
+  open: { en: 'Full screen ↗', vi: 'Toàn màn hình ↗' },
+  layers: { en: 'Data layers', vi: 'Các lớp dữ liệu' },
   checking: { en: 'Checking…', vi: 'Đang kiểm tra…' },
   recheck: { en: 'Check again', vi: 'Kiểm tra lại' },
   ok: { en: 'Live', vi: 'Đang chạy' },
   key: { en: 'Needs a key', vi: 'Cần key' },
   noproxy: { en: 'No proxy yet', vi: 'Chưa có proxy' },
   down: { en: 'Down', vi: 'Lỗi' },
-  debug: { en: 'A debug route is public on the God\'s Eye site (/api/debug/overpass). Delete functions/api/debug/ in that Pages project before calling it production.', vi: 'Trang God\'s Eye còn để lộ đường debug (/api/debug/overpass). Xoá functions/api/debug/ trong dự án Pages đó trước khi coi là bản chính thức.' },
   failed: { en: 'Could not check the layers right now.', vi: 'Chưa kiểm tra được các lớp lúc này.' },
-  note: { en: 'Runs as the argus Worker on your own Cloudflare, built from the original repo at a pinned commit, with no keys and no debug routes. Ships need an AIS key and voice an OpenAI key; add them only if you decide to.', vi: 'Chạy thành Worker argus trên Cloudflare của anh, build từ repo gốc ở commit đã ghim, không key, không đường debug. Tàu biển cần key AIS, giọng nói cần key OpenAI; chỉ thêm khi anh quyết.' },
+  note: { en: 'Runs as the argus Worker on your own Cloudflare, built from the original repo at a pinned commit, with no keys. Ships come from the free Digitraffic feed (Baltic Sea only); voice is off because it needs an OpenAI key.', vi: 'Chạy thành Worker argus trên Cloudflare của anh, build từ repo gốc ở commit đã ghim, không key. Tàu biển lấy từ nguồn miễn phí Digitraffic (chỉ biển Baltic); giọng nói tắt vì cần key OpenAI.' },
   source: { en: 'Source', vi: 'Mã nguồn' },
   load: { en: 'Load the globe (heavy on phone data)', vi: 'Tải quả địa cầu (tốn dữ liệu di động)' },
 } satisfies Record<string, Bi>

@@ -1,6 +1,8 @@
+import { useCallback, useEffect, useState } from 'react'
 import { useLang } from '../lib/i18n'
 import { ANTWORK_URL, postCounts, VIRALTECH, type Platform, type PostStatus } from '../data/viraltech'
 import { AgentShell } from './AgentShell'
+import type { StudioJob } from '../lib/studioJobs'
 import { StatRow, type Stat } from './StatCard'
 
 const PLATFORM: Record<Platform, string> = { instagram: 'Instagram', tiktok: 'TikTok', youtube: 'YouTube', facebook: 'Facebook' }
@@ -23,10 +25,58 @@ const T = {
   failed: { en: 'Failed', vi: 'Lỗi' },
   views: { en: 'views', vi: 'lượt xem' },
   eng: { en: 'interactions', vi: 'tương tác' },
+  fromNova: { en: 'Videos from Nova, waiting for your OK', vi: 'Video từ Nova, chờ anh duyệt' },
+  fromNovaNone: { en: 'Nothing waiting. In Nova, tap "Send to Viraltech" on a finished video.', vi: 'Chưa có video nào chờ. Trong Nova, bấm "Gửi sang Viraltech" ở video đã xong.' },
+  fromNovaHow: { en: 'Nothing here is posted by itself. To post one, tell Claude which video and which channel; Claude drafts the post in Antwork and posts only after you say yes.', vi: 'Không video nào tự đăng. Muốn đăng, anh nhắn Claude: video nào, kênh nào; Claude soạn bài trong Antwork và chỉ đăng khi anh đồng ý.' },
+  lemo: { en: 'Lemo-Opuscar', vi: 'Lemo-Opuscar' },
+  server: { en: 'MoneyPrinterTurbo', vi: 'MoneyPrinterTurbo' },
+  download: { en: 'Download', vi: 'Tải về' },
+  takeBack: { en: 'Take back', vi: 'Lấy lại' },
 } as const
 
+type NovaVideo = Omit<StudioJob, 'lines' | 'terms'>
+
+/** Finished Nova videos sent here, newest first. Posting stays a separate step Chanh approves. */
+function NovaWaiting() {
+  const lang = useLang()
+  const L = (k: keyof typeof T) => T[k][lang]
+  const [videos, setVideos] = useState<NovaVideo[] | null>(null)
+  const load = useCallback(async () => {
+    const r = await fetch('/api/studio/jobs').catch(() => null)
+    const j = (await r?.json().catch(() => null)) as { jobs?: NovaVideo[] } | null
+    setVideos((j?.jobs ?? []).filter((v) => v.status === 'done' && v.handoff).sort((a, b) => (b.handoff ?? 0) - (a.handoff ?? 0)))
+  }, [])
+  useEffect(() => void load(), [load])
+  const takeBack = async (id: string) => {
+    await fetch(`/api/studio/handoff?id=${id}`, { method: 'DELETE' }).catch(() => null)
+    await load()
+  }
+  return (
+    <section className="bf-card">
+      <header><h3>{L('fromNova')}</h3>{videos && videos.length > 0 && <span className="small muted">{videos.length}</span>}</header>
+      <p className="muted small">{L('fromNovaHow')}</p>
+      {videos && !videos.length && <p className="muted small">{L('fromNovaNone')}</p>}
+      <ul className="vt-list">
+        {videos?.map((v) => (
+          <li key={v.id} className="vt-row">
+            <div>
+              <b>{v.lang.toUpperCase()}</b> <span className="muted small">{v.engine === 'lemo' ? L('lemo') : L('server')} · {v.aspect}</span>
+              <div className="vt-text">{v.topic}</div>
+              <div className="vs-out"><video src={`/api/studio/video?id=${v.id}`} controls playsInline preload="metadata" /></div>
+            </div>
+            <div className="vs-row">
+              <a className="btn small" href={`/api/studio/video?id=${v.id}&download`}>{L('download')}</a>
+              <button className="btn small" onClick={() => void takeBack(v.id)}>{L('takeBack')}</button>
+            </div>
+          </li>
+        ))}
+      </ul>
+    </section>
+  )
+}
+
 /** Viraltech: the 4 social channels, their posts and engagement, from the Antwork snapshot. */
-export function ViralTechPage({ onBack, glass = true }: { onBack: () => void; glass?: boolean }) {
+export function ViralTechPage({ onBack, glass = true, nova = true }: { onBack: () => void; glass?: boolean; nova?: boolean }) {
   const lang = useLang()
   const L = (k: keyof typeof T) => T[k][lang]
   const { channels, posts, asOf } = VIRALTECH
@@ -51,6 +101,8 @@ export function ViralTechPage({ onBack, glass = true }: { onBack: () => void; gl
       <p className="muted small">{L('asOf')} {when}</p>
 
       <StatRow items={stats} />
+
+      {nova && <NovaWaiting />}
 
       <section className="bf-card">
         <header><h3>{L('channels')}</h3></header>

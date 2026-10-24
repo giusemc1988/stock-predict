@@ -116,6 +116,8 @@ export interface StudioJob {
   opts?: RenderOpts
   /** missing = 'mpt' (MoneyPrinterTurbo on GitHub Actions); 'lemo' = Lemo-Opuscar on the PC */
   engine?: RenderEngine
+  /** when it was sent to Viraltech's waiting list; posting still needs Chanh's OK */
+  handoff?: number
 }
 
 export interface RenderAsk {
@@ -232,6 +234,15 @@ export async function queueJobs(kv: JobStore, ask: RenderAsk, terms: string[], n
   }))
   await Promise.all(made.map((j) => kv.put(JOB_PREFIX + j.id, JSON.stringify(j))))
   return made
+}
+
+/** Send a finished video to Viraltech's waiting list, or take it back. Nothing is posted here. */
+export async function setHandoff(kv: JobStore, id: string, on: boolean, now = Date.now()): Promise<StudioJob | null> {
+  const job = await getJob(kv, id)
+  if (!job || job.status !== 'done') return null
+  const next: StudioJob = { ...job, handoff: on ? now : undefined }
+  await kv.put(JOB_PREFIX + id, JSON.stringify(next))
+  return next
 }
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/
