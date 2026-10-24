@@ -20,7 +20,7 @@ export function historyStep(from: string, to: string, home: string, depth: numbe
 }
 
 /** Short links into a project, by the names Chanh uses: /#nova opens Nova, /#atlas opens Atlas, and so on. */
-const LINKS: Record<string, string> = { atlas: 'trade', nova: 'studio', echo: 'ruview', nexus: 'net', argus: 'godseye', iris: 'godseye', viraltech: 'viraltech', neo: 'home', jarvis: 'home', hub: 'home' }
+const LINKS: Record<string, string> = { atlas: 'trade', nova: 'studio', echo: 'ruview', nexus: 'net', argus: 'godseye', iris: 'godseye', viraltech: 'viraltech', max: 'max', forge: 'max', neo: 'home', jarvis: 'home', hub: 'home' }
 
 /** The page a "#name" link asks for, or null. */
 export function linkedPage(hash: string): string | null {

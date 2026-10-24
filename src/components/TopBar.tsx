@@ -32,7 +32,7 @@ interface Props {
   onHome?: () => void
 }
 
-export type Page = 'home' | 'brief' | 'trade' | 'portfolio' | 'net' | 'ruview' | 'godseye' | 'studio' | 'viraltech'
+export type Page = 'home' | 'brief' | 'trade' | 'portfolio' | 'net' | 'ruview' | 'godseye' | 'studio' | 'viraltech' | 'max'
 
 const STATUS_KEY = { connecting: 'feedConnecting', live: 'feedLive', polling: 'feedDelayed', demo: 'feedSimulated', error: 'feedError' } as const satisfies Record<FeedStatus, string>
 const CONF_KEY = { Low: 'confLow', Medium: 'confMedium', High: 'confHigh' } as const

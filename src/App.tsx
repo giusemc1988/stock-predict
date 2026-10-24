@@ -35,6 +35,7 @@ import { RuViewPage } from './components/RuViewPage'
 import { GodsEyePage } from './components/GodsEyePage'
 import { VideoStudioPage } from './components/VideoStudioPage'
 import { ViralTechPage } from './components/ViralTechPage'
+import { MaxPage } from './components/MaxPage'
 import { AutoLearnPanel } from './components/AutoLearnPanel'
 import { useAutoLearning } from './hooks/useAutoLearning'
 import { useMigrateKeysToCloud } from './hooks/useMigrateKeysToCloud'
@@ -616,7 +617,7 @@ export default function App() {
 
   return (
     <div
-      className={`app page-${shownPage === 'ruview' || shownPage === 'godseye' || shownPage === 'studio' || shownPage === 'viraltech' ? `net page-${shownPage}` : shownPage}`}
+      className={`app page-${shownPage === 'ruview' || shownPage === 'godseye' || shownPage === 'studio' || shownPage === 'viraltech' || shownPage === 'max' ? `net page-${shownPage}` : shownPage}`}
       style={
         aiRules.resizePanels
           ? ({
@@ -675,7 +676,7 @@ export default function App() {
         equity={broker.account.equity}
         dayPL={broker.account.dayPL}
       />}
-      {shownPage !== 'home' && shownPage !== 'brief' && shownPage !== 'net' && shownPage !== 'ruview' && shownPage !== 'godseye' && shownPage !== 'studio' && shownPage !== 'viraltech' && <PanelGuard name="Watchlist"><Watchlist
+      {shownPage !== 'home' && shownPage !== 'brief' && shownPage !== 'net' && shownPage !== 'ruview' && shownPage !== 'godseye' && shownPage !== 'studio' && shownPage !== 'viraltech' && shownPage !== 'max' && <PanelGuard name="Watchlist"><Watchlist
         sortRequest={sortRequest}
         aiActive={aiRules.practiceMode && aiRules.practiceWatchlist ? aiActive : null}
         instruments={universe}
@@ -765,11 +766,11 @@ export default function App() {
         </PanelGuard>
       ) : shownPage === 'net' ? (
         <PanelGuard name="Wi-Fi">
-          <NetPage onBack={() => setPage(homePage)} phoneScan={aiRules.phoneScan} />
+          <NetPage onBack={() => setPage(homePage)} phoneScan={aiRules.phoneScan} glass={aiRules.agentGlass} />
         </PanelGuard>
       ) : shownPage === 'ruview' ? (
         <PanelGuard name="RuView">
-          <RuViewPage onBack={() => setPage(homePage)} webFlash={aiRules.webFlash} startAdding={ruviewFlash} />
+          <RuViewPage onBack={() => setPage(homePage)} webFlash={aiRules.webFlash} startAdding={ruviewFlash} glass={aiRules.agentGlass} />
         </PanelGuard>
       ) : shownPage === 'godseye' ? (
         <PanelGuard name="God's Eye">
@@ -781,7 +782,11 @@ export default function App() {
         </PanelGuard>
       ) : shownPage === 'viraltech' ? (
         <PanelGuard name="Viraltech">
-          <ViralTechPage onBack={() => setPage(briefOn ? 'brief' : 'trade')} />
+          <ViralTechPage onBack={() => setPage(homePage)} glass={aiRules.agentGlass} />
+        </PanelGuard>
+      ) : shownPage === 'max' ? (
+        <PanelGuard name="Max">
+          <MaxPage onBack={() => setPage(homePage)} glass={aiRules.agentGlass} />
         </PanelGuard>
       ) : shownPage === 'trade' ? (
         <>

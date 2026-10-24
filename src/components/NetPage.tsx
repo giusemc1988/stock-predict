@@ -5,7 +5,7 @@ import { browserSpeedTest } from '../lib/speedTest'
 import { inPhoneApp, LanTools, loadNets, mergePhoneScan, netKey, patchKnown, saveNets, type PhoneWifi } from '../lib/phoneLan'
 import { channelTip, isPrivateIPv4, type WifiNetwork } from '../lib/netParse'
 import { useNetT, type NetKey } from '../lib/netText'
-import { LangSwitch } from './HubPanels'
+import { AgentShell } from './AgentShell'
 
 interface Device {
   ip: string
@@ -66,7 +66,7 @@ function ChannelChart({ nets, own }: { nets: WifiNetwork[]; own: string | null }
 }
 
 /** Wi-Fi & Bluetooth tools for Chanh's own network, fed by the home agent (agent/jarvis-agent.ts). */
-export function NetPage({ onBack, phoneScan = true }: { onBack: () => void; phoneScan?: boolean }) {
+export function NetPage({ onBack, phoneScan = true, glass = true }: { onBack: () => void; phoneScan?: boolean; glass?: boolean }) {
   const t = useNetT()
   const [devs, setDevs] = useState<DevicesData | null>(null)
   const [wifi, setWifi] = useState<WifiData | null>(null)
@@ -235,18 +235,15 @@ export function NetPage({ onBack, phoneScan = true }: { onBack: () => void; phon
   }
 
   return (
-    <main className="net-page">
-      <div className="hub-head">
-        <div className="net-title">
-          <button className="btn net-back" onClick={onBack}>{t('back')}</button>
-          <span className="hub-hello">{t('title')}</span>
-        </div>
-        <div className="net-status">
-          <span className={`net-dot${live ? ' on' : ''}`} />
-          <span className="small">{status}</span>
-          <LangSwitch />
-        </div>
-      </div>
+    <AgentShell
+      id="nexus"
+      glass={glass}
+      onBack={onBack}
+      backLabel={t('back')}
+      title={glass ? `Nexus · ${t('title')}` : t('title')}
+      sub={t('agentSub')}
+      status={<><span className={`net-dot${live ? ' on' : ''}`} /><span className="small">{status}</span></>}
+    >
 
       {demo && (
         <p className="net-demo small">
@@ -374,6 +371,6 @@ export function NetPage({ onBack, phoneScan = true }: { onBack: () => void; phon
           <p className="small muted">{t('legal')}</p>
         </section>
       </div>
-    </main>
+    </AgentShell>
   )
 }

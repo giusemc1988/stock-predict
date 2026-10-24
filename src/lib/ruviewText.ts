@@ -8,6 +8,7 @@ import type { Bi } from './hubText'
 export const RUVIEW_TEXT = {
   title: { en: 'RuView sensing', vi: 'RuView cảm biến' },
   back: { en: '← Hub', vi: '← Hub' },
+  agentSub: { en: 'Senses people in a room through Wi-Fi with ESP32-S3 boards and RuView on the home PC. No cameras.', vi: 'Nhận biết người trong phòng qua sóng Wi-Fi bằng board ESP32-S3 và RuView trên máy PC ở nhà. Không dùng camera.' },
   beta: { en: 'beta', vi: 'beta' },
   live: { en: 'RuView running', vi: 'RuView đang chạy' },
   serverDown: { en: 'RuView server off', vi: 'RuView đang tắt' },

@@ -2,7 +2,7 @@
  * Version and "What's new". Bump APP_VERSION and add an entry to the top of RELEASES
  * with each update. The banner shows once per version, then stays dismissed.
  */
-export const APP_VERSION = '1.57.0'
+export const APP_VERSION = '1.58.0'
 
 export interface Release {
   version: string
@@ -13,6 +13,12 @@ export interface Release {
 }
 
 export const RELEASES: Release[] = [
+  {
+    version: '1.58.0',
+    date: '2026-10-24',
+    changes: ['Echo, Nexus, Viraltech and Max now open in the same glass look as the Neo Hub and Nova: the Hub wallpaper and theme, the agent\'s character next to its name, and glass cards. Max has its own page: app version, the code tasks Claude is working on, the latest updates and a box to ask for a fix or a new feature. Viraltech\'s back button now returns to the Hub. Off switch in Settings > AI rules.'],
+    changesVi: ['Echo, Nexus, Viraltech và Max giờ mở ra cùng kiểu kính như Neo Hub và Nova: cùng hình nền và theme của Hub, nhân vật của agent cạnh tên, thẻ kính. Max có trang riêng: phiên bản app, các việc code Claude đang làm, cập nhật gần đây và ô nhờ sửa lỗi hay thêm tính năng. Nút quay lại của Viraltech giờ về Hub. Tắt được trong Cài đặt > Quy tắc AI.'],
+  },
   {
     version: '1.57.0',
     date: '2026-10-24',

@@ -31,7 +31,7 @@ export const PROJECTS: Project[] = [
   { id: 'nova', name: 'Nova', what: { en: 'Bilingual Video Studio', vi: 'Studio video song ngữ' }, hue: '#d9a3ff', opens: 'studio', tools: ['video'] },
   { id: 'viraltech', name: 'Viraltech', what: { en: 'Social channels', vi: 'Kênh mạng xã hội' }, hue: '#ff7ab6', opens: 'viraltech', tools: ['viraltech', 'explainers'] },
   { id: 'lumi', name: 'Lumi', what: { en: 'Media Lab', vi: 'Media Lab' }, hue: '#ffb36b', opens: null, tools: ['media', 'outside'] },
-  { id: 'forge', name: 'Max', what: { en: 'Build & app builder', vi: 'Xây dựng & tạo app' }, hue: '#f2c46d', opens: null, tools: ['prs', 'repo', 'dev', 'apps'] },
+  { id: 'forge', name: 'Max', what: { en: 'Build & app builder', vi: 'Xây dựng & tạo app' }, hue: '#f2c46d', opens: 'max', tools: ['prs', 'repo', 'dev', 'apps'] },
 ]
 
 export interface HubOn {

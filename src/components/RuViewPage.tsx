@@ -3,7 +3,7 @@ import { DEMO_REGISTRY, DEMO_STATUS, DEMO_VITALS, demoLatest, demoNodes } from '
 import { BOARDS, boardFromChip, boardOf, CSI_PORT, flashCommand, mergeNodes, nextNodeId, presenceOf, RUVIEW, RUVIEW_IMAGE, RUVIEW_RELEASE_URL, type BoardId, type LiveNode, type RegistryNode, type SensingLatest, type Vitals } from '../lib/ruview'
 import { configLine, helloLine, makeNonce, NodeLink, parseConfigReply, parseHello, serialApi, type Hello } from '../lib/ruviewSerial'
 import { useRuviewT, type RuviewKey } from '../lib/ruviewText'
-import { LangSwitch } from './HubPanels'
+import { AgentShell } from './AgentShell'
 
 type Offline = { offline: true; why: string; snapshot: { at: number; data: unknown } | null }
 type Down = { down: true; why: string }
@@ -222,7 +222,7 @@ function AddNode({ reg, me, webFlash, onSaved, onClose }: { reg: RegistryNode[];
 }
 
 /** RuView sensing (github.com/ruvnet/ruview) on the home PC, read through the home agent. */
-export function RuViewPage({ onBack, webFlash = true, startAdding = false }: { onBack: () => void; webFlash?: boolean; startAdding?: boolean }) {
+export function RuViewPage({ onBack, webFlash = true, startAdding = false, glass = true }: { onBack: () => void; webFlash?: boolean; startAdding?: boolean; glass?: boolean }) {
   const t = useRuviewT()
   const [off, setOff] = useState<Offline | null>(null)
   const [status, setStatus] = useState<Status | null>(null)
@@ -324,18 +324,16 @@ export function RuViewPage({ onBack, webFlash = true, startAdding = false }: { o
   const behind = !!status?.image && status.image !== RUVIEW_IMAGE
 
   return (
-    <main className="net-page rv-page">
-      <div className="hub-head">
-        <div className="net-title">
-          <button className="btn net-back" onClick={onBack}>{t('back')}</button>
-          <span className="hub-hello">{t('title')} <em className="rv-beta">{t('beta')}</em></span>
-        </div>
-        <div className="net-status">
-          <span className={`net-dot${status?.up ? ' on' : ''}`} />
-          <span className="small">{head}</span>
-          <LangSwitch />
-        </div>
-      </div>
+    <AgentShell
+      id="echo"
+      className="rv-page"
+      glass={glass}
+      onBack={onBack}
+      backLabel={t('back')}
+      title={<>{glass ? `Echo · ${t('title')}` : t('title')} <em className="rv-beta">{t('beta')}</em></>}
+      sub={t('agentSub')}
+      status={<><span className={`net-dot${status?.up ? ' on' : ''}`} /><span className="small">{head}</span></>}
+    >
 
       <p className="rv-privacy small">{t('privacy')}</p>
 
@@ -465,6 +463,6 @@ export function RuViewPage({ onBack, webFlash = true, startAdding = false }: { o
           <p className="bf-source">{t('source')}</p>
         </section>
       </div>
-    </main>
+    </AgentShell>
   )
 }

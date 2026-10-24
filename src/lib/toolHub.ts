@@ -5,7 +5,7 @@
 import type { Bi } from './hubText'
 import { GODS_EYE_URL } from './godsEye'
 
-export type HubPage = 'trade' | 'portfolio' | 'net' | 'ruview' | 'ruview-flash' | 'godseye' | 'studio' | 'viraltech'
+export type HubPage = 'trade' | 'portfolio' | 'net' | 'ruview' | 'ruview-flash' | 'godseye' | 'studio' | 'viraltech' | 'max'
 export type ToolAction = { kind: 'page'; page: HubPage } | { kind: 'url'; url: string } | { kind: 'scroll'; id: string } | { kind: 'soon' }
 
 export interface ToolNode {
