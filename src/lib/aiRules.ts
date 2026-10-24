@@ -335,7 +335,7 @@ export const RULE_FIELDS: RuleField[] = [
   { group: 'jarvis', key: 'jarvisStory', en: 'Playbook checks in practice trade stories', vi: 'Kiểm tra sổ tay trong câu chuyện lệnh luyện tập' },
   { group: 'jarvis', key: 'jarvisGate', en: 'Practice buys must pass every playbook rule proven on paper trades', vi: 'Lệnh mua luyện tập phải đạt mọi quy tắc sổ tay đã chứng minh trên lệnh thử' },
   { group: 'jarvis', key: 'jarvisMotion', en: 'Animated Neo avatar', vi: 'Hình đại diện Neo chuyển động' },
-  { group: 'jarvis', key: 'neoFace', en: 'Neo has your 3D face (smile, grin, energetic nod, playful look in turn; plays only while on screen)', vi: 'Neo mang khuôn mặt 3D của anh (cười mỉm, nhe răng, gật đầu hào hứng, tinh nghịch thay phiên; chỉ chạy khi đang hiện trên màn hình)' },
+  { group: 'jarvis', key: 'neoFace', en: 'Neo has your 3D face (soft smile with subtle tilt and nod; plays only while on screen)', vi: 'Neo mang khuôn mặt 3D của anh (cười mỉm với nghiêng và gật đầu nhẹ; chỉ chạy khi đang hiện trên màn hình)' },
   { group: 'jarvis', key: 'jarvisShowMe', en: 'Show me: Neo opens the stock and points at what it is explaining on the chart', vi: 'Chỉ cho tôi: Neo mở mã và chỉ vào điều đang giải thích trên biểu đồ' },
   { group: 'jarvis', key: 'jarvisReplay', en: 'Replay the day: Neo walks through each practice trade on the chart', vi: 'Xem lại ngày: Neo dẫn xem từng lệnh luyện tập trên biểu đồ' },
   { group: 'jarvis', key: 'jarvisAlerts', en: 'Neo alerts when a practice trade opens or closes (replaces the plain pop-up)', vi: 'Neo báo khi lệnh luyện tập mở hoặc đóng (thay thông báo thường)' },

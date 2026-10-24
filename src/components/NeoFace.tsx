@@ -1,14 +1,13 @@
 import { useEffect, useRef, type CSSProperties } from 'react'
 
 /**
- * Neo's face: Chanh's 3D portrait with a few short expressions (soft smile, grin, energetic nod,
- * playful wink) made once with LivePortrait (public/neo, ~30 KB each). One video plays them in turn
- * with a short rest between; it only loads and plays while on screen and motion is on. Small sizes
- * and reduced motion show the still picture.
+ * Neo's face: Chanh's 3D portrait, a soft smile with subtle tilt and nod made with LivePortrait
+ * (public/neo, ~35 KB). The video loops with a short rest between; it only loads and plays while
+ * on screen and motion is on. Small sizes and reduced motion show the still picture.
  */
 const STILL = '/neo/neo-face.webp'
 const STILL_SMALL = '/neo/neo-face-96.webp'
-const CLIPS = ['neo-face', 'neo-grin', 'neo-energy', 'neo-wink']
+const CLIPS = ['neo-face']
 const REST_MS = 1400
 const VIDEO_MIN = 36
 
