@@ -19,7 +19,7 @@ import { SignalFlowExplainer } from './SignalFlowExplainer'
 import { AgentReadiness } from './AgentReadiness'
 import { LocalAiQA } from './LocalAiQA'
 import { NewsBox } from './NewsBox'
-import { HubBestPick, HubBoard, HubDevices, HubStudio, HubTabbar, LangSwitch } from './HubPanels'
+import { HubBestPick, HubBoard, HubTabbar, LangSwitch } from './HubPanels'
 import type { VoteContext } from '../lib/hub'
 import type { HubPage } from '../lib/toolHub'
 import { useNews } from '../hooks/useNews'
@@ -370,8 +370,6 @@ export function JarvisBrief(p: Props) {
                 <ActivityFeed items={activity} empty={vi ? 'Chưa có gì. Lệnh, quyết định và bài học sẽ hiện ở đây khi xảy ra.' : 'Nothing yet. Trades, decisions and lessons show up here as they happen.'} />
               </section>
             )}
-            <HubStudio />
-            {!tools && <HubDevices onNet={p.onNet} onRuview={p.onRuview} />}
           </aside>
         </div>
         <HubTabbar onDesk={p.onDesk} tools={tools} onHub={p.onHub} />
