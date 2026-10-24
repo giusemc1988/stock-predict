@@ -51,7 +51,7 @@ html.iris-compact #iris-bar {
   min-height: 40px;
   padding: 0 12px;
   border-radius: 20px;
-  border: 1px solid rgba(120, 220, 255, 0.28);
+  border: 1px solid color-mix(in srgb, var(--iris-acc, #78dcff) 35%, transparent);
   background: rgba(8, 16, 24, 0.82);
   color: #d8f3ff;
   font: inherit;
@@ -59,8 +59,8 @@ html.iris-compact #iris-bar {
   cursor: pointer;
 }
 #iris-bar button[aria-pressed='true'] {
-  border-color: #5fd4ff;
-  background: rgba(20, 70, 96, 0.92);
+  border-color: var(--iris-acc, #5fd4ff);
+  background: color-mix(in srgb, var(--iris-acc, #5fd4ff) 30%, rgba(8, 16, 24, 0.92));
   color: #fff;
 }
 #iris-bar svg {

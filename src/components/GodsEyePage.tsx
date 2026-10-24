@@ -1,13 +1,13 @@
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { useLang } from '../lib/i18n'
-import { LangSwitch } from './HubPanels'
+import { AgentShell } from './AgentShell'
 import { GE_TEXT, GODS_EYE_HEALTH, GODS_EYE_REPO, GODS_EYE_URL, LAYERS, type LayerResult } from '../lib/godsEye'
 
 /**
- * God's Eye View inside the Hub: one row of layer chips, then the globe filling the rest of the
- * screen. The page itself never needs scrolling, because a touch on the globe belongs to the globe.
+ * God's Eye View inside the Hub, in the agent glass look (AgentShell): one row of layer chips, then the
+ * globe filling the rest of the screen. The globe's own bar takes the theme accent (?accent=, read by argus/iris/iris.js).
  */
-export function GodsEyePage({ onBack }: { onBack: () => void }) {
+export function GodsEyePage({ onBack, glass = true }: { onBack: () => void; glass?: boolean }) {
   const lang = useLang()
   const t = (k: keyof typeof GE_TEXT) => GE_TEXT[k][lang]
   const [layers, setLayers] = useState<LayerResult[] | null>(null)
@@ -43,17 +43,26 @@ export function GodsEyePage({ onBack }: { onBack: () => void }) {
     return () => window.removeEventListener('resize', fit)
   }, [])
 
+  // the theme accent, read once from the shell so the globe opens in the same colour
+  const [accent, setAccent] = useState<string | null>(null)
+  useLayoutEffect(() => {
+    const acc = frame.current && getComputedStyle(frame.current).getPropertyValue('--acc').trim()
+    setAccent(glass && acc && /^#[0-9a-f]{3,8}$/i.test(acc) ? acc : '')
+  }, [glass])
+  const src = accent ? `${GODS_EYE_URL}/?accent=${encodeURIComponent(accent)}` : GODS_EYE_URL
+
   const byId = new Map(layers?.map((l) => [l.id, l]))
   return (
-    <main className="net-page ge-page">
-      <div className="ge-head">
-        <button className="btn net-back" onClick={onBack}>{t('back')}</button>
-        <span className="hub-hello">{t('title')}</span>
-        <span className="ge-spacer" />
-        <a className="btn small" href={GODS_EYE_URL} target="_blank" rel="noreferrer noopener">{t('open')}</a>
-        <LangSwitch />
-      </div>
-
+    <AgentShell
+      id="argus"
+      className="ge-page"
+      glass={glass}
+      onBack={onBack}
+      backLabel={t('back')}
+      title={t('title')}
+      sub={t('sub')}
+      actions={<a className="btn small" href={GODS_EYE_URL} target="_blank" rel="noreferrer noopener">{t('open')}</a>}
+    >
       <div className="ge-chips" aria-label={t('layers')}>
         {LAYERS.map((l) => {
           const r = byId.get(l.id)
@@ -72,8 +81,8 @@ export function GodsEyePage({ onBack }: { onBack: () => void }) {
       </div>
 
       <section className="ge-frame" ref={frame}>
-        {globe ? (
-          <iframe title={t('title')} src={GODS_EYE_URL} loading="lazy" sandbox="allow-scripts allow-same-origin allow-popups allow-forms" allow="fullscreen; geolocation" referrerPolicy="no-referrer" />
+        {globe && accent != null ? (
+          <iframe key={src} title={t('title')} src={src} loading="lazy" sandbox="allow-scripts allow-same-origin allow-popups allow-forms" allow="fullscreen; geolocation" referrerPolicy="no-referrer" />
         ) : (
           <button className="btn primary" onClick={() => setGlobe(true)}>{t('load')}</button>
         )}
@@ -82,6 +91,6 @@ export function GodsEyePage({ onBack }: { onBack: () => void }) {
       <p className="muted small ge-note">
         {t('note')} · <a href={GODS_EYE_REPO} target="_blank" rel="noreferrer noopener">{t('source')}</a>
       </p>
-    </main>
+    </AgentShell>
   )
 }

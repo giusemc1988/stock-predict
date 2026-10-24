@@ -1543,6 +1543,17 @@ body:has(.jfab) .toasts, body:has(.jfab) .jarvis-alert { bottom: 84px; }
 .ge-frame { display: grid; place-items: center; border: 1px solid var(--line); border-radius: 12px; overflow: hidden; background: #000; height: calc(100dvh - 200px); min-height: 360px; }
 .ge-frame iframe { width: 100%; height: 100%; border: 0; display: block; }
 .ge-note { margin: 0; }
+/* in the glass shell: a smaller hero and the full width, so the globe gets the screen */
+.ag.ge-page .ag-wrap { max-width: none; gap: 10px; }
+.ag.ge-page .ag-face { width: 72px; height: 72px; }
+.ag.ge-page .ag-brand { font-size: clamp(28px, 5vw, 44px); }
+.ag.ge-page .ge-chip { background: rgba(0, 0, 0, 0.22); }
+.ag.ge-page .ge-frame { border-radius: 22px; }
+@media (max-width: 700px) {
+  .ag.ge-page .ag-hero { gap: 12px; }
+  .ag.ge-page .ag-face { width: 52px; height: 52px; }
+  .ag.ge-page .ag-tag { font-size: 13px; }
+}
 
 /* Video Studio page */
 .vs-row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
