@@ -70,7 +70,7 @@ export const GE_TEXT = {
   noproxy: { en: 'No proxy yet', vi: 'Chưa có proxy' },
   down: { en: 'Down', vi: 'Lỗi' },
   failed: { en: 'Could not check the layers right now.', vi: 'Chưa kiểm tra được các lớp lúc này.' },
-  note: { en: 'Runs as the argus Worker on your own Cloudflare, built from the original repo at a pinned commit, with no keys. Ships come from the free Digitraffic feed (Baltic Sea only); voice is off because it needs an OpenAI key.', vi: 'Chạy thành Worker argus trên Cloudflare của anh, build từ repo gốc ở commit đã ghim, không key. Tàu biển lấy từ nguồn miễn phí Digitraffic (chỉ biển Baltic); giọng nói tắt vì cần key OpenAI.' },
+  note: { en: 'Runs as the argus Worker on your own Cloudflare, built from the original repo at a pinned commit (its server code too), with no keys. Ships come from the free Digitraffic feed (Baltic Sea only); voice is off because it needs an OpenAI key.', vi: 'Chạy thành Worker argus trên Cloudflare của anh, build từ repo gốc ở commit đã ghim (cả code máy chủ), không key. Tàu biển lấy từ nguồn miễn phí Digitraffic (chỉ biển Baltic); giọng nói tắt vì cần key OpenAI.' },
   source: { en: 'Source', vi: 'Mã nguồn' },
   load: { en: 'Load the globe (heavy on phone data)', vi: 'Tải quả địa cầu (tốn dữ liệu di động)' },
 } satisfies Record<string, Bi>

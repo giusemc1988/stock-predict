@@ -1,7 +1,7 @@
 # Argus (God's Eye View): builds the upstream gods-eye-view app at the commit pinned in
 # argus/upstream.json and deploys it with argus/worker.ts as the "argus" Worker.
-# The upstream install/build runs in a job WITHOUT secrets; only the static output
-# reaches the deploy job, which holds the Cloudflare token.
+# The upstream install/build runs in a job WITHOUT secrets; only the static output and the
+# bundled upstream API (argus/upstream-api/) reach the deploy job, which holds the Cloudflare token.
 name: Deploy Argus
 
 on:
@@ -22,7 +22,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          sparse-checkout: argus/upstream.json
+          sparse-checkout: |
+            argus/upstream.json
+            argus/upstream-api
           sparse-checkout-cone-mode: false
       - id: pin
         run: |
@@ -43,6 +45,8 @@ jobs:
         run: |
           npm ci --no-audit --no-fund
           npx vite build
+      - name: Upstream API for the Worker
+        run: node argus/upstream-api/build.mjs upstream upstream-api/providers.mjs
       - name: Satellite orbits
         # Cloudflare's shared IPs get refused by CelesTrak, so the runner fetches them and ships them as files
         run: |
@@ -58,6 +62,11 @@ jobs:
           name: argus-dist
           path: upstream/dist
           retention-days: 3
+      - uses: actions/upload-artifact@v4
+        with:
+          name: argus-api
+          path: upstream-api
+          retention-days: 3
 
   deploy:
     needs: build
@@ -68,6 +77,10 @@ jobs:
         with:
           name: argus-dist
           path: argus/dist
+      - uses: actions/download-artifact@v4
+        with:
+          name: argus-api
+          path: argus/upstream-api/dist
       - uses: actions/setup-node@v4
         with:
           node-version: 22
@@ -76,7 +89,7 @@ jobs:
           cp _headers dist/_headers
           # Iris layer over the upstream UI (argus/iris/): compact phone/tablet mode, no voice dock
           mkdir -p dist/iris && cp iris/iris.css iris/iris.js dist/iris/
-          sed -i 's#</head>#<link rel="stylesheet" href="/iris/iris.css" />\n<script src="/iris/iris.js" defer></script>\n</head>#' dist/index.html
+          sed -i 's#</head>#<link rel="stylesheet" href="/iris/iris.css" />\n<script src="/iris/iris.js"></script>\n</head>#' dist/index.html
           grep -q '/iris/iris.js' dist/index.html
           sed -i "s/__ARGUS_SNAP_KV__/$(node kv-id.mjs | tail -n 1)/" wrangler.jsonc
           npx -y wrangler@4 deploy
