@@ -1,14 +1,15 @@
 import { useCallback, useEffect, useState } from 'react'
 import { useLang } from '../lib/i18n'
 import { ANTWORK_URL, postCounts, VIRALTECH, type Platform, type PostStatus } from '../data/viraltech'
+import { AgentShell } from './AgentShell'
 import type { StudioJob } from '../lib/studioJobs'
-import { LangSwitch } from './HubPanels'
 import { StatRow, type Stat } from './StatCard'
 
 const PLATFORM: Record<Platform, string> = { instagram: 'Instagram', tiktok: 'TikTok', youtube: 'YouTube', facebook: 'Facebook' }
 const T = {
   back: { en: '← Hub', vi: '← Hub' },
-  title: { en: 'Viraltech', vi: 'Viraltech' },
+  title: { en: 'Viraltech · Social channels', vi: 'Viraltech · Kênh mạng xã hội' },
+  sub: { en: 'New tech and philosophy, on Instagram, TikTok, YouTube and Facebook. Posts are drafted with you and sent through Antwork.', vi: 'Công nghệ mới và triết học, trên Instagram, TikTok, YouTube và Facebook. Bài được soạn cùng anh rồi đăng qua Antwork.' },
   asOf: { en: 'Data from Antwork, updated', vi: 'Dữ liệu từ Antwork, cập nhật' },
   channels: { en: 'Channels', vi: 'Kênh' },
   connected: { en: 'Connected', vi: 'Đã kết nối' },
@@ -75,7 +76,7 @@ function NovaWaiting() {
 }
 
 /** Viraltech: the 4 social channels, their posts and engagement, from the Antwork snapshot. */
-export function ViralTechPage({ onBack, nova = true }: { onBack: () => void; nova?: boolean }) {
+export function ViralTechPage({ onBack, glass = true, nova = true }: { onBack: () => void; glass?: boolean; nova?: boolean }) {
   const lang = useLang()
   const L = (k: keyof typeof T) => T[k][lang]
   const { channels, posts, asOf } = VIRALTECH
@@ -88,17 +89,15 @@ export function ViralTechPage({ onBack, nova = true }: { onBack: () => void; nov
   const when = new Date(asOf).toLocaleString(lang === 'vi' ? 'vi-VN' : 'en-US', { dateStyle: 'medium', timeStyle: 'short' })
 
   return (
-    <main className="net-page vt-page">
-      <div className="hub-head">
-        <div className="net-title">
-          <button className="btn net-back" onClick={onBack}>{L('back')}</button>
-          <span className="hub-hello">{L('title')}</span>
-        </div>
-        <div className="net-status">
-          <a className="btn" href={ANTWORK_URL} target="_blank" rel="noopener noreferrer">{L('antwork')}</a>
-          <LangSwitch />
-        </div>
-      </div>
+    <AgentShell
+      id="viraltech"
+      className="vt-page"
+      glass={glass}
+      onBack={onBack}
+      title={L('title')}
+      sub={L('sub')}
+      actions={<a className="btn" href={ANTWORK_URL} target="_blank" rel="noopener noreferrer">{L('antwork')}</a>}
+    >
       <p className="muted small">{L('asOf')} {when}</p>
 
       <StatRow items={stats} />
@@ -147,6 +146,6 @@ export function ViralTechPage({ onBack, nova = true }: { onBack: () => void; nov
           </ul>
         )}
       </section>
-    </main>
+    </AgentShell>
   )
 }

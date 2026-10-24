@@ -6,6 +6,7 @@ import { ArcLogo } from './ArcLogo'
 import { APP_VERSION } from '../data/releases'
 import { RobotIcon } from './RobotIcon'
 import { useLang, useT } from '../lib/i18n'
+import { useRef, type PointerEvent } from 'react'
 
 interface Props {
   inst: Instrument
@@ -30,17 +31,32 @@ interface Props {
   dayPL: number
   /** Back to the Neo Hub, the app's main page (undefined when the Hub is switched off). */
   onHome?: () => void
+  /** Glass menu bar in the Hub theme: a highlight glides under the pointer, icons lift (AtlasSkin.css). */
+  menu?: boolean
 }
 
-export type Page = 'home' | 'brief' | 'trade' | 'portfolio' | 'net' | 'ruview' | 'godseye' | 'studio' | 'viraltech'
+export type Page = 'home' | 'brief' | 'trade' | 'portfolio' | 'net' | 'ruview' | 'godseye' | 'studio' | 'viraltech' | 'max'
 
 const STATUS_KEY = { connecting: 'feedConnecting', live: 'feedLive', polling: 'feedDelayed', demo: 'feedSimulated', error: 'feedError' } as const satisfies Record<FeedStatus, string>
 const CONF_KEY = { Low: 'confLow', Medium: 'confMedium', High: 'confHigh' } as const
 
-export function TopBar({ inst, quote, lastPrice, tf, onTf, status, source, error, toggles, onToggle, onSettings, analysis, buyShare, onAnalyst, page, onPage, equity, dayPL, brief, onHome }: Props) {
+export function TopBar({ inst, quote, lastPrice, tf, onTf, status, source, error, toggles, onToggle, onSettings, analysis, buyShare, onAnalyst, page, onPage, equity, dayPL, brief, onHome, menu = false }: Props) {
   const t = useT()
   const vi = useLang() === 'vi'
   const chg = quote?.change ?? 0
+  // the menu bar's hover highlight: moved with CSS variables (transform only), no re-render
+  const nav = useRef<HTMLElement>(null)
+  const hover = (e: PointerEvent<HTMLElement>) => {
+    const b = (e.target as HTMLElement).closest('button')
+    const bar = nav.current
+    if (!b || !bar || e.pointerType === 'touch') return
+    bar.style.setProperty('--hx', `${b.offsetLeft}px`)
+    bar.style.setProperty('--hy', `${b.offsetTop}px`)
+    bar.style.setProperty('--hw', `${b.offsetWidth}px`)
+    bar.style.setProperty('--hh', `${b.offsetHeight}px`)
+    bar.classList.add('mb-in')
+  }
+  const leave = () => nav.current?.classList.remove('mb-in')
   return (
     <header className="topbar">
       <div className="brand">
@@ -52,24 +68,26 @@ export function TopBar({ inst, quote, lastPrice, tf, onTf, status, source, error
           </span>
         </div>
       </div>
-      <nav className="nav">
+      <nav className={menu ? 'nav menubar' : 'nav'} ref={nav} onPointerOver={menu ? hover : undefined} onPointerLeave={menu ? leave : undefined}>
+        {menu && <span className="mb-hover" aria-hidden="true" />}
         {onHome && (
           <button className="nav-hub" onClick={onHome} title={vi ? 'Về Neo Hub, trang chính' : 'Back to the Neo Hub, the main page'}>
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-              <path d="M4 4h6v6H4zM14 4h6v6h-6zM4 14h6v6H4zM14 14h6v6h-6z" />
-            </svg>
+            <NavIcon d="M4 4h6v6H4zM14 4h6v6h-6zM4 14h6v6H4zM14 14h6v6h-6z" />
             Hub
           </button>
         )}
         {brief && (
           <button className={page === 'brief' ? 'on' : ''} onClick={() => onPage('brief')}>
+            {menu && <NavIcon d="M6 3h9l4 4v14H6zM14 3v5h5M9 13h7M9 17h5" />}
             {onHome ? (vi ? 'Bản tin' : 'Brief') : 'Neo Brief'}
           </button>
         )}
         <button className={page === 'trade' ? 'on' : ''} onClick={() => onPage('trade')}>
+          {menu && <NavIcon d="M4 20V10M10 20V4M16 20v-8M22 20H2" />}
           {brief ? (vi ? 'Bàn giao dịch' : 'Trading desk') : t('trade')}
         </button>
         <button className={page === 'portfolio' ? 'on' : ''} onClick={() => onPage('portfolio')}>
+          {menu && <NavIcon d="M3 7h18v13H3zM16 7V4H8v3M3 12h18" />}
           {t('portfolio')}
           <span className={`nav-pl mono ${tone(dayPL)}`}>{fmtUsd(equity)}</span>
         </button>
@@ -144,5 +162,13 @@ export function TopBar({ inst, quote, lastPrice, tf, onTf, status, source, error
         </svg>
       </button>
     </header>
+  )
+}
+
+function NavIcon({ d }: { d: string }) {
+  return (
+    <svg className="nav-ico" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d={d} />
+    </svg>
   )
 }

@@ -1,0 +1,131 @@
+/* ---------- The app frame and Atlas in the Hub theme (App.tsx, class .atlas-skin, AI rule agentGlass) ----------
+   Re-points the old navy palette (index.css :root) at the chosen Hub theme, so the top bar, Brief,
+   Trading desk and Portfolio match the Neo Hub without touching their components. Up/down colours stay
+   green/red: they carry meaning on a trading screen. The chart sits on a dark solid stage so candles stay
+   readable, and nothing here blurs or animates on its own (tablets redraw this page every second). */
+
+.app.atlas-skin {
+  --bg: #141116; --panel: #1d181e; --panel-2: #251f26; --line: #322a33; --line-2: #3f3540;
+  --text: #f3ece4; --muted: #ab9e92; --robot: #e7ad63; --gold: #e7ad63; --accent: #c98a45;
+  --acc: #e7ad63; --glow1: rgba(168, 101, 42, 0.32); --glow2: rgba(92, 47, 82, 0.34); --stage: #0f0c10;
+  background: radial-gradient(1100px 620px at 8% -12%, var(--glow1), transparent 62%), radial-gradient(900px 600px at 100% 110%, var(--glow2), transparent 60%), var(--bg);
+  color: var(--text);
+}
+.app.atlas-skin[data-skin='plum'] {
+  --bg: #151018; --panel: #1e1621; --panel-2: #271d2b; --line: #352839; --line-2: #433246;
+  --text: #f5ecf2; --muted: #b19eac; --robot: #eba6c0; --gold: #eba6c0; --accent: #c4708f;
+  --acc: #eba6c0; --glow1: rgba(142, 58, 94, 0.32); --glow2: rgba(42, 106, 102, 0.3); --stage: #0f0b11;
+}
+.app.atlas-skin[data-skin='moss'] {
+  --bg: #101310; --panel: #181c17; --panel-2: #20251f; --line: #2c322a; --line-2: #394036;
+  --text: #eef0e8; --muted: #a6ac9e; --robot: #dca274; --gold: #dca274; --accent: #b07a4c;
+  --acc: #dca274; --glow1: rgba(138, 82, 48, 0.3); --glow2: rgba(60, 92, 67, 0.32); --stage: #0b0e0b;
+}
+
+/* panels: solid theme colours instead of the navy glass, no live blur */
+.atlas-skin .panel { background: color-mix(in srgb, var(--panel) 92%, transparent); border-color: var(--line); -webkit-backdrop-filter: none; backdrop-filter: none; border-radius: 14px; }
+.atlas-skin .chart-panel { background: var(--stage); }
+.atlas-skin .topbar { background: color-mix(in srgb, var(--bg) 78%, transparent); border-color: var(--line); -webkit-backdrop-filter: none; backdrop-filter: none; }
+.atlas-skin .brand b { color: var(--text); }
+.atlas-skin .app-ver { color: var(--acc); }
+.atlas-skin .nav-hub { color: var(--acc) !important; }
+.atlas-skin :is(.seg, .search) { background: rgba(255, 255, 255, 0.05); border-color: var(--line); }
+.atlas-skin .right-tabs > .dm-pill, .atlas-skin .al-tabs > .dm-pill { box-shadow: inset 0 -2px 0 var(--acc); }
+
+/* ---------- menu bar (TopBar.tsx, nav.menubar): a glass capsule; a highlight glides to the hovered tab ---------- */
+.nav.menubar {
+  position: relative; isolation: isolate; align-items: center; gap: 2px; padding: 4px; margin-right: 6px;
+  border: 1px solid var(--line); border-radius: 999px;
+  background: linear-gradient(140deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.025) 60%), color-mix(in srgb, var(--panel) 70%, transparent);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.18), 0 10px 24px -14px rgba(0, 0, 0, 0.7);
+}
+.nav.menubar button {
+  position: relative; z-index: 1; align-items: center; gap: 7px; padding: 7px 14px; border-radius: 999px;
+  color: var(--muted); font-weight: 600; background: none;
+  transition: color 0.25s ease, transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.nav.menubar button:hover { color: var(--text); }
+.nav.menubar button:active { transform: scale(0.94); transition-duration: 0.08s; }
+.nav.menubar button.on { color: var(--text); background: none; }
+.nav.menubar .nav-ico { flex: none; transition: transform 0.45s cubic-bezier(0.34, 1.56, 0.64, 1); }
+.nav.menubar button:hover .nav-ico { transform: translateY(-2px) rotate(-6deg) scale(1.12); }
+.nav.menubar button.on .nav-ico { color: var(--acc); }
+/* the selected tab's pill (lib/slidePill.ts glides it on click) */
+.nav.menubar > .dm-pill { border-radius: 999px; background: color-mix(in srgb, var(--acc) 24%, transparent); box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.22), 0 0 0 1px color-mix(in srgb, var(--acc) 35%, transparent); }
+/* without the motion rule there is no sliding pill: the selected tab carries its own */
+.nav.menubar:not(.has-pill) button.on { background: color-mix(in srgb, var(--acc) 24%, transparent); }
+/* hover highlight: follows the pointer with a soft spring */
+.mb-hover {
+  position: absolute; z-index: 0; left: 0; top: 0; width: var(--hw, 0); height: var(--hh, 0); border-radius: 999px; pointer-events: none;
+  background: rgba(255, 255, 255, 0.09); opacity: 0;
+  transform: translate(var(--hx, 0), var(--hy, 0)) scale(0.9);
+  transition: transform 0.45s cubic-bezier(0.22, 1.2, 0.36, 1), width 0.45s cubic-bezier(0.22, 1.2, 0.36, 1), opacity 0.25s ease;
+}
+.nav.menubar.mb-in .mb-hover { opacity: 1; transform: translate(var(--hx, 0), var(--hy, 0)); }
+.nav.menubar .nav-pl { color: inherit; opacity: 0.8; }
+
+@media (max-width: 699px) {
+  .nav.menubar { margin: 2px 0 6px; width: 100%; box-sizing: border-box; justify-content: space-between; border-right: 1px solid var(--line); }
+  .nav.menubar button { flex: 1 1 auto; justify-content: center; padding: 8px 8px; gap: 5px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .nav.menubar button, .nav.menubar .nav-ico, .mb-hover { transition: none; }
+}
+
+/* ---------- Neo's chat on every page, Iris included (class .neo-skin): its own variables, so pages keep their colours ---------- */
+.app.neo-skin { --sk-bg: #141116; --sk-line: #3a3039; --sk-text: #f3ece4; --sk-muted: #ab9e92; --sk-acc: #e7ad63; }
+.app.neo-skin[data-skin='plum'] { --sk-bg: #151018; --sk-line: #3e3043; --sk-text: #f5ecf2; --sk-muted: #b19eac; --sk-acc: #eba6c0; }
+.app.neo-skin[data-skin='moss'] { --sk-bg: #101310; --sk-line: #363d34; --sk-text: #eef0e8; --sk-muted: #a6ac9e; --sk-acc: #dca274; }
+
+/* ---------- Neo's brain button, chat panel and pop-up note (JarvisFab.tsx, JarvisAlert.tsx) in the same glass ---------- */
+.neo-skin .jfab {
+  color: var(--sk-acc); border-color: color-mix(in srgb, var(--sk-acc) 55%, transparent);
+  background: radial-gradient(circle at 50% 35%, color-mix(in srgb, var(--sk-acc) 30%, transparent), color-mix(in srgb, var(--sk-bg) 92%, #000) 72%);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.25), 0 12px 28px -8px rgba(0, 0, 0, 0.65);
+  animation: none;
+}
+/* a soft ring breathes out of the button (transform/opacity only) */
+.neo-skin .jfab::after { content: ''; position: absolute; inset: -1px; border-radius: 50%; border: 1px solid color-mix(in srgb, var(--sk-acc) 60%, transparent); opacity: 0; pointer-events: none; }
+.neo-skin .jfab:not(.still)::after { animation: sk-ring 3.2s ease-out infinite; }
+.neo-skin .jfab.busy:not(.still)::after { animation-duration: 1.2s; }
+.neo-skin .jfab:hover { transform: translateY(-2px) scale(1.05); }
+.neo-skin .jfab:active { transform: scale(0.94); }
+.neo-skin .jfab-synapse { stroke: color-mix(in srgb, var(--sk-acc) 60%, #fff); }
+@keyframes sk-ring { 0% { opacity: 0.7; transform: scale(1); } 100% { opacity: 0; transform: scale(1.45); } }
+
+.neo-skin .jfab-panel {
+  border-radius: 24px; clip-path: none; border-color: var(--sk-line);
+  background: linear-gradient(150deg, color-mix(in srgb, var(--sk-acc) 12%, transparent), rgba(255, 255, 255, 0.03) 45%), var(--sk-bg);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.2), 0 30px 60px -20px rgba(0, 0, 0, 0.75);
+  overflow: hidden;
+}
+@media (hover: hover) and (min-width: 821px) {
+  .neo-skin .jfab-panel { background: linear-gradient(150deg, color-mix(in srgb, var(--sk-acc) 14%, transparent), rgba(255, 255, 255, 0.04) 45%), color-mix(in srgb, var(--sk-bg) 72%, transparent); -webkit-backdrop-filter: blur(24px) saturate(160%); backdrop-filter: blur(24px) saturate(160%); }
+}
+.neo-skin .jfab-head { border-color: var(--sk-line); padding: 12px 14px; }
+.neo-skin .jfab-title b { color: var(--sk-text); font-family: 'Unbounded', Inter, system-ui, sans-serif; font-weight: 600; letter-spacing: 0.02em; }
+.neo-skin .jfab-x { border-radius: 999px; border-color: var(--sk-line); padding: 5px 10px; }
+.neo-skin .jfab-x:hover { border-color: var(--sk-acc); }
+.neo-skin .jfab-list { padding: 12px 14px; gap: 10px; }
+.neo-skin .jfab-empty { color: var(--sk-muted); font-size: 13px; }
+.neo-skin .jfab-msg { border-radius: 16px; }
+.neo-skin .jfab-msg.me { background: color-mix(in srgb, var(--sk-acc) 20%, transparent); border-color: color-mix(in srgb, var(--sk-acc) 40%, transparent); border-bottom-right-radius: 6px; }
+.neo-skin .jfab-msg.jarvis { background: rgba(255, 255, 255, 0.06); border-color: var(--sk-line); border-bottom-left-radius: 6px; }
+.neo-skin .jfab-input { border-color: var(--sk-line); padding: 10px 12px 12px; gap: 8px; }
+.neo-skin .jfab-input input { border-radius: 999px; border-color: var(--sk-line); background: rgba(0, 0, 0, 0.28); padding: 10px 16px; transition: border-color 0.2s ease; }
+.neo-skin .jfab-input input:focus { border-color: var(--sk-acc); }
+.neo-skin .jfab-input .al-save { border-radius: 999px; padding: 9px 16px; background: var(--sk-acc); color: #1d1418; border: 0; font-weight: 600; transition: transform 0.15s ease, opacity 0.2s ease; }
+.neo-skin .jfab-input .al-save:disabled { opacity: 0.4; }
+.neo-skin .jfab-input .al-save:active:not(:disabled) { transform: scale(0.95); }
+.neo-skin .jfab-mic { color: var(--sk-acc); border-color: color-mix(in srgb, var(--sk-acc) 55%, transparent); background: color-mix(in srgb, var(--sk-acc) 12%, transparent); }
+.neo-skin .jfab-mic.on { color: #1d1418; background: var(--sk-acc); animation: none; }
+.neo-skin .jfab-panel :is(.al-save, .pr-rescan) { border-radius: 999px; }
+.neo-skin .jfab-panel .pr-rescan { color: var(--sk-acc); border-color: color-mix(in srgb, var(--sk-acc) 55%, transparent); background: color-mix(in srgb, var(--sk-acc) 10%, transparent); }
+
+.neo-skin .jarvis-alert {
+  border-radius: 20px; clip-path: none; border-color: var(--sk-line);
+  background: linear-gradient(150deg, color-mix(in srgb, var(--sk-acc) 14%, transparent), rgba(255, 255, 255, 0.03) 50%), var(--sk-bg);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.2), 0 20px 44px -16px rgba(0, 0, 0, 0.7);
+}
+.neo-skin .ja-body b { color: var(--sk-acc); }
+.neo-skin .ja-show { border-radius: 999px; color: var(--sk-acc); border-color: color-mix(in srgb, var(--sk-acc) 60%, transparent); background: color-mix(in srgb, var(--sk-acc) 12%, transparent); font-family: inherit; letter-spacing: 0.02em; text-transform: none; }

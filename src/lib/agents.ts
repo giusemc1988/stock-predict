@@ -11,7 +11,7 @@ import { fold, type HubPage } from './toolHub'
 export const HUB_AGENT = 'Neo'
 
 /** The pages the app shows; 'home' is the Hub. Same list as TopBar's Page. */
-export type AppPage = 'home' | 'brief' | 'trade' | 'portfolio' | 'net' | 'ruview' | 'godseye' | 'studio' | 'viraltech'
+export type AppPage = 'home' | 'brief' | 'trade' | 'portfolio' | 'net' | 'ruview' | 'godseye' | 'studio' | 'viraltech' | 'max'
 
 /** What each agent knows a project by, besides its name: old names and plain words, accents removed. */
 const ALIASES: Record<ProjectId, string[]> = {
@@ -41,7 +41,9 @@ export function agentProject(page: AppPage): Project | null {
               ? 'nova'
               : page === 'viraltech'
                 ? 'viraltech'
-                : null
+                : page === 'max'
+                  ? 'forge'
+                  : null
   return PROJECTS.find((p) => p.id === id) ?? null
 }
 

@@ -8,6 +8,7 @@ import type { Bi } from './hubText'
 export const NET_TEXT = {
   title: { en: 'Wi-Fi & Bluetooth', vi: 'Wi-Fi và Bluetooth' },
   back: { en: '← Hub', vi: '← Hub' },
+  agentSub: { en: 'Your home Wi-Fi and Bluetooth: who is on the network, channel crowding, speed and small tools. Your own devices only.', vi: 'Wi-Fi và Bluetooth ở nhà: ai đang vào mạng, kênh nào đông, tốc độ và vài công cụ nhỏ. Chỉ cho thiết bị của anh.' },
   agentLive: { en: 'Home agent connected', vi: 'Máy nhà đã kết nối' },
   agentOff: { en: 'Home agent offline', vi: 'Máy nhà đang tắt' },
   agentNotSetUp: { en: 'Home agent not set up yet', vi: 'Chưa cài chương trình trên máy nhà' },

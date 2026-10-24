@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useMemo, useState, type ReactNode } from 'react'
 import type { AlpacaDataKeys, MarketListRow } from '../data/providers'
 import type { AiRules } from '../lib/aiRules'
 import type { LearnState } from '../lib/autoLearn'
@@ -26,6 +26,7 @@ import { useNews } from '../hooks/useNews'
 import { StatRow } from './StatCard'
 import { SkRows } from './Skeleton'
 import { ActivityFeed, type FeedItem } from './ActivityFeed'
+import { AgentShell } from './AgentShell'
 
 interface Props {
   rules: AiRules
@@ -327,13 +328,26 @@ export function JarvisBrief(p: Props) {
     : []
   const openPick = (b: PickRow) => p.onSymbol(b.symbol, b.symbol.includes('/') ? 'crypto' : 'stock')
 
-  if (hub)
-    return (
-      <main className="brief-page hub">
-        <div className="hub-head" id="hub-top">
-          <span className="hub-hello">{L(hello).split('. ')[0]}.</span>
-          <LangSwitch />
-        </div>
+  if (hub) {
+    const glass = p.rules.agentGlass
+    // Neo Hub on: Atlas's Brief opens like the other agents (AgentShell), with the greeting as its tagline
+    // a plain function, not a component: the brain canvas must not remount on every render
+    const frame = (children: ReactNode) =>
+      glass ? (
+        <AgentShell id="atlas" className="brief-page hub" onBack={p.onHub} title={vi ? 'Atlas · Tóm tắt' : 'Atlas · Brief'} sub={L(hello)}>
+          {children}
+        </AgentShell>
+      ) : (
+        <main className="brief-page hub">
+          <div className="hub-head" id="hub-top">
+            <span className="hub-hello">{L(hello).split('. ')[0]}.</span>
+            <LangSwitch />
+          </div>
+          {children}
+        </main>
+      )
+    return frame(
+      <>
         <section className="bf-hero hub-hero">
         <BrainCore nodes={nodes} memory={memory} thinking={p.scan.busy || brief.writing} motion={p.rules.jarvisMotion} onNode={p.onNode} />
           {tools ? (
@@ -375,8 +389,9 @@ export function JarvisBrief(p: Props) {
         <HubTabbar onDesk={p.onDesk} tools={tools} onHub={p.onHub} />
         {showSignalFlow && <SignalFlowExplainer signal={showSignalFlow} of={buys.length} onClose={() => setShowSignalFlow(null)} />}
         {showReadiness && <AgentReadiness nodes={nodes} onClose={() => setShowReadiness(false)} />}
-      </main>
+      </>,
     )
+  }
 
   return (
     <main className="brief-page">

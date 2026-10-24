@@ -2,7 +2,7 @@
  * Version and "What's new". Bump APP_VERSION and add an entry to the top of RELEASES
  * with each update. The banner shows once per version, then stays dismissed.
  */
-export const APP_VERSION = '1.60.0'
+export const APP_VERSION = '1.61.0'
 
 export interface Release {
   version: string
@@ -13,6 +13,12 @@ export interface Release {
 }
 
 export const RELEASES: Release[] = [
+  {
+    version: '1.61.0',
+    date: '2026-10-24',
+    changes: ['Atlas Brief, Echo, Nexus, Viraltech and Max now open in the same glass look as the Neo Hub and Nova: the Hub wallpaper and theme, the agent\'s character next to its name, and glass cards. The Trading desk and Portfolio take the Hub theme\'s colours (the chart keeps a dark background so candles stay clear), and the top menu is a glass bar where a highlight glides to the tab under your mouse. Neo\'s brain button, chat box and pop-up notes take the same glass on every page. Max has its own page: app version, the code tasks Claude is working on, the latest updates and a box to ask for a fix or a new feature. Viraltech\'s back button now returns to the Hub. Off switch in Settings > AI rules.'],
+    changesVi: ['Brief của Atlas, Echo, Nexus, Viraltech và Max giờ mở ra cùng kiểu kính như Neo Hub và Nova: cùng hình nền và theme của Hub, nhân vật của agent cạnh tên, thẻ kính. Bàn giao dịch và Portfolio đổi sang màu theme của Hub (biểu đồ vẫn nền tối cho nến rõ), menu phía trên thành thanh kính, có vệt sáng lướt theo chuột. Nút bộ não, khung chat và thông báo của Neo cũng theo kiểu kính trên mọi trang. Max có trang riêng: phiên bản app, các việc code Claude đang làm, cập nhật gần đây và ô nhờ sửa lỗi hay thêm tính năng. Nút quay lại của Viraltech giờ về Hub. Tắt được trong Cài đặt > Quy tắc AI.'],
+  },
   {
     version: '1.60.0',
     date: '2026-10-24',

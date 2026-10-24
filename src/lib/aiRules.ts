@@ -99,6 +99,7 @@ export interface AiRules {
   novaPresets: boolean // Nova presets: save mode, size, post kit and video settings under a name (KV nova:presets) and load them in one tap
   novaHandoff: boolean // a finished Nova video can be sent to Viraltech's waiting list; posting still needs Chanh's OK in chat
   novaLemo: boolean // Nova can make the video with Lemo-Opuscar on the PC while nova/lemo-bridge.mjs runs there; with the PC off Lemo is greyed out and nothing is sent to it
+  agentGlass: boolean // Atlas Brief, Echo, Nexus, Viraltech and Max pages in the Hub's glass look with their agent's character (off: the plain dark pages)
   novaGlass: boolean // Nova in the Hub's liquid glass look with a sticky 5-step bar; off = the plain cards
   ruviewOn: boolean // RuView sensing page: presence from Wi-Fi signals via ESP32 nodes, runs on the home PC
   toolHub: boolean // Atlas Brief: today's pick sits next to the scoreboard (the Tool Hub graph moved into the Neo Hub search)
@@ -224,6 +225,7 @@ export const DEFAULT_AI_RULES: AiRules = {
   ruviewOn: true,
   godsEyeOn: true,
   videoStudioOn: true,
+  agentGlass: true,
   novaGlass: true,
   novaLemo: true,
   novaHandoff: true,
@@ -359,6 +361,7 @@ export const RULE_FIELDS: RuleField[] = [
   { group: 'jarvis', key: 'videoStudioOn', en: 'Video Studio page: bilingual (EN + VI) faceless videos made in your browser, 3 modes, MP4 download and Title Lab; never posts by itself', vi: 'Trang Video Studio: video không lộ mặt song ngữ (EN + VI) làm ngay trên trình duyệt, 3 chế độ, tải MP4 và Title Lab; không bao giờ tự đăng' },
   { group: 'jarvis', key: 'novaHandoff', en: 'Send a finished Nova video to Viraltech: it waits there for you; nothing is posted until you say yes to Claude', vi: 'Gửi video Nova đã xong sang Viraltech: video nằm chờ ở đó; không đăng gì cho tới khi anh đồng ý với Claude' },
   { group: 'jarvis', key: 'novaLemo', en: 'Nova can make the video with Lemo-Opuscar on your PC: a whole film drawn in code, a different style each time. Only while the PC is on and runs nova/lemo-bridge.mjs; when it is off, Lemo is greyed out and nothing is sent to it', vi: 'Nova có thể dựng video bằng Lemo-Opuscar trên máy PC: cả phim vẽ bằng code, mỗi lần một style khác. Chỉ khi máy PC bật và chạy nova/lemo-bridge.mjs; máy tắt thì Lemo bị mờ và không gửi gì cho nó' },
+  { group: 'jarvis', key: 'agentGlass', en: 'Agent pages in the glass look of the Hub: Atlas Brief, Echo, Nexus, Viraltech and Max open with their character, the same wallpaper and theme (off: the plain dark pages)', vi: 'Trang các agent kiểu kính giống Hub: Brief của Atlas, Echo, Nexus, Viraltech và Max mở ra với nhân vật, cùng hình nền và theme (tắt: trang tối thường)' },
   { group: 'jarvis', key: 'novaGlass', en: 'Nova in the glass look of the Hub: same themes, a 5-step bar (Idea, Script, Footage, Voice & make, Post kit) and a gallery of your videos (off: plain cards)', vi: 'Nova kiểu kính giống Hub: cùng theme, thanh 5 bước (Ý tưởng, Kịch bản, Hình, Giọng & dựng, Bộ đăng bài) và thư viện video (tắt: thẻ thường)' },
   { group: 'jarvis', key: 'novaPresets', en: 'Nova presets: save the mode, size, post kit and video settings under a name and load them again in one tap, on any device', vi: 'Preset cho Nova: lưu chế độ, khung hình, bộ đăng bài và chỉnh video thành một tên, chạm một lần là dùng lại, trên mọi máy' },
   { group: 'jarvis', key: 'novaUploads', en: 'Nova uses your own photos and clips for the voiced server video: up to 10 files, 50 MB each, clips up to 60 seconds, in the order you set; kept 3 days', vi: 'Nova dùng ảnh và clip của anh cho video máy chủ có giọng: tối đa 10 file, mỗi file 50 MB, clip tối đa 60 giây, theo thứ tự anh xếp; giữ 3 ngày' },
