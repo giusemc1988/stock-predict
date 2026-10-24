@@ -8,6 +8,7 @@ import type { LearnState } from '../lib/autoLearn'
 import { RELEASES, APP_VERSION } from '../data/releases'
 import { fmtPct, fmtUsd, tone } from '../lib/format'
 import { useLang } from '../lib/i18n'
+import { GODS_EYE_HEALTH } from '../lib/godsEye'
 import { greeting } from '../lib/jarvis'
 import { practiceEquity, PRACTICE_START, type PickRow, type PracticeState } from '../lib/practice'
 import { PROJECTS, pageOn, readyCount, searchHub, type Hit, type HubOn, type Project, type ProjectState } from '../lib/projects'
@@ -139,7 +140,7 @@ export function useHubModel(p: HubProps) {
       .then((j: { offline?: boolean; error?: string }) => setHomeUp(!j.offline && !j.error))
       .catch(() => !ac.signal.aborted && setHomeUp(false))
     if (p.on.godseye)
-      fetch('/api/godseye/status', { signal: ac.signal })
+      fetch(GODS_EYE_HEALTH, { signal: ac.signal })
         .then((r) => (r.ok ? r.json() : null))
         .then((j: { layers?: { id: string; state: string }[] } | null) => setGeo(j?.layers ?? []))
         .catch(() => !ac.signal.aborted && setGeo([]))

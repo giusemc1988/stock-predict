@@ -1,0 +1,135 @@
+/*
+ * Iris: our layer over the upstream God's Eye View build (copied to dist/iris/ and linked from
+ * index.html by .github/workflows/argus.yml). Upstream files stay untouched, so a new pinned
+ * commit only needs these selectors checked.
+ *
+ * Everywhere: no voice dock (this deploy has no OpenAI key, so it can never work).
+ * Phone/tablet (html.iris-compact, set by iris.js): no decorative HUD text, no title, and the
+ * panel stacks live in one drawer opened from the Iris bar instead of floating over the globe.
+ */
+
+#gev-voice-control,
+#gev-voice-provider-field,
+#title-bar .subtitle {
+  display: none !important;
+}
+
+/* the dock's tray offsets are computed from the voice width: zero it so Location and Presets sit side by side */
+#command-dock,
+:root[data-ui-theme='cyber'] #command-dock {
+  --dock-voice-width: 0px !important;
+}
+@media (max-width: 900px) {
+  #command-dock,
+  :root[data-ui-theme='cyber'] #command-dock {
+    --dock-side-compact: min(9.5rem, calc(50vw - 1.5rem)) !important;
+  }
+  /* upstream cuts the labels to 2.3rem to make room for the voice button */
+  #command-dock .panel-title,
+  #command-dock .location-toolbar-label {
+    max-width: none !important;
+  }
+}
+
+/* ── Iris bar ─────────────────────────────── */
+#iris-bar {
+  position: fixed;
+  top: max(10px, env(safe-area-inset-top));
+  left: 10px;
+  z-index: 1300;
+  display: none;
+  gap: 6px;
+  font: 600 12px/1 Inter, system-ui, sans-serif;
+}
+html.iris-compact #iris-bar {
+  display: flex;
+}
+#iris-bar button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 40px;
+  padding: 0 12px;
+  border-radius: 20px;
+  border: 1px solid rgba(120, 220, 255, 0.28);
+  background: rgba(8, 16, 24, 0.82);
+  color: #d8f3ff;
+  font: inherit;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+}
+#iris-bar button[aria-pressed='true'] {
+  border-color: #5fd4ff;
+  background: rgba(20, 70, 96, 0.92);
+  color: #fff;
+}
+#iris-bar svg {
+  width: 16px;
+  height: 16px;
+  flex: none;
+}
+
+/* ── Compact: phone and tablet ─────────────── */
+html.iris-compact #intel-hud,
+html.iris-compact #title-bar,
+html.iris-compact #style-indicator,
+html.iris-compact #left-panel-stack,
+html.iris-compact #right-context-rail {
+  display: none !important;
+}
+
+html.iris-compact[data-iris-open='left'] #left-panel-stack,
+html.iris-compact[data-iris-open='right'] #right-context-rail {
+  display: flex !important;
+  flex-direction: column;
+  gap: 8px;
+  position: fixed !important;
+  top: calc(max(10px, env(safe-area-inset-top)) + 50px) !important;
+  bottom: auto !important;
+  left: 8px !important;
+  right: auto !important;
+  width: min(360px, calc(100vw - 16px)) !important;
+  max-height: calc(100dvh - 190px) !important;
+  overflow-y: auto !important;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  padding: 8px;
+  border-radius: 14px;
+  background: rgba(6, 12, 18, 0.9);
+  border: 1px solid rgba(120, 220, 255, 0.2);
+  transform: none !important;
+  pointer-events: auto !important;
+  z-index: 1250 !important;
+}
+
+/* the panels inside are fixed-positioned by upstream; in the drawer they simply stack */
+html.iris-compact[data-iris-open='left'] #left-panel-stack > *,
+html.iris-compact[data-iris-open='right'] #right-context-rail > * {
+  position: relative !important;
+  inset: auto !important;
+  width: 100% !important;
+  max-width: none !important;
+  max-height: none !important;
+  margin: 0 !important;
+  transform: none !important;
+  pointer-events: auto !important;
+  flex: none !important;
+}
+html.iris-compact[data-iris-open='left'] #left-panel-stack > [hidden],
+html.iris-compact[data-iris-open='right'] #right-context-rail > [hidden] {
+  display: none !important;
+}
+
+/* camera buttons sit top-right, clear of the Iris bar */
+html.iris-compact #top-center-actions {
+  top: max(10px, env(safe-area-inset-top)) !important;
+  right: 10px !important;
+  left: auto !important;
+  transform: none !important;
+}
+@media (max-width: 480px) {
+  html.iris-compact #top-center-actions {
+    top: calc(max(10px, env(safe-area-inset-top)) + 50px) !important;
+    flex-direction: column;
+  }
+}

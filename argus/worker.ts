@@ -4,6 +4,8 @@
  * Static files come from the pinned upstream build (see upstream.json).
  */
 import { toOpenSky } from './adsbLol'
+import { LAYERS, layerState, type Probe } from '../src/lib/godsEye'
+import { digitrafficRows, type DtLocations, type DtVessel } from './digitraffic'
 
 interface Env {
   ASSETS: { fetch: (r: Request) => Promise<Response> }
@@ -112,41 +114,83 @@ async function flights(url: URL, env: Env): Promise<Response> {
   return (await fromSnapshot(env, 'flights')) ?? json({ error: 'Flights unavailable', detail: `Home relay off, no recent snapshot, and adsb.lol, adsb.fi, airplanes.live and OpenSky all refused. ${nearWhy}`.trim() }, 502)
 }
 
+/**
+ * Ships: Fintraffic Digitraffic AIS (free, no key, Baltic Sea around Finland), shaped like the
+ * upstream AISStream rows so the vessel layer reads it as a live feed. AISStream itself needs a key.
+ */
+async function vessels(): Promise<Response> {
+  return cached('vessels', 60, async () => {
+    const dt = (path: string) => fetch(`https://meri.digitraffic.fi/api/ais/v1/${path}`, { headers: { accept: 'application/json', 'accept-encoding': 'gzip', 'digitraffic-user': 'argus-hub', 'user-agent': UA }, signal: AbortSignal.timeout(15000) })
+    const [loc, meta] = await Promise.all([dt('locations'), dt('vessels').catch(() => null)])
+    if (!loc.ok) return loc
+    const body = digitrafficRows((await loc.json()) as DtLocations, meta?.ok ? ((await meta.json()) as DtVessel[]) : [])
+    return new Response(JSON.stringify(body), { headers: { 'content-type': 'application/json', 'x-feed-source': 'Digitraffic AIS', 'x-vessel-count': String(body.rows.length) } })
+  })
+}
+
 export default {
   async fetch(req: Request, env: Env): Promise<Response> {
     const url = new URL(req.url)
     const p = url.pathname
     // static files are served before the Worker runs; their headers live in _headers
     if (!p.startsWith('/api/')) return env.ASSETS.fetch(req)
+    if (p === '/api/overpass') return json({ unavailable: true, code: 'OVERPASS_NOT_CONFIGURED', retryable: false })
     if (req.method !== 'GET' && req.method !== 'HEAD') return json({ error: 'GET only' }, 405)
-    if (p === '/api/flights') return flights(url, env)
-    if (p === '/api/military') {
-      // home relay (live) > direct feeds > GitHub snapshot
-      const home = await env.HUB?.fetch(new Request('https://hub/api/home/military', { signal: AbortSignal.timeout(7000) })).catch(() => null)
-      if (home?.ok) {
-        const text = await home.text()
-        if (!/"offline"\s*:\s*true/.test(text)) return new Response(text, { headers: { 'content-type': 'application/json', 'x-flight-source': 'home relay', ...API_HEADERS } })
-      }
-      const direct = await cached('military', 12, async () => {
-        const r = await get('https://api.adsb.lol/v2/mil', 6000).catch(() => null)
-        if (r?.ok) return r
-        const fi = await get('https://opendata.adsb.fi/api/v2/mil', 6000).catch(() => null)
-        return fi?.ok ? fi : get('https://api.airplanes.live/v2/mil', 6000)
-      })
-      return direct.ok ? direct : ((await fromSnapshot(env, 'military')) ?? direct)
-    }
-    const sat = /^\/api\/celestrak\/([a-z0-9-]{1,40})$/i.exec(p)
-    if (sat) {
-      const group = sat[1].toLowerCase()
-      // orbits baked in at deploy (refreshed every 2 h by the workflow); live CelesTrak only as a last try
-      const baked = await env.ASSETS.fetch(new Request(new URL(`/tle/${group}.txt`, url)))
-      if (baked.ok && (baked.headers.get('content-type') ?? '').startsWith('text/plain')) return new Response(baked.body, { headers: { 'content-type': 'text/plain', 'x-tle-source': 'baked', ...API_HEADERS } })
-      return cached(`celestrak/${group}`, 7200, async () => {
-        const r = await fetch(`https://celestrak.org/NORAD/elements/gp.php?GROUP=${group}&FORMAT=tle`, { headers: { 'user-agent': UA }, signal: AbortSignal.timeout(20000) })
-        return r.ok ? new Response(r.body, { headers: { 'content-type': 'text/plain' } }) : r
-      })
-    }
-    if (p === '/api/vessels') return json({ status: 'missing-key', error: 'AISSTREAM_API_KEY is not set', hasKey: false, vessels: [] }, 503)
-    return json({ error: 'Not available on this deploy' }, 404)
+    if (p === '/api/health') return health(url, env)
+    return api(url, env)
   },
+}
+
+/** Every GET /api route the globe reads. */
+async function api(url: URL, env: Env): Promise<Response> {
+  const p = url.pathname
+  if (p === '/api/flights') return flights(url, env)
+  if (p === '/api/military') {
+    // home relay (live) > direct feeds > GitHub snapshot
+    const home = await env.HUB?.fetch(new Request('https://hub/api/home/military', { signal: AbortSignal.timeout(7000) })).catch(() => null)
+    if (home?.ok) {
+      const text = await home.text()
+      if (!/"offline"\s*:\s*true/.test(text)) return new Response(text, { headers: { 'content-type': 'application/json', 'x-flight-source': 'home relay', ...API_HEADERS } })
+    }
+    const direct = await cached('military', 12, async () => {
+      const r = await get('https://api.adsb.lol/v2/mil', 6000).catch(() => null)
+      if (r?.ok) return r
+      const fi = await get('https://opendata.adsb.fi/api/v2/mil', 6000).catch(() => null)
+      return fi?.ok ? fi : get('https://api.airplanes.live/v2/mil', 6000)
+    })
+    return direct.ok ? direct : ((await fromSnapshot(env, 'military')) ?? direct)
+  }
+  const sat = /^\/api\/celestrak\/([a-z0-9-]{1,40})$/i.exec(p)
+  if (sat) {
+    const group = sat[1].toLowerCase()
+    // orbits baked in at deploy (refreshed every 2 h by the workflow); live CelesTrak only as a last try
+    const baked = await env.ASSETS.fetch(new Request(new URL(`/tle/${group}.txt`, url)))
+    if (baked.ok && (baked.headers.get('content-type') ?? '').startsWith('text/plain')) return new Response(baked.body, { headers: { 'content-type': 'text/plain', 'x-tle-source': 'baked', ...API_HEADERS } })
+    return cached(`celestrak/${group}`, 7200, async () => {
+      const r = await fetch(`https://celestrak.org/NORAD/elements/gp.php?GROUP=${group}&FORMAT=tle`, { headers: { 'user-agent': UA }, signal: AbortSignal.timeout(20000) })
+      return r.ok ? new Response(r.body, { headers: { 'content-type': 'text/plain' } }) : r
+    })
+  }
+  if (p === '/api/vessels') return vessels()
+  // Overpass (OSM outlines) is operator-configured upstream; saying "not configured" makes the app skip it quietly
+  // instead of showing "OVERPASS TEMPORARILY UNAVAILABLE" on every view
+  if (p === '/api/overpass/status') return json({ configured: false })
+  return json({ error: 'Not available on this deploy' }, 404)
+}
+
+/**
+ * One small answer for the Hub: each data layer asked through the same routes the globe uses
+ * (a Worker cannot fetch another Worker's workers.dev URL, so the Hub cannot probe these itself).
+ */
+async function health(url: URL, env: Env): Promise<Response> {
+  const probe = async (path: string): Promise<Probe | null> => {
+    try {
+      const r = path.startsWith('http') ? await get(path, 10000) : await api(new URL(path, url), env)
+      return { status: r.status, contentType: r.headers.get('content-type') ?? '', body: (await r.text()).slice(0, 400) }
+    } catch {
+      return null
+    }
+  }
+  const layers = await Promise.all(LAYERS.map(async (l) => layerState(l.id, await probe(l.probe))))
+  return json({ at: Date.now(), layers }, 200, { 'cache-control': 'no-store' })
 }
