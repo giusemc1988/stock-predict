@@ -16,8 +16,8 @@ export const RELEASES: Release[] = [
   {
     version: '1.64.0',
     date: '2026-10-24',
-    changes: ["Iris runs the original God's Eye server code inside its own Cloudflare Worker instead of a Hugging Face Space (Hugging Face now charges for that), so it stays free and never sleeps: CCTV cameras, wildfires, storms, launches, transit, radio and place search are back. Overpass (ALPR cameras, outlines) is asked straight from your browser, since its servers refuse Cloudflare. Wind is still off."],
-    changesVi: ["Iris chạy luôn code máy chủ gốc của God's Eye trong Worker Cloudflare của mình thay vì Hugging Face Space (Hugging Face giờ thu phí), nên vẫn miễn phí và không bao giờ ngủ: camera CCTV, cháy rừng, bão, phóng tên lửa, giao thông công cộng, radio và tìm địa điểm đã có lại. Overpass (camera ALPR, viền toà nhà) do trình duyệt của anh hỏi thẳng, vì máy chủ Overpass chặn Cloudflare. Lớp gió vẫn tắt."],
+    changes: ["Iris runs the original God's Eye server code inside its own Cloudflare Worker instead of a Hugging Face Space (Hugging Face now charges for that), so it stays free and never sleeps: CCTV cameras, wildfires, storms, launches, transit, radio and place search are back. Overpass (ALPR cameras, outlines) is asked straight from your browser, since its servers refuse Cloudflare. The camera list is refreshed every 2 hours at build time so it opens instantly; wind is still off."],
+    changesVi: ["Iris chạy luôn code máy chủ gốc của God's Eye trong Worker Cloudflare của mình thay vì Hugging Face Space (Hugging Face giờ thu phí), nên vẫn miễn phí và không bao giờ ngủ: camera CCTV, cháy rừng, bão, phóng tên lửa, giao thông công cộng, radio và tìm địa điểm đã có lại. Overpass (camera ALPR, viền toà nhà) do trình duyệt của anh hỏi thẳng, vì máy chủ Overpass chặn Cloudflare. Danh sách camera được làm mới mỗi 2 giờ lúc build nên mở ra ngay; lớp gió vẫn tắt."],
   },
   {
     version: '1.63.0',
