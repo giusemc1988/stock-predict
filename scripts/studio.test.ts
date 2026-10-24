@@ -104,3 +104,14 @@ assert.ok(AREAS.length >= 20 && AREAS.every(([, la, lo]) => Math.abs(la) <= 90 &
 // every label has both languages
 for (const [k, v] of Object.entries({ ...STUDIO_TEXT, ...GE_TEXT })) assert.ok(v.en.trim() && v.vi.trim(), k)
 console.log('studio ok')
+
+// phone photos are shrunk to the export size, never enlarged; a clip with no usable length is read at 0
+{
+  const { fitSize, middleOf } = await import('../src/lib/studio/decode')
+  assert.deepEqual(fitSize(4000, 3000), { w: 1920, h: 1440 })
+  assert.deepEqual(fitSize(800, 600), { w: 800, h: 600 })
+  assert.equal(middleOf(10), 5)
+  assert.equal(middleOf(Infinity), 0)
+  assert.equal(middleOf(NaN), 0)
+  for (const k of ['mediaClipCodec', 'mediaHeic', 'mediaPhotoFormat', 'mediaSlow', 'mediaAdded'] as const) assert.ok(STUDIO_TEXT[k].vi && STUDIO_TEXT[k].en)
+}

@@ -2,7 +2,7 @@
  * Version and "What's new". Bump APP_VERSION and add an entry to the top of RELEASES
  * with each update. The banner shows once per version, then stays dismissed.
  */
-export const APP_VERSION = '1.61.0'
+export const APP_VERSION = '1.61.1'
 
 export interface Release {
   version: string
@@ -13,6 +13,12 @@ export interface Release {
 }
 
 export const RELEASES: Release[] = [
+  {
+    version: '1.61.1',
+    date: '2026-10-24',
+    changes: ['Nova Footage: adding photos or clips on a phone no longer fails with "The image source is not usable". A clip whose picture the phone cannot play (often HDR or 10-bit video) or a HEIC photo now gets a clear note under the picker, and the other files are still added. Added photos show as thumbnails you can remove, so the count matches what you see; big photos are shrunk to save the phone\'s memory.'],
+    changesVi: ['Footage của Nova: thêm ảnh hoặc clip trên điện thoại không còn báo lỗi "The image source is not usable". Clip mà máy không phát được hình (thường do quay HDR hoặc 10-bit) hay ảnh HEIC giờ có ghi chú rõ ngay dưới ô chọn, các file khác vẫn được thêm. Ảnh đã thêm hiện thành hình nhỏ có nút xoá, nên con số đếm khớp với những gì anh thấy; ảnh lớn được thu nhỏ để đỡ tốn bộ nhớ máy.'],
+  },
   {
     version: '1.61.0',
     date: '2026-10-24',

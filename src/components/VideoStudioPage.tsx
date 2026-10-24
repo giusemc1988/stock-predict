@@ -8,6 +8,7 @@ import { LIBRARY, fromText, libraryFor, titleLab, type Script, type StudioMode }
 import { drawFrame, plan, sizeOf, type Aspect, type Media } from '../lib/studio/render'
 import { SAMPLE_RATE, renderMusic } from '../lib/studio/audio'
 import { canExport, exportMp4 } from '../lib/studio/encode'
+import { DecodeError, loadMedia } from '../lib/studio/decode'
 import { STUDIO_TEXT, type StudioKey } from '../lib/studio/text'
 import { StudioRenderPanel } from './StudioRenderPanel'
 import { NovaTrends } from './NovaTrends'
@@ -51,30 +52,6 @@ function useActiveStep(): string {
   return active
 }
 
-/** A photo as is, or the middle frame of a clip as a labelled still. */
-async function loadMedia(file: File): Promise<Media> {
-  const url = URL.createObjectURL(file)
-  try {
-    if (file.type.startsWith('video/')) {
-      const v = document.createElement('video')
-      v.muted = true
-      v.playsInline = true
-      v.preload = 'auto'
-      v.src = url
-      await new Promise<void>((ok, bad) => {
-        v.onloadedmetadata = () => ok()
-        v.onerror = () => bad(new Error(file.name))
-      })
-      v.currentTime = Math.max(0, (v.duration || 0) / 2)
-      await new Promise<void>((ok) => (v.onseeked = () => ok()))
-      return { img: await createImageBitmap(v), still: true }
-    }
-    return { img: await createImageBitmap(file), still: false }
-  } finally {
-    URL.revokeObjectURL(url)
-  }
-}
-
 /** Bilingual Faceless Video Studio: script EN + VI, preview, MP4 export and Title Lab, all in the browser. */
 export function VideoStudioPage({ onBack, glass = true, trends = true, postKit = true, videoSettings = true, uploads = true, presets = true, lemo = true, handoff = true }: { onBack: () => void; glass?: boolean; trends?: boolean; postKit?: boolean; videoSettings?: boolean; uploads?: boolean; presets?: boolean; lemo?: boolean; handoff?: boolean }) {
   const lang = useLang()
@@ -99,7 +76,9 @@ export function VideoStudioPage({ onBack, glass = true, trends = true, postKit =
   const [presetRev, setPresetRev] = useState(0)
   const [fades, setFades] = useState(true)
   const [voice, setVoice] = useState(false)
-  const [media, setMedia] = useState<Media[]>([])
+  const [media, setMedia] = useState<(Media & { thumb: string })[]>([])
+  // what happened to the last files picked for the in-app video, shown under its picker
+  const [footMsg, setFootMsg] = useState<string[]>([])
   const [msg, setMsg] = useState<string | null>(null)
   const [busy, setBusy] = useState<string | null>(null)
   const [progress, setProgress] = useState(0)
@@ -165,12 +144,20 @@ export function VideoStudioPage({ onBack, glass = true, trends = true, postKit =
 
   const addMedia = async (files: FileList | null) => {
     if (!files?.length) return
+    setFootMsg([])
     setBusy(t('loadingMedia'))
     try {
-      const list = await Promise.all([...files].slice(0, MAX_MEDIA - media.length).map(loadMedia))
-      setMedia((m) => [...m, ...list].slice(0, MAX_MEDIA))
-    } catch (e) {
-      setMsg(`${t('mediaFailed')} ${(e as Error).message}`)
+      const picked = [...files].slice(0, MAX_MEDIA - media.length)
+      // one file a phone cannot open no longer throws away the others
+      const tries = await Promise.allSettled(picked.map(loadMedia))
+      const ok = tries.flatMap((r) => (r.status === 'fulfilled' ? [r.value] : []))
+      setMedia((m) => [...m, ...ok].slice(0, MAX_MEDIA))
+      const bad = tries.flatMap((r, i) => {
+        if (r.status === 'fulfilled') return []
+        const e = r.reason
+        return [`${t('mediaFailed')} ${picked[i].name}: ${e instanceof DecodeError ? t(e.key) : (e as Error)?.message ?? e}`]
+      })
+      setFootMsg(bad.length && ok.length ? [`${t('mediaAdded')} ${ok.length}.`, ...bad] : bad)
     } finally {
       setBusy(null)
     }
@@ -352,11 +339,25 @@ export function VideoStudioPage({ onBack, glass = true, trends = true, postKit =
           {usesMedia ? (
             <>
               <label className={`nv-drop${media.length >= MAX_MEDIA || busy ? ' off' : ''}`}>
-                <input type="file" accept="image/*,video/*" multiple disabled={media.length >= MAX_MEDIA || !!busy} onChange={(e) => void addMedia(e.target.files)} />
+                <input type="file" accept="image/*,video/*" multiple disabled={media.length >= MAX_MEDIA || !!busy} onChange={(e) => { void addMedia(e.target.files); e.target.value = '' }} />
                 <span>＋ {t('step3')}</span>
               </label>
               <p className="muted small">{t('mediaNote')}</p>
-              {media.length > 0 && <button className="btn small" onClick={() => setMedia([])}>{t('clear')}</button>}
+              {footMsg.map((m) => <p key={m} className="warn small">{m}</p>)}
+              {media.length > 0 && (
+                <div className="nv-up-grid">
+                  {media.map((m, i) => (
+                    <div key={m.thumb + i} className="nv-up-tile">
+                      <img src={m.thumb} alt="" />
+                      <span className="nv-up-n">{i + 1}</span>
+                      <div className="nv-up-act">
+                        <button className="btn small" aria-label={t('serverDelete')} title={t('serverDelete')} onClick={() => setMedia((list) => list.filter((_, j) => j !== i))}>✕</button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+              {media.length > 0 && <button className="btn small" onClick={() => { setMedia([]); setFootMsg([]) }}>{t('clear')}</button>}
             </>
           ) : (
             <p className="muted small">{t('footageAuto')}</p>
