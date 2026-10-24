@@ -624,8 +624,8 @@ export default function App() {
 
   return (
     <div
-      className={`app page-${shownPage === 'ruview' || shownPage === 'godseye' || shownPage === 'studio' || shownPage === 'viraltech' || shownPage === 'max' ? `net page-${shownPage}` : shownPage}${atlasSkin ? ' atlas-skin' : ''}`}
-      data-skin={atlasSkin ? hubTheme : undefined}
+      className={`app page-${shownPage === 'ruview' || shownPage === 'godseye' || shownPage === 'studio' || shownPage === 'viraltech' || shownPage === 'max' ? `net page-${shownPage}` : shownPage}${atlasSkin ? ' atlas-skin' : ''}${aiRules.agentGlass ? ' neo-skin' : ''}`}
+      data-skin={aiRules.agentGlass ? hubTheme : undefined}
       style={
         aiRules.resizePanels
           ? ({

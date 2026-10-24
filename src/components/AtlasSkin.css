@@ -71,3 +71,61 @@
 @media (prefers-reduced-motion: reduce) {
   .nav.menubar button, .nav.menubar .nav-ico, .mb-hover { transition: none; }
 }
+
+/* ---------- Neo's chat on every page, Iris included (class .neo-skin): its own variables, so pages keep their colours ---------- */
+.app.neo-skin { --sk-bg: #141116; --sk-line: #3a3039; --sk-text: #f3ece4; --sk-muted: #ab9e92; --sk-acc: #e7ad63; }
+.app.neo-skin[data-skin='plum'] { --sk-bg: #151018; --sk-line: #3e3043; --sk-text: #f5ecf2; --sk-muted: #b19eac; --sk-acc: #eba6c0; }
+.app.neo-skin[data-skin='moss'] { --sk-bg: #101310; --sk-line: #363d34; --sk-text: #eef0e8; --sk-muted: #a6ac9e; --sk-acc: #dca274; }
+
+/* ---------- Neo's brain button, chat panel and pop-up note (JarvisFab.tsx, JarvisAlert.tsx) in the same glass ---------- */
+.neo-skin .jfab {
+  color: var(--sk-acc); border-color: color-mix(in srgb, var(--sk-acc) 55%, transparent);
+  background: radial-gradient(circle at 50% 35%, color-mix(in srgb, var(--sk-acc) 30%, transparent), color-mix(in srgb, var(--sk-bg) 92%, #000) 72%);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.25), 0 12px 28px -8px rgba(0, 0, 0, 0.65);
+  animation: none;
+}
+/* a soft ring breathes out of the button (transform/opacity only) */
+.neo-skin .jfab::after { content: ''; position: absolute; inset: -1px; border-radius: 50%; border: 1px solid color-mix(in srgb, var(--sk-acc) 60%, transparent); opacity: 0; pointer-events: none; }
+.neo-skin .jfab:not(.still)::after { animation: sk-ring 3.2s ease-out infinite; }
+.neo-skin .jfab.busy:not(.still)::after { animation-duration: 1.2s; }
+.neo-skin .jfab:hover { transform: translateY(-2px) scale(1.05); }
+.neo-skin .jfab:active { transform: scale(0.94); }
+.neo-skin .jfab-synapse { stroke: color-mix(in srgb, var(--sk-acc) 60%, #fff); }
+@keyframes sk-ring { 0% { opacity: 0.7; transform: scale(1); } 100% { opacity: 0; transform: scale(1.45); } }
+
+.neo-skin .jfab-panel {
+  border-radius: 24px; clip-path: none; border-color: var(--sk-line);
+  background: linear-gradient(150deg, color-mix(in srgb, var(--sk-acc) 12%, transparent), rgba(255, 255, 255, 0.03) 45%), var(--sk-bg);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.2), 0 30px 60px -20px rgba(0, 0, 0, 0.75);
+  overflow: hidden;
+}
+@media (hover: hover) and (min-width: 821px) {
+  .neo-skin .jfab-panel { background: linear-gradient(150deg, color-mix(in srgb, var(--sk-acc) 14%, transparent), rgba(255, 255, 255, 0.04) 45%), color-mix(in srgb, var(--sk-bg) 72%, transparent); -webkit-backdrop-filter: blur(24px) saturate(160%); backdrop-filter: blur(24px) saturate(160%); }
+}
+.neo-skin .jfab-head { border-color: var(--sk-line); padding: 12px 14px; }
+.neo-skin .jfab-title b { color: var(--sk-text); font-family: 'Unbounded', Inter, system-ui, sans-serif; font-weight: 600; letter-spacing: 0.02em; }
+.neo-skin .jfab-x { border-radius: 999px; border-color: var(--sk-line); padding: 5px 10px; }
+.neo-skin .jfab-x:hover { border-color: var(--sk-acc); }
+.neo-skin .jfab-list { padding: 12px 14px; gap: 10px; }
+.neo-skin .jfab-empty { color: var(--sk-muted); font-size: 13px; }
+.neo-skin .jfab-msg { border-radius: 16px; }
+.neo-skin .jfab-msg.me { background: color-mix(in srgb, var(--sk-acc) 20%, transparent); border-color: color-mix(in srgb, var(--sk-acc) 40%, transparent); border-bottom-right-radius: 6px; }
+.neo-skin .jfab-msg.jarvis { background: rgba(255, 255, 255, 0.06); border-color: var(--sk-line); border-bottom-left-radius: 6px; }
+.neo-skin .jfab-input { border-color: var(--sk-line); padding: 10px 12px 12px; gap: 8px; }
+.neo-skin .jfab-input input { border-radius: 999px; border-color: var(--sk-line); background: rgba(0, 0, 0, 0.28); padding: 10px 16px; transition: border-color 0.2s ease; }
+.neo-skin .jfab-input input:focus { border-color: var(--sk-acc); }
+.neo-skin .jfab-input .al-save { border-radius: 999px; padding: 9px 16px; background: var(--sk-acc); color: #1d1418; border: 0; font-weight: 600; transition: transform 0.15s ease, opacity 0.2s ease; }
+.neo-skin .jfab-input .al-save:disabled { opacity: 0.4; }
+.neo-skin .jfab-input .al-save:active:not(:disabled) { transform: scale(0.95); }
+.neo-skin .jfab-mic { color: var(--sk-acc); border-color: color-mix(in srgb, var(--sk-acc) 55%, transparent); background: color-mix(in srgb, var(--sk-acc) 12%, transparent); }
+.neo-skin .jfab-mic.on { color: #1d1418; background: var(--sk-acc); animation: none; }
+.neo-skin .jfab-panel :is(.al-save, .pr-rescan) { border-radius: 999px; }
+.neo-skin .jfab-panel .pr-rescan { color: var(--sk-acc); border-color: color-mix(in srgb, var(--sk-acc) 55%, transparent); background: color-mix(in srgb, var(--sk-acc) 10%, transparent); }
+
+.neo-skin .jarvis-alert {
+  border-radius: 20px; clip-path: none; border-color: var(--sk-line);
+  background: linear-gradient(150deg, color-mix(in srgb, var(--sk-acc) 14%, transparent), rgba(255, 255, 255, 0.03) 50%), var(--sk-bg);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.2), 0 20px 44px -16px rgba(0, 0, 0, 0.7);
+}
+.neo-skin .ja-body b { color: var(--sk-acc); }
+.neo-skin .ja-show { border-radius: 999px; color: var(--sk-acc); border-color: color-mix(in srgb, var(--sk-acc) 60%, transparent); background: color-mix(in srgb, var(--sk-acc) 12%, transparent); font-family: inherit; letter-spacing: 0.02em; text-transform: none; }
