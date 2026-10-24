@@ -1,5 +1,27 @@
 // Iris: compact mode for phone/tablet over the upstream God's Eye View build (see iris.css).
 // Adds one small bar with two buttons that open the data-layer stack or the context rail in a drawer.
+// Loaded without defer, before the app, so the Overpass detour below is in place for its first query.
+;(() => {
+  // Overpass mirrors refuse Cloudflare's IPs, so the browser asks them itself (they allow CORS)
+  // and only falls back to the Worker's /api/overpass when every mirror fails.
+  const MIRRORS = ['https://overpass-api.de/api/interpreter', 'https://maps.mail.ru/osm/tools/overpass/api/interpreter', 'https://overpass.private.coffee/api/interpreter']
+  const appFetch = window.fetch.bind(window)
+  window.fetch = async (input, init) => {
+    const url = typeof input === 'string' ? input : input instanceof URL ? input.href : input?.url
+    const method = (init?.method || (typeof input === 'object' && input?.method) || 'GET').toUpperCase()
+    if (method !== 'POST' || !url || new URL(url, location.href).href !== new URL('/api/overpass', location.href).href || typeof init?.body !== 'string') return appFetch(input, init)
+    for (const m of MIRRORS) {
+      try {
+        const r = await appFetch(m, { method: 'POST', body: init.body, headers: { 'content-type': 'application/x-www-form-urlencoded' }, signal: init.signal })
+        if (r.ok) return r
+      } catch (e) {
+        if (init.signal?.aborted) throw e
+      }
+    }
+    return appFetch(input, init)
+  }
+})()
+
 ;(() => {
   const root = document.documentElement
   const compact = matchMedia('(max-width: 1100px), (hover: none)')

@@ -1,9 +1,12 @@
 /**
- * Argus API: the few /api routes the God's Eye globe needs, from free public feeds, no keys.
- * Everything else under /api answers a clear 404 so the app marks that layer unavailable.
- * Static files come from the pinned upstream build (see upstream.json).
+ * Argus API: flights, military, satellites and ships are answered here from free public feeds, no keys.
+ * Every other /api route (CCTV, weather, transit, radio, launches, …) runs the upstream server code
+ * itself, bundled into this Worker at the pinned commit (upstream-api/). Static files come from the
+ * pinned upstream build (see upstream.json).
  */
 import { toOpenSky } from './adsbLol'
+// built by the deploy workflow (upstream-api/build.mjs)
+import { upstreamApi } from './upstream-api/dist/providers.mjs'
 import { LAYERS, layerState, type Probe } from '../src/lib/godsEye'
 import { digitrafficRows, type DtLocations, type DtVessel } from './digitraffic'
 
@@ -13,10 +16,6 @@ interface Env {
   HUB?: { fetch: (r: Request) => Promise<Response> }
   /** Aircraft snapshots written by GitHub Actions every ~10 min (argus/snapshot.ts). */
   SNAP?: { get: (key: string) => Promise<string | null> }
-  /** The Hugging Face Space running the upstream server (argus/space/), for every route not answered here. */
-  IRIS_SPACE?: string
-  /** Shared key the Space's gate checks (set by .github/workflows/iris-space.yml). */
-  IRIS_KEY?: string
 }
 
 type Feed = 'flights' | 'military'
@@ -133,7 +132,7 @@ async function vessels(): Promise<Response> {
 }
 
 export default {
-  async fetch(req: Request, env: Env): Promise<Response> {
+  async fetch(req: Request, env: Env, ctx: unknown): Promise<Response> {
     const url = new URL(req.url)
     const p = url.pathname
     // static files are served before the Worker runs; their headers live in _headers
@@ -143,11 +142,11 @@ export default {
       const own = await api(url, env)
       if (own) return own
     }
-    return viaSpace(req, url, env)
+    return upstream(req, env, ctx)
   },
 }
 
-/** The GET routes answered here (fast, cached at the edge); null for everything the Space serves. */
+/** The GET routes answered here (fast, cached at the edge); null for everything the upstream code serves. */
 async function api(url: URL, env: Env): Promise<Response | null> {
   const p = url.pathname
   if (p === '/api/flights') return flights(url, env)
@@ -181,31 +180,16 @@ async function api(url: URL, env: Env): Promise<Response | null> {
   return null
 }
 
-/**
- * Every other route (CCTV, Overpass, weather, traffic, radio, transit, …) goes to the upstream server
- * on the Iris Space. A Space asleep after two idle days takes about a minute to wake; the app retries.
- */
-async function viaSpace(req: Request, url: URL, env: Env): Promise<Response> {
-  if (!env.IRIS_SPACE || !env.IRIS_KEY) return json({ error: 'Not available on this deploy' }, 404)
-  const headers = new Headers()
-  for (const h of ['accept', 'content-type', 'range', 'if-none-match', 'if-modified-since']) {
-    const v = req.headers.get(h)
-    if (v) headers.set(h, v)
-  }
-  headers.set('x-iris-key', env.IRIS_KEY)
+/** Every other route goes to the upstream server code; its answers get the same API headers as ours. */
+async function upstream(req: Request, env: Env, ctx: unknown): Promise<Response> {
   try {
-    const r = await fetch(new URL(url.pathname + url.search, env.IRIS_SPACE), {
-      method: req.method,
-      headers,
-      body: req.method === 'GET' || req.method === 'HEAD' ? undefined : req.body,
-      signal: AbortSignal.timeout(55000),
-    })
+    const r = await upstreamApi.fetch(req, env, ctx)
     const out = new Headers(r.headers)
     out.delete('set-cookie')
     for (const [k, v] of Object.entries(API_HEADERS)) out.set(k, v)
-    return new Response(r.body, { status: r.status, headers: out })
+    return new Response(r.body, { status: r.status, statusText: r.statusText, headers: out })
   } catch {
-    return json({ error: 'Iris Space is waking up, try again in a minute' }, 503, { 'retry-after': '30' })
+    return json({ error: 'Upstream API failed' }, 502)
   }
 }
 
