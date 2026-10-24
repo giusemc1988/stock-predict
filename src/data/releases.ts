@@ -2,7 +2,7 @@
  * Version and "What's new". Bump APP_VERSION and add an entry to the top of RELEASES
  * with each update. The banner shows once per version, then stays dismissed.
  */
-export const APP_VERSION = '1.55.2'
+export const APP_VERSION = '1.56.0'
 
 export interface Release {
   version: string
@@ -13,6 +13,12 @@ export interface Release {
 }
 
 export const RELEASES: Release[] = [
+  {
+    version: '1.56.0',
+    date: '2026-10-23',
+    changes: ['Neo\'s face has more moods: besides the soft smile there is now a big toothy grin, an energetic smiling nod and a playful bright-eyed look. Neo plays them in turn with a short rest between, so it no longer repeats the same smile. Still light: one small clip at a time, only while Neo is on screen, and the Arc ring around the face now turns as one layer, which is cheaper on phones.'],
+    changesVi: ['Khuôn mặt Neo có thêm nhiều biểu cảm: ngoài cười mỉm còn có cười nhe răng, cười gật đầu hào hứng và ánh mắt tinh nghịch tươi vui. Neo thay phiên từng biểu cảm, nghỉ ngắn giữa mỗi lần, nên không còn lặp mãi một kiểu cười. Vẫn nhẹ: mỗi lần chỉ một clip nhỏ, chỉ chạy khi Neo hiện trên màn hình, và vòng Arc quanh mặt giờ xoay như một lớp nên nhẹ hơn trên điện thoại.'],
+  },
   {
     version: '1.55.2',
     date: '2026-10-23',
