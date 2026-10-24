@@ -528,7 +528,8 @@ export function onBars(prev: PracticeState, symbol: string, bars: Candle[], now:
     const next: PracticeState = s ?? structuredClone(prev)
     for (const h of hits) {
       const p = next.open.find((x) => x.id === h.id)!
-      if (b.low <= p.stop) close(next, p, p.stop, 'stop', b.time, now)
+      // a bar that opens below the stop gapped through it: a real stop order fills at that open, not at the stop
+      if (b.low <= p.stop) close(next, p, Math.min(b.open, p.stop), 'stop', b.time, now)
       else close(next, p, p.target, 'target', b.time, now)
     }
     s = next

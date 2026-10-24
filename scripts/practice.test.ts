@@ -76,6 +76,7 @@ const hit = onBars(s, 'AAPL', [{ time: 1900, open: 100, high: 111, low: 94, clos
 assert.equal(hit.trades[0].exitReason, 'stop', 'stop first when one bar reaches both')
 assert.equal(hit.trades[0].exit, 95)
 assert.equal(onBars(s, 'AAPL', [{ time: 1900, open: 100, high: 111, low: 99, close: 105, volume: 1 }], 5)!.trades[0].exit, 110)
+assert.equal(onBars(s, 'AAPL', [{ time: 1900, open: 92, high: 93, low: 90, close: 91, volume: 1 }], 5)!.trades[0].exit, 92, 'a gap below the stop fills at the open')
 // a server dayEnd closes crypto day trades with the stock market
 assert.equal(onBarClose(emptyPractice(), ctx({ asset: 'crypto', dayEnd: Date.UTC(2026, 9, 9, 19, 55) })).open[0].closeBy, Date.UTC(2026, 9, 9, 19, 55))
 // practice trades show up in the bottom panel's Positions, Open orders and History rows
