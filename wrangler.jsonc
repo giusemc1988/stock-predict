@@ -16,6 +16,7 @@
     { "binding": "PRACTICE", "id": "c7406fc64a454ccfa114c6aa39f35c64" },
     { "binding": "SETTINGS", "id": "6ca496318670484e99a4a97008d8e0d4" }
   ],
+  "observability": { "enabled": true },
   "triggers": {
     "crons": ["*/5 13-21 * * 1-5"]
   }

@@ -98,7 +98,7 @@ export default {
           learning: learningStatus,
           brakes: brakeStatus,
           kelly: kellyStatus,
-          diag: diagnostics(state),
+          diag: { ...diagnostics(state), cronLast: await env.PRACTICE.get('cronLast', 'json').catch(() => null) },
         })
       } catch (e) {
         console.error('Atlas status error:', e)

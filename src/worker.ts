@@ -908,11 +908,16 @@ export default {
     // Market hours: 13:00-21:55 UTC (9am-4:55pm ET), Mon-Fri
     if (utcDay >= 1 && utcDay <= 5 && utcHour >= 13 && utcHour <= 21) {
       console.log('Practice cycle triggered by Cron')
+      // written before and after so a run that is killed mid-way still shows when it started
+      const mark = (v: Record<string, unknown>) => env.PRACTICE.put('cronLast', JSON.stringify({ at: now.getTime(), ...v })).catch(() => {})
+      await mark({ phase: 'started' })
       try {
         const result = await practiceCycle(env)
         console.log('Practice cycle result:', result.message)
+        await mark({ phase: 'done', ok: true, ms: Date.now() - now.getTime(), message: result.message })
       } catch (e) {
         console.error('Practice cycle error:', e)
+        await mark({ phase: 'done', ok: false, ms: Date.now() - now.getTime(), error: e instanceof Error ? `${e.message}\n${e.stack ?? ''}`.slice(0, 2000) : String(e) })
       }
     }
   },
