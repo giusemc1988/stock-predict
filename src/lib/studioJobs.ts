@@ -14,6 +14,17 @@ export const PEXELS_KEY = 'nova:pexels'
 export const GITHUB_KEY = 'nova:github'
 export const NOVA_REPO = 'giusemc1988/stock-predict'
 export const NOVA_WORKFLOW = 'nova-render.yml'
+/**
+ * Lemo-Opuscar renders on Chanh's PC, never on GitHub: nova/lemo-bridge.mjs there writes the time to this key
+ * every minute. No fresh time = the PC is off, so Nova sends nothing to Lemo.
+ */
+export const LEMO_SEEN = 'nova:lemo:seen'
+/** no ping for this long: the PC counts as offline */
+export const LEMO_OFFLINE_MS = 3 * 60 * 1000
+/** a Lemo job with no result this long while the PC is offline is marked failed, never moved to another engine */
+export const LEMO_GIVE_UP_MS = 30 * 60 * 1000
+export const LEMO_OFFLINE_ERROR = 'Lemo did not finish: the PC is offline'
+export type RenderEngine = 'mpt' | 'lemo'
 /** queued + rendering at once; more waits for the farm to catch up */
 export const MAX_ACTIVE = 4
 const MAX_LINES = 12
@@ -103,6 +114,8 @@ export interface StudioJob {
   run?: string
   /** missing on jobs made before v1.52: the defaults */
   opts?: RenderOpts
+  /** missing = 'mpt' (MoneyPrinterTurbo on GitHub Actions); 'lemo' = Lemo-Opuscar on the PC */
+  engine?: RenderEngine
 }
 
 export interface RenderAsk {
@@ -118,6 +131,7 @@ export interface RenderAsk {
   hook: { en: string; vi: string }
   /** upload ids, checked against the store by the Worker before queueing */
   media: string[]
+  engine: RenderEngine
 }
 
 /** KV with list(): the Worker binding, or a Map-backed fake in tests. */
@@ -151,7 +165,25 @@ export function cleanRenderAsk(body: unknown): RenderAsk | null {
     opts: cleanRenderOpts(b?.opts),
     media: (Array.isArray(b?.media) ? b.media : []).filter(isJobId).slice(0, 10),
     hook: { en: clean((b?.hook as Record<string, unknown> | undefined)?.en, MAX_LINE), vi: clean((b?.hook as Record<string, unknown> | undefined)?.vi, MAX_LINE) },
+    engine: b?.engine === 'lemo' ? 'lemo' : 'mpt',
   }
+}
+
+/** True while the PC has pinged within LEMO_OFFLINE_MS. */
+export async function lemoOnline(kv: JobStore, now = Date.now()): Promise<boolean> {
+  const seen = Number(await kv.get(LEMO_SEEN))
+  return Number.isFinite(seen) && seen > 0 && now - seen < LEMO_OFFLINE_MS
+}
+
+/** Lemo jobs left waiting on an offline PC for LEMO_GIVE_UP_MS become failed, so the gallery says why. Returns the jobs as stored. */
+export async function expireLemoJobs(kv: JobStore, jobs: StudioJob[], online: boolean, now = Date.now()): Promise<StudioJob[]> {
+  if (online) return jobs
+  return Promise.all(jobs.map(async (j) => {
+    if (j.engine !== 'lemo' || (j.status !== 'queued' && j.status !== 'rendering') || now - (j.startedAt ?? j.createdAt) < LEMO_GIVE_UP_MS) return j
+    const failed: StudioJob = { ...j, status: 'failed', doneAt: now, error: LEMO_OFFLINE_ERROR }
+    await kv.put(JOB_PREFIX + j.id, JSON.stringify(failed))
+    return failed
+  }))
 }
 
 const STOP = new Set('a an and are as at be by for from how i in is it its my of on or that the this to was what why with you your'.split(' '))
@@ -196,6 +228,7 @@ export async function queueJobs(kv: JobStore, ask: RenderAsk, terms: string[], n
     terms,
     opts: ask.opts,
     ...(ask.media.length ? { media: ask.media } : {}),
+    ...(ask.engine === 'lemo' ? { engine: 'lemo' as const } : {}),
   }))
   await Promise.all(made.map((j) => kv.put(JOB_PREFIX + j.id, JSON.stringify(j))))
   return made

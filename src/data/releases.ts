@@ -2,7 +2,7 @@
  * Version and "What's new". Bump APP_VERSION and add an entry to the top of RELEASES
  * with each update. The banner shows once per version, then stays dismissed.
  */
-export const APP_VERSION = '1.56.2'
+export const APP_VERSION = '1.57.0'
 
 export interface Release {
   version: string
@@ -13,6 +13,12 @@ export interface Release {
 }
 
 export const RELEASES: Release[] = [
+  {
+    version: '1.57.0',
+    date: '2026-10-24',
+    changes: ['Nova can make a video with Lemo-Opuscar on your PC: the whole film drawn in code, a different style each time. Nova shows whether the PC is on; when it is off, Lemo is greyed out, nothing is sent to it and videos are made with MoneyPrinterTurbo as before. A Lemo video still waiting after 30 minutes with the PC off is marked failed and tells you why. Off switch in Settings > AI rules.'],
+    changesVi: ['Nova có thể dựng video bằng Lemo-Opuscar trên máy PC: cả phim vẽ bằng code, mỗi lần một style khác. Nova hiện máy PC đang bật hay tắt; khi tắt, Lemo bị mờ, không gửi gì cho nó và video dựng bằng MoneyPrinterTurbo như trước. Video Lemo chờ quá 30 phút mà máy PC tắt sẽ báo lỗi và ghi rõ lý do. Tắt được trong Cài đặt > Quy tắc AI.'],
+  },
   {
     version: '1.56.2',
     date: '2026-10-24',

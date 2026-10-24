@@ -3,12 +3,16 @@
 //   node nova/queue.mjs pick <workdir>          up to 3 queued jobs -> <workdir>/jobs/<id>.json (+ pexels.txt,
 //                                               + the user's uploads in <workdir>/media/<id>/<n>.<ext>)
 //   node nova/queue.mjs store <workdir> <id>    uploads <workdir>/out/<id>.mp4 in chunks, marks the job done or failed
+// On Chanh's PC only (nova/lemo-bridge.mjs), for jobs with engine "lemo":
+//   node nova/queue.mjs ping                    "the PC is on": Nova offers Lemo for the next few minutes
+//   node nova/queue.mjs pick-lemo <workdir>     the oldest queued Lemo job -> <workdir>/jobs/<id>.json
 // Key layout (shared with src/lib/studioJobs.ts): nova:job:<id>, nova:vid:<id>:<n>, nova:pexels
 import { appendFileSync, existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 
 const JOB = 'nova:job:'
 const VID = 'nova:vid:'
 const PEXELS = 'nova:pexels'
+const LEMO_SEEN = 'nova:lemo:seen'
 // the user's own photos and clips (src/lib/studioMedia.ts); the repo is public, so never log anything about them but a count
 const MEDIA = 'nova:media:'
 const EXT = { 'image/jpeg': 'jpg', 'image/png': 'png', 'image/webp': 'webp', 'video/mp4': 'mp4', 'video/quicktime': 'mov', 'video/webm': 'webm' }
@@ -109,6 +113,8 @@ async function pick(dir) {
   const now = Date.now()
   const runnable = (await jobs())
     .filter((j) => UUID.test(j.id))
+    // Lemo jobs belong to the PC; GitHub never renders them
+    .filter((j) => j.engine !== 'lemo')
     .filter((j) => j.status === 'queued' || (j.status === 'rendering' && now - (j.startedAt ?? 0) > STALE_MS && !j.retried))
     .sort((a, b) => a.createdAt - b.createdAt)
     .slice(0, MAX_PICK)
@@ -129,6 +135,18 @@ async function pick(dir) {
   }
   output(`ids=${runnable.map((j) => j.id).join(' ')}`)
   console.log(runnable.length ? `picked ${runnable.length} job(s), footage: ${key ? 'pexels' : 'openverse'}` : 'queue empty')
+}
+
+/** One queued Lemo job for the PC, or none. Prints its id so the bridge knows what to render. */
+async function pickLemo(dir) {
+  const job = (await jobs())
+    .filter((j) => UUID.test(j.id) && j.engine === 'lemo' && j.status === 'queued')
+    .sort((a, b) => a.createdAt - b.createdAt)[0]
+  if (!job) return console.log('')
+  await saveJob({ ...job, status: 'rendering', startedAt: Date.now(), run: undefined })
+  mkdirSync(`${dir}/jobs`, { recursive: true })
+  writeFileSync(`${dir}/jobs/${job.id}.json`, JSON.stringify({ id: job.id, topic: job.topic, lang: job.lang, voice: job.voice, aspect: job.aspect, lines: job.lines }))
+  console.log(job.id)
 }
 
 async function store(dir, id) {
@@ -163,4 +181,6 @@ async function prune() {
 const [cmd, dir, id] = process.argv.slice(2)
 if (cmd === 'pick') await pick(dir)
 else if (cmd === 'store') await store(dir, id)
-else throw new Error('usage: queue.mjs pick <dir> | store <dir> <id>')
+else if (cmd === 'ping') await put(LEMO_SEEN, String(Date.now()))
+else if (cmd === 'pick-lemo') await pickLemo(dir)
+else throw new Error('usage: queue.mjs pick <dir> | store <dir> <id> | ping | pick-lemo <dir>')
