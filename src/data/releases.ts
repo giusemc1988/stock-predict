@@ -2,7 +2,7 @@
  * Version and "What's new". Bump APP_VERSION and add an entry to the top of RELEASES
  * with each update. The banner shows once per version, then stays dismissed.
  */
-export const APP_VERSION = '1.58.0'
+export const APP_VERSION = '1.59.0'
 
 export interface Release {
   version: string
@@ -13,6 +13,20 @@ export interface Release {
 }
 
 export const RELEASES: Release[] = [
+  {
+    version: '1.59.0',
+    date: '2026-10-24',
+    changes: [
+      "Iris (God's Eye) is cleaner on phone and tablet: the decorative HUD text is gone, the Data layers and Context boxes open from one small bar as a drawer that scrolls, and the voice box (it needs an OpenAI key) is hidden.",
+      'The "Overpass temporarily unavailable" banner no longer shows, and ships now come from the free Digitraffic feed (Baltic Sea) with no key.',
+      'The Iris page in the Hub fits the screen with no scrolling, and the layer check is right again: flights, military aircraft and satellites were working all along, only the check said 404.',
+    ],
+    changesVi: [
+      'Iris (God\'s Eye) gọn hơn trên điện thoại và máy tính bảng: bỏ chữ trang trí trên màn hình, hộp Lớp dữ liệu và Bối cảnh mở từ một thanh nhỏ thành ngăn kéo cuộn được, ẩn hộp giọng nói (cần key OpenAI).',
+      'Không còn dòng báo "Overpass temporarily unavailable", và tàu biển giờ lấy từ nguồn miễn phí Digitraffic (biển Baltic), không cần key.',
+      'Trang Iris trong Hub vừa khít màn hình, không phải cuộn, và phần kiểm tra lớp đã đúng: máy bay, máy bay quân sự và vệ tinh vẫn chạy từ trước, chỉ phần kiểm tra báo 404.',
+    ],
+  },
   {
     version: '1.58.0',
     date: '2026-10-24',

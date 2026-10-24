@@ -1527,16 +1527,22 @@ body:has(.jfab) .toasts, body:has(.jfab) .jarvis-alert { bottom: 84px; }
   .dm .hub-brow:nth-child(n + 6) .hub-bar i { animation-delay: 0.28s; }
 }
 
-/* God's Eye View page */
-.ge-layers { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
-.ge-layer { display: grid; grid-template-columns: 10px 1fr auto; gap: 4px 10px; align-items: center; }
-.ge-layer > .muted { grid-column: 2 / -1; }
-.ge-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--line); }
-.ge-layer.ok .ge-dot { background: #4fd18b; }
-.ge-layer.key .ge-dot, .ge-layer.noproxy .ge-dot { background: var(--gold); }
-.ge-layer.down .ge-dot { background: #ff6b6b; }
-.ge-frame { padding: 0; overflow: hidden; min-height: 200px; place-items: center; }
-.ge-frame iframe { width: 100%; height: min(78vh, 760px); border: 0; display: block; background: #000; }
+/* God's Eye View page: chips row + a globe that fills the rest of the screen, so the page never scrolls */
+.ge-page { display: flex; flex-direction: column; gap: 8px; }
+.ge-head { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.ge-head .hub-hello { font-size: 18px; }
+.ge-spacer { flex: 1; }
+.ge-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.ge-chip { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border: 1px solid var(--line); border-radius: 999px; font-size: 12px; line-height: 1.4; background: transparent; color: inherit; }
+.ge-chip.down { border-color: rgba(255, 107, 107, 0.5); color: #ff9b9b; }
+.ge-recheck { cursor: pointer; min-width: 32px; justify-content: center; font: inherit; font-size: 13px; }
+.ge-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--line); flex: none; }
+.ge-chip.ok .ge-dot { background: #4fd18b; }
+.ge-chip.key .ge-dot, .ge-chip.noproxy .ge-dot { background: var(--gold); }
+.ge-chip.down .ge-dot { background: #ff6b6b; }
+.ge-frame { display: grid; place-items: center; border: 1px solid var(--line); border-radius: 12px; overflow: hidden; background: #000; height: calc(100dvh - 200px); min-height: 360px; }
+.ge-frame iframe { width: 100%; height: 100%; border: 0; display: block; }
+.ge-note { margin: 0; }
 
 /* Video Studio page */
 .vs-row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
