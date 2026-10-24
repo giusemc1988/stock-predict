@@ -36,6 +36,8 @@ import { GodsEyePage } from './components/GodsEyePage'
 import { VideoStudioPage } from './components/VideoStudioPage'
 import { ViralTechPage } from './components/ViralTechPage'
 import { MaxPage } from './components/MaxPage'
+import { useHubTheme } from './lib/themes'
+import './components/AtlasSkin.css'
 import { AutoLearnPanel } from './components/AutoLearnPanel'
 import { useAutoLearning } from './hooks/useAutoLearning'
 import { useMigrateKeysToCloud } from './hooks/useMigrateKeysToCloud'
@@ -161,6 +163,7 @@ export default function App() {
   const [sortRequest, setSortRequest] = useState(0)
   const [rightTab, setRightTab] = useState<'ai' | 'flow' | 'trade' | 'learn' | 'picks' | 'practice' | 'brain'>('ai')
   const lang = useLang()
+  const hubTheme = useHubTheme()
   // the Brain tab disappears when Neo is switched off
   const shownTab = (rightTab === 'brain' && !aiRules.jarvisOn) || (rightTab === 'picks' && !aiRules.aiPicksTab) ? 'ai' : rightTab
   const [toasts, setToasts] = useState<Toast[]>([])
@@ -615,9 +618,14 @@ export default function App() {
     setPage(to === 'ruview-flash' ? 'ruview' : to === 'brief' && !briefOn ? 'trade' : to === 'home' && !hubOn ? homePage : to)
   }
 
+  // the app frame and Atlas (Brief, Trading desk, Portfolio) in the Hub theme's colours, with the glass menu bar;
+  // the chart keeps a dark stage (AtlasSkin.css). Iris keeps its own look.
+  const atlasSkin = aiRules.agentGlass && shownPage !== 'godseye'
+
   return (
     <div
-      className={`app page-${shownPage === 'ruview' || shownPage === 'godseye' || shownPage === 'studio' || shownPage === 'viraltech' || shownPage === 'max' ? `net page-${shownPage}` : shownPage}`}
+      className={`app page-${shownPage === 'ruview' || shownPage === 'godseye' || shownPage === 'studio' || shownPage === 'viraltech' || shownPage === 'max' ? `net page-${shownPage}` : shownPage}${atlasSkin ? ' atlas-skin' : ''}`}
+      data-skin={atlasSkin ? hubTheme : undefined}
       style={
         aiRules.resizePanels
           ? ({
@@ -653,6 +661,7 @@ export default function App() {
       )}
       {shownPage !== 'home' && <TopBar
         onHome={hubOn ? () => setPage('home') : undefined}
+        menu={atlasSkin}
         inst={inst}
         quote={quotes[inst.symbol]}
         lastPrice={lastClose}

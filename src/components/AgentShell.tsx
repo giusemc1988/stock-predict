@@ -30,7 +30,8 @@ export function AgentShell({
   title: ReactNode
   /** one line under the agent's name */
   sub: ReactNode
-  onBack: () => void
+  /** where the back button goes; no button when left out */
+  onBack?: () => void
   backLabel?: string
   /** a short status (dot + words) shown on the right of the top bar */
   status?: ReactNode
@@ -50,7 +51,7 @@ export function AgentShell({
       <main className={`net-page ${className}`}>
         <div className="hub-head">
           <div className="net-title">
-            <button className="btn net-back" onClick={onBack}>{backLabel}</button>
+            {onBack && <button className="btn net-back" onClick={onBack}>{backLabel}</button>}
             <span className="hub-hello">{title}</span>
           </div>
           <div className="net-status">
@@ -72,7 +73,7 @@ export function AgentShell({
       </div>
       <div className="hg-wrap ag-wrap">
         <header className="ag-bar hg-glass">
-          <button className="btn net-back" onClick={onBack}>{backLabel}</button>
+          {onBack && <button className="btn net-back" onClick={onBack}>{backLabel}</button>}
           <b className="ag-bar-t">{title}</b>
           {status && <span className="ag-status">{status}</span>}
           <LangSwitch />
