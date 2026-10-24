@@ -14,6 +14,30 @@ const json = (data: unknown, status = 200) =>
     headers: { 'content-type': 'application/json', 'cache-control': 'no-store' }
   })
 
+const etDay = (ms: number) => new Intl.DateTimeFormat('en-CA', { timeZone: 'America/New_York', year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date(ms))
+
+/** Why Atlas did or didn't trade: last scan, what the scan saw, and today's decision log. Read-only. */
+function diagnostics(s: PracticeState) {
+  const sv = s.server
+  const lastRun = sv?.lastRun ?? null
+  const day = lastRun ? etDay(lastRun) : null
+  const verdicts: Record<string, number> = {}
+  for (const p of sv?.picks ?? []) verdicts[p.verdict ?? 'none'] = (verdicts[p.verdict ?? 'none'] ?? 0) + 1
+  const audit = (s.audit ?? []).filter((e) => e.account === 'practice' && day && etDay(e.time) === day)
+  const blocked: Record<string, number> = {}
+  for (const e of audit) if (!e.accepted) blocked[e.blockedBy ?? 'Other'] = (blocked[e.blockedBy ?? 'Other'] ?? 0) + 1
+  return {
+    lastRun: lastRun ? new Date(lastRun).toISOString() : null,
+    minutesAgo: lastRun ? Math.round((Date.now() - lastRun) / 60_000) : null,
+    scanned: sv?.picks?.length ?? 0,
+    failed: sv?.failed ?? [],
+    lastScanVerdicts: verdicts,
+    today: { day, decisions: audit.length, accepted: audit.filter((e) => e.accepted).length, blocked },
+    recentEvents: (s.events ?? []).slice(0, 8).map((e) => ({ at: new Date(e.time).toISOString(), kind: e.kind, symbol: e.symbol, en: e.en })),
+    recentDecisions: (s.audit ?? []).slice(0, 8).map((e) => ({ at: new Date(e.time).toISOString(), symbol: e.symbol, accepted: e.accepted, blockedBy: e.blockedBy ?? null, en: e.en })),
+  }
+}
+
 export default {
   async fetch(req: Request, env: Env): Promise<Response> {
     const url = new URL(req.url)
@@ -74,6 +98,7 @@ export default {
           learning: learningStatus,
           brakes: brakeStatus,
           kelly: kellyStatus,
+          diag: diagnostics(state),
         })
       } catch (e) {
         console.error('Atlas status error:', e)
