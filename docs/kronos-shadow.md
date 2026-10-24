@@ -2,7 +2,7 @@
 
 Kronos-small forecasts the next daily candles for Atlas's symbols after each US close. It is only logged and graded here; it never touches Atlas or any order (paper or real).
 
-Updated 2026-10-23T09:44Z · 8 forecasts logged · verdict needs 20+ graded per horizon.
+Updated 2026-10-24T00:01Z · 8 forecasts logged · verdict needs 20+ graded per horizon.
 
 | Horizon | Graded | Kronos direction right | Always-up baseline | Kronos avg miss | No-change avg miss | Verdict |
 |---|---|---|---|---|---|---|
