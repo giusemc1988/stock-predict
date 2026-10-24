@@ -1,11 +1,7 @@
 {
   "name": "stock-predict",
   "private": true,
-<<<<<<< HEAD
   "version": "1.56.0",
-=======
-  "version": "1.56.0",
->>>>>>> 5645673 (Neo's face plays four expressions in turn: smile, grin, energetic nod, playful look (v1.56.0))
   "type": "module",
   "scripts": {
     "dev": "vite",
