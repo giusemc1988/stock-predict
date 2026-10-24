@@ -91,6 +91,8 @@ export const STUDIO_TEXT = {
   lemoOff: { en: 'Lemo: the PC is off, so videos are made with MoneyPrinterTurbo. Turn the PC on and start nova/lemo-bridge.mjs to use Lemo.', vi: 'Lemo: máy PC đang tắt nên video dựng bằng MoneyPrinterTurbo. Bật máy PC và chạy nova/lemo-bridge.mjs để dùng Lemo.' },
   lemoOffline: { en: 'The PC went offline, so nothing was sent to Lemo. Make it with MoneyPrinterTurbo, or try again when the PC is on.', vi: 'Máy PC vừa tắt nên chưa gửi gì cho Lemo. Dựng bằng MoneyPrinterTurbo, hoặc thử lại khi máy PC bật.' },
   lemoQueued: { en: 'Added. The PC picks it up within a minute; the film takes about 30 to 60 minutes.', vi: 'Đã thêm. Máy PC nhận trong vòng một phút; phim mất khoảng 30 đến 60 phút.' },
+  sendViraltech: { en: 'Send to Viraltech', vi: 'Gửi sang Viraltech' },
+  sentViraltech: { en: 'Waiting in Viraltech ✓ (tap to take back)', vi: 'Đang chờ ở Viraltech ✓ (chạm để lấy lại)' },
   statusLemoQueued: { en: 'Waiting for the PC…', vi: 'Đang chờ máy PC…' },
   statusLemoRendering: { en: 'Lemo is making the film on the PC…', vi: 'Lemo đang làm phim trên máy PC…' },
   serverBoth: { en: 'Both', vi: 'Cả hai' },

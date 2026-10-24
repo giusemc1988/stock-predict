@@ -8,7 +8,7 @@ import { cleanKitAsk, writeKitItem, writePostKit, writeTerms } from '../lib/stud
 import { TRENDS_CACHE, TRENDS_TTL_MS, fetchTrends, type TrendGeo, type TrendsResult } from '../lib/studioTrends'
 import { PRESETS_KEY, cleanPresets } from '../lib/studio/presets'
 import { MEDIA_CHUNK, deleteMedia, finishMedia, putMediaPart, readyMedia, startMedia, type MediaStore } from '../lib/studioMedia'
-import { GITHUB_KEY, PEXELS_KEY, checkGithubToken, cleanRenderAsk, expireLemoJobs, kickFarm, deleteJob, isJobId, lemoOnline, listJobs, queueJobs, videoResponse, type JobStore } from '../lib/studioJobs'
+import { GITHUB_KEY, PEXELS_KEY, checkGithubToken, cleanRenderAsk, expireLemoJobs, kickFarm, deleteJob, isJobId, lemoOnline, listJobs, queueJobs, setHandoff, videoResponse, type JobStore } from '../lib/studioJobs'
 
 const json = (data: unknown, status = 200) => new Response(JSON.stringify(data), { status, headers: { 'content-type': 'application/json', 'cache-control': 'no-store' } })
 
@@ -31,6 +31,13 @@ export async function novaRoute(req: Request, pathname: string, env: BrainEnv, s
   const kv = settings as unknown as JobStore
   const url = new URL(req.url)
 
+  if (pathname === '/api/studio/handoff') {
+    // only puts a finished video on Viraltech's waiting list; posting stays with Chanh
+    if (req.method !== 'POST' && req.method !== 'DELETE') return json({ error: 'POST or DELETE only' }, 405)
+    if (!sameOrigin(req)) return json({ error: 'Not allowed' }, 403)
+    const job = await setHandoff(kv, url.searchParams.get('id') ?? '', req.method === 'POST')
+    return job ? json({ handoff: job.handoff ?? null }) : json({ error: 'Only a finished video can go to Viraltech' }, 404)
+  }
   if (pathname === '/api/studio/jobs') {
     if (req.method === 'GET') {
       const lemo = await lemoOnline(kv)

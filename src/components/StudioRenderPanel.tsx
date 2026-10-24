@@ -15,7 +15,7 @@ const STATUS: Record<StudioJob['status'], StudioKey> = { queued: 'statusQueued',
  * Nova step 5: queue the script for MoneyPrinterTurbo on GitHub Actions, or for Lemo-Opuscar on the PC while it is on,
  * then play the finished MP4s.
  */
-export function StudioRenderPanel({ topic, topicVi, en, vi, aspect, glass = false, settings = false, hook, onClearHook, media = [], lemo = false }: { topic: string; topicVi: string; en: string[]; vi: string[]; aspect: RenderAspect; glass?: boolean; settings?: boolean; hook?: { en: string; vi: string }; onClearHook?: () => void; media?: string[]; lemo?: boolean }) {
+export function StudioRenderPanel({ topic, topicVi, en, vi, aspect, glass = false, settings = false, hook, onClearHook, media = [], lemo = false, handoff = false }: { topic: string; topicVi: string; en: string[]; vi: string[]; aspect: RenderAspect; glass?: boolean; settings?: boolean; hook?: { en: string; vi: string }; onClearHook?: () => void; media?: string[]; lemo?: boolean; handoff?: boolean }) {
   const lang = useLang()
   const t = (k: StudioKey) => STUDIO_TEXT[k][lang]
   const [langs, setLangs] = useState<RenderLang[]>(['vi'])
@@ -73,6 +73,12 @@ export function StudioRenderPanel({ topic, topicVi, en, vi, aspect, glass = fals
 
   const remove = async (id: string) => {
     await fetch(`/api/studio/jobs?id=${id}`, { method: 'DELETE' }).catch(() => null)
+    await load()
+  }
+
+  // Viraltech's waiting list only; nothing is posted from here
+  const send = async (id: string, on: boolean) => {
+    await fetch(`/api/studio/handoff?id=${id}`, { method: on ? 'POST' : 'DELETE' }).catch(() => null)
     await load()
   }
 
@@ -146,6 +152,7 @@ export function StudioRenderPanel({ topic, topicVi, en, vi, aspect, glass = fals
             </div>
           )}
           <div className="vs-row">
+            {handoff && j.status === 'done' && <button className="btn small" aria-pressed={!!j.handoff} onClick={() => void send(j.id, !j.handoff)}>{t(j.handoff ? 'sentViraltech' : 'sendViraltech')}</button>}
             {j.status === 'done' && <a className="btn small primary" href={`/api/studio/video?id=${j.id}&download`}>{t('download')}{j.size ? ` (${(j.size / 1e6).toFixed(1)} MB)` : ''}</a>}
             {j.run && j.status !== 'done' && <a className="btn small" href={j.run} target="_blank" rel="noreferrer">{t('serverLog')}</a>}
             {j.status !== 'rendering' && <button className="btn small" onClick={() => void remove(j.id)}>{t('serverDelete')}</button>}

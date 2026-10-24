@@ -2,7 +2,7 @@
  * Version and "What's new". Bump APP_VERSION and add an entry to the top of RELEASES
  * with each update. The banner shows once per version, then stays dismissed.
  */
-export const APP_VERSION = '1.58.0'
+export const APP_VERSION = '1.59.0'
 
 export interface Release {
   version: string
@@ -13,6 +13,12 @@ export interface Release {
 }
 
 export const RELEASES: Release[] = [
+  {
+    version: '1.59.0',
+    date: '2026-10-24',
+    changes: ['A finished Nova video has a "Send to Viraltech" button. The Viraltech page lists the videos waiting for your OK, to watch, download or take back. Nothing is posted by itself: tell Claude which video and channel, and it posts only after you say yes. Off switch in Settings > AI rules.'],
+    changesVi: ['Video Nova đã xong có nút "Gửi sang Viraltech". Trang Viraltech có mục video chờ anh duyệt: xem, tải về hoặc lấy lại. Không video nào tự đăng: anh nhắn Claude video nào, kênh nào, Claude chỉ đăng khi anh đồng ý. Tắt được trong Cài đặt > Quy tắc AI.'],
+  },
   {
     version: '1.58.0',
     date: '2026-10-24',
