@@ -46,7 +46,10 @@ jobs:
           npm ci --no-audit --no-fund
           npx vite build
       - name: Upstream API for the Worker
-        run: node argus/upstream-api/build.mjs upstream upstream-api/providers.mjs
+        # the CCTV camera lists are fetched here (refreshed with every 2-hourly run); frames stay live
+        run: |
+          timeout 300 node argus/upstream-api/cctv-snapshot.mjs upstream "$RUNNER_TEMP/cctv-packs.json" || echo "::warning::CCTV snapshot failed, the Worker loads packs live"
+          node argus/upstream-api/build.mjs upstream upstream-api/providers.mjs "$RUNNER_TEMP/cctv-packs.json"
       - name: Satellite orbits
         # Cloudflare's shared IPs get refused by CelesTrak, so the runner fetches them and ships them as files
         run: |

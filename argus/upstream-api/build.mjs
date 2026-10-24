@@ -1,10 +1,11 @@
 // Bundles the upstream API (providers.mjs + the pinned server/providers) into one module for worker.ts.
-// usage: node build.mjs <upstream checkout> <out file>   (esbuild comes from the upstream's own install)
+// usage: node build.mjs <upstream checkout> <out file> [cctv-packs.json from cctv-snapshot.mjs]
+// (esbuild comes from the upstream's own install)
 import fs from 'node:fs';
 import path from 'node:path';
 import { createRequire } from 'node:module';
 
-const [up, out] = process.argv.slice(2).map((p) => path.resolve(p));
+const [up, out, cctvPacks] = process.argv.slice(2).map((p) => path.resolve(p));
 const here = path.dirname(new URL(import.meta.url).pathname);
 const { build } = createRequire(path.join(up, 'package.json'))('esbuild');
 
@@ -19,6 +20,12 @@ for (const dir of ['config', 'src/data/local_data/cctv_ground_heights']) {
 const PATCHES = {
   // Radio Browser: plain fetch instead of https.request pinned to the resolved IP (no sockets here)
   'server/providers/radio.js': ['createRadioProxyMiddleware()', 'createRadioProxyMiddleware({ fetchImpl: (u, o) => fetch(u, o) })'],
+  // CCTV: each live pack comes from the build-time snapshot (cctv-snapshot.mjs) when there is one
+  'server/providers/cctv/catalog.js': [
+    'pack.enabled() ? pack.load({ sourceRoot }) : []',
+    'pack.enabled() ? (__irisPacks()?.[pack.name] ? Object.assign([...__irisPacks()[pack.name].items], { available: __irisPacks()[pack.name].available ?? undefined, region: __irisPacks()[pack.name].region ?? undefined }) : __irisPacks() ? [] : pack.load({ sourceRoot })) : []',
+    "import __irisPacks from 'virtual:cctv-packs';\n",
+  ],
 };
 
 await build({
@@ -47,10 +54,16 @@ await build({
           if (!patch) return undefined;
           const src = fs.readFileSync(a.path, 'utf8');
           if (!src.includes(patch[0])) throw new Error(`patch for ${rel} no longer applies`);
-          return { contents: src.replace(patch[0], patch[1]), loader: 'js', resolveDir: path.dirname(a.path) };
+          return { contents: (patch[2] ?? '') + src.replace(patch[0], patch[1]), loader: 'js', resolveDir: path.dirname(a.path) };
         });
+        // parsed on first use, not at startup
+        b.onResolve({ filter: /^virtual:cctv-packs$/ }, () => ({ path: 'cctv-packs', namespace: 'seed' }));
+        b.onLoad({ filter: /^cctv-packs$/, namespace: 'seed' }, () => ({
+          contents: `const text = ${JSON.stringify(cctvPacks && fs.existsSync(cctvPacks) ? fs.readFileSync(cctvPacks, 'utf8') : '')}; let packs; export default () => (packs ??= text ? JSON.parse(text).packs : null);`,
+          loader: 'js',
+        }));
         b.onResolve({ filter: /^virtual:seed$/ }, () => ({ path: 'seed', namespace: 'seed' }));
-        b.onLoad({ filter: /.*/, namespace: 'seed' }, () => ({ contents: `export default ${JSON.stringify(seed)}`, loader: 'js' }));
+        b.onLoad({ filter: /^seed$/, namespace: 'seed' }, () => ({ contents: `export default ${JSON.stringify(seed)}`, loader: 'js' }));
         b.onResolve({ filter: /^cloudflare:/ }, (a) => ({ path: a.path, external: true }));
         b.onResolve({ filter: /^node:/ }, (a) => ({ path: a.path, external: true }));
         b.onResolve({ filter: /^(path|url|crypto|stream|http|https|os|module|events|util|buffer|zlib|net|tls|dns|dns\/promises|stream\/promises)$/ }, (a) => ({ path: `node:${a.path}`, external: true }));
