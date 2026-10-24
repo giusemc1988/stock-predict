@@ -92,6 +92,9 @@
 .nv-trends { display: grid; gap: 10px; min-width: 0; padding: 12px; border-radius: 16px; background: rgba(0, 0, 0, 0.2); border: 1px solid var(--line); }
 .nv-trends-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
 .nv.hg .nv-geo { flex: none; width: 112px; }
+.nv-topic button { white-space: nowrap; }
+/* four topics do not fit one pill on a phone: two rows of two */
+@media (max-width: 560px) { .nv.hg .nv-topic { display: grid; grid-template-columns: 1fr 1fr; gap: 2px; border-radius: 18px; } }
 .nv-chips { display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; padding-bottom: 2px; }
 .nv-chips::-webkit-scrollbar { display: none; }
 .nv-src { flex: none; display: inline-flex; align-items: center; gap: 6px; padding: 6px 10px; border-radius: 999px; border: 1px solid var(--line); background: none; color: var(--mute, var(--muted)); font-size: 12px; cursor: pointer; white-space: nowrap; }
@@ -108,8 +111,12 @@
 .nv-trend-m { display: flex; align-items: center; gap: 6px; font-size: 11px; color: var(--mute, var(--muted)); }
 .nv-dot { width: 7px; height: 7px; border-radius: 50%; flex: none; background: #9aa; }
 .nv-dot.s-google { background: #7fb2ff; }
-.nv-dot.s-news { background: #9be0a8; }
-.nv-dot.s-youtube { background: #ff6b6b; }
+.nv-dot.s-hn { background: #ff8c42; }
+.nv-dot.s-producthunt { background: #ff6154; }
+.nv-dot.s-rtech { background: #8fd3ff; }
+.nv-dot.s-rphilo { background: #c9a7ff; }
+.nv-dot.s-aeon { background: #e8d48a; }
+.nv-dot.s-sep { background: #9be0a8; }
 .nv-dot.s-ytmusic { background: #ff9fb0; }
 .nv-dot.s-reddit { background: #ff9a4d; }
 .nv.hg .vs-field input[type='range'] { padding: 0; border: 0; background: none; accent-color: var(--acc); }

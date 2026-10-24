@@ -2,7 +2,7 @@
  * Version and "What's new". Bump APP_VERSION and add an entry to the top of RELEASES
  * with each update. The banner shows once per version, then stays dismissed.
  */
-export const APP_VERSION = '1.57.0'
+export const APP_VERSION = '1.58.0'
 
 export interface Release {
   version: string
@@ -13,6 +13,12 @@ export interface Release {
 }
 
 export const RELEASES: Release[] = [
+  {
+    version: '1.58.0',
+    date: '2026-10-24',
+    changes: ['Nova ideas now follow Viraltech: a topic switch (Tech + Philosophy, New tech, Philosophy, Everything) with new free sources for new tech (Hacker News, Product Hunt, r/technology) and philosophy (r/philosophy, Aeon essays, Stanford Encyclopedia of Philosophy). Google News (never answered) and YouTube (needed a key) are gone; the YouTube Trending link stays under Filters.'],
+    changesVi: ['Ý tưởng của Nova giờ theo đúng Viraltech: có nút chọn chủ đề (Công nghệ + Triết học, Công nghệ mới, Triết học, Tất cả) với nguồn miễn phí mới cho công nghệ mới (Hacker News, Product Hunt, r/technology) và triết học (r/philosophy, bài luận Aeon, Bách khoa Triết học Stanford). Đã bỏ Google News (không bao giờ trả lời) và YouTube (cần key); link YouTube Trending vẫn còn trong Bộ lọc.'],
+  },
   {
     version: '1.57.0',
     date: '2026-10-24',
