@@ -1,0 +1,23 @@
+# Read-only: asks Cloudflare whether the Atlas cron is attached and how its recent runs ended.
+name: Atlas diagnose
+
+on:
+  workflow_dispatch:
+
+jobs:
+  diagnose:
+    runs-on: ubuntu-latest
+    env:
+      CF: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+    steps:
+      - name: Cron schedules and recent scheduled runs
+        run: |
+          api() { curl -s -H "Authorization: Bearer $CF" -H 'content-type: application/json' "$@"; }
+          acct=$(api https://api.cloudflare.com/client/v4/accounts | jq -r '.result[0].id')
+          echo "== schedules (stock-predict)"
+          api "https://api.cloudflare.com/client/v4/accounts/$acct/workers/scripts/stock-predict/schedules" | jq '{success, errors, result}'
+          echo "== scheduled invocations by hour and status, last 48h"
+          since=$(date -u -d '48 hours ago' +%Y-%m-%dT%H:%M:%SZ)
+          now=$(date -u +%Y-%m-%dT%H:%M:%SZ)
+          q=$(jq -n --arg a "$acct" --arg s "$since" --arg e "$now" '{query: "query($a:String!,$s:Time!,$e:Time!){viewer{accounts(filter:{accountTag:$a}){workersInvocationsAdaptive(limit:500,filter:{scriptName:\"stock-predict\",datetime_geq:$s,datetime_leq:$e},orderBy:[datetimeHour_ASC]){sum{requests errors subrequests} quantiles{cpuTimeP99} dimensions{datetimeHour status}}}}}", variables: {a: $a, s: $s, e: $e}}')
+          api -X POST https://api.cloudflare.com/client/v4/graphql --data "$q" | jq -c '.errors // (.data.viewer.accounts[0].workersInvocationsAdaptive[] | {h: .dimensions.datetimeHour, status: .dimensions.status, req: .sum.requests, err: .sum.errors, sub: .sum.subrequests, cpuP99: .quantiles.cpuTimeP99})'
