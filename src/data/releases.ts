@@ -2,7 +2,7 @@
  * Version and "What's new". Bump APP_VERSION and add an entry to the top of RELEASES
  * with each update. The banner shows once per version, then stays dismissed.
  */
-export const APP_VERSION = '1.61.1'
+export const APP_VERSION = '1.62.0'
 
 export interface Release {
   version: string
@@ -13,6 +13,18 @@ export interface Release {
 }
 
 export const RELEASES: Release[] = [
+  {
+    version: '1.62.0',
+    date: '2026-10-24',
+    changes: [
+      "Iris opens in the Hub's glass look like the other agents (wallpaper, theme, Iris's character), and the Layers/Panels bar on the globe takes the theme colour.",
+      'Overpass works again through free public servers, so ALPR cameras, building outlines and mapped sites can load; the "Overpass temporarily unavailable" banner only shows when every server really refuses.',
+    ],
+    changesVi: [
+      'Iris mở ra theo kiểu kính của Hub như các agent khác (hình nền, theme, nhân vật Iris), thanh Lớp dữ liệu/Bảng trên quả cầu cũng theo màu theme.',
+      'Overpass chạy lại qua các máy chủ công cộng miễn phí, nên camera ALPR, viền toà nhà và địa điểm trên bản đồ tải được; dòng "Overpass temporarily unavailable" chỉ hiện khi mọi máy chủ thật sự từ chối.',
+    ],
+  },
   {
     version: '1.61.1',
     date: '2026-10-24',

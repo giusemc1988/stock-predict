@@ -783,7 +783,7 @@ export default function App() {
         </PanelGuard>
       ) : shownPage === 'godseye' ? (
         <PanelGuard name="God's Eye">
-          <GodsEyePage onBack={() => setPage(homePage)} />
+          <GodsEyePage onBack={() => setPage(homePage)} glass={aiRules.agentGlass} />
         </PanelGuard>
       ) : shownPage === 'studio' ? (
         <PanelGuard name="Video Studio">

@@ -134,7 +134,7 @@ export default {
     const p = url.pathname
     // static files are served before the Worker runs; their headers live in _headers
     if (!p.startsWith('/api/')) return env.ASSETS.fetch(req)
-    if (p === '/api/overpass') return json({ unavailable: true, code: 'OVERPASS_NOT_CONFIGURED', retryable: false })
+    if (p === '/api/overpass' && req.method === 'POST') return overpass(await req.text())
     if (req.method !== 'GET' && req.method !== 'HEAD') return json({ error: 'GET only' }, 405)
     if (p === '/api/health') return health(url, env)
     return api(url, env)
@@ -172,10 +172,36 @@ async function api(url: URL, env: Env): Promise<Response> {
     })
   }
   if (p === '/api/vessels') return vessels()
-  // Overpass (OSM outlines) is operator-configured upstream; saying "not configured" makes the app skip it quietly
-  // instead of showing "OVERPASS TEMPORARILY UNAVAILABLE" on every view
-  if (p === '/api/overpass/status') return json({ configured: false })
+  if (p === '/api/overpass/status') return json({ configured: true })
   return json({ error: 'Not available on this deploy' }, 404)
+}
+
+/** Public Overpass instances (free, no key), tried in order; the app sends the query as a form body. */
+const OVERPASS = ['https://overpass-api.de/api/interpreter', 'https://overpass.private.coffee/api/interpreter', 'https://maps.mail.ru/osm/tools/overpass/api/interpreter']
+
+/**
+ * OSM features for building outlines, ALPR cameras and mapped sites. Answers are kept 30 min per query;
+ * when every instance refuses, a 503 with Retry-After lets the app back off instead of hammering them.
+ */
+async function overpass(body: string): Promise<Response> {
+  if (!body.startsWith('data=') || body.length > 20_000) return json({ error: 'Overpass query expected as data=' }, 400)
+  const key = `overpass/${Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(body))), (b) => b.toString(16).padStart(2, '0')).join('')}`
+  const r = await cached(key, 1800, async () => {
+    let last: Response | null = null
+    for (const u of OVERPASS) {
+      const res = await fetch(u, { method: 'POST', body, headers: { 'content-type': 'application/x-www-form-urlencoded', accept: 'application/json', 'user-agent': UA }, signal: AbortSignal.timeout(25000) }).catch(() => null)
+      if (!res?.ok || !/json/i.test(res.headers.get('content-type') ?? '')) {
+        last = res
+        continue
+      }
+      const text = await res.text()
+      // some instances answer 200 with a runtime error in "remark"; the next one may manage
+      if (/"remark"\s*:\s*"[^"]*(runtime error|timed out|out of memory)/i.test(text)) continue
+      return new Response(text, { headers: { 'content-type': 'application/json', 'x-overpass-source': new URL(u).host } })
+    }
+    return last ?? new Response('', { status: 502 })
+  })
+  return r.ok ? r : json({ error: 'Overpass unavailable' }, 503, { 'retry-after': '120' })
 }
 
 /**

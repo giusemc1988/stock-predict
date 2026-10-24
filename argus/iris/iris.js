@@ -7,6 +7,10 @@
   sync()
   compact.addEventListener?.('change', sync)
 
+  // the Hub passes its theme accent (?accent=#rrggbb) so the bar matches the page around the globe
+  const accent = new URLSearchParams(location.search).get('accent')
+  if (accent && /^#[0-9a-f]{3,8}$/i.test(accent)) root.style.setProperty('--iris-acc', accent)
+
   const vi = () => /^vi/i.test(root.lang || navigator.language || '')
   const icon = {
     left: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m12 3 9 5-9 5-9-5 9-5Z"/><path d="m3 13 9 5 9-5"/></svg>',
