@@ -6,7 +6,7 @@ import { STUDIO_TEXT, type StudioKey } from '../lib/studio/text'
 import { DEFAULT_RENDER_OPTS, TRANSITIONS, cleanRenderOpts, type RenderAspect, type RenderEngine, type RenderLang, type RenderOpts, type RenderVoice, type StudioJob } from '../lib/studioJobs'
 
 type JobRow = Omit<StudioJob, 'lines' | 'terms'>
-export type KeyKind = 'pexels' | 'github' | 'youtube'
+export type KeyKind = 'pexels' | 'github'
 const POLL_MS = 20_000
 const IDLE_POLL_MS = 60_000
 const STATUS: Record<StudioJob['status'], StudioKey> = { queued: 'statusQueued', rendering: 'statusRendering', done: 'statusDone', failed: 'statusFailed' }
@@ -177,7 +177,7 @@ export function KeyBox({ kind, saved, title, how, onSaved }: { kind: KeyKind; sa
       <summary className="small">{title}{saved ? ' ✓' : ''}</summary>
       <p className="muted small">{how}</p>
       <div className="vs-row">
-        {!saved && <input value={key} onChange={(e) => setKey(e.target.value)} placeholder={kind === 'github' ? 'github_pat_…' : kind === 'youtube' ? 'AIza…' : 'Pexels API key'} autoComplete="off" />}
+        {!saved && <input value={key} onChange={(e) => setKey(e.target.value)} placeholder={kind === 'github' ? 'github_pat_…' : 'Pexels API key'} autoComplete="off" />}
         {!saved && <button className="btn small" disabled={key.trim().length < 10} onClick={() => void save(false)}>{t('keySave')}</button>}
         {saved && <button className="btn small" onClick={() => void save(true)}>{t('keyRemove')}</button>}
       </div>

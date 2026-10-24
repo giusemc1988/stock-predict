@@ -4,7 +4,11 @@
  * tested in scripts/novatrends.test.ts. Adding a source = one entry in TREND_SOURCES + one parser.
  */
 export type TrendGeo = 'VN' | 'US'
-export type TrendSourceId = 'google' | 'news' | 'youtube' | 'ytmusic' | 'reddit'
+export type TrendSourceId = 'google' | 'ytmusic' | 'reddit' | 'hn' | 'producthunt' | 'rtech' | 'rphilo' | 'aeon' | 'sep'
+/** what a topic is about; general sources ('all') are sorted into tech/philo by keywords */
+export type TrendTopic = 'tech' | 'philo'
+/** the Idea step's topic switch: Viraltech's two themes together, one of them, or everything */
+export type TopicView = 'focus' | TrendTopic | 'all'
 
 export interface TrendItem {
   title: string
@@ -14,8 +18,10 @@ export interface TrendItem {
   /** a headline or line that says why it is trending */
   context?: string
   url?: string
-  /** "5000+ searches", "1.2M views" */
+  /** "5000+ searches", "320 points" */
   traffic?: string
+  /** set by the source (Hacker News = tech) or by keywords (see topicOf) */
+  topic?: TrendTopic
 }
 
 export interface TrendSourceStatus {
@@ -33,12 +39,20 @@ export interface TrendsResult {
   sources: TrendSourceStatus[]
 }
 
-export const TREND_SOURCES: { id: TrendSourceId; name: string; needsKey?: boolean }[] = [
+/**
+ * All free with no key. Google News and the YouTube API were dropped on 2026-10-24: Google News
+ * never answered the Worker ("no answer" in the app), and YouTube needed a key.
+ */
+export const TREND_SOURCES: { id: TrendSourceId; name: string; topic?: TrendTopic }[] = [
+  { id: 'hn', name: 'Hacker News', topic: 'tech' },
+  { id: 'producthunt', name: 'Product Hunt', topic: 'tech' },
+  { id: 'rtech', name: 'r/technology', topic: 'tech' },
+  { id: 'rphilo', name: 'r/philosophy', topic: 'philo' },
+  { id: 'aeon', name: 'Aeon', topic: 'philo' },
+  { id: 'sep', name: 'Stanford Philosophy', topic: 'philo' },
   { id: 'google', name: 'Google Trends' },
-  { id: 'news', name: 'Google News' },
-  { id: 'youtube', name: 'YouTube', needsKey: true },
-  { id: 'ytmusic', name: 'YouTube Music' },
   { id: 'reddit', name: 'Reddit' },
+  { id: 'ytmusic', name: 'YouTube Music' },
 ]
 
 /** Places with no free trending feed: the app links to them instead of faking a list. */
@@ -50,10 +64,15 @@ export const TREND_LINKS: { name: string; url: (geo: TrendGeo) => string }[] = [
 
 export const trendUrls = (geo: TrendGeo) => ({
   google: `https://trends.google.com/trending/rss?geo=${geo}`,
-  news: geo === 'VN' ? 'https://news.google.com/rss?hl=vi&gl=VN&ceid=VN:vi' : 'https://news.google.com/rss?hl=en-US&gl=US&ceid=US:en',
-  youtube: (key: string) => `https://www.googleapis.com/youtube/v3/videos?part=snippet,statistics&chart=mostPopular&maxResults=20&regionCode=${geo}&key=${encodeURIComponent(key)}`,
   ytmusic: `https://kworb.net/youtube/trending/${geo.toLowerCase()}.html`,
   reddit: 'https://www.reddit.com/r/popular/.rss',
+  // tech and philosophy are worldwide: the same feeds for VN and US
+  hn: 'https://hn.algolia.com/api/v1/search?tags=front_page&hitsPerPage=30',
+  producthunt: 'https://www.producthunt.com/feed',
+  rtech: 'https://www.reddit.com/r/technology/.rss',
+  rphilo: 'https://www.reddit.com/r/philosophy/.rss',
+  aeon: 'https://aeon.co/feed.rss',
+  sep: 'https://plato.stanford.edu/rss/sep.xml',
 })
 
 const ENT: Record<string, string> = { amp: '&', lt: '<', gt: '>', quot: '"', apos: "'", nbsp: ' ' }
@@ -92,22 +111,47 @@ export function parseGoogleTrends(xml: string): TrendItem[] {
   }).filter((x) => x.title)
 }
 
-/** Google News top stories RSS: "Headline - Publisher" -> "Headline". */
-export function parseGoogleNews(xml: string): TrendItem[] {
-  return blocks(xml, 'item').map((b, i) => ({
-    title: tag(b, 'title').replace(/\s+[-–]\s+[^-–]+$/, ''),
-    source: 'news' as const,
-    score: rankScore(i) - 10,
-    url: tag(b, 'link') || undefined,
-  })).filter((x) => x.title)
-}
-
-/** Reddit r/popular Atom feed. */
-export function parseReddit(xml: string): TrendItem[] {
-  return blocks(xml, 'entry').map((b, i) => {
+/** A Reddit Atom feed (r/popular, r/technology, r/philosophy); pinned mod posts are skipped. */
+export function parseReddit(xml: string, source: 'reddit' | 'rtech' | 'rphilo' = 'reddit'): TrendItem[] {
+  const topic: TrendTopic | undefined = source === 'rtech' ? 'tech' : source === 'rphilo' ? 'philo' : undefined
+  return blocks(xml, 'entry').map((b) => {
     const sub = /<category[^>]*label="([^"]+)"/.exec(b)?.[1]
     const href = /<link[^>]*href="([^"]+)"/.exec(b)?.[1]
-    return { title: tag(b, 'title'), source: 'reddit' as const, score: rankScore(i) - 15, context: sub ? decodeXml(sub) : undefined, url: href ? decodeXml(href) : undefined }
+    const author = tag(b, 'name')
+    return { title: tag(b, 'title'), source, context: sub ? decodeXml(sub) : undefined, url: href ? decodeXml(href) : undefined, topic, mod: /automoderator|bernardjortcutt/i.test(author) }
+  }).filter((x) => x.title && !x.mod).map(({ mod: _m, ...x }, i) => ({ ...x, score: rankScore(i) - 15 }))
+}
+
+/** Hacker News front page (Algolia API): points decide the order. */
+export function parseHackerNews(json: unknown): TrendItem[] {
+  const hits = (json as { hits?: { title?: string; url?: string; objectID?: string; points?: number; num_comments?: number }[] } | null)?.hits ?? []
+  return hits.filter((h) => h.title).sort((a, b) => (b.points ?? 0) - (a.points ?? 0)).map((h, i) => ({
+    title: h.title!,
+    source: 'hn' as const,
+    score: rankScore(i) - 5,
+    url: h.url || (h.objectID ? `https://news.ycombinator.com/item?id=${h.objectID}` : undefined),
+    traffic: h.points ? `${h.points} points` : undefined,
+    topic: 'tech' as const,
+  }))
+}
+
+const stripHtml = (s: string) => decodeXml(s.replace(/<[^>]+>/g, ' '))
+
+/** Product Hunt Atom feed: today's new products, with their one-line pitch. */
+export function parseProductHunt(xml: string): TrendItem[] {
+  return blocks(xml, 'entry').map((b, i) => {
+    const href = /<link[^>]*href="([^"]+)"/.exec(b)?.[1]
+    const pitch = stripHtml(tag(b, 'content')).replace(/\s*Discussion\s*\|\s*Link\s*$/, '').trim()
+    return { title: tag(b, 'title'), source: 'producthunt' as const, score: rankScore(i) - 10, context: pitch || undefined, url: href ? decodeXml(href) : undefined, topic: 'tech' as const }
+  }).filter((x) => x.title)
+}
+
+/** An RSS 2.0 feed of essays or entries (Aeon, Stanford Encyclopedia of Philosophy). */
+export function parseEssayRss(xml: string, source: 'aeon' | 'sep'): TrendItem[] {
+  return blocks(xml, 'item').map((b, i) => {
+    // SEP starts with "[Revised entry by ...]", Aeon ends with "Read on Aeon"
+    const about = stripHtml(tag(b, 'description')).replace(/^\[[^\]]*\]\s*/, '').replace(/\s*(Read|Watch|Listen) on Aeon$/, '').slice(0, 160)
+    return { title: tag(b, 'title'), source, score: rankScore(i) - (source === 'sep' ? 25 : 15), context: about || undefined, url: tag(b, 'link') || undefined, topic: 'philo' as const }
   }).filter((x) => x.title)
 }
 
@@ -119,22 +163,6 @@ export function parseKworb(html: string): TrendItem[] {
     if (out.length >= 20) break
   }
   return out
-}
-
-/** YouTube Data API v3 "mostPopular" videos. */
-export function parseYouTube(json: unknown): TrendItem[] {
-  const items = (json as { items?: { id?: string; snippet?: { title?: string; channelTitle?: string }; statistics?: { viewCount?: string } }[] } | null)?.items ?? []
-  return items.map((v, i) => {
-    const views = Number(v.statistics?.viewCount ?? 0)
-    return {
-      title: v.snippet?.title ?? '',
-      source: 'youtube' as const,
-      score: rankScore(i),
-      context: v.snippet?.channelTitle,
-      url: v.id ? `https://youtu.be/${v.id}` : undefined,
-      traffic: views ? `${views >= 1e6 ? `${(views / 1e6).toFixed(1)}M` : `${Math.round(views / 1e3)}K`} views` : undefined,
-    }
-  }).filter((x) => x.title)
 }
 
 const norm = (s: string) => s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/đ/g, 'd').replace(/[^a-z0-9 ]+/g, ' ').replace(/\s+/g, ' ').trim()
@@ -171,7 +199,28 @@ export const SENSITIVE = [
   'dead', 'death', 'dies', 'died', 'killed', 'kill', 'murder', 'shooting', 'shot', 'arrest', 'charged', 'trial', 'crash', 'rape', 'suicide', 'war', 'attack', 'earthquake', 'flood',
 ]
 
+/** Keywords (accents removed, EN + VI) that put a general trend under tech or philosophy. */
+export const TOPIC_WORDS: Record<TrendTopic, string[]> = {
+  tech: [
+    'ai', 'tri tue nhan tao', 'chatgpt', 'openai', 'gemini', 'claude', 'llm', 'robot', 'robotics', 'chip', 'chips', 'nvidia', 'apple', 'iphone', 'ipad', 'macbook', 'samsung', 'galaxy', 'android', 'google', 'microsoft', 'windows', 'meta', 'tesla', 'spacex', 'starlink', 'xiaomi', 'huawei',
+    'app', 'ung dung', 'phan mem', 'software', 'cong nghe', 'tech', 'technology', 'gadget', 'smartphone', 'dien thoai', 'laptop', 'vr', 'quantum', 'luong tu', 'blockchain', 'bitcoin', 'crypto', 'startup', 'drone', 'ev', 'xe dien', 'battery', 'semiconductor', 'ban dan', '5g', '6g', 'cyber', 'hacker', 'bao mat', 'open source', 'github', 'linux', 'gpu', 'cpu',
+  ],
+  philo: [
+    'philosophy', 'philosopher', 'triet hoc', 'triet ly', 'triet gia', 'stoic', 'stoicism', 'khac ky', 'existential', 'existentialism', 'hien sinh', 'nietzsche', 'socrates', 'plato', 'aristotle', 'kant', 'camus', 'sartre', 'marcus aurelius', 'seneca', 'epictetus', 'confucius', 'khong tu', 'lao tu', 'phat giao', 'buddhism', 'zen',
+    'meaning of life', 'y nghia cuoc song', 'ethics', 'dao duc', 'free will', 'consciousness', 'y thuc', 'mindfulness', 'chanh niem', 'wisdom', 'happiness', 'hanh phuc', 'morality', 'virtue', 'metaphysics', 'logic',
+  ],
+}
+
+/** The source's own topic, else the first keyword hit, else none (a general trend). */
+export function topicOf(it: TrendItem): TrendTopic | undefined {
+  if (it.topic) return it.topic
+  const text = ` ${norm(`${it.title} ${it.context ?? ''}`)} `
+  return (['philo', 'tech'] as TrendTopic[]).find((tp) => TOPIC_WORDS[tp].some((w) => text.includes(` ${w} `)))
+}
+
 export interface TrendFilter {
+  /** 'focus' = tech + philosophy (Viraltech's themes), 'all' = no topic filter */
+  topic?: TopicView
   sources?: TrendSourceId[]
   hideSensitive?: boolean
   /** the user's own words to hide, any language */
@@ -182,19 +231,23 @@ export function filterTrends(items: TrendItem[], f: TrendFilter): TrendItem[] {
   const block = [...(f.hideSensitive ? SENSITIVE : []), ...(f.blocked ?? []).map(norm).filter(Boolean)]
   return items.filter((it) => {
     if (f.sources && !f.sources.includes(it.source)) return false
+    if (f.topic && f.topic !== 'all') {
+      const tp = topicOf(it)
+      if (!tp || (f.topic !== 'focus' && tp !== f.topic)) return false
+    }
     const text = ` ${norm(`${it.title} ${it.context ?? ''}`)} `
     return !block.some((w) => text.includes(` ${w} `))
   })
 }
 
-export const YOUTUBE_KEY = 'nova:youtube'
-export const TRENDS_CACHE = (geo: TrendGeo) => `nova:trends:${geo}`
+// v2: the source list changed on 2026-10-24, so old cached lists are not reused
+export const TRENDS_CACHE = (geo: TrendGeo) => `nova:trends2:${geo}`
 export const TRENDS_TTL_MS = 60 * 60 * 1000
 // a plain browser UA: Reddit refuses unknown bots
 const UA = 'Mozilla/5.0 (Linux; Android 14) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Mobile Safari/537.36'
 
 /** Fetch every source at once; one failing never stops the others. */
-export async function fetchTrends(geo: TrendGeo, youtubeKey: string | null, f: typeof fetch = fetch, now = Date.now()): Promise<TrendsResult> {
+export async function fetchTrends(geo: TrendGeo, f: typeof fetch = fetch, now = Date.now()): Promise<TrendsResult> {
   const u = trendUrls(geo)
   const get = async (url: string) => {
     const r = await f(url, { headers: { 'user-agent': UA, accept: '*/*' }, signal: AbortSignal.timeout(9000) })
@@ -202,11 +255,15 @@ export async function fetchTrends(geo: TrendGeo, youtubeKey: string | null, f: t
     return r.text()
   }
   const jobs: { id: TrendSourceId; run: () => Promise<TrendItem[]> }[] = [
+    { id: 'hn', run: async () => parseHackerNews(JSON.parse(await get(u.hn))) },
+    { id: 'producthunt', run: async () => parseProductHunt(await get(u.producthunt)) },
+    { id: 'rtech', run: async () => parseReddit(await get(u.rtech), 'rtech') },
+    { id: 'rphilo', run: async () => parseReddit(await get(u.rphilo), 'rphilo') },
+    { id: 'aeon', run: async () => parseEssayRss(await get(u.aeon), 'aeon') },
+    { id: 'sep', run: async () => parseEssayRss(await get(u.sep), 'sep') },
     { id: 'google', run: async () => parseGoogleTrends(await get(u.google)) },
-    { id: 'news', run: async () => parseGoogleNews(await get(u.news)) },
-    { id: 'youtube', run: async () => (youtubeKey ? parseYouTube(JSON.parse(await get(u.youtube(youtubeKey)))) : Promise.reject(new Error('needs key'))) },
-    { id: 'ytmusic', run: async () => parseKworb(await get(u.ytmusic)) },
     { id: 'reddit', run: async () => parseReddit(await get(u.reddit)) },
+    { id: 'ytmusic', run: async () => parseKworb(await get(u.ytmusic)) },
   ]
   const done = await Promise.allSettled(jobs.map((j) => j.run()))
   const sources: TrendSourceStatus[] = done.map((d, i) =>

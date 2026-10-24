@@ -2,18 +2,25 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useLocalStorage } from '../hooks/useLocalStorage'
 import { useLang } from '../lib/i18n'
 import { STUDIO_TEXT, type StudioKey } from '../lib/studio/text'
-import { TREND_LINKS, TREND_SOURCES, filterTrends, type TrendGeo, type TrendItem, type TrendSourceId, type TrendsResult } from '../lib/studioTrends'
-import { KeyBox } from './StudioRenderPanel'
+import { TREND_LINKS, TREND_SOURCES, filterTrends, type TopicView, type TrendGeo, type TrendItem, type TrendSourceId, type TrendsResult } from '../lib/studioTrends'
 
 interface Prefs {
   geo: TrendGeo
+  topic: TopicView
   off: TrendSourceId[]
   hideSensitive: boolean
   blocked: string
   shown: number
 }
-const DEFAULT_PREFS: Prefs = { geo: 'VN', off: [], hideSensitive: true, blocked: '', shown: 12 }
-const NOTE: Record<string, StudioKey> = { 'needs key': 'trendNeedsKey', empty: 'trendEmpty' }
+// Viraltech is about new tech and philosophy, so those two come first
+const DEFAULT_PREFS: Prefs = { geo: 'VN', topic: 'focus', off: [], hideSensitive: true, blocked: '', shown: 12 }
+const NOTE: Record<string, StudioKey> = { empty: 'trendEmpty' }
+const TOPICS: { id: TopicView; key: StudioKey }[] = [
+  { id: 'focus', key: 'topicFocus' },
+  { id: 'tech', key: 'topicTech' },
+  { id: 'philo', key: 'topicPhilo' },
+  { id: 'all', key: 'topicAll' },
+]
 
 /** Nova step 1: trending topics from free sources; tap one to use it, or let Nova pick and write. */
 export function NovaTrends({ onPick, onAuto, busy }: { onPick: (t: TrendItem) => void; onAuto: (t: TrendItem) => void; busy: boolean }) {
@@ -45,15 +52,15 @@ export function NovaTrends({ onPick, onAuto, busy }: { onPick: (t: TrendItem) =>
     void load(p.geo)
   }, [load, p.geo])
 
-  const list = useMemo(
-    () => filterTrends(data?.items ?? [], { sources: TREND_SOURCES.map((s) => s.id).filter((id) => !p.off.includes(id)), hideSensitive: p.hideSensitive, blocked: p.blocked.split(',') }),
-    [data, p.off, p.hideSensitive, p.blocked],
-  )
+  // a tech source has nothing for the philosophy view and the other way round, so its chip is hidden
+  const sources = TREND_SOURCES.filter((s) => !s.topic || p.topic === 'all' || p.topic === 'focus' || s.topic === p.topic)
+  const inTopic = useMemo(() => filterTrends(data?.items ?? [], { topic: p.topic, hideSensitive: p.hideSensitive, blocked: p.blocked.split(',') }), [data, p.topic, p.hideSensitive, p.blocked])
+  const list = useMemo(() => inTopic.filter((it) => !p.off.includes(it.source)), [inTopic, p.off])
   const shown = list.slice(0, p.shown)
   const status = (id: TrendSourceId) => data?.sources.find((s) => s.id === id)
   const toggle = (id: TrendSourceId) => set({ off: p.off.includes(id) ? p.off.filter((x) => x !== id) : [...p.off, id] })
   const age = data ? Math.round((Date.now() - data.at) / 60000) : null
-  const youtubeOn = !!status('youtube')?.ok
+  const count = (id: TrendSourceId) => inTopic.filter((it) => it.source === id).length
 
   return (
     <div className="nv-trends">
@@ -66,14 +73,20 @@ export function NovaTrends({ onPick, onAuto, busy }: { onPick: (t: TrendItem) =>
         </div>
       </div>
 
+      <div className="seg small nv-topic" role="group" aria-label={t('trendTopic')}>
+        {TOPICS.map((tp) => (
+          <button key={tp.id} className={p.topic === tp.id ? 'on' : ''} aria-pressed={p.topic === tp.id} onClick={() => set({ topic: tp.id, shown: DEFAULT_PREFS.shown })}>{t(tp.key)}</button>
+        ))}
+      </div>
+
       <div className="nv-chips" role="group" aria-label={t('trendSources')}>
-        {TREND_SOURCES.map((s) => {
+        {sources.map((s) => {
           const st = status(s.id)
           const off = p.off.includes(s.id)
           return (
             <button key={s.id} className={`nv-src${off ? '' : ' on'}${st && !st.ok ? ' bad' : ''}`} aria-pressed={!off} onClick={() => toggle(s.id)} title={st?.note}>
               {s.name}
-              <span className="nv-src-n">{st ? (st.ok ? st.count : t(NOTE[st.note ?? ''] ?? 'trendDown')) : '…'}</span>
+              <span className="nv-src-n">{st ? (st.ok ? count(s.id) : t(NOTE[st.note ?? ''] ?? 'trendDown')) : '…'}</span>
             </button>
           )
         })}
@@ -120,7 +133,6 @@ export function NovaTrends({ onPick, onAuto, busy }: { onPick: (t: TrendItem) =>
           {TREND_LINKS.map((l) => <a key={l.name} className="btn small" href={l.url(p.geo)} target="_blank" rel="noreferrer">{l.name} ↗</a>)}
         </div>
       </details>
-      {!youtubeOn && <KeyBox kind="youtube" saved={false} title={t('youtubeKey')} how={t('youtubeHow')} onSaved={() => void load(p.geo, true)} />}
     </div>
   )
 }
