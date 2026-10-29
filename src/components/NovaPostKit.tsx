@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react'
 import { useLocalStorage } from '../hooks/useLocalStorage'
 import { KIT_STORE } from './NovaPresets'
+import { NovaProgress } from './NovaProgress'
 import { useLang } from '../lib/i18n'
 import { STUDIO_TEXT, type StudioKey } from '../lib/studio/text'
 import type { Lang, Script } from '../lib/studio/script'
@@ -95,6 +96,7 @@ export function NovaPostKit({ script, hook, onHook }: { script: Script; hook?: {
       <div className="vs-row">
         <button className="btn primary" disabled={!!busy || !script.topic.en.trim()} onClick={() => void writeAll()}>✦ {busy === 'all' ? t('kitWriting') : t('kitWrite')}</button>
       </div>
+      <NovaProgress active={busy !== null} label={busy === 'all' ? t('kitWriting') : t('kitRedoing')} secs={20} />
       <p className="small muted">{msg ?? (mine?.by ? `${t('writtenBy')} ${mine.by}` : t('kitLocal'))}</p>
 
       <details className="vs-pexels nv-kit-set">

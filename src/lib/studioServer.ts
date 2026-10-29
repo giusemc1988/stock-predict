@@ -29,12 +29,12 @@ export function cleanWriteAsk(body: unknown): WriteAsk | null {
 }
 
 /** Gemini, then Groq. Returns null when neither has a key or both fail. */
-async function ask(e: BrainEnv, system: string, user: string): Promise<{ text: string; by: string } | null> {
+async function ask(e: BrainEnv, system: string, user: string, maxTokens = 1200): Promise<{ text: string; by: string } | null> {
   for (const p of PROVIDERS.filter((x) => x.id === 'gemini' || x.id === 'groq')) {
     const key = p.key(e)
     if (!key) continue
     try {
-      const text = (await callHelper(p, key, e, system, user, fetch))?.trim()
+      const text = (await callHelper(p, key, e, system, user, fetch, undefined, maxTokens))?.trim()
       if (text) return { text, by: p.name }
     } catch {
       // down or over its free limit: try the next one

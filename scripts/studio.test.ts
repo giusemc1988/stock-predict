@@ -3,7 +3,7 @@ import { LIBRARY, fromText, parseScenes, studioPrompt, titleLab } from '../src/l
 import { FADE, frameCount, plan, visible } from '../src/lib/studio/render'
 import { lufs, normalise, SAMPLE_RATE, TARGET_LUFS } from '../src/lib/studio/audio'
 import { rgbaToI420 } from '../src/lib/studio/encode'
-import { cleanWriteAsk } from '../src/lib/studioServer'
+import { cleanWriteAsk, writeScript } from '../src/lib/studioServer'
 import { STUDIO_TEXT } from '../src/lib/studio/text'
 import { layerState, GE_TEXT } from '../src/lib/godsEye'
 import { digitrafficRows } from '../argus/digitraffic'
@@ -114,4 +114,19 @@ console.log('studio ok')
   assert.equal(middleOf(Infinity), 0)
   assert.equal(middleOf(NaN), 0)
   for (const k of ['mediaClipCodec', 'mediaHeic', 'mediaPhotoFormat', 'mediaSlow', 'mediaAdded'] as const) assert.ok(STUDIO_TEXT[k].vi && STUDIO_TEXT[k].en)
+}
+
+// the script writer must ask for room for every scene (it once used Neo's 450-token cap and got one line back)
+{
+  const sent: number[] = []
+  const real = globalThis.fetch
+  globalThis.fetch = (async (_u: unknown, init?: { body?: string }) => {
+    const b = JSON.parse(init?.body ?? '{}') as { generationConfig?: { maxOutputTokens?: number } }
+    sent.push(b.generationConfig?.maxOutputTokens ?? 0)
+    return new Response(JSON.stringify({ candidates: [{ content: { parts: [{ text: Array.from({ length: 10 }, (_, i) => `Line number ${i + 1} here`).join('\n') }] } }] }), { status: 200 })
+  }) as typeof fetch
+  const r = await writeScript({ topic: 'x', topicVi: 'x', mode: 'faceless', scenes: 10 }, { GEMINI_API_KEY: 'k' })
+  globalThis.fetch = real
+  assert.equal(r?.en.length, 10)
+  assert.ok(sent.length === 2 && sent.every((n) => n >= 1000))
 }

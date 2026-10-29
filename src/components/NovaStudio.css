@@ -175,3 +175,9 @@
 .nv-presets-row input { flex: 1; min-width: 0; }
 .nv.hg .nv-presets-row input { background: rgba(0, 0, 0, 0.26); color: var(--ink); border: 1px solid var(--line); border-radius: 12px; padding: 9px 11px; font: inherit; font-size: 14px; }
 .nv-presets-row .btn { flex: none; white-space: nowrap; }
+
+/* progress bar for every scan or AI wait (NovaProgress.tsx) */
+.nv-prog { display: grid; gap: 4px; min-width: 0; }
+.nv-prog-row { display: flex; justify-content: space-between; gap: 8px; }
+.nv-prog-track { height: 6px; border-radius: 3px; background: rgba(127, 127, 127, 0.25); overflow: hidden; }
+.nv-prog-track i { display: block; height: 100%; border-radius: 3px; background: var(--acc, #d6a4ea); transition: width 0.25s ease; }
