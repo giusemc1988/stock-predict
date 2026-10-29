@@ -115,6 +115,19 @@ html.iris-compact[data-iris-open='right'] #right-context-rail > * {
   pointer-events: auto !important;
   flex: none !important;
 }
+/* Upstream gives each panel body its own scroller with overscroll-behavior: contain. In the drawer those
+   bodies grow to full height, so they are not scrollable themselves but still swallow the swipe, and the
+   drawer never scrolls. Let the drawer be the only scroller. */
+html.iris-compact[data-iris-open='left'] #left-panel-stack *,
+html.iris-compact[data-iris-open='right'] #right-context-rail * {
+  overscroll-behavior: auto !important;
+}
+html.iris-compact[data-iris-open='left'] #left-panel-stack :is(.data-panel-inner, .cctv-panel-inner, .scene-panel-inner, .data-toggle-list, [data-rail-scroller]),
+html.iris-compact[data-iris-open='right'] #right-context-rail :is(.data-panel-inner, [data-rail-scroller]) {
+  overflow: visible !important;
+  max-height: none !important;
+  height: auto !important;
+}
 html.iris-compact[data-iris-open='left'] #left-panel-stack > [hidden],
 html.iris-compact[data-iris-open='right'] #right-context-rail > [hidden] {
   display: none !important;
