@@ -2,24 +2,24 @@
 
 Kronos-small forecasts the next daily candles for Atlas's symbols after each US close. It is only logged and graded here; it never touches Atlas or any order (paper or real).
 
-Updated 2026-10-28T00:45Z · 24 forecasts logged · verdict needs 20+ graded per horizon.
+Updated 2026-10-29T01:14Z · 32 forecasts logged · verdict needs 20+ graded per horizon.
 
 | Horizon | Graded | Kronos direction right | Always-up baseline | Kronos avg miss | No-change avg miss | Verdict |
 |---|---|---|---|---|---|---|
-| 1 day | 16 | 88% | 38% | 1.04% | 0.97% | waiting |
-| 5 day | 0 | – | – | – | – | waiting |
+| 1 day | 24 | 75% | 54% | 1.19% | 1.08% | no edge |
+| 5 day | 2 | 50% | 0% | 4.39% | 1.12% | waiting |
 
 ## Latest forecasts
 
 | Symbol | As of | Close | +1 day | +5 days |
 |---|---|---|---|---|
-| SPY | 2026-10-26 | 765.37 | 766.72 (+0.2%) | 755.05 (-1.3%) |
-| AAPL | 2026-10-26 | 343.91 | 339.29 (-1.3%) | 306.08 (-11.0%) |
-| NVDA | 2026-10-26 | 216.00 | 215.68 (-0.1%) | 219.59 (+1.7%) |
-| TSLA | 2026-10-26 | 391.62 | 397.62 (+1.5%) | 397.03 (+1.4%) |
-| MSFT | 2026-10-26 | 532.60 | 534.42 (+0.3%) | 541.00 (+1.6%) |
-| AMZN | 2026-10-26 | 249.09 | 250.46 (+0.5%) | 248.36 (-0.3%) |
-| BTC-USD | 2026-10-26 | 80,006.66 | 78,495.12 (-1.9%) | 79,024.31 (-1.2%) |
-| ETH-USD | 2026-10-26 | 2,320.28 | 2,322.46 (+0.1%) | 2,386.30 (+2.8%) |
+| SPY | 2026-10-27 | 769.66 | 766.81 (-0.4%) | 759.07 (-1.4%) |
+| AAPL | 2026-10-27 | 347.10 | 341.31 (-1.7%) | 311.37 (-10.3%) |
+| NVDA | 2026-10-27 | 217.94 | 217.42 (-0.2%) | 218.85 (+0.4%) |
+| TSLA | 2026-10-27 | 407.46 | 404.89 (-0.6%) | 412.81 (+1.3%) |
+| MSFT | 2026-10-27 | 531.33 | 536.40 (+1.0%) | 545.57 (+2.7%) |
+| AMZN | 2026-10-27 | 253.10 | 251.71 (-0.6%) | 248.02 (-2.0%) |
+| BTC-USD | 2026-10-27 | 80,805.08 | 78,881.66 (-2.4%) | 78,708.70 (-2.6%) |
+| ETH-USD | 2026-10-27 | 2,347.73 | 2,380.71 (+1.4%) | 2,433.67 (+3.7%) |
 
 Pass rule: direction right at least 3 points above the better of 50% and always-up, and average miss below 98% of the no-change guess. Not financial advice.
