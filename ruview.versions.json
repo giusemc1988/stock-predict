@@ -1,7 +1,7 @@
 {
   "upstream": "https://github.com/ruvnet/ruview",
-  "release": "v0.8.14-esp32",
+  "release": "v0.8.17-esp32",
   "image": "ruvnet/wifi-densepose",
-  "firmware": "0.8.14",
-  "checked": "2026-10-17"
+  "firmware": "0.8.17",
+  "checked": "2026-10-29"
 }
