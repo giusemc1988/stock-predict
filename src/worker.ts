@@ -869,9 +869,8 @@ export default {
     // Market hours: 13:00-21:55 UTC (9am-4:55pm ET), Mon-Fri
     if (utcDay >= 1 && utcDay <= 5 && utcHour >= 13 && utcHour <= 21) {
       console.log('Practice cycle triggered by Cron')
-      // written before and after so a run that is killed mid-way still shows when it started
+      // written once, when the run ends (KV free tier: 1,000 writes a day, a 'started' write would double the cost)
       const mark = (v: Record<string, unknown>) => env.PRACTICE.put('cronLast', JSON.stringify({ at: now.getTime(), ...v })).catch(() => {})
-      await mark({ phase: 'started' })
       try {
         const result = await practiceCycle(env)
         console.log('Practice cycle result:', result.message)
