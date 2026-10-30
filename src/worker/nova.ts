@@ -7,7 +7,7 @@ import type { BrainEnv } from '../lib/brainServer'
 import { cleanKitAsk, writeKitItem, writePostKit, writeTerms } from '../lib/studioServer'
 import { TRENDS_CACHE, TRENDS_TTL_MS, fetchTrends, type TrendGeo, type TrendsResult } from '../lib/studioTrends'
 import { PRESETS_KEY, cleanPresets } from '../lib/studio/presets'
-import { MEDIA_CHUNK, deleteMedia, finishMedia, putMediaPart, readyMedia, startMedia, type MediaStore } from '../lib/studioMedia'
+import { MEDIA_CHUNK, deleteMedia, finishMedia, importPart, importStart, putMediaPart, readyMedia, startMedia, type MediaStore } from '../lib/studioMedia'
 import { GITHUB_KEY, PEXELS_KEY, checkGithubToken, cleanRenderAsk, expireLemoJobs, kickFarm, deleteJob, isJobId, lemoOnline, listJobs, queueJobs, setHandoff, videoResponse, type JobStore } from '../lib/studioJobs'
 
 const json = (data: unknown, status = 200) => new Response(JSON.stringify(data), { status, headers: { 'content-type': 'application/json', 'cache-control': 'no-store' } })
@@ -85,6 +85,23 @@ export async function novaRoute(req: Request, pathname: string, env: BrainEnv, s
     if (!key || !(await k.check(key))) return json({ error: `${kind === 'github' ? 'GitHub' : 'Pexels'} refused this key` }, 400)
     await kv.put(k.slot, key)
     return json({ [kind]: true })
+  }
+  if (pathname === '/api/studio/media-import') {
+    // POST {url} starts an import from a Muse link; PUT {url,id,i} fetches one part; finish with PATCH /api/studio/media?id=
+    if (!sameOrigin(req)) return json({ error: 'Not allowed' }, 403)
+    const store = kv as unknown as MediaStore
+    const b = (await req.json().catch(() => null)) as { url?: unknown; id?: unknown; i?: unknown } | null
+    const link = typeof b?.url === 'string' ? b.url.trim() : ''
+    if (req.method === 'POST') {
+      const r = await importStart(store, link)
+      if ('error' in r) return json({ error: r.error }, r.error === 'full' ? 507 : r.error === 'fetch' ? 502 : 400)
+      return json({ id: r.item.id, chunk: MEDIA_CHUNK, parts: r.item.parts })
+    }
+    if (req.method === 'PUT') {
+      const r = await importPart(store, link, String(b?.id ?? ''), Number(b?.i))
+      return r === 'ok' ? json({ ok: true }) : json({ error: r }, r === 'missing' ? 404 : r === 'fetch' ? 502 : 400)
+    }
+    return json({ error: 'POST or PUT' }, 405)
   }
   if (pathname === '/api/studio/media') {
     // POST {type,size} starts an upload; PUT ?id=&i= sends one part; PATCH ?id= finishes; DELETE ?id= removes

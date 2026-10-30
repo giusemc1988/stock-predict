@@ -54,7 +54,7 @@ function useActiveStep(): string {
 }
 
 /** Bilingual Faceless Video Studio: script EN + VI, preview, MP4 export and Title Lab, all in the browser. */
-export function VideoStudioPage({ onBack, glass = true, trends = true, postKit = true, videoSettings = true, uploads = true, presets = true, lemo = true, handoff = true, channel = false }: { onBack: () => void; glass?: boolean; trends?: boolean; postKit?: boolean; videoSettings?: boolean; uploads?: boolean; presets?: boolean; lemo?: boolean; handoff?: boolean; channel?: boolean }) {
+export function VideoStudioPage({ onBack, glass = true, trends = true, postKit = true, videoSettings = true, uploads = true, presets = true, lemo = true, handoff = true, channel = false, importLink = true }: { onBack: () => void; glass?: boolean; trends?: boolean; postKit?: boolean; videoSettings?: boolean; uploads?: boolean; presets?: boolean; lemo?: boolean; handoff?: boolean; channel?: boolean; importLink?: boolean }) {
   const lang = useLang()
   const theme = useHubTheme()
   const active = useActiveStep()
@@ -370,7 +370,7 @@ export function VideoStudioPage({ onBack, glass = true, trends = true, postKit =
           ) : (
             <p className="muted small">{t('footageAuto')}</p>
           )}
-          {uploads && <NovaUploads onChange={setServerMedia} />}
+          {uploads && <NovaUploads onChange={setServerMedia} importLink={importLink} />}
         </section>
 
         <section id="nv-make" className="nv-make">

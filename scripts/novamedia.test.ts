@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict'
-import { MAX_MEDIA_BYTES, MEDIA_BUDGET, MEDIA_CHUNK, MEDIA_PREFIX, deleteMedia, finishMedia, listMedia, putMediaPart, readyMedia, startMedia, type MediaStore } from '../src/lib/studioMedia'
+import { importHostOk, importPart, importStart, MAX_MEDIA_BYTES, MEDIA_BUDGET, MEDIA_CHUNK, MEDIA_PREFIX, deleteMedia, finishMedia, listMedia, putMediaPart, readyMedia, startMedia, type MediaStore } from '../src/lib/studioMedia'
 import { cleanRenderAsk, queueJobs, type JobStore } from '../src/lib/studioJobs'
 
 function fakeKv() {
@@ -77,3 +77,35 @@ const plain = (await queueJobs(fakeKv() as unknown as JobStore, { ...ask, media:
 assert.equal('media' in plain[0], false)
 
 console.log('novamedia ok')
+
+{
+  // clips fetched from a Muse link, part by part, by byte range
+  assert.ok(importHostOk('https://muse.ai/files/1/2/x.mp4'))
+  assert.ok(importHostOk('https://cdn.muse.ai/a.mp4'))
+  for (const bad of ['http://muse.ai/a.mp4', 'https://evil.com/muse.ai', 'https://muse.ai.evil.com/a.mp4', 'https://muse.ai:8443/a.mp4', 'not a url', 'https://169.254.169.254/'])
+    assert.equal(importHostOk(bad), false, bad)
+  const total = MEDIA_CHUNK + 1000
+  const data = new Uint8Array(total).map((_, i) => i % 251)
+  const calls: string[] = []
+  const fake = (async (_u: string, init: RequestInit) => {
+    const r = /bytes=(\d+)-(\d+)/.exec((init.headers as Record<string, string>).range)!
+    calls.push(r[0])
+    const a = Number(r[1]), b = Math.min(Number(r[2]), total - 1)
+    return new Response(data.slice(a, b + 1), { status: 206, headers: { 'content-range': `bytes ${a}-${b}/${total}`, 'content-type': 'video/mp4' } })
+  }) as unknown as typeof fetch
+  const kv = fakeKv()
+  const link = 'https://muse.ai/files/1/2/clip.mp4'
+  assert.deepEqual(await importStart(kv, 'https://evil.com/a.mp4', fake), { error: 'host' })
+  const st = await importStart(kv, link, fake)
+  assert.ok('item' in st && st.item.parts === 2 && st.item.size === total && st.item.kind === 'video')
+  const id = (st as { item: { id: string } }).item.id
+  assert.equal(await importPart(kv, link, id, 0, fake), 'ok')
+  assert.equal(await importPart(kv, link, id, 1, fake), 'ok')
+  assert.equal(await importPart(kv, link, id, 2, fake), 'bad')
+  assert.equal(await importPart(kv, 'https://evil.com/a.mp4', id, 0, fake), 'host')
+  assert.equal((await finishMedia(kv, id))?.done, true)
+  assert.deepEqual(calls.slice(1), [`bytes=0-${MEDIA_CHUNK - 1}`, `bytes=${MEDIA_CHUNK}-${total - 1}`])
+  // a server that ignores Range (answers 200) is refused, not stored whole
+  const noRange = (async () => new Response('x', { status: 200 })) as unknown as typeof fetch
+  assert.deepEqual(await importStart(kv, link, noRange), { error: 'fetch' })
+}

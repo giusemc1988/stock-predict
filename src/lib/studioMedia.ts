@@ -118,3 +118,39 @@ export async function readyMedia(kv: MediaStore, ids: unknown): Promise<string[]
   const items = await Promise.all(want.map((id) => getMedia(kv, id)))
   return want.filter((_, i) => items[i]?.done)
 }
+
+/** Links the hub may fetch clips from: Muse file links only, https, no custom port. */
+export function importHostOk(u: string): boolean {
+  try {
+    const x = new URL(u)
+    return x.protocol === 'https:' && !x.port && (x.hostname === 'muse.ai' || x.hostname.endsWith('.muse.ai'))
+  } catch {
+    return false
+  }
+}
+
+type Get = typeof fetch
+const ranged = (f: Get, url: string, range: string) => f(url, { headers: { range }, redirect: 'manual' }).catch(() => null)
+
+/** Starts an upload for a clip that lives at a link: asks the link for its size and type with a 1-byte range. */
+export async function importStart(kv: MediaStore, url: string, f: Get = fetch): Promise<StartResult | { error: 'host' | 'fetch' }> {
+  if (!importHostOk(url)) return { error: 'host' }
+  const r = await ranged(f, url, 'bytes=0-0')
+  const total = Number(r?.headers.get('content-range')?.split('/')[1])
+  const type = r?.headers.get('content-type')?.split(';')[0].trim().toLowerCase() ?? ''
+  await r?.body?.cancel().catch(() => null)
+  if (!r || r.status !== 206 || !Number.isInteger(total) || total < 1) return { error: 'fetch' }
+  return startMedia(kv, { type, size: total })
+}
+
+/** One part of that clip, fetched by byte range and stored like an uploaded part. */
+export async function importPart(kv: MediaStore, url: string, id: string, i: number, f: Get = fetch): Promise<'ok' | 'missing' | 'bad' | 'host' | 'fetch'> {
+  if (!importHostOk(url)) return 'host'
+  const item = await getMedia(kv, id)
+  if (!item) return 'missing'
+  if (!Number.isInteger(i) || i < 0 || i >= item.parts) return 'bad'
+  const a = i * item.chunk
+  const r = await ranged(f, url, `bytes=${a}-${Math.min(item.size, a + item.chunk) - 1}`)
+  if (!r || r.status !== 206) return 'fetch'
+  return putMediaPart(kv, id, i, await r.arrayBuffer())
+}
