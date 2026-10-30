@@ -4,7 +4,7 @@
  * two calls, each told to write natively in its own language, never to translate the other.
  */
 import { PROVIDERS, callHelper, type BrainEnv } from './brainServer'
-import { parseScenes, studioPrompt, type Script, type StudioMode } from './studio/script'
+import { CHANNEL, parseScenes, studioPrompt, type Script, type StudioMode } from './studio/script'
 import { cleanKitSettings, fallbackKit, fillKit, itemPrompt, kitPrompt, parseItem, parseKit, PLATFORMS, type KitKind, type KitSettings, type Platform, type PostKit } from './studio/postkit'
 import { fallbackTerms, parseTerms } from './studioJobs'
 
@@ -14,6 +14,8 @@ export interface WriteAsk {
   topicVi: string
   mode: StudioMode
   scenes: number
+  /** channel script rules: 3 to 5 slides and the channel's tone */
+  channel: boolean
 }
 
 const MODES: StudioMode[] = ['faceless', 'philosophy', 'trip']
@@ -23,9 +25,10 @@ export function cleanWriteAsk(body: unknown): WriteAsk | null {
   const topic = typeof b?.topic === 'string' ? b.topic.replace(/\s+/g, ' ').trim().slice(0, 200) : ''
   if (!topic) return null
   const mode = MODES.includes(b?.mode as StudioMode) ? (b!.mode as StudioMode) : 'faceless'
-  const scenes = Math.max(3, Math.min(12, Math.round(Number(b?.scenes) || 5)))
+  const channel = b?.channel === true
+  const scenes = channel ? Math.max(CHANNEL.min, Math.min(CHANNEL.max, Math.round(Number(b?.scenes) || CHANNEL.def))) : Math.max(3, Math.min(12, Math.round(Number(b?.scenes) || 5)))
   const topicVi = typeof b?.topicVi === 'string' ? b.topicVi.replace(/\s+/g, ' ').trim().slice(0, 200) : ''
-  return { topic, topicVi: topicVi || topic, mode, scenes }
+  return { topic, topicVi: topicVi || topic, mode, scenes, channel }
 }
 
 /** Gemini, then Groq. Returns null when neither has a key or both fail. */
@@ -44,7 +47,7 @@ async function ask(e: BrainEnv, system: string, user: string, maxTokens = 1200):
 }
 
 export async function writeScript(a: WriteAsk, e: BrainEnv): Promise<{ en: string[]; vi: string[]; by: string } | null> {
-  const [en, vi] = await Promise.all((['en', 'vi'] as const).map((lang) => ask(e, ...studioPrompt(lang, a.mode, lang === 'vi' ? a.topicVi : a.topic, a.scenes))))
+  const [en, vi] = await Promise.all((['en', 'vi'] as const).map((lang) => ask(e, ...studioPrompt(lang, a.mode, lang === 'vi' ? a.topicVi : a.topic, a.scenes, a.channel))))
   const enLines = en ? parseScenes(en.text, a.scenes) : []
   const viLines = vi ? parseScenes(vi.text, a.scenes) : []
   if (!enLines.length || !viLines.length) return null

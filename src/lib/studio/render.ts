@@ -32,11 +32,13 @@ export function sceneSeconds(en: string, vi: string): number {
   return Math.min(8, Math.max(3.2, 1.2 + n * 0.33))
 }
 
-export function plan(script: Script, aspect: Aspect, fades: boolean, media: Media[] = []): Plan {
+/** `target` (seconds, channel rules): slides share it evenly, never shorter than their reading time, never over 15 s. */
+export function plan(script: Script, aspect: Aspect, fades: boolean, media: Media[] = [], target = 0): Plan {
   const spans: Plan['spans'] = []
   let t = 0
   script.en.forEach((en, i) => {
-    const len = sceneSeconds(en, script.vi[i] ?? '')
+    const read = sceneSeconds(en, script.vi[i] ?? '')
+    const len = target ? Math.min(15, Math.max(read, (target + (fades ? FADE * (script.en.length - 1) : 0)) / script.en.length)) : read
     const start = i === 0 || !fades ? t : t - FADE
     spans.push({ start, end: start + len })
     t = start + len
