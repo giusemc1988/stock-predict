@@ -16,7 +16,7 @@ const STATUS: Record<StudioJob['status'], StudioKey> = { queued: 'statusQueued',
  * Nova step 5: queue the script for MoneyPrinterTurbo on GitHub Actions, or for Lemo-Opuscar on the PC while it is on,
  * then play the finished MP4s.
  */
-export function StudioRenderPanel({ topic, topicVi, en, vi, aspect, glass = false, settings = false, hook, onClearHook, media = [], lemo = false, handoff = false }: { topic: string; topicVi: string; en: string[]; vi: string[]; aspect: RenderAspect; glass?: boolean; settings?: boolean; hook?: { en: string; vi: string }; onClearHook?: () => void; media?: string[]; lemo?: boolean; handoff?: boolean }) {
+export function StudioRenderPanel({ topic, topicVi, en, vi, aspect, glass = false, settings = false, hook, onClearHook, media = [], lemo = false, handoff = false, post }: { topic: string; topicVi: string; en: string[]; vi: string[]; aspect: RenderAspect; glass?: boolean; settings?: boolean; hook?: { en: string; vi: string }; onClearHook?: () => void; media?: string[]; lemo?: boolean; handoff?: boolean; post?: { caption: { en: string; vi: string }; tags: string[] } }) {
   const lang = useLang()
   const t = (k: StudioKey) => STUDIO_TEXT[k][lang]
   const [langs, setLangs] = useState<RenderLang[]>(['vi'])
@@ -83,6 +83,35 @@ export function StudioRenderPanel({ topic, topicVi, en, vi, aspect, glass = fals
   const send = async (id: string, on: boolean) => {
     await fetch(`/api/studio/handoff?id=${id}`, { method: on ? 'POST' : 'DELETE' }).catch(() => null)
     await load()
+  }
+
+  // Quick-post: copy caption + hashtags, then hand the MP4 to the phone share sheet. The person posts; nothing is sent from here.
+  const [sharing, setSharing] = useState('')
+  const share = async (j: Pick<StudioJob, 'id' | 'lang' | 'engine' | 'topic'>) => {
+    if (!post) return
+    setSharing(j.id)
+    setMsg(t('shareBusy'))
+    try {
+      const cap = j.lang === 'vi' || j.engine === 'overlay' ? post.caption.vi : post.caption.en
+      const text = post.tags.every((h) => cap.includes(h)) ? cap : `${cap}\n\n${post.tags.join(' ')}`
+      await navigator.clipboard?.writeText(text).catch(() => null)
+      const blob = await (await fetch(`/api/studio/video?id=${j.id}`)).blob()
+      const file = new File([blob], `${j.topic.replace(/[^\p{L}\p{N}]+/gu, '-').slice(0, 40) || 'nova'}.mp4`, { type: 'video/mp4' })
+      if (navigator.canShare?.({ files: [file] })) {
+        await navigator.share({ files: [file], text })
+        setMsg(t('shareCopied'))
+      } else {
+        const a = document.createElement('a')
+        a.href = URL.createObjectURL(file)
+        a.download = file.name
+        a.click()
+        setMsg(t('shareNoSheet'))
+      }
+    } catch (e) {
+      if ((e as Error).name !== 'AbortError') setMsg(`${t('shareFail')} ${(e as Error).message}`)
+    } finally {
+      setSharing('')
+    }
   }
 
   const toggle = (l: RenderLang | 'both') => setLangs(l === 'both' ? ['vi', 'en'] : [l])
@@ -157,6 +186,8 @@ export function StudioRenderPanel({ topic, topicVi, en, vi, aspect, glass = fals
           )}
           <div className="vs-row">
             {handoff && j.status === 'done' && <button className="btn small" aria-pressed={!!j.handoff} onClick={() => void send(j.id, !j.handoff)}>{t(j.handoff ? 'sentViraltech' : 'sendViraltech')}</button>}
+            {post && j.status === 'done' && <button className="btn small primary" disabled={!!sharing} onClick={() => void share(j)}>{t('shareGo')}</button>}
+            {sharing === j.id && <NovaProgress active label={t('shareBusy')} secs={10} />}
             {j.status === 'done' && <a className="btn small primary" href={`/api/studio/video?id=${j.id}&download`}>{t('download')}{j.size ? ` (${(j.size / 1e6).toFixed(1)} MB)` : ''}</a>}
             {j.run && j.status !== 'done' && <a className="btn small" href={j.run} target="_blank" rel="noreferrer">{t('serverLog')}</a>}
             {j.status !== 'rendering' && <button className="btn small" onClick={() => void remove(j.id)}>{t('serverDelete')}</button>}
