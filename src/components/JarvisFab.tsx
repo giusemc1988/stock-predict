@@ -11,6 +11,7 @@ import { canSpeak, loadVoicePrefs, primeSpeech, speak, speakProblem, stopSpeakin
 import type { Bi } from '../lib/jarvis'
 import { JarvisAvatar } from './JarvisAvatar'
 import { askCloud, cloudHasKey, factsForAi } from '../lib/cloudBrain'
+import { asksLive, irisLiveFacts } from '../lib/irisLive'
 import { detectLanguage } from '../lib/jarvisChat'
 import { HUB_AGENT, agentName, agentProject, hubFactsForAi, introduce, type AppPage, type HubFacts } from '../lib/agents'
 import type { HubPage } from '../lib/toolHub'
@@ -143,9 +144,13 @@ export function JarvisFab({ state, rules, journal, learn, killSwitch, priceOf, k
     const now = stamp()
     const answer: Bi = { en: r.text.map((x) => x.en).join(' '), vi: r.text.map((x) => x.vi).join(' ') }
     // not understood: our own data came first; now ask the free-AI helper, with those facts
-    if (r.unsure && rules.jarvisCloudAi) {
+    // on the Iris page, flights and earthquakes are answered from the live feeds
+    const live = page === 'godseye' && asksLive(t)
+    if ((r.unsure || live) && rules.jarvisCloudAi) {
       add({ who: 'me', text: { en: t, vi: t }, time: now })
-      void askCloud(t, userLang, [...(agents && page && hub ? hubFactsForAi(page, hub) : []), ...factsForAi(ctx)]).then((ai) => {
+      void (live ? irisLiveFacts() : Promise.resolve([] as string[]))
+        .then((liveFacts) => askCloud(t, userLang, [...(agents && page && hub ? hubFactsForAi(page, hub) : []), ...liveFacts, ...factsForAi(ctx)], live ? 25000 : 15000))
+        .then((ai) => {
         if (ai) {
           const said: Bi = { en: ai.text, vi: ai.text }
           add({ who: 'jarvis', text: said, time: stamp(), by: ai?.by })
@@ -278,6 +283,15 @@ export function JarvisFab({ state, rules, journal, learn, killSwitch, priceOf, k
           </div>
           <div className="jfab-list" ref={listRef}>
             {!chat.length && !words && hello && <p className="jfab-empty">{pick(hello)}</p>}
+            {!chat.length && !words && page === 'godseye' && (
+              <div className="jfab-ideas">
+                {[L('Any earthquakes today?', 'Hôm nay có động đất nào không?'), L('How many flights are in the air?', 'Bây giờ có bao nhiêu máy bay đang bay?')].map((q) => (
+                  <button key={q} type="button" className="pr-rescan" disabled={phase === 'thinking'} onClick={() => respond(q)}>
+                    {q}
+                  </button>
+                ))}
+              </div>
+            )}
             {!chat.length && !words && !hello && (
               <p className="jfab-empty">
                 {L('Ask me about a stock ("why TSLA?"), your risk, what I learned, or say "pause practice". I answer from the app\'s own records; nothing here is real money.', 'Hỏi tôi về một mã ("vì sao TSLA?"), rủi ro, điều tôi học được, hoặc nói "tạm dừng luyện tập". Tôi trả lời từ dữ liệu của ứng dụng; không có tiền thật ở đây.')}
@@ -311,6 +325,11 @@ export function JarvisFab({ state, rules, journal, learn, killSwitch, priceOf, k
               </div>
             )}
           </div>
+          {phase === 'thinking' && (
+            <div className="jfab-bar" role="progressbar" aria-label={L('Thinking', 'Đang nghĩ')}>
+              <i />
+            </div>
+          )}
           <form className="jfab-input" onSubmit={send}>
             {canListen() && (
               <button type="button" className={`jfab-mic${phase === 'listening' ? ' on' : ''}`} onClick={mic} aria-label={phase === 'listening' ? L('Stop listening', 'Dừng nghe') : L(`Talk to ${who}`, `Nói với ${who}`)}>
@@ -331,6 +350,11 @@ export function JarvisFab({ state, rules, journal, learn, killSwitch, priceOf, k
             )}
           </form>
         </div>
+      )}
+      {page === 'godseye' && !open && (
+        <button type="button" className="jfab-tag" onClick={() => setOpen(true)}>
+          {L('Ask Iris', 'Hỏi Iris')}
+        </button>
       )}
       <button className={`jfab${open ? ' open' : ''}${phase !== 'idle' ? ' busy' : ''}${rules.jarvisMotion ? '' : ' still'}`} onClick={() => setOpen((o) => !o)} aria-label={open ? L(`Hide ${who}`, `Ẩn ${who}`) : L(`Talk to ${who}`, `Nói chuyện với ${who}`)}>
         <svg viewBox="0 0 48 48" width="30" height="30" aria-hidden="true">
