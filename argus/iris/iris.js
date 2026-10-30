@@ -156,3 +156,118 @@
   if (document.body) mount()
   else addEventListener('DOMContentLoaded', mount)
 })()
+
+// Quick layers: big toggles for what is used most, grouped, at the top of the Layers drawer. Each chip clicks the
+// upstream layer's own toggle button, so upstream stays the owner of the state. The choice is remembered; flights,
+// earthquakes and rain radar are on the first time.
+;(() => {
+  const root = document.documentElement
+  const KEY = 'iris:layers:v1'
+  const DEFAULT_ON = ['flights', 'earthquakes', 'weather-radar']
+  const vi = () => (window.irisLang ? window.irisLang.get() === 'vi' : !/^en/i.test(root.lang || ''))
+  const GROUPS = [
+    { vi: 'Máy bay', en: 'Aircraft', items: [['flights', '✈️', 'Máy bay', 'Flights'], ['military', '🎖️', 'Quân sự', 'Military']] },
+    { vi: 'Giao thông và camera', en: 'Traffic and cameras', items: [['cctv', '📹', 'Camera CCTV', 'CCTV cameras'], ['traffic', '🚗', 'Giao thông', 'Traffic'], ['transit', '🚌', 'Xe buýt, tàu', 'Transit vehicles'], ['ais-live-vessels', '🚢', 'Tàu thuyền', 'Ships']] },
+    { vi: 'Thời tiết', en: 'Weather', items: [['weather-radar', '🌧️', 'Radar mưa', 'Rain radar'], ['weather-satellite', '☁️', 'Mây', 'Clouds'], ['wind', '💨', 'Gió', 'Wind'], ['weather-cyclones', '🌀', 'Bão', 'Storms'], ['weather-lightning', '⚡', 'Sét', 'Lightning'], ['air-quality', '😷', 'Không khí', 'Air quality']] },
+    { vi: 'Thiên tai', en: 'Disasters', items: [['earthquakes', '🌍', 'Động đất', 'Earthquakes'], ['local-firms', '🔥', 'Cháy rừng', 'Wildfires'], ['satellites', '🛰️', 'Vệ tinh', 'Satellites']] },
+  ]
+  const btnOf = (id) => document.querySelector(`#data-toggles [data-layer-id="${CSS.escape(id)}"] .data-toggle-btn`)
+  const rowOf = (id) => document.querySelector(`#data-toggles [data-layer-id="${CSS.escape(id)}"]`)
+  const all = GROUPS.flatMap((g) => g.items.map((i) => i[0]))
+
+  function read() {
+    try {
+      const v = JSON.parse(localStorage.getItem(KEY) || 'null')
+      return Array.isArray(v) ? v : null
+    } catch {
+      return null
+    }
+  }
+  const save = () => {
+    try {
+      localStorage.setItem(KEY, JSON.stringify(all.filter((id) => btnOf(id)?.classList.contains('active'))))
+    } catch {
+      /* private window: the choice lasts until reload */
+    }
+  }
+
+  let box
+  let ready = false // set once the remembered layers are on, so the defaults are never saved over the choice
+  function sync() {
+    if (!box) return
+    if (ready) save()
+    let busy = 0
+    for (const chip of box.querySelectorAll('button[data-id]')) {
+      const b = btnOf(chip.dataset.id)
+      const on = !!b?.classList.contains('active')
+      const wait = !!b && (b.getAttribute('aria-busy') === 'true' || b.classList.contains('transitioning'))
+      chip.classList.toggle('on', on)
+      chip.classList.toggle('wait', wait)
+      chip.setAttribute('aria-pressed', String(on))
+      chip.disabled = !b
+      if (wait) busy++
+      const n = rowOf(chip.dataset.id)?.querySelector('.data-count')?.textContent?.trim()
+      chip.querySelector('em').textContent = on && n && n !== '—' ? n : ''
+    }
+    let bar = document.getElementById('iris-loadbar')
+    if (busy && !bar) {
+      bar = document.createElement('div')
+      bar.id = 'iris-loadbar'
+      bar.setAttribute('role', 'progressbar')
+      bar.innerHTML = '<i></i>'
+      document.body.append(bar)
+    } else if (!busy && bar) bar.remove()
+  }
+
+  function labels() {
+    if (!box) return
+    for (const h of box.querySelectorAll('h4[data-g]')) h.textContent = GROUPS[h.dataset.g][vi() ? 'vi' : 'en']
+    for (const chip of box.querySelectorAll('button[data-id]')) chip.querySelector('b').textContent = chip.dataset[vi() ? 'vi' : 'en']
+  }
+
+  function build() {
+    const stack = document.getElementById('left-panel-stack')
+    if (!stack || box || !document.querySelector('#data-toggles .data-toggle-row')) return false
+    box = document.createElement('div')
+    box.id = 'iris-quick'
+    GROUPS.forEach((g, gi) => {
+      const h = document.createElement('h4')
+      h.dataset.g = String(gi)
+      const grid = document.createElement('div')
+      for (const [id, icon, v, e] of g.items) {
+        const c = document.createElement('button')
+        c.type = 'button'
+        c.dataset.id = id
+        c.dataset.vi = v
+        c.dataset.en = e
+        c.innerHTML = `<span aria-hidden="true">${icon}</span><b></b><em></em><i class="bar"></i>`
+        c.addEventListener('click', () => {
+          btnOf(id)?.click()
+        })
+        grid.append(c)
+      }
+      box.append(h, grid)
+    })
+    stack.prepend(box)
+    labels()
+    sync()
+    // layers on: what was left on last time, else the defaults
+    const want = read() ?? DEFAULT_ON
+    const todo = want.filter((id) => all.includes(id))
+    setTimeout(() => (ready = true), 1500 + todo.length * 500)
+    todo.forEach((id, i) =>
+      setTimeout(() => {
+        const b = btnOf(id)
+        if (b && !b.classList.contains('active')) b.click()
+      }, 600 + i * 500),
+    )
+    new MutationObserver(sync).observe(document.getElementById('data-toggles'), { subtree: true, attributes: true, childList: true, characterData: true })
+    document.addEventListener('iris-lang', labels)
+    return true
+  }
+
+  const poll = new MutationObserver(() => build() && poll.disconnect())
+  const start = () => (build() ? 0 : poll.observe(document.body, { childList: true, subtree: true }))
+  if (document.body) start()
+  else addEventListener('DOMContentLoaded', start)
+})()

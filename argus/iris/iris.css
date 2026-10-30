@@ -180,3 +180,105 @@ html.iris-compact #top-center-actions {
     flex-direction: column;
   }
 }
+
+/* ── Quick layers (top of the Layers drawer) ── */
+#iris-quick {
+  display: block;
+  padding: 2px 2px 6px;
+}
+#iris-quick h4 {
+  margin: 10px 4px 6px;
+  font: 700 11px/1 Inter, system-ui, sans-serif;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgba(216, 243, 255, 0.65);
+}
+#iris-quick > div {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+#iris-quick button {
+  position: relative;
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 8px;
+  min-height: 52px;
+  padding: 0 12px;
+  overflow: hidden;
+  border-radius: 14px;
+  border: 1px solid rgba(120, 220, 255, 0.22);
+  background: rgba(14, 26, 38, 0.9);
+  color: #d8f3ff;
+  font: 600 13px/1.15 Inter, system-ui, sans-serif;
+  text-align: left;
+}
+#iris-quick button span {
+  font-size: 20px;
+}
+#iris-quick button em {
+  font-style: normal;
+  font-size: 11px;
+  opacity: 0.8;
+}
+#iris-quick button.on {
+  border-color: var(--iris-acc, #5fd4ff);
+  background: color-mix(in srgb, var(--iris-acc, #5fd4ff) 30%, rgba(8, 16, 24, 0.95));
+  color: #fff;
+}
+#iris-quick button:disabled {
+  opacity: 0.4;
+}
+#iris-quick .bar {
+  display: none;
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 3px;
+  background: var(--iris-acc, #5fd4ff);
+  transform-origin: left;
+  animation: iris-load 1.1s ease-in-out infinite;
+}
+#iris-quick button.wait .bar {
+  display: block;
+}
+@keyframes iris-load {
+  0% {
+    transform: scaleX(0.1);
+  }
+  100% {
+    transform: scaleX(1);
+    opacity: 0.4;
+  }
+}
+#iris-loadbar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  z-index: 1500;
+  overflow: hidden;
+  background: rgba(120, 220, 255, 0.15);
+  pointer-events: none;
+}
+#iris-loadbar i {
+  display: block;
+  height: 100%;
+  width: 35%;
+  background: var(--iris-acc, #5fd4ff);
+  animation: iris-loadbar 1.1s ease-in-out infinite;
+}
+@keyframes iris-loadbar {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(300%);
+  }
+}
+html:not(.iris-compact) #iris-quick {
+  display: none;
+}
