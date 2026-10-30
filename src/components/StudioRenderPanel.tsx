@@ -3,6 +3,7 @@ import { useLocalStorage } from '../hooks/useLocalStorage'
 import { VIDEO_STORE } from './NovaPresets'
 import { NovaProgress } from './NovaProgress'
 import { useLang } from '../lib/i18n'
+import { shareVideo } from '../lib/studio/share'
 import { STUDIO_TEXT, type StudioKey } from '../lib/studio/text'
 import { DEFAULT_RENDER_OPTS, TRANSITIONS, cleanRenderOpts, type RenderAspect, type RenderEngine, type RenderLang, type RenderOpts, type RenderVoice, type StudioJob } from '../lib/studioJobs'
 
@@ -16,7 +17,7 @@ const STATUS: Record<StudioJob['status'], StudioKey> = { queued: 'statusQueued',
  * Nova step 5: queue the script for MoneyPrinterTurbo on GitHub Actions, or for Lemo-Opuscar on the PC while it is on,
  * then play the finished MP4s.
  */
-export function StudioRenderPanel({ topic, topicVi, en, vi, aspect, glass = false, settings = false, hook, onClearHook, media = [], lemo = false, handoff = false, post }: { topic: string; topicVi: string; en: string[]; vi: string[]; aspect: RenderAspect; glass?: boolean; settings?: boolean; hook?: { en: string; vi: string }; onClearHook?: () => void; media?: string[]; lemo?: boolean; handoff?: boolean; post?: { caption: { en: string; vi: string }; tags: string[] } }) {
+export function StudioRenderPanel({ topic, topicVi, en, vi, aspect, glass = false, settings = false, hook, onClearHook, media = [], lemo = false, handoff = false, post, onViraltech }: { topic: string; topicVi: string; en: string[]; vi: string[]; aspect: RenderAspect; glass?: boolean; settings?: boolean; hook?: { en: string; vi: string }; onClearHook?: () => void; media?: string[]; lemo?: boolean; handoff?: boolean; post?: { caption: { en: string; vi: string }; tags: string[] }; onViraltech?: () => void }) {
   const lang = useLang()
   const t = (k: StudioKey) => STUDIO_TEXT[k][lang]
   const [langs, setLangs] = useState<RenderLang[]>(['vi'])
@@ -94,21 +95,10 @@ export function StudioRenderPanel({ topic, topicVi, en, vi, aspect, glass = fals
     try {
       const cap = j.lang === 'vi' || j.engine === 'overlay' ? post.caption.vi : post.caption.en
       const text = post.tags.every((h) => cap.includes(h)) ? cap : `${cap}\n\n${post.tags.join(' ')}`
-      await navigator.clipboard?.writeText(text).catch(() => null)
-      const blob = await (await fetch(`/api/studio/video?id=${j.id}`)).blob()
-      const file = new File([blob], `${j.topic.replace(/[^\p{L}\p{N}]+/gu, '-').slice(0, 40) || 'nova'}.mp4`, { type: 'video/mp4' })
-      if (navigator.canShare?.({ files: [file] })) {
-        await navigator.share({ files: [file], text })
-        setMsg(t('shareCopied'))
-      } else {
-        const a = document.createElement('a')
-        a.href = URL.createObjectURL(file)
-        a.download = file.name
-        a.click()
-        setMsg(t('shareNoSheet'))
-      }
+      const r = await shareVideo(j.id, j.topic, text)
+      setMsg(r === 'shared' ? t('shareCopied') : r === 'downloaded' ? t('shareNoSheet') : '')
     } catch (e) {
-      if ((e as Error).name !== 'AbortError') setMsg(`${t('shareFail')} ${(e as Error).message}`)
+      setMsg(`${t('shareFail')} ${(e as Error).message}`)
     } finally {
       setSharing('')
     }
@@ -186,6 +176,7 @@ export function StudioRenderPanel({ topic, topicVi, en, vi, aspect, glass = fals
           )}
           <div className="vs-row">
             {handoff && j.status === 'done' && <button className="btn small" aria-pressed={!!j.handoff} onClick={() => void send(j.id, !j.handoff)}>{t(j.handoff ? 'sentViraltech' : 'sendViraltech')}</button>}
+            {handoff && j.handoff && onViraltech && <button className="btn small" onClick={onViraltech}>{t('openViraltech')}</button>}
             {post && j.status === 'done' && <button className="btn small primary" disabled={!!sharing} onClick={() => void share(j)}>{t('shareGo')}</button>}
             {sharing === j.id && <NovaProgress active label={t('shareBusy')} secs={10} />}
             {j.status === 'done' && <a className="btn small primary" href={`/api/studio/video?id=${j.id}&download`}>{t('download')}{j.size ? ` (${(j.size / 1e6).toFixed(1)} MB)` : ''}</a>}

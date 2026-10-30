@@ -2,7 +2,7 @@
  * Version and "What's new". Bump APP_VERSION and add an entry to the top of RELEASES
  * with each update. The banner shows once per version, then stays dismissed.
  */
-export const APP_VERSION = '1.70.0'
+export const APP_VERSION = '1.71.0'
 
 export interface Release {
   version: string
@@ -13,6 +13,12 @@ export interface Release {
 }
 
 export const RELEASES: Release[] = [
+  {
+    version: '1.71.0',
+    date: '2026-10-30',
+    changes: ['Nova and Viraltech now flow into each other: after "Send to Viraltech" a button opens Viraltech, Viraltech has "Open Nova", and each waiting video has the same Share / post button (copies the caption, opens the phone share sheet). Nothing posts by itself.'],
+    changesVi: ['Nova và Viraltech nối thành một dòng chảy: sau "Gửi sang Viraltech" có nút mở Viraltech, Viraltech có nút "Mở Nova", và mỗi video chờ có nút Chia sẻ / đăng (copy caption, mở khay chia sẻ điện thoại). Không có gì tự đăng.'],
+  },
   {
     version: '1.70.0',
     date: '2026-10-30',

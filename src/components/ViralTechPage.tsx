@@ -3,6 +3,7 @@ import { useLang } from '../lib/i18n'
 import { ANTWORK_URL, postCounts, VIRALTECH, type Platform, type PostStatus } from '../data/viraltech'
 import { AgentShell } from './AgentShell'
 import type { StudioJob } from '../lib/studioJobs'
+import { shareVideo } from '../lib/studio/share'
 import { StatRow, type Stat } from './StatCard'
 
 const PLATFORM: Record<Platform, string> = { instagram: 'Instagram', tiktok: 'TikTok', youtube: 'YouTube', facebook: 'Facebook' }
@@ -31,13 +32,18 @@ const T = {
   lemo: { en: 'Lemo-Opuscar', vi: 'Lemo-Opuscar' },
   server: { en: 'MoneyPrinterTurbo', vi: 'MoneyPrinterTurbo' },
   download: { en: 'Download', vi: 'Tải về' },
+  openNova: { en: 'Open Nova →', vi: 'Mở Nova →' },
+  share: { en: 'Share / post', vi: 'Chia sẻ / đăng' },
+  shared: { en: 'Caption copied. Pick the app and post it yourself.', vi: 'Đã copy caption. Chọn app rồi tự đăng.' },
+  shareFallback: { en: 'No share sheet here, so the video was downloaded. Caption copied.', vi: 'Máy này không có khay chia sẻ nên đã tải video về. Caption đã copy.' },
+  shareFail: { en: 'Could not share:', vi: 'Không chia sẻ được:' },
   takeBack: { en: 'Take back', vi: 'Lấy lại' },
 } as const
 
 type NovaVideo = Omit<StudioJob, 'lines' | 'terms'>
 
 /** Finished Nova videos sent here, newest first. Posting stays a separate step Chanh approves. */
-function NovaWaiting() {
+function NovaWaiting({ onNova }: { onNova?: () => void }) {
   const lang = useLang()
   const L = (k: keyof typeof T) => T[k][lang]
   const [videos, setVideos] = useState<NovaVideo[] | null>(null)
@@ -47,6 +53,16 @@ function NovaWaiting() {
     setVideos((j?.jobs ?? []).filter((v) => v.status === 'done' && v.handoff).sort((a, b) => (b.handoff ?? 0) - (a.handoff ?? 0)))
   }, [])
   useEffect(() => void load(), [load])
+  const [note, setNote] = useState('')
+  const share = async (v: NovaVideo) => {
+    setNote('')
+    try {
+      const r = await shareVideo(v.id, v.topic, v.topic)
+      setNote(r === 'shared' ? L('shared') : r === 'downloaded' ? L('shareFallback') : '')
+    } catch (e) {
+      setNote(`${L('shareFail')} ${(e as Error).message}`)
+    }
+  }
   const takeBack = async (id: string) => {
     await fetch(`/api/studio/handoff?id=${id}`, { method: 'DELETE' }).catch(() => null)
     await load()
@@ -56,6 +72,8 @@ function NovaWaiting() {
       <header><h3>{L('fromNova')}</h3>{videos && videos.length > 0 && <span className="small muted">{videos.length}</span>}</header>
       <p className="muted small">{L('fromNovaHow')}</p>
       {videos && !videos.length && <p className="muted small">{L('fromNovaNone')}</p>}
+      {note && <p className="small">{note}</p>}
+      {onNova && <div className="vs-row"><button className="btn small" onClick={onNova}>{L('openNova')}</button></div>}
       <ul className="vt-list">
         {videos?.map((v) => (
           <li key={v.id} className="vt-row">
@@ -65,6 +83,7 @@ function NovaWaiting() {
               <div className="vs-out"><video src={`/api/studio/video?id=${v.id}`} controls playsInline preload="metadata" /></div>
             </div>
             <div className="vs-row">
+              <button className="btn small primary" onClick={() => void share(v)}>{L('share')}</button>
               <a className="btn small" href={`/api/studio/video?id=${v.id}&download`}>{L('download')}</a>
               <button className="btn small" onClick={() => void takeBack(v.id)}>{L('takeBack')}</button>
             </div>
@@ -76,7 +95,7 @@ function NovaWaiting() {
 }
 
 /** Viraltech: the 4 social channels, their posts and engagement, from the Antwork snapshot. */
-export function ViralTechPage({ onBack, glass = true, nova = true }: { onBack: () => void; glass?: boolean; nova?: boolean }) {
+export function ViralTechPage({ onBack, glass = true, nova = true, onNova }: { onBack: () => void; glass?: boolean; nova?: boolean; onNova?: () => void }) {
   const lang = useLang()
   const L = (k: keyof typeof T) => T[k][lang]
   const { channels, posts, asOf } = VIRALTECH
@@ -102,7 +121,7 @@ export function ViralTechPage({ onBack, glass = true, nova = true }: { onBack: (
 
       <StatRow items={stats} />
 
-      {nova && <NovaWaiting />}
+      {nova && <NovaWaiting onNova={onNova} />}
 
       <section className="bf-card">
         <header><h3>{L('channels')}</h3></header>
