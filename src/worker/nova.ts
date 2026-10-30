@@ -8,7 +8,7 @@ import { cleanKitAsk, writeKitItem, writePostKit, writeTerms } from '../lib/stud
 import { TRENDS_CACHE, TRENDS_TTL_MS, fetchTrends, type TrendGeo, type TrendsResult } from '../lib/studioTrends'
 import { PRESETS_KEY, cleanPresets } from '../lib/studio/presets'
 import { MEDIA_CHUNK, deleteMedia, finishMedia, importPart, importStart, mediaResponse, putMediaPart, readyMedia, startMedia, type MediaStore } from '../lib/studioMedia'
-import { GITHUB_KEY, PEXELS_KEY, checkGithubToken, cleanRenderAsk, expireLemoJobs, kickFarm, deleteJob, isJobId, lemoOnline, listJobs, queueJobs, setHandoff, videoResponse, type JobStore } from '../lib/studioJobs'
+import { GITHUB_KEY, PEXELS_KEY, checkGithubToken, cleanOverlayAsk, cleanRenderAsk, queueOverlay, expireLemoJobs, kickFarm, deleteJob, isJobId, lemoOnline, listJobs, queueJobs, setHandoff, videoResponse, type JobStore } from '../lib/studioJobs'
 
 const json = (data: unknown, status = 200) => new Response(JSON.stringify(data), { status, headers: { 'content-type': 'application/json', 'cache-control': 'no-store' } })
 
@@ -63,6 +63,18 @@ export async function novaRoute(req: Request, pathname: string, env: BrainEnv, s
     const token = ask.engine === 'mpt' ? await kv.get(GITHUB_KEY) : null
     const kicked = ask.engine === 'lemo' || (token ? await kickFarm(token) : false)
     return json({ jobs: jobs.map((j) => j.id), terms, kicked })
+  }
+  if (pathname === '/api/studio/overlay') {
+    // the user's own clip + the EN and VI lines burned on, made by nova/overlay.py on GitHub Actions
+    if (req.method !== 'POST') return json({ error: 'POST only' }, 405)
+    if (!sameOrigin(req)) return json({ error: 'Not allowed' }, 403)
+    const ask = cleanOverlayAsk(await req.json().catch(() => null))
+    if (!ask) return json({ error: 'Pick a clip and add EN and VI lines' }, 400)
+    if (!(await readyMedia(kv as unknown as MediaStore, [ask.media])).length) return json({ error: 'The clip is gone or not finished' }, 404)
+    const job = await queueOverlay(kv, ask)
+    if (!job) return json({ error: 'busy' }, 429)
+    const token = await kv.get(GITHUB_KEY)
+    return json({ job: job.id, kicked: token ? await kickFarm(token) : false })
   }
   if (pathname === '/api/studio/video') {
     const id = url.searchParams.get('id')

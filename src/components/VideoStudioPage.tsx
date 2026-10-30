@@ -374,7 +374,7 @@ export function VideoStudioPage({ onBack, glass = true, trends = true, postKit =
             <p className="muted small">{t('footageAuto')}</p>
           )}
           {uploads && <NovaUploads onChange={setServerMedia} onClips={setClipIds} importLink={importLink} />}
-          {uploads && clipText && clipIds.length > 0 && <NovaClipPreview ids={clipIds} script={script} />}
+          {uploads && clipText && clipIds.length > 0 && <NovaClipPreview ids={clipIds} script={script} topic={topic} />}
         </section>
 
         <section id="nv-make" className="nv-make">

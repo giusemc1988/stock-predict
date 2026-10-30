@@ -24,7 +24,7 @@ export const LEMO_OFFLINE_MS = 3 * 60 * 1000
 /** a Lemo job with no result this long while the PC is offline is marked failed, never moved to another engine */
 export const LEMO_GIVE_UP_MS = 30 * 60 * 1000
 export const LEMO_OFFLINE_ERROR = 'Lemo did not finish: the PC is offline'
-export type RenderEngine = 'mpt' | 'lemo'
+export type RenderEngine = 'mpt' | 'lemo' | 'overlay'
 /** queued + rendering at once; more waits for the farm to catch up */
 export const MAX_ACTIVE = 4
 const MAX_LINES = 12
@@ -114,8 +114,14 @@ export interface StudioJob {
   run?: string
   /** missing on jobs made before v1.52: the defaults */
   opts?: RenderOpts
-  /** missing = 'mpt' (MoneyPrinterTurbo on GitHub Actions); 'lemo' = Lemo-Opuscar on the PC */
+  /** missing = 'mpt' (MoneyPrinterTurbo on GitHub Actions); 'lemo' = Lemo-Opuscar on the PC; 'overlay' = the user's own clip with the EN and VI lines burned on (nova/overlay.py) */
   engine?: RenderEngine
+  /** overlay jobs: the Vietnamese lines (lines holds the English ones) */
+  viLines?: string[]
+  /** overlay jobs: interpolate a clip under 50 fps up to 60 (a slow extra step) */
+  smooth60?: boolean
+  /** overlay jobs: where the text pill sits, % from the top */
+  textTop?: number
   /** when it was sent to Viraltech's waiting list; posting still needs Chanh's OK */
   handoff?: number
 }
@@ -169,6 +175,51 @@ export function cleanRenderAsk(body: unknown): RenderAsk | null {
     hook: { en: clean((b?.hook as Record<string, unknown> | undefined)?.en, MAX_LINE), vi: clean((b?.hook as Record<string, unknown> | undefined)?.vi, MAX_LINE) },
     engine: b?.engine === 'lemo' ? 'lemo' : 'mpt',
   }
+}
+
+export interface OverlayAsk {
+  /** the finished upload (clip) the text goes on */
+  media: string
+  en: string[]
+  vi: string[]
+  topic: string
+  smooth60: boolean
+  textTop: number
+}
+
+export function cleanOverlayAsk(body: unknown): OverlayAsk | null {
+  const b = body as Record<string, unknown> | null
+  const media = isJobId(b?.media) ? (b!.media as string) : ''
+  const en = cleanLines(b?.en)
+  const vi = cleanLines(b?.vi)
+  if (!media || !en.length || !vi.length) return null
+  return { media, en, vi, topic: clean(b?.topic, 200) || en[0], smooth60: b?.smooth60 === true, textTop: num(b?.textTop, 3, 70, 6, 1) }
+}
+
+/** One job that burns the EN and VI lines onto the clip; null while the farm is full. */
+export async function queueOverlay(kv: JobStore, ask: OverlayAsk, now = Date.now(), uuid = () => crypto.randomUUID()): Promise<StudioJob | null> {
+  const active = (await listJobs(kv)).filter((j) => j.status === 'queued' || j.status === 'rendering').length
+  if (active + 1 > MAX_ACTIVE) return null
+  const n = Math.min(ask.en.length, ask.vi.length)
+  const job: StudioJob = {
+    id: uuid(),
+    status: 'queued',
+    createdAt: now,
+    topic: ask.topic,
+    lang: 'en',
+    voice: 'female',
+    aspect: '9:16',
+    lines: ask.en.slice(0, n),
+    viLines: ask.vi.slice(0, n),
+    terms: [],
+    opts: DEFAULT_RENDER_OPTS,
+    media: [ask.media],
+    engine: 'overlay',
+    ...(ask.smooth60 ? { smooth60: true } : {}),
+    textTop: ask.textTop,
+  }
+  await kv.put(JOB_PREFIX + job.id, JSON.stringify(job))
+  return job
 }
 
 /** True while the PC has pinged within LEMO_OFFLINE_MS. */
