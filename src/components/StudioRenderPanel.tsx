@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useLocalStorage } from '../hooks/useLocalStorage'
 import { VIDEO_STORE } from './NovaPresets'
+import { NovaProgress } from './NovaProgress'
 import { useLang } from '../lib/i18n'
 import { STUDIO_TEXT, type StudioKey } from '../lib/studio/text'
 import { DEFAULT_RENDER_OPTS, TRANSITIONS, cleanRenderOpts, type RenderAspect, type RenderEngine, type RenderLang, type RenderOpts, type RenderVoice, type StudioJob } from '../lib/studioJobs'
@@ -66,6 +67,8 @@ export function StudioRenderPanel({ topic, topicVi, en, vi, aspect, glass = fals
       else if (!r.ok) setMsg(`${t('serverFailed')} ${j.error ?? `HTTP ${r.status}`}`)
       else setMsg(t(j.kicked ? 'serverQueued' : 'serverQueuedSlow'))
       await load()
+    } catch (e) {
+      setMsg(`${t('serverFailed')} ${(e as Error).message}`)
     } finally {
       setBusy(false)
     }
@@ -128,6 +131,7 @@ export function StudioRenderPanel({ topic, topicVi, en, vi, aspect, glass = fals
       {engine === 'mpt' && !keys.github && <p className="small warn">{t('githubSlow')}</p>}
       <div className="vs-row">
         <button className="btn primary" disabled={busy || !ready} onClick={() => void make()}>{t('serverMake')}</button>
+        <NovaProgress active={busy} label={t('serverSending')} secs={8} />
       </div>
       {msg && <p className="small">{msg}</p>}
       <KeyBox kind="github" saved={keys.github} title={t('githubKey')} how={t('githubHow')} onSaved={(v) => setKeys((k) => ({ ...k, github: v }))} />

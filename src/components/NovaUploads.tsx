@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { useLang } from '../lib/i18n'
+import { NovaProgress } from './NovaProgress'
 import { STUDIO_TEXT, type StudioKey } from '../lib/studio/text'
 import { MAX_CLIP_SECONDS, MAX_MEDIA_BYTES, MAX_MEDIA_FILES, MEDIA_TYPES } from '../lib/studioMedia'
 
@@ -12,7 +13,7 @@ interface Up {
   id?: string
   kind: 'image' | 'video'
   thumb: string
-  status: 'uploading' | 'ready' | 'error'
+  status: 'checking' | 'uploading' | 'ready' | 'error'
   progress: number
   error?: StudioKey | string
 }
@@ -24,9 +25,11 @@ async function probe(file: File, url: string): Promise<{ w: number; h: number; s
     v.preload = 'metadata'
     v.muted = true
     v.src = url
+    // a clip the phone cannot decode may fire neither event: do not wait on it forever
     await new Promise<void>((ok, bad) => {
-      v.onloadedmetadata = () => ok()
-      v.onerror = () => bad(new Error('unreadable'))
+      const t = setTimeout(() => bad(new Error('unreadable')), 6000)
+      v.onloadedmetadata = () => (clearTimeout(t), ok())
+      v.onerror = () => (clearTimeout(t), bad(new Error('unreadable')))
     })
     return { w: v.videoWidth, h: v.videoHeight, s: v.duration || 0 }
   }
@@ -36,8 +39,15 @@ async function probe(file: File, url: string): Promise<{ w: number; h: number; s
   return out
 }
 
-async function send(file: File, onProgress: (p: number) => void): Promise<string> {
-  const start = await fetch('/api/studio/media', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ type: file.type, size: file.size }) })
+const BY_EXT: Record<string, string> = { jpg: 'image/jpeg', jpeg: 'image/jpeg', png: 'image/png', webp: 'image/webp', mp4: 'video/mp4', m4v: 'video/mp4', mov: 'video/quicktime', webm: 'video/webm' }
+/** The type the server accepts: phones often hand over an empty type or video/x-m4v for a plain MP4. */
+function typeOf(file: File): string {
+  if (MEDIA_TYPES[file.type]) return file.type
+  return BY_EXT[file.name.split('.').pop()?.toLowerCase() ?? ''] ?? file.type
+}
+
+async function send(file: File, type: string, onProgress: (p: number) => void): Promise<string> {
+  const start = await fetch('/api/studio/media', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ type, size: file.size }) })
   const s = (await start.json().catch(() => null)) as { id?: string; chunk?: number; parts?: number; error?: string } | null
   if (!start.ok || !s?.id || !s.chunk || !s.parts) throw new Error(s?.error === 'full' ? 'upErrFull' : (s?.error ?? `HTTP ${start.status}`))
   for (let i = 0; i < s.parts; i++) {
@@ -71,18 +81,21 @@ export function NovaUploads({ onChange }: { onChange: (ids: string[]) => void })
     const room = MAX_MEDIA_FILES - items.length
     for (const file of [...(files ?? [])].slice(0, Math.max(0, room))) {
       const key = next.current++
-      const kind = file.type.startsWith('video/') ? 'video' : 'image'
+      const type = typeOf(file)
+      const kind = type.startsWith('video/') ? 'video' : 'image'
       const thumb = URL.createObjectURL(file)
-      setItems((list) => [...list, { key, kind, thumb, status: 'uploading', progress: 0 }])
+      setItems((list) => [...list, { key, kind, thumb, status: 'checking', progress: 0 }])
       void (async () => {
         try {
-          if (!MEDIA_TYPES[file.type]) throw new Error('upErrType')
+          if (!MEDIA_TYPES[type]) throw new Error('upErrType')
           if (file.size > MAX_MEDIA_BYTES) throw new Error('upErrSize')
           // a format this browser cannot read (0 x 0) is left for the server to judge
+          patch(key, { status: 'checking' })
           const { w, h, s } = await probe(file, thumb).catch(() => ({ w: 0, h: 0, s: 0 }))
           if (w && h && Math.min(w, h) < MIN_SIDE) throw new Error('upErrSmall')
           if (s > MAX_CLIP_SECONDS + 0.5) throw new Error('upErrLong')
-          const id = await send(file, (p) => patch(key, { progress: p }))
+          patch(key, { status: 'uploading' })
+          const id = await send(file, type, (p) => patch(key, { progress: p }))
           patch(key, { id, status: 'ready', progress: 1 })
         } catch (e) {
           patch(key, { status: 'error', error: (e as Error).message })
@@ -107,23 +120,26 @@ export function NovaUploads({ onChange }: { onChange: (ids: string[]) => void })
         <span className="small muted">{items.length}/{MAX_MEDIA_FILES}</span>
       </div>
       <label className={`nv-drop${full ? ' off' : ''}`}>
-        <input type="file" accept={Object.keys(MEDIA_TYPES).join(',')} multiple disabled={full} onChange={(e) => { add(e.target.files); e.target.value = '' }} />
+        <input type="file" accept={`${Object.keys(MEDIA_TYPES).join(",")},video/*,image/*`} multiple disabled={full} onChange={(e) => { add(e.target.files); e.target.value = '' }} />
         <span>＋ {t('upAdd')}</span>
       </label>
       <p className="muted small">{t('upNote')}</p>
+      {items.some((x) => x.status === 'uploading' || x.status === 'checking') && (
+        <NovaProgress label={t('upUploading')} value={items.reduce((a, x) => a + (x.status === 'ready' || x.status === 'error' ? 1 : x.progress), 0) / items.length} />
+      )}
       {items.length > 0 && (
         <div className="nv-up-grid">
           {items.map((x, i) => (
             <div key={x.key} className={`nv-up-tile s-${x.status}`}>
               {x.kind === 'video' ? <video src={x.thumb} muted playsInline preload="metadata" /> : <img src={x.thumb} alt="" />}
               <span className="nv-up-n">{i + 1}</span>
-              {x.status === 'uploading' && <span className="nv-up-bar" style={{ width: `${Math.round(x.progress * 100)}%` }} />}
+              {x.status !== 'ready' && x.status !== 'error' && <span className="nv-up-bar" style={{ width: `${Math.round(x.progress * 100)}%` }} />}
               <div className="nv-up-act">
                 {i > 0 && <button className="btn small" aria-label={t('upEarlier')} title={t('upEarlier')} onClick={() => earlier(i)}>←</button>}
                 <button className="btn small" aria-label={t('serverDelete')} title={t('serverDelete')} onClick={() => remove(x)}>✕</button>
               </div>
               <span className={`nv-up-s small${x.status === 'error' ? ' warn' : ''}`}>
-                {x.status === 'uploading' ? `${t('upUploading')} ${Math.round(x.progress * 100)}%` : x.status === 'ready' ? `✓ ${t('upReady')}` : msg(x.error)}
+                {x.status === 'checking' ? t('upChecking') : x.status === 'uploading' ? `${t('upUploading')} ${Math.round(x.progress * 100)}%` : x.status === 'ready' ? `✓ ${t('upReady')}` : msg(x.error)}
               </span>
             </div>
           ))}

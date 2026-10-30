@@ -2,7 +2,7 @@
  * Version and "What's new". Bump APP_VERSION and add an entry to the top of RELEASES
  * with each update. The banner shows once per version, then stays dismissed.
  */
-export const APP_VERSION = '1.64.0'
+export const APP_VERSION = '1.65.0'
 
 export interface Release {
   version: string
@@ -13,6 +13,12 @@ export interface Release {
 }
 
 export const RELEASES: Release[] = [
+  {
+    version: '1.65.0',
+    date: '2026-10-29',
+    changes: ["Nova: the AI script writer now gets enough room to write every scene (it was cut off after one line per language), and a dropped connection is retried once with a clear message. Own clips: a file the phone can't read no longer hangs at 0%, and clips with an empty or odd type (.mp4 from some pickers) are accepted. Every wait in Nova (writing, trends, post kit, loading files, uploading, sending to the server, rendering) now shows a progress bar."],
+    changesVi: ["Nova: AI viết kịch bản giờ có đủ chỗ để viết hết mọi cảnh (trước đây bị cắt còn một dòng mỗi ngôn ngữ), và rớt mạng thì tự thử lại một lần kèm thông báo rõ ràng. Clip của anh: file điện thoại không đọc được không còn treo ở 0%, clip có loại file trống hoặc lạ (.mp4 từ một số bộ chọn file) vẫn được nhận. Mọi bước chờ trong Nova (viết kịch bản, xu hướng, bộ đăng bài, nạp file, tải lên, gửi lên máy chủ, tạo video) giờ đều có thanh tiến trình."],
+  },
   {
     version: '1.64.0',
     date: '2026-10-24',

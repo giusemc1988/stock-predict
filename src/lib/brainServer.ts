@@ -50,7 +50,7 @@ interface Provider {
   /** Models to try in order; providers retire models, so a gone model falls through to the next. */
   models: string[]
   key: (e: BrainEnv) => string | undefined
-  call: (key: string, model: string | undefined, system: string, user: string, f: Fetch, onFail?: OnFail) => Promise<string | null>
+  call: (key: string, model: string | undefined, system: string, user: string, f: Fetch, onFail?: OnFail, maxTokens?: number) => Promise<string | null>
 }
 
 const LIMIT = { question: 500, fact: 400, facts: 12, answer: 450 }
@@ -58,11 +58,11 @@ const LIMIT = { question: 500, fact: 400, facts: 12, answer: 450 }
 /** A Groq key starts gsk_, an xAI key xai-: either slot accepts either, so a pasted key just works. */
 const keyFor = (e: BrainEnv, prefix: string) => [e.GROQ_API_KEY, e.XAI_API_KEY].find((k) => k?.startsWith(prefix))
 
-const openAiStyle = (url: string) => async (key: string, model: string | undefined, system: string, user: string, f: Fetch, onFail?: OnFail) => {
+const openAiStyle = (url: string) => async (key: string, model: string | undefined, system: string, user: string, f: Fetch, onFail?: OnFail, maxTokens = LIMIT.answer) => {
   const r = await f(url, {
     method: 'POST',
     headers: { 'content-type': 'application/json', authorization: `Bearer ${key}` },
-    body: JSON.stringify({ model, max_tokens: LIMIT.answer, temperature: 0.4, messages: [{ role: 'system', content: system }, { role: 'user', content: user }] }),
+    body: JSON.stringify({ model, max_tokens: maxTokens, temperature: 0.4, messages: [{ role: 'system', content: system }, { role: 'user', content: user }] }),
   })
   if (!r.ok) {
     onFail?.(r.status, await failReason(r))
@@ -80,12 +80,12 @@ export const PROVIDERS: Provider[] = [
     name: 'Gemini',
     key: (e) => e.GEMINI_API_KEY,
     models: ['gemini-2.5-flash', 'gemini-flash-latest', 'gemini-2.5-flash-lite'],
-    call: async (key, model, system, user, f, onFail) => {
+    call: async (key, model, system, user, f, onFail, maxTokens = LIMIT.answer) => {
       const r = await f(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`, {
         method: 'POST',
         headers: { 'content-type': 'application/json', 'x-goog-api-key': key },
         // thinking off: on 2.5 Flash it can spend the whole token budget and return no text
-        body: JSON.stringify({ systemInstruction: { parts: [{ text: system }] }, contents: [{ role: 'user', parts: [{ text: user }] }], generationConfig: { maxOutputTokens: LIMIT.answer, temperature: 0.4, thinkingConfig: { thinkingBudget: 0 } } }),
+        body: JSON.stringify({ systemInstruction: { parts: [{ text: system }] }, contents: [{ role: 'user', parts: [{ text: user }] }], generationConfig: { maxOutputTokens: maxTokens, temperature: 0.4, thinkingConfig: { thinkingBudget: 0 } } }),
       })
       if (!r.ok) {
         onFail?.(r.status, await failReason(r))
@@ -109,7 +109,7 @@ export const modelFor = (id: string, e: BrainEnv) => ({ gemini: e.GEMINI_MODEL, 
 const modelGone = (status: number, reason: string) => status === 404 || status === 410 || (status === 400 && /model|decommission/i.test(reason))
 
 /** Calls one helper, moving to its next model when the provider says a model no longer exists. */
-export async function callHelper(p: Provider, key: string, e: BrainEnv, system: string, user: string, f: Fetch, onFail?: OnFail): Promise<string | null> {
+export async function callHelper(p: Provider, key: string, e: BrainEnv, system: string, user: string, f: Fetch, onFail?: OnFail, maxTokens?: number): Promise<string | null> {
   const pinned = modelFor(p.id, e)
   const list = pinned ? [pinned, ...p.models.filter((m) => m !== pinned)] : p.models
   for (const model of list) {
@@ -117,7 +117,7 @@ export async function callHelper(p: Provider, key: string, e: BrainEnv, system: 
     const text = await p.call(key, model, system, user, f, (status, reason) => {
       gone = modelGone(status, reason)
       onFail?.(status, reason)
-    })
+    }, maxTokens)
     if (text?.trim() || !gone) return text
   }
   return null

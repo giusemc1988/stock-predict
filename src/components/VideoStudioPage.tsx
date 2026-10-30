@@ -14,6 +14,7 @@ import { StudioRenderPanel } from './StudioRenderPanel'
 import { NovaTrends } from './NovaTrends'
 import { Copy, NovaPostKit } from './NovaPostKit'
 import { NovaUploads } from './NovaUploads'
+import { NovaProgress } from './NovaProgress'
 import { NovaPresets } from './NovaPresets'
 import type { TrendItem } from '../lib/studioTrends'
 import './JarvisHub.css'
@@ -116,7 +117,11 @@ export function VideoStudioPage({ onBack, glass = true, trends = true, postKit =
     setMsg(null)
     setBusy(t('writing'))
     try {
-      const r = await fetch('/api/studio/write', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ topic: ask?.topic ?? topic, topicVi: ask?.topicVi ?? topicVi, mode, scenes }) })
+      const body = JSON.stringify({ topic: ask?.topic ?? topic, topicVi: ask?.topicVi ?? topicVi, mode, scenes })
+      // two AI calls with fallbacks can take a while; a dropped connection gets one more try
+      let r: Response | null = null
+      for (let n = 0; n < 2 && !r; n++) r = await fetch('/api/studio/write', { method: 'POST', headers: { 'content-type': 'application/json' }, body, signal: AbortSignal.timeout(75_000) }).catch(() => null)
+      if (!r) throw new Error(t('netDown'))
       const j = (await r.json().catch(() => ({}))) as { en?: string[]; vi?: string[]; by?: string; error?: string }
       if (!r.ok || !j.en?.length || !j.vi?.length) throw new Error(j.error ?? `HTTP ${r.status}`)
       setEn(j.en.join('\n'))
@@ -317,8 +322,8 @@ export function VideoStudioPage({ onBack, glass = true, trends = true, postKit =
           {head(2, 'stepScript')}
           <div className="vs-row">
             <button className="btn primary" disabled={!!busy || !topic.trim()} onClick={() => void writeAi()}>{t('writeAi')}</button>
-            {busy === t('writing') && <span className="small muted">{busy}</span>}
           </div>
+          <NovaProgress active={busy === t('writing')} label={t('writing')} secs={25} />
           {videoSettings && (
             <label className="vs-field nv-scenes">
               <span className="small muted">{t('scenesCount')}: <b>{scenes}</b></span>
@@ -343,6 +348,7 @@ export function VideoStudioPage({ onBack, glass = true, trends = true, postKit =
                 <span>＋ {t('step3')}</span>
               </label>
               <p className="muted small">{t('mediaNote')}</p>
+              <NovaProgress active={busy === t('loadingMedia')} label={t('loadingMedia')} secs={10} />
               {footMsg.map((m) => <p key={m} className="warn small">{m}</p>)}
               {media.length > 0 && (
                 <div className="nv-up-grid">
@@ -386,7 +392,7 @@ export function VideoStudioPage({ onBack, glass = true, trends = true, postKit =
               <button className="btn" disabled={!script.en.length || !!busy || !canExport()} onClick={() => void make()}>{t('make')}</button>
             </div>
             {!canExport() && <p className="warn">{t('noExport')}</p>}
-            {busy && busy !== t('writing') && <p className="small">{busy}{busy === t('rendering') ? ` ${Math.round(progress * 100)}%` : ''}</p>}
+            {busy && busy !== t('writing') && <NovaProgress label={busy} value={busy === t('rendering') ? progress : undefined} secs={15} />}
             {msg && (busy != null || out) && <p className="small">{msg}</p>}
             {out && (
               <div className="vs-out">

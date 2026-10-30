@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useLocalStorage } from '../hooks/useLocalStorage'
+import { NovaProgress } from './NovaProgress'
 import { useLang } from '../lib/i18n'
 import { STUDIO_TEXT, type StudioKey } from '../lib/studio/text'
 import { TREND_LINKS, TREND_SOURCES, filterTrends, type TopicView, type TrendGeo, type TrendItem, type TrendSourceId, type TrendsResult } from '../lib/studioTrends'
@@ -92,7 +93,7 @@ export function NovaTrends({ onPick, onAuto, busy }: { onPick: (t: TrendItem) =>
         })}
       </div>
 
-      {loading && !data && <p className="small muted">{t('trendLoading')}</p>}
+      <NovaProgress active={loading} label={t('trendLoading')} secs={12} />
       {err && <p className="small warn">{t('trendFailed')} {err}</p>}
       {data && !list.length && <p className="small muted">{t('trendNone')}</p>}
 
