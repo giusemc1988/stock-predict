@@ -1,5 +1,6 @@
 import { useEffect } from 'react'
 import { JarvisAvatar } from './JarvisAvatar'
+import { useSwipeDismiss } from '../lib/swipeDismiss'
 
 export interface JarvisAlertData {
   id: string
@@ -11,11 +12,12 @@ export interface JarvisAlertData {
 /** Neo pops up when a practice trade opens or closes, HUD style, with Show me. Closes by itself after a few seconds. */
 export function JarvisAlert({ alert, motion, showLabel, onShow, onClose }: { alert: JarvisAlertData; motion: boolean; showLabel: string; onShow?: () => void; onClose: () => void }) {
   useEffect(() => {
-    const id = setTimeout(onClose, 9000)
+    const id = setTimeout(onClose, 7000)
     return () => clearTimeout(id)
   }, [alert.id, onClose])
+  const swipe = useSwipeDismiss(onClose)
   return (
-    <div key={alert.id} className={`jarvis-alert ${alert.tone}${motion ? '' : ' still'}`} role="status">
+    <div key={alert.id} className={`jarvis-alert ${alert.tone}${motion ? '' : ' still'}`} role="status" {...swipe}>
       <i className="hud-scan" aria-hidden />
       <JarvisAvatar size={30} mood={alert.tone === 'loss' ? 'warning' : 'speaking'} motion={motion} />
       <div className="ja-body">
