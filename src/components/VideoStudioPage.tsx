@@ -14,6 +14,7 @@ import { StudioRenderPanel } from './StudioRenderPanel'
 import { NovaTrends } from './NovaTrends'
 import { Copy, NovaPostKit } from './NovaPostKit'
 import { NovaUploads } from './NovaUploads'
+import { NovaClipPreview } from './NovaClipPreview'
 import { NovaProgress } from './NovaProgress'
 import { NovaPresets } from './NovaPresets'
 import type { TrendItem } from '../lib/studioTrends'
@@ -54,7 +55,7 @@ function useActiveStep(): string {
 }
 
 /** Bilingual Faceless Video Studio: script EN + VI, preview, MP4 export and Title Lab, all in the browser. */
-export function VideoStudioPage({ onBack, glass = true, trends = true, postKit = true, videoSettings = true, uploads = true, presets = true, lemo = true, handoff = true, channel = false, importLink = true }: { onBack: () => void; glass?: boolean; trends?: boolean; postKit?: boolean; videoSettings?: boolean; uploads?: boolean; presets?: boolean; lemo?: boolean; handoff?: boolean; channel?: boolean; importLink?: boolean }) {
+export function VideoStudioPage({ onBack, glass = true, trends = true, postKit = true, videoSettings = true, uploads = true, presets = true, lemo = true, handoff = true, channel = false, importLink = true, clipText = true }: { onBack: () => void; glass?: boolean; trends?: boolean; postKit?: boolean; videoSettings?: boolean; uploads?: boolean; presets?: boolean; lemo?: boolean; handoff?: boolean; channel?: boolean; importLink?: boolean; clipText?: boolean }) {
   const lang = useLang()
   const theme = useHubTheme()
   const active = useActiveStep()
@@ -75,6 +76,8 @@ export function VideoStudioPage({ onBack, glass = true, trends = true, postKit =
   const [hook, setHook] = useState({ en: '', vi: '' })
   // ids of the user's uploads for the server video, in order
   const [serverMedia, setServerMedia] = useState<string[]>([])
+  // the uploaded or imported clips, for the preview with text
+  const [clipIds, setClipIds] = useState<string[]>([])
   // a loaded preset rewrites the saved settings; this remounts the parts that read them
   const [presetRev, setPresetRev] = useState(0)
   const [fades, setFades] = useState(true)
@@ -370,7 +373,8 @@ export function VideoStudioPage({ onBack, glass = true, trends = true, postKit =
           ) : (
             <p className="muted small">{t('footageAuto')}</p>
           )}
-          {uploads && <NovaUploads onChange={setServerMedia} importLink={importLink} />}
+          {uploads && <NovaUploads onChange={setServerMedia} onClips={setClipIds} importLink={importLink} />}
+          {uploads && clipText && clipIds.length > 0 && <NovaClipPreview ids={clipIds} script={script} />}
         </section>
 
         <section id="nv-make" className="nv-make">

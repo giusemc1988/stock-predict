@@ -40,6 +40,7 @@ export interface MediaItem {
 
 export interface MediaStore {
   get(key: string, type?: 'text'): Promise<string | null>
+  get(key: string, type: 'arrayBuffer'): Promise<ArrayBuffer | null>
   put(key: string, value: string | ArrayBuffer, opts?: { expirationTtl?: number }): Promise<void>
   delete(key: string): Promise<void>
   list(o: { prefix: string; cursor?: string }): Promise<{ keys: { name: string }[]; list_complete: boolean; cursor?: string }>
@@ -153,4 +154,39 @@ export async function importPart(kv: MediaStore, url: string, id: string, i: num
   const r = await ranged(f, url, `bytes=${a}-${Math.min(item.size, a + item.chunk) - 1}`)
   if (!r || r.status !== 206) return 'fetch'
   return putMediaPart(kv, id, i, await r.arrayBuffer())
+}
+
+/** A stored clip (or photo) for the phone's preview, with Range so a <video> can seek. Parts are read one at a time. */
+export async function mediaResponse(kv: MediaStore, id: string, range: string | null): Promise<Response> {
+  const item = await getMedia(kv, id)
+  if (!item?.done) return new Response('Not found', { status: 404 })
+  const m = range ? /^bytes=(\d*)-(\d*)$/.exec(range.trim()) : null
+  let start = 0
+  let end = item.size - 1
+  if (range) {
+    if (!m || (!m[1] && !m[2])) return new Response(null, { status: 416, headers: { 'content-range': `bytes */${item.size}` } })
+    if (!m[1]) start = Math.max(0, item.size - Number(m[2]))
+    else {
+      start = Number(m[1])
+      if (m[2]) end = Math.min(Number(m[2]), item.size - 1)
+    }
+    if (start > end || start >= item.size) return new Response(null, { status: 416, headers: { 'content-range': `bytes */${item.size}` } })
+  }
+  const first = Math.floor(start / item.chunk)
+  const last = Math.floor(end / item.chunk)
+  const body = new ReadableStream<Uint8Array>({
+    async start(c) {
+      for (let i = first; i <= last; i++) {
+        const buf = await kv.get(`${MEDIA_PREFIX}${id}:${i}`, 'arrayBuffer')
+        if (!buf) return c.error(new Error(`missing part ${i}`))
+        const from = i === first ? start - i * item.chunk : 0
+        const to = i === last ? end - i * item.chunk + 1 : buf.byteLength
+        c.enqueue(new Uint8Array(buf, from, to - from))
+      }
+      c.close()
+    },
+  })
+  const headers: Record<string, string> = { 'content-type': item.type, 'accept-ranges': 'bytes', 'content-length': String(end - start + 1), 'cache-control': 'private, max-age=600' }
+  if (range) headers['content-range'] = `bytes ${start}-${end}/${item.size}`
+  return new Response(body, { status: range ? 206 : 200, headers })
 }

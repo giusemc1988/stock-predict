@@ -2,7 +2,7 @@
  * Version and "What's new". Bump APP_VERSION and add an entry to the top of RELEASES
  * with each update. The banner shows once per version, then stays dismissed.
  */
-export const APP_VERSION = '1.67.0'
+export const APP_VERSION = '1.68.0'
 
 export interface Release {
   version: string
@@ -13,6 +13,12 @@ export interface Release {
 }
 
 export const RELEASES: Release[] = [
+  {
+    version: '1.68.0',
+    date: '2026-10-30',
+    changes: ['Nova Footage: a clip you uploaded or imported now plays in the hub with your English and Vietnamese lines on top, switching slide by slide across the clip. It is a preview: the file is not changed yet. A Settings switch hides it.'],
+    changesVi: ['Nova Footage: clip anh đã tải lên hoặc nhập về giờ phát ngay trong hub, kèm các dòng tiếng Anh và tiếng Việt chồng lên, đổi từng slide theo độ dài clip. Đây là bản xem trước, file chưa bị đổi. Có công tắc trong Cài đặt để ẩn.'],
+  },
   {
     version: '1.67.0',
     date: '2026-10-30',
