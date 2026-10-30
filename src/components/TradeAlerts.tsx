@@ -1,6 +1,53 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import type { TradeAlert } from '../worker/practiceCycle'
 import { useAiRules } from '../lib/aiRules'
+import { useSwipeDismiss } from '../lib/swipeDismiss'
+
+/** Each card closes by itself after a few seconds, or swipe it left/right. */
+function AlertCard({ alert, onClose }: { alert: TradeAlert; onClose: () => void }) {
+  const swipe = useSwipeDismiss(onClose)
+  const closeRef = useRef(onClose)
+  closeRef.current = onClose
+  useEffect(() => {
+    const id = setTimeout(() => closeRef.current(), 8000)
+    return () => clearTimeout(id)
+  }, [alert.id])
+  return (
+    <div className="alert-card" {...swipe}>
+      <div className="alert-header">
+        <span className="alert-symbol">{alert.symbol}</span>
+        <span className="alert-side">BUY</span>
+        <button className="alert-close" onClick={onClose}>
+          ✕
+        </button>
+      </div>
+      <div className="alert-body">
+        <div className="alert-row">
+          <span className="label">Entry:</span>
+          <span className="value">${alert.entry.toFixed(2)}</span>
+        </div>
+        <div className="alert-row">
+          <span className="label">Stop:</span>
+          <span className="value">${alert.stop.toFixed(2)}</span>
+        </div>
+        <div className="alert-row">
+          <span className="label">Target:</span>
+          <span className="value">${alert.target.toFixed(2)}</span>
+        </div>
+        <div className="alert-row">
+          <span className="label">Reason:</span>
+          <span className="value">{alert.reason}</span>
+        </div>
+        {alert.ruleName && (
+          <div className="alert-row">
+            <span className="label">Rule:</span>
+            <span className="value">{alert.ruleName}</span>
+          </div>
+        )}
+      </div>
+    </div>
+  )
+}
 
 interface AlertNotification extends TradeAlert {
   dismissed?: boolean
@@ -49,39 +96,7 @@ export function TradeAlerts() {
   return (
     <div className="trade-alerts">
       {displayAlerts.map((alert) => (
-        <div key={alert.id} className="alert-card">
-          <div className="alert-header">
-            <span className="alert-symbol">{alert.symbol}</span>
-            <span className="alert-side">BUY</span>
-            <button className="alert-close" onClick={() => dismissAlert(alert.id)}>
-              ✕
-            </button>
-          </div>
-          <div className="alert-body">
-            <div className="alert-row">
-              <span className="label">Entry:</span>
-              <span className="value">${alert.entry.toFixed(2)}</span>
-            </div>
-            <div className="alert-row">
-              <span className="label">Stop:</span>
-              <span className="value">${alert.stop.toFixed(2)}</span>
-            </div>
-            <div className="alert-row">
-              <span className="label">Target:</span>
-              <span className="value">${alert.target.toFixed(2)}</span>
-            </div>
-            <div className="alert-row">
-              <span className="label">Reason:</span>
-              <span className="value">{alert.reason}</span>
-            </div>
-            {alert.ruleName && (
-              <div className="alert-row">
-                <span className="label">Rule:</span>
-                <span className="value">{alert.ruleName}</span>
-              </div>
-            )}
-          </div>
-        </div>
+        <AlertCard key={alert.id} alert={alert} onClose={() => dismissAlert(alert.id)} />
       ))}
     </div>
   )

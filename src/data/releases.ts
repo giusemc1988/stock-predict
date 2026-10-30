@@ -2,7 +2,7 @@
  * Version and "What's new". Bump APP_VERSION and add an entry to the top of RELEASES
  * with each update. The banner shows once per version, then stays dismissed.
  */
-export const APP_VERSION = '1.72.0'
+export const APP_VERSION = '1.72.1'
 
 export interface Release {
   version: string
@@ -13,6 +13,12 @@ export interface Release {
 }
 
 export const RELEASES: Release[] = [
+  {
+    version: '1.72.1',
+    date: '2026-10-30',
+    changes: ['Buy/sell pop-ups now close by themselves after a few seconds, and you can swipe them left or right to dismiss.'],
+    changesVi: ['Thông báo mua/bán giờ tự đóng sau vài giây, và có thể vuốt trái hoặc phải để đóng.'],
+  },
   {
     version: '1.72.0',
     date: '2026-10-30',
