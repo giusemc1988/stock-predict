@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict'
-import { importHostOk, importPart, importStart, MAX_MEDIA_BYTES, MEDIA_BUDGET, MEDIA_CHUNK, MEDIA_PREFIX, deleteMedia, finishMedia, listMedia, putMediaPart, readyMedia, startMedia, type MediaStore } from '../src/lib/studioMedia'
+import { mediaResponse, importHostOk, importPart, importStart, MAX_MEDIA_BYTES, MEDIA_BUDGET, MEDIA_CHUNK, MEDIA_PREFIX, deleteMedia, finishMedia, listMedia, putMediaPart, readyMedia, startMedia, type MediaStore } from '../src/lib/studioMedia'
 import { cleanRenderAsk, queueJobs, type JobStore } from '../src/lib/studioJobs'
 
 function fakeKv() {
@@ -8,9 +8,10 @@ function fakeKv() {
   const kv: MediaStore & { m: typeof m; ttl: typeof ttl } = {
     m,
     ttl,
-    async get(k) {
+    async get(k: string, type?: string) {
       const v = m.get(k)
-      return typeof v === 'string' ? v : v ? '[bytes]' : null
+      if (type === 'arrayBuffer') return (typeof v === 'string' ? null : v ?? null) as never
+      return (typeof v === 'string' ? v : v ? '[bytes]' : null) as never
     },
     async put(k, v, o) {
       m.set(k, v)
@@ -76,7 +77,6 @@ assert.deepEqual(jobs[0].media, [item.id, half.item.id])
 const plain = (await queueJobs(fakeKv() as unknown as JobStore, { ...ask, media: [] }, ['sea'], 1, uuid))!
 assert.equal('media' in plain[0], false)
 
-console.log('novamedia ok')
 
 {
   // clips fetched from a Muse link, part by part, by byte range
@@ -109,3 +109,29 @@ console.log('novamedia ok')
   const noRange = (async () => new Response('x', { status: 200 })) as unknown as typeof fetch
   assert.deepEqual(await importStart(kv, link, noRange), { error: 'fetch' })
 }
+
+{
+  // preview: a stored clip served with Range across part boundaries
+  const kv = fakeKv()
+  const size = MEDIA_CHUNK + 5000
+  const data = new Uint8Array(size).map((_, i) => (i * 7) % 253)
+  const st = await startMedia(kv, { type: 'video/mp4', size })
+  const id = (st as { item: { id: string } }).item.id
+  assert.equal((await mediaResponse(kv, id, null)).status, 404, 'not ready until finished')
+  await putMediaPart(kv, id, 0, data.slice(0, MEDIA_CHUNK).buffer)
+  await putMediaPart(kv, id, 1, data.slice(MEDIA_CHUNK).buffer)
+  await finishMedia(kv, id)
+  const all = await mediaResponse(kv, id, null)
+  assert.equal(all.status, 200)
+  assert.deepEqual(new Uint8Array(await all.arrayBuffer()), data)
+  const mid = await mediaResponse(kv, id, `bytes=${MEDIA_CHUNK - 10}-${MEDIA_CHUNK + 9}`)
+  assert.equal(mid.status, 206)
+  assert.equal(mid.headers.get('content-range'), `bytes ${MEDIA_CHUNK - 10}-${MEDIA_CHUNK + 9}/${size}`)
+  assert.deepEqual(new Uint8Array(await mid.arrayBuffer()), data.slice(MEDIA_CHUNK - 10, MEDIA_CHUNK + 10))
+  const tail = await mediaResponse(kv, id, 'bytes=-100')
+  assert.deepEqual(new Uint8Array(await tail.arrayBuffer()), data.slice(size - 100))
+  assert.equal((await mediaResponse(kv, id, `bytes=${size}-`)).status, 416)
+  assert.equal((await mediaResponse(kv, id, 'nonsense')).status, 416)
+  assert.equal((await mediaResponse(kv, 'not-an-id', null)).status, 404)
+}
+console.log('novamedia ok')

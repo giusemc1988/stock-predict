@@ -7,7 +7,7 @@ import type { BrainEnv } from '../lib/brainServer'
 import { cleanKitAsk, writeKitItem, writePostKit, writeTerms } from '../lib/studioServer'
 import { TRENDS_CACHE, TRENDS_TTL_MS, fetchTrends, type TrendGeo, type TrendsResult } from '../lib/studioTrends'
 import { PRESETS_KEY, cleanPresets } from '../lib/studio/presets'
-import { MEDIA_CHUNK, deleteMedia, finishMedia, importPart, importStart, putMediaPart, readyMedia, startMedia, type MediaStore } from '../lib/studioMedia'
+import { MEDIA_CHUNK, deleteMedia, finishMedia, importPart, importStart, mediaResponse, putMediaPart, readyMedia, startMedia, type MediaStore } from '../lib/studioMedia'
 import { GITHUB_KEY, PEXELS_KEY, checkGithubToken, cleanRenderAsk, expireLemoJobs, kickFarm, deleteJob, isJobId, lemoOnline, listJobs, queueJobs, setHandoff, videoResponse, type JobStore } from '../lib/studioJobs'
 
 const json = (data: unknown, status = 200) => new Response(JSON.stringify(data), { status, headers: { 'content-type': 'application/json', 'cache-control': 'no-store' } })
@@ -85,6 +85,10 @@ export async function novaRoute(req: Request, pathname: string, env: BrainEnv, s
     if (!key || !(await k.check(key))) return json({ error: `${kind === 'github' ? 'GitHub' : 'Pexels'} refused this key` }, 400)
     await kv.put(k.slot, key)
     return json({ [kind]: true })
+  }
+  if (pathname === '/api/studio/media-file') {
+    if (req.method !== 'GET') return json({ error: 'GET only' }, 405)
+    return mediaResponse(kv as unknown as MediaStore, url.searchParams.get('id') ?? '', req.headers.get('range'))
   }
   if (pathname === '/api/studio/media-import') {
     // POST {url} starts an import from a Muse link; PUT {url,id,i} fetches one part; finish with PATCH /api/studio/media?id=

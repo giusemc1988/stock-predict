@@ -70,7 +70,7 @@ async function send(file: File, type: string, onProgress: (p: number) => void): 
 }
 
 /** Nova step 3: the user's own photos and clips for the server video, uploaded in parts and used in this order. */
-export function NovaUploads({ onChange, importLink = true }: { onChange: (ids: string[]) => void; importLink?: boolean }) {
+export function NovaUploads({ onChange, onClips, importLink = true }: { onChange: (ids: string[]) => void; onClips?: (ids: string[]) => void; importLink?: boolean }) {
   const lang = useLang()
   const t = (k: StudioKey) => STUDIO_TEXT[k][lang]
   const [items, setItems] = useState<Up[]>([])
@@ -82,6 +82,10 @@ export function NovaUploads({ onChange, importLink = true }: { onChange: (ids: s
   useEffect(() => {
     onChange(ready ? ready.split(',') : [])
   }, [ready, onChange])
+  const clips = items.filter((x) => x.status === 'ready' && x.id && x.kind === 'video').map((x) => x.id!).join()
+  useEffect(() => {
+    onClips?.(clips ? clips.split(',') : [])
+  }, [clips, onClips])
   useEffect(() => () => items.forEach((x) => URL.revokeObjectURL(x.thumb)), []) // eslint-disable-line react-hooks/exhaustive-deps
 
   const add = (files: FileList | null) => {
