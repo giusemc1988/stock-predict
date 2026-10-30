@@ -109,6 +109,18 @@
     return b
   }
 
+  function eventsButton() {
+    const b = document.createElement('button')
+    b.type = 'button'
+    b.id = 'iris-eventsbtn'
+    b.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M3 12h4l2-6 4 12 2-6h6"/></svg><span></span>'
+    const relabel = () => (b.querySelector('span').textContent = vi() ? 'Sự kiện' : 'Events')
+    relabel()
+    document.addEventListener('iris-lang', relabel)
+    b.addEventListener('click', () => b.setAttribute('aria-pressed', String(!!window.irisEvents?.toggle())))
+    return b
+  }
+
   // VI / EN switch for the Iris text (vi.js holds the dictionary)
   function langButton() {
     const b = document.createElement('button')
@@ -141,6 +153,7 @@
           const Cart = viewer?.camera?.position?.constructor
           if (!Cart?.fromDegrees) return toast(msg.noMap())
           toast('')
+          window.irisPos = { lat: pos.coords.latitude, lon: pos.coords.longitude }
           viewer.camera.flyTo({
             destination: Cart.fromDegrees(pos.coords.longitude, pos.coords.latitude, 3000),
             orientation: { heading: 0, pitch: -Math.PI / 2, roll: 0 },
@@ -174,7 +187,7 @@
       b.addEventListener('click', () => open(side))
       bar.append(b)
     }
-    bar.append(locateButton(), flightButton(), langButton())
+    bar.append(locateButton(), flightButton(), eventsButton(), langButton())
     document.body.append(bar)
     // relabel when the app switches language
     const relabel = () => {
@@ -396,4 +409,129 @@
   }
   document.addEventListener('iris-lang', paint)
   new MutationObserver(paint).observe(root, { attributes: true, attributeFilter: ['lang'] })
+})()
+
+// Recent events list: quakes (USGS), wildfires, storms, floods and volcanoes (NASA EONET). Tap a row, the globe flies there.
+;(() => {
+  const root = document.documentElement
+  const vi = () => (window.irisLang ? window.irisLang.get() === 'vi' : !/^en/i.test(root.lang || ''))
+  const T = (a, b) => (vi() ? a : b)
+  const esc = (x) => String(x ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c])
+  const KINDS = {
+    quake: { icon: '🌍', vi: 'Động đất', en: 'Earthquakes', alt: 400000 },
+    fire: { icon: '🔥', vi: 'Cháy rừng', en: 'Wildfires', alt: 120000 },
+    storm: { icon: '🌀', vi: 'Bão, lũ, núi lửa', en: 'Storms, floods, volcanoes', alt: 600000 },
+  }
+  const EONET = { wildfires: 'fire', severeStorms: 'storm', floods: 'storm', volcanoes: 'storm' }
+  const km = (a, b, c, d) => {
+    const r = Math.PI / 180
+    const h = Math.sin(((c - a) * r) / 2) ** 2 + Math.cos(a * r) * Math.cos(c * r) * Math.sin(((d - b) * r) / 2) ** 2
+    return 12742 * Math.asin(Math.sqrt(h))
+  }
+  const ago = (t) => {
+    const m = Math.max(1, Math.round((Date.now() - t) / 60000))
+    return m < 90 ? `${m} ${T('phút trước', 'min ago')}` : m < 2880 ? `${Math.round(m / 60)} ${T('giờ trước', 'h ago')}` : `${Math.round(m / 1440)} ${T('ngày trước', 'd ago')}`
+  }
+  const getJson = (u) => fetch(u).then((r) => (r.ok ? r.json() : null)).catch(() => null)
+
+  let card
+  let items = null
+  let kind = 'all'
+  let sortNear = false
+
+  async function load() {
+    const [q, e] = await Promise.all([getJson('https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/4.5_week.geojson'), getJson('https://eonet.gsfc.nasa.gov/api/v3/events?status=open&limit=80&category=wildfires,severeStorms,floods,volcanoes')])
+    const out = []
+    for (const f of q?.features || []) {
+      const [lon, lat] = f.geometry.coordinates
+      out.push({ kind: 'quake', lat, lon, t: f.properties.time, title: `M${(f.properties.mag ?? 0).toFixed(1)} · ${f.properties.place || ''}`, weight: f.properties.mag })
+    }
+    for (const ev of e?.events || []) {
+      const g = ev.geometry?.[ev.geometry.length - 1]
+      if (!g || g.type !== 'Point') continue
+      out.push({ kind: EONET[ev.categories?.[0]?.id] || 'storm', lat: g.coordinates[1], lon: g.coordinates[0], t: Date.parse(g.date), title: ev.title, weight: 0 })
+    }
+    return out.length ? out : null
+  }
+
+  function near() {
+    return new Promise((ok) => {
+      if (window.irisPos) return ok(window.irisPos)
+      if (!navigator.geolocation) return ok(null)
+      navigator.geolocation.getCurrentPosition(
+        (p) => ok((window.irisPos = { lat: p.coords.latitude, lon: p.coords.longitude })),
+        () => ok(null),
+        { timeout: 12000, maximumAge: 600000 },
+      )
+    })
+  }
+
+  function fly(it) {
+    const viewer = window.__godsEyeView?.viewer
+    const Cart = viewer?.camera?.position?.constructor
+    if (!Cart?.fromDegrees) return
+    viewer.camera.flyTo({ destination: Cart.fromDegrees(it.lon, it.lat, KINDS[it.kind].alt), orientation: { heading: 0, pitch: -Math.PI / 2, roll: 0 }, duration: 3 })
+    card.hidden = true
+    document.getElementById('iris-eventsbtn')?.setAttribute('aria-pressed', 'false')
+  }
+
+  function paint() {
+    if (!card) return
+    const tabs = ['all', ...Object.keys(KINDS)]
+    card.querySelector('.tabs').innerHTML =
+      tabs.map((k) => `<button type="button" data-k="${k}" aria-pressed="${k === kind}">${k === 'all' ? T('Tất cả', 'All') : `${KINDS[k].icon} ${KINDS[k][vi() ? 'vi' : 'en']}`}</button>`).join('') +
+      `<button type="button" data-near="1" aria-pressed="${sortNear}">📍 ${T('Gần tôi', 'Near me')}</button>`
+    const out = card.querySelector('.list')
+    if (!items) return
+    const me = window.irisPos
+    let rows = items.filter((i) => kind === 'all' || i.kind === kind)
+    if (me) rows.forEach((i) => (i.d = km(me.lat, me.lon, i.lat, i.lon)))
+    rows = rows.sort((a, b) => (sortNear && me ? a.d - b.d : b.t - a.t)).slice(0, 40)
+    out.innerHTML = rows.length
+      ? rows.map((i, n) => `<button type="button" class="row" data-n="${n}"><span>${KINDS[i.kind].icon}</span><span><b>${esc(i.title)}</b><small>${ago(i.t)}${me && i.d != null ? ` · ${Math.round(i.d).toLocaleString()} km ${T('từ anh', 'from you')}` : ''}</small></span></button>`).join('')
+      : `<p>${T('Chưa có sự kiện nào trong mục này.', 'No events in this list.')}</p>`
+    out.querySelectorAll('.row').forEach((r) => r.addEventListener('click', () => fly(rows[+r.dataset.n])))
+  }
+
+  async function open() {
+    if (!card) {
+      card = document.createElement('div')
+      card.id = 'iris-events'
+      card.innerHTML = '<div class="tabs"></div><div class="bar"><i></i></div><div class="list" role="status"></div>'
+      card.addEventListener('click', async (e) => {
+        const t = e.target.closest('.tabs button')
+        if (!t) return
+        if (t.dataset.near) {
+          sortNear = !sortNear
+          if (sortNear) {
+            card.querySelector('.bar').hidden = false
+            const p = await near()
+            card.querySelector('.bar').hidden = true
+            if (!p) sortNear = false
+          }
+        } else kind = t.dataset.k
+        paint()
+      })
+      document.body.append(card)
+      document.addEventListener('iris-lang', paint)
+      paint()
+    }
+    if (!items) {
+      card.querySelector('.bar').hidden = false
+      card.querySelector('.list').textContent = T('Đang tải sự kiện…', 'Loading events…')
+      items = await load()
+      card.querySelector('.bar').hidden = true
+      if (!items) card.querySelector('.list').textContent = T('Không tải được dữ liệu. Thử lại sau.', 'Could not load the data. Try again later.')
+      else paint()
+    }
+  }
+
+  window.irisEvents = {
+    toggle() {
+      if (card?.hidden === false) return (card.hidden = true), false
+      open()
+      if (card) card.hidden = false
+      return true
+    },
+  }
 })()
