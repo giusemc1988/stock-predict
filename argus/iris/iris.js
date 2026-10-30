@@ -10,16 +10,42 @@
     const url = typeof input === 'string' ? input : input instanceof URL ? input.href : input?.url
     const method = (init?.method || (typeof input === 'object' && input?.method) || 'GET').toUpperCase()
     if (method !== 'POST' || !url || new URL(url, location.href).href !== new URL('/api/overpass', location.href).href || typeof init?.body !== 'string') return appFetch(input, init)
+    // a mirror that never answers must not hold the "fetching mapped sites" banner forever: 8 s each
+    const within = (ms) => {
+      const c = new AbortController()
+      const stop = () => c.abort()
+      init.signal?.addEventListener('abort', stop)
+      const t = setTimeout(stop, ms)
+      return { signal: c.signal, done: () => (clearTimeout(t), init.signal?.removeEventListener('abort', stop)) }
+    }
     for (const m of MIRRORS) {
+      const w = within(8000)
       try {
-        const r = await appFetch(m, { method: 'POST', body: init.body, headers: { 'content-type': 'application/x-www-form-urlencoded' }, signal: init.signal })
+        const r = await appFetch(m, { method: 'POST', body: init.body, headers: { 'content-type': 'application/x-www-form-urlencoded' }, signal: w.signal })
         if (r.ok) return r
       } catch (e) {
         if (init.signal?.aborted) throw e
+      } finally {
+        w.done()
       }
     }
     return appFetch(input, init)
   }
+
+  // Safety net: if the loading banner keeps saying the same "mapped sites" line for 25 s, hide it (the data keeps loading)
+  const SITES = /MAPPED SITES|SITIOS MAPEADOS/i
+  let since = 0
+  setInterval(() => {
+    const el = document.getElementById('global-loading-status')
+    const stuck = el && SITES.test(el.textContent || '') && getComputedStyle(el).display !== 'none'
+    if (!stuck) {
+      since = 0
+      el?.classList.remove('iris-hide')
+      return
+    }
+    since = since || Date.now()
+    if (Date.now() - since > 25000) el.classList.add('iris-hide')
+  }, 3000)
 })()
 
 ;(() => {
