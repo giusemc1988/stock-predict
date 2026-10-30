@@ -2,7 +2,7 @@
  * Version and "What's new". Bump APP_VERSION and add an entry to the top of RELEASES
  * with each update. The banner shows once per version, then stays dismissed.
  */
-export const APP_VERSION = '1.65.1'
+export const APP_VERSION = '1.65.2'
 
 export interface Release {
   version: string
@@ -13,6 +13,12 @@ export interface Release {
 }
 
 export const RELEASES: Release[] = [
+  {
+    version: '1.65.2',
+    date: '2026-10-30',
+    changes: ["Settings > Free AI keys no longer says \"Could not reach the server\" when the installed app's offline cache answered a server call with the app page. Server calls (/api) now always go straight to the server."],
+    changesVi: ["Settings > Free AI keys không còn báo \"Không kết nối được máy chủ\" khi bộ nhớ offline của ứng dụng trả nhầm trang ứng dụng cho một lệnh gọi máy chủ. Mọi lệnh gọi /api giờ đi thẳng tới máy chủ."],
+  },
   {
     version: '1.65.1',
     date: '2026-10-30',
