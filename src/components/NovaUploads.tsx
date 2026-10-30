@@ -53,13 +53,19 @@ async function send(file: File, type: string, onProgress: (p: number) => void): 
   for (let i = 0; i < s.parts; i++) {
     const part = file.slice(i * s.chunk, (i + 1) * s.chunk)
     let ok = false
+    let why = 'upFailed'
     // a phone on mobile data drops now and then: each part gets a few tries
-    for (let t = 0; t < TRIES && !ok; t++) ok = !!(await fetch(`/api/studio/media?id=${s.id}&i=${i}`, { method: 'PUT', body: part }).catch(() => null))?.ok
-    if (!ok) throw new Error('upFailed')
+    for (let t = 0; t < TRIES && !ok; t++) {
+      const r = await fetch(`/api/studio/media?id=${s.id}&i=${i}`, { method: 'PUT', body: part }).catch(() => null)
+      ok = !!r?.ok
+      // keep the server's reason (e.g. the free KV limit) so the phone shows why, not just "failed"
+      if (r && !ok) why = `HTTP ${r.status} ${((await r.text().catch(() => '')) || '').slice(0, 80)}`.trim()
+    }
+    if (!ok) throw new Error(why)
     onProgress((i + 1) / s.parts)
   }
   const fin = await fetch(`/api/studio/media?id=${s.id}`, { method: 'PATCH' })
-  if (!fin.ok) throw new Error('upFailed')
+  if (!fin.ok) throw new Error(`HTTP ${fin.status} ${((await fin.text().catch(() => '')) || '').slice(0, 80)}`.trim())
   return s.id
 }
 

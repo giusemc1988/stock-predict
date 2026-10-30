@@ -2,7 +2,7 @@
  * Version and "What's new". Bump APP_VERSION and add an entry to the top of RELEASES
  * with each update. The banner shows once per version, then stays dismissed.
  */
-export const APP_VERSION = '1.65.3'
+export const APP_VERSION = '1.65.4'
 
 export interface Release {
   version: string
@@ -13,6 +13,12 @@ export interface Release {
 }
 
 export const RELEASES: Release[] = [
+  {
+    version: '1.65.4',
+    date: '2026-10-30',
+    changes: ['Nova uploads: when a photo or clip upload fails, the message now shows the server\'s reason (HTTP code and text) instead of only "failed".'],
+    changesVi: ['Nova tải lên: khi tải ảnh hoặc clip thất bại, thông báo giờ hiện lý do từ máy chủ (mã HTTP và nội dung) thay vì chỉ "thất bại".'],
+  },
   {
     version: '1.65.3',
     date: '2026-10-30',
