@@ -148,7 +148,7 @@ export function JarvisFab({ state, rules, journal, learn, killSwitch, priceOf, k
     const live = page === 'godseye' && asksLive(t)
     if ((r.unsure || live) && rules.jarvisCloudAi) {
       add({ who: 'me', text: { en: t, vi: t }, time: now })
-      void (live ? irisLiveFacts() : Promise.resolve([] as string[]))
+      void (live ? irisLiveFacts(t) : Promise.resolve([] as string[]))
         .then((liveFacts) => askCloud(t, userLang, [...(agents && page && hub ? hubFactsForAi(page, hub) : []), ...liveFacts, ...factsForAi(ctx)], live ? 25000 : 15000))
         .then((ai) => {
         if (ai) {
@@ -285,7 +285,7 @@ export function JarvisFab({ state, rules, journal, learn, killSwitch, priceOf, k
             {!chat.length && !words && hello && <p className="jfab-empty">{pick(hello)}</p>}
             {!chat.length && !words && page === 'godseye' && (
               <div className="jfab-ideas">
-                {[L('Any earthquakes today?', 'Hôm nay có động đất nào không?'), L('How many flights are in the air?', 'Bây giờ có bao nhiêu máy bay đang bay?')].map((q) => (
+                {[L('Weather here now?', 'Thời tiết chỗ anh bây giờ?'), L('Any storms or floods?', 'Có bão hay lũ nào không?'), L('Any earthquakes today?', 'Hôm nay có động đất nào không?'), L('How many flights are in the air?', 'Bây giờ có bao nhiêu máy bay đang bay?')].map((q) => (
                   <button key={q} type="button" className="pr-rescan" disabled={phase === 'thinking'} onClick={() => respond(q)}>
                     {q}
                   </button>
