@@ -2,7 +2,7 @@
 // swaps exact English strings (text, title, aria-label, placeholder) in the DOM. Default is Vietnamese; the Iris bar
 // has a VI/EN switch. A language picked in the upstream selector (es, ru, zh) turns this off.
 ;(() => {
-  const KEY = 'iris:lang:v1'
+  const KEY = 'iris:lang:v2' // v2: everyone starts on Vietnamese again (an old EN choice no longer sticks)
   const root = document.documentElement
   const dict = {
     // first view, buttons, status
@@ -218,16 +218,71 @@
     new MutationObserver(run).observe(root, { attributes: true, attributeFilter: ['lang'] })
   }
 
+  const set = (v) => {
+    lang = v
+    store.set(lang)
+    sweep(document.body)
+    document.dispatchEvent(new CustomEvent('iris-lang'))
+    return lang
+  }
   window.irisLang = {
     get: () => (active() ? 'vi' : 'en'),
-    toggle() {
-      lang = lang === 'vi' ? 'en' : 'vi'
-      store.set(lang)
-      sweep(document.body)
-      document.dispatchEvent(new CustomEvent('iris-lang'))
-      return lang
-    },
+    set,
+    toggle: () => set(lang === 'vi' ? 'en' : 'vi'),
   }
+
+  // The upstream language list ships en/es/ru/zh only. Add a Vietnamese row on top and keep the corner code in step.
+  function pickerRow() {
+    const list = document.getElementById('locale-picker-listbox')
+    const code = document.querySelector('.locale-picker-code')
+    const vi = window.irisLang.get() === 'vi'
+    const upstreamEn = root.lang === 'en' || !root.lang
+    if (code && upstreamEn && code.textContent !== (vi ? 'VI' : 'EN')) code.textContent = vi ? 'VI' : 'EN'
+    if (!list) return
+    let row = document.getElementById('iris-vi-option')
+    if (!row) {
+      row = document.createElement('li')
+      row.id = 'iris-vi-option'
+      row.className = 'locale-picker-option'
+      row.setAttribute('role', 'option')
+      row.lang = 'vi'
+      row.dataset.irisLocale = 'vi'
+      row.innerHTML = '<span class="locale-picker-text"><span class="locale-picker-native">Tiếng Việt</span><span class="locale-picker-meta"><span class="locale-picker-option-code" translate="no">VI</span></span></span>'
+      list.prepend(row)
+    }
+    const en = list.querySelector('[data-locale="en"]')
+    const on = vi && upstreamEn
+    row.classList.toggle('is-active', on)
+    if (row.getAttribute('aria-selected') !== String(on)) row.setAttribute('aria-selected', String(on))
+    if (en && on && en.classList.contains('is-active')) {
+      en.classList.remove('is-active')
+      en.setAttribute('aria-selected', 'false')
+    }
+  }
+  let rowQueued = false
+  const queueRow = () => {
+    if (rowQueued) return
+    rowQueued = true
+    requestAnimationFrame(() => {
+      rowQueued = false
+      pickerRow()
+    })
+  }
+  document.addEventListener(
+    'click',
+    (e) => {
+      const row = e.target.closest?.('.locale-picker-option')
+      if (!row) return
+      if (row.dataset.irisLocale === 'vi') {
+        e.stopPropagation()
+        set('vi')
+        document.querySelector('.locale-picker-button[aria-expanded="true"]')?.click()
+      } else if (row.dataset.locale === 'en') set('en')
+    },
+    true,
+  )
+  document.addEventListener('iris-lang', pickerRow)
+  new MutationObserver(queueRow).observe(document.documentElement, { childList: true, subtree: true })
   if (document.body) start()
   else addEventListener('DOMContentLoaded', start)
 })()

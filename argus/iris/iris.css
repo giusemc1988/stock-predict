@@ -358,3 +358,5 @@ html:not(.iris-compact) #iris-quick {
 #iris-flight .out .go {
   margin-top: 6px;
 }
+
+#global-loading-status.iris-hide{display:none !important}
