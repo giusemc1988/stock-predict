@@ -108,14 +108,14 @@ async function getCachedBars(env: WorkerEnv, key: string): Promise<Candle[] | nu
 }
 
 // the cache is only a fallback for a failed Yahoo fetch, so it is rewritten at most once an hour (KV free tier: 1,000 writes a day)
-const BARS_CACHE_REFRESH_MS = 60 * 60 * 1000
+const BARS_CACHE_REFRESH_SEC = 60 * 60 // bar times from Yahoo are in seconds
 
 async function setCachedBars(env: WorkerEnv, key: string, bars: Candle[]): Promise<void> {
   try {
     const old = await getCachedBars(env, key)
-    const oldAt = old?.[old.length - 1]?.timestamp
-    const newAt = bars[bars.length - 1]?.timestamp
-    if (oldAt != null && newAt != null && newAt - oldAt < BARS_CACHE_REFRESH_MS) return
+    const oldAt = old?.[old.length - 1]?.time
+    const newAt = bars[bars.length - 1]?.time
+    if (oldAt != null && newAt != null && newAt - oldAt < BARS_CACHE_REFRESH_SEC) return
     await env.PRACTICE.put(key, JSON.stringify(bars))
   } catch {
     // KV write failed, continue without cache
