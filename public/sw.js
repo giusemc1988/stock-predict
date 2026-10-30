@@ -14,7 +14,10 @@ self.addEventListener('activate', (event) => {
 
 self.addEventListener('fetch', (event) => {
   const req = event.request
-  if (req.method !== 'GET' || new URL(req.url).origin !== self.location.origin) return
+  const url = new URL(req.url)
+  if (req.method !== 'GET' || url.origin !== self.location.origin) return
+  // our own API is never cached: a failed call must fail, not come back as the app page
+  if (url.pathname.startsWith('/api/')) return
   event.respondWith(
     fetch(req)
       .then((res) => {
