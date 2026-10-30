@@ -107,8 +107,15 @@ async function getCachedBars(env: WorkerEnv, key: string): Promise<Candle[] | nu
   }
 }
 
+// the cache is only a fallback for a failed Yahoo fetch, so it is rewritten at most once an hour (KV free tier: 1,000 writes a day)
+const BARS_CACHE_REFRESH_MS = 60 * 60 * 1000
+
 async function setCachedBars(env: WorkerEnv, key: string, bars: Candle[]): Promise<void> {
   try {
+    const old = await getCachedBars(env, key)
+    const oldAt = old?.[old.length - 1]?.timestamp
+    const newAt = bars[bars.length - 1]?.timestamp
+    if (oldAt != null && newAt != null && newAt - oldAt < BARS_CACHE_REFRESH_MS) return
     await env.PRACTICE.put(key, JSON.stringify(bars))
   } catch {
     // KV write failed, continue without cache
@@ -328,7 +335,7 @@ export async function practiceCycle(env: WorkerEnv): Promise<{ state: PracticeSt
     for (const t of next.trades.filter((x) => !seenClosed.has(x.id))) await sendTelegram(sellText({ symbol: t.symbol, qty: t.qty, entry: t.entry, exit: t.exit, pnl: t.pnl, retPct: t.retPct, reason: t.exitReason, at: t.closedAt }), telegramConfig.token, telegramConfig.chatId)
   }
 
-  // written every run (about 108 KV writes a day; the free tier allows 1,000) so the last scan time, open P&L and the yardstick stay fresh
+  // written every run (about 108 KV writes a day; the free tier allows 1,000, so keep per-run writes to this and cronLast) so the last scan time, open P&L and the yardstick stay fresh
   await env.PRACTICE.put('state', JSON.stringify(next))
 
   // Save alerts to KV if there are any
