@@ -10,7 +10,7 @@ import { describeAction, logAction, type JarvisAction } from '../lib/jarvisActio
 import { canSpeak, loadVoicePrefs, primeSpeech, speak, speakProblem, stopSpeaking } from '../lib/speech'
 import type { Bi } from '../lib/jarvis'
 import { JarvisAvatar } from './JarvisAvatar'
-import { askCloud, factsForAi } from '../lib/cloudBrain'
+import { askCloud, cloudHasKey, factsForAi } from '../lib/cloudBrain'
 import { detectLanguage } from '../lib/jarvisChat'
 import { HUB_AGENT, agentName, agentProject, hubFactsForAi, introduce, type AppPage, type HubFacts } from '../lib/agents'
 import type { HubPage } from '../lib/toolHub'
@@ -151,12 +151,17 @@ export function JarvisFab({ state, rules, journal, learn, killSwitch, priceOf, k
           add({ who: 'jarvis', text: said, time: stamp(), by: ai?.by })
           say([said])
         } else {
-          // No key configured: show message in user's language
-          const noKey: Bi = userLang === 'vi'
-            ? { en: 'Để em hiểu được toàn bộ câu hỏi của bạn, cần thêm API key. Vào Settings > Free AI keys và chọn một (Gemini, Groq hoặc Grok - đều miễn phí).', vi: 'Để em hiểu được toàn bộ câu hỏi của bạn, cần thêm API key. Vào Settings > Free AI keys và chọn một (Gemini, Groq hoặc Grok - đều miễn phí).' }
-            : { en: 'To fully understand your question, I need an API key. Go to Settings > Free AI keys and pick one (Gemini, Groq, or Grok - all free).', vi: '' }
-          add({ who: 'jarvis', text: noKey, time: stamp() })
-          say([noKey])
+          // no answer: only say "add a key" when the server really has none
+          void cloudHasKey().then((has) => {
+            const vi = 'Để em hiểu được toàn bộ câu hỏi của bạn, cần thêm API key. Vào Settings > Free AI keys và chọn một (Gemini, Groq hoặc Grok - đều miễn phí).'
+            const en = 'To fully understand your question, I need an API key. Go to Settings > Free AI keys and pick one (Gemini, Groq, or Grok - all free).'
+            const busyVi = 'Key AI đã được lưu nhưng các AI miễn phí chưa trả lời (có thể đang bận hoặc hết hạn mức). Anh thử lại sau ít phút, hoặc bấm Test ở Settings > Free AI keys để xem lỗi.'
+            const busyEn = 'Your AI keys are saved, but the free AI helpers did not answer (busy or over their limit). Try again in a few minutes, or press Test in Settings > Free AI keys to see the error.'
+            const msg: Bi = has ? { en: busyEn, vi: busyVi } : { en, vi }
+            const said: Bi = userLang === 'vi' ? { en: msg.vi, vi: msg.vi } : msg
+            add({ who: 'jarvis', text: said, time: stamp() })
+            say([said])
+          })
         }
       })
       return

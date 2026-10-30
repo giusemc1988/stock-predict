@@ -2,7 +2,7 @@
  * Version and "What's new". Bump APP_VERSION and add an entry to the top of RELEASES
  * with each update. The banner shows once per version, then stays dismissed.
  */
-export const APP_VERSION = '1.65.0'
+export const APP_VERSION = '1.65.1'
 
 export interface Release {
   version: string
@@ -13,6 +13,12 @@ export interface Release {
 }
 
 export const RELEASES: Release[] = [
+  {
+    version: '1.65.1',
+    date: '2026-10-30',
+    changes: ["Neo chat no longer says \"I need an API key\" when your free AI keys are already saved. If the helpers are just busy or over their limit, it now says so and points to the Test button."],
+    changesVi: ["Neo chat không còn báo \"cần API key\" khi key AI miễn phí đã được lưu. Nếu các AI chỉ đang bận hoặc hết hạn mức thì Neo nói đúng như vậy và chỉ tới nút Test."],
+  },
   {
     version: '1.65.0',
     date: '2026-10-29',

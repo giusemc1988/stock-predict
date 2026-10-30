@@ -34,6 +34,18 @@ export async function askCloud(question: string, lang: 'en' | 'vi', facts: strin
   }
 }
 
+/** After askCloud returned nothing: true when the server does hold a key, so the helpers were busy or failed, not missing. */
+export async function cloudHasKey(): Promise<boolean> {
+  try {
+    const r = await fetch('/api/brain/status')
+    if (!r.ok) return false
+    const j = (await r.json()) as { providers?: HelperStatus[] }
+    return !!j.providers?.some((p) => p.on)
+  } catch {
+    return false
+  }
+}
+
 /** Try local Ollama first if enabled; fall back to cloud. Ollama must allow the site origin via OLLAMA_ORIGINS. */
 export async function askAi(question: string, lang: 'en' | 'vi', facts: string[], use: { local: boolean; cloud: boolean }, timeoutMs = 15000): Promise<CloudAnswer | null> {
   if (use.local) {
