@@ -126,6 +126,45 @@ async function flights(url: URL, env: Env): Promise<Response> {
 }
 
 /**
+ * One flight by callsign (the Iris flight search): adsb.lol's callsign lookup first, then the GitHub snapshot.
+ * Answers {found, ...} with the fields the search card shows; units are feet, knots and degrees.
+ */
+const FOOT_TO_M = 0.3048
+const KNOT_TO_MPS = 0.514444
+const FPM_TO_MPS = 0.00508
+async function flightLookup(url: URL, env: Env): Promise<Response> {
+  const cs = (url.searchParams.get('cs') ?? '').trim().toUpperCase()
+  if (!/^[A-Z0-9]{3,8}$/.test(cs)) return json({ error: 'Bad callsign' }, 400)
+  const pick = (s: unknown[], source: string, age: number) => ({
+    found: true,
+    callsign: s[1],
+    hex: s[0],
+    lat: s[6],
+    lon: s[5],
+    altFt: typeof s[7] === 'number' ? Math.round((s[7] as number) / FOOT_TO_M) : null,
+    speedKt: typeof s[9] === 'number' ? Math.round((s[9] as number) / KNOT_TO_MPS) : null,
+    track: typeof s[10] === 'number' ? Math.round(s[10] as number) : null,
+    vrateFpm: typeof s[11] === 'number' ? Math.round((s[11] as number) / FPM_TO_MPS) : null,
+    onGround: s[8] === true,
+    source,
+    ageSec: age,
+  })
+  const live = await get(`https://api.adsb.lol/v2/callsign/${cs}`, 7000).catch(() => null)
+  if (live?.ok) {
+    const st = toOpenSky((await live.json()) as Parameters<typeof toOpenSky>[0]).states[0]
+    if (st) return json(pick(st, 'adsb.lol', 0))
+  }
+  const text = await env.SNAP?.get('argus:flights').catch(() => null)
+  if (text) {
+    const snap = JSON.parse(text) as { now: number; ac: unknown[] }
+    const age = Math.round((Date.now() - snap.now) / 1000)
+    const st = toOpenSky(snap as Parameters<typeof toOpenSky>[0]).states.find((x) => String(x[1] ?? '').trim().toUpperCase() === cs)
+    if (st && age < 6 * 3600) return json(pick(st, 'snapshot', age))
+  }
+  return json({ found: false, callsign: cs })
+}
+
+/**
  * Ships: Fintraffic Digitraffic AIS (free, no key, Baltic Sea around Finland), shaped like the
  * upstream AISStream rows so the vessel layer reads it as a live feed. AISStream itself needs a key.
  */
@@ -158,6 +197,7 @@ export default {
 async function api(url: URL, env: Env): Promise<Response | null> {
   const p = url.pathname
   if (p === '/api/flights') return flights(url, env)
+  if (p === '/api/flight-lookup') return flightLookup(url, env)
   if (p === '/api/military') {
     // home relay (live) > direct feeds > GitHub snapshot
     const home = await env.HUB?.fetch(new Request('https://hub/api/home/military', { signal: AbortSignal.timeout(7000) })).catch(() => null)

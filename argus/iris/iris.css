@@ -282,3 +282,79 @@ html.iris-compact #top-center-actions {
 html:not(.iris-compact) #iris-quick {
   display: none;
 }
+
+/* ── Flight search card ── */
+#iris-bar {
+  flex-wrap: wrap;
+  max-width: calc(100vw - 70px);
+}
+#iris-flight {
+  position: fixed;
+  left: 10px;
+  right: 10px;
+  top: calc(max(10px, env(safe-area-inset-top)) + 96px);
+  z-index: 1350;
+  max-width: 420px;
+  padding: 10px;
+  border-radius: 14px;
+  background: rgba(6, 12, 18, 0.94);
+  border: 1px solid rgba(120, 220, 255, 0.3);
+  color: #d8f3ff;
+  font: 500 13px/1.4 Inter, system-ui, sans-serif;
+}
+#iris-flight[hidden] {
+  display: none;
+}
+#iris-flight form {
+  display: flex;
+  gap: 8px;
+}
+#iris-flight input {
+  flex: 1;
+  min-width: 0;
+  min-height: 42px;
+  padding: 0 12px;
+  border-radius: 12px;
+  border: 1px solid rgba(120, 220, 255, 0.35);
+  background: rgba(14, 26, 38, 0.95);
+  color: #fff;
+  font: inherit;
+  font-size: 16px;
+}
+#iris-flight button {
+  min-height: 42px;
+  padding: 0 14px;
+  border-radius: 12px;
+  border: 1px solid var(--iris-acc, #5fd4ff);
+  background: color-mix(in srgb, var(--iris-acc, #5fd4ff) 30%, rgba(8, 16, 24, 0.95));
+  color: #fff;
+  font: 600 13px/1 Inter, system-ui, sans-serif;
+}
+#iris-flight .bar {
+  height: 3px;
+  margin-top: 8px;
+  overflow: hidden;
+  background: rgba(120, 220, 255, 0.15);
+}
+#iris-flight .bar[hidden] {
+  display: none;
+}
+#iris-flight .bar i {
+  display: block;
+  height: 100%;
+  width: 35%;
+  background: var(--iris-acc, #5fd4ff);
+  animation: iris-loadbar 1.1s ease-in-out infinite;
+}
+#iris-flight .out {
+  margin-top: 8px;
+}
+#iris-flight .out p {
+  margin: 4px 0;
+}
+#iris-flight .out b {
+  font-size: 16px;
+}
+#iris-flight .out .go {
+  margin-top: 6px;
+}

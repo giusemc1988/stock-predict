@@ -71,6 +71,18 @@
     if (text) toast.timer = setTimeout(() => (t.hidden = true), 6000)
   }
 
+  function flightButton() {
+    const b = document.createElement('button')
+    b.type = 'button'
+    b.id = 'iris-flightbtn'
+    b.innerHTML = '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M21 16v-2l-8-5V3.5a1.5 1.5 0 0 0-3 0V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5z"/></svg><span></span>'
+    const relabel = () => (b.querySelector('span').textContent = vi() ? 'Chuyến bay' : 'Flight')
+    relabel()
+    document.addEventListener('iris-lang', relabel)
+    b.addEventListener('click', () => b.setAttribute('aria-pressed', String(!!window.irisFlightSearch?.toggle())))
+    return b
+  }
+
   // VI / EN switch for the Iris text (vi.js holds the dictionary)
   function langButton() {
     const b = document.createElement('button')
@@ -136,7 +148,7 @@
       b.addEventListener('click', () => open(side))
       bar.append(b)
     }
-    bar.append(locateButton(), langButton())
+    bar.append(locateButton(), flightButton(), langButton())
     document.body.append(bar)
     // relabel when the app switches language
     const relabel = () => {
@@ -270,4 +282,92 @@
   const start = () => (build() ? 0 : poll.observe(document.body, { childList: true, subtree: true }))
   if (document.body) start()
   else addEventListener('DOMContentLoaded', start)
+})()
+
+// Flight search: type a flight number (VJ123, VN456, HVN456) and see where it is, how high and fast, and its route.
+// Live position comes from the argus Worker (/api/flight-lookup: adsb.lol, then the GitHub snapshot); the route
+// (origin, destination, airline) from adsbdb.com, which answers browsers directly. Free, no keys.
+// What free data cannot give: delay or schedule status, and aircraft nobody's receiver hears.
+;(() => {
+  const root = document.documentElement
+  const vi = () => (window.irisLang ? window.irisLang.get() === 'vi' : !/^en/i.test(root.lang || ''))
+  const T = (v, e) => (vi() ? v : e)
+  // airline IATA code → ICAO code, the callsign prefix ADS-B uses
+  const ICAO = { VN: 'HVN', VJ: 'VJC', QH: 'BAV', VU: 'VAG', BL: 'PIC', '0V': 'VFC', SQ: 'SIA', TR: 'TGW', TG: 'THA', FD: 'AIQ', AK: 'AXM', D7: 'XAX', QZ: 'AWQ', SL: 'TLM', DD: 'NOK', GA: 'GIA', MH: 'MAS', PR: 'PAL', '5J': 'CEB', CX: 'CPA', KA: 'HDA', HX: 'CRK', CI: 'CAL', BR: 'EVA', KE: 'KAL', OZ: 'AAR', '7C': 'JJA', LJ: 'JNA', JL: 'JAL', NH: 'ANA', MU: 'CES', CA: 'CCA', CZ: 'CSN', MF: 'CXA', HU: 'CHH', EK: 'UAE', QR: 'QTR', EY: 'ETD', TK: 'THY', SV: 'SVA', AI: 'AIC', '6E': 'IGO', QF: 'QFA', NZ: 'ANZ', LH: 'DLH', BA: 'BAW', AF: 'AFR', KL: 'KLM', LX: 'SWR', OS: 'AUA', SK: 'SAS', AY: 'FIN', IB: 'IBE', AZ: 'ITY', TP: 'TAP', SU: 'AFL', FR: 'RYR', U2: 'EZY', W6: 'WZZ', AA: 'AAL', UA: 'UAL', DL: 'DAL', WN: 'SWA', AS: 'ASA', B6: 'JBU', NK: 'NKS', F9: 'FFT', AC: 'ACA', WS: 'WJA', AM: 'AMX', LA: 'LAN', AV: 'AVA', CM: 'CMP', ET: 'ETH', MS: 'MSR', SA: 'SAA' }
+  const callsign = (raw) => {
+    const q = raw.replace(/[\s-]+/g, '').toUpperCase()
+    const m = q.match(/^([A-Z0-9]{2})(\d{1,4}[A-Z]?)$/)
+    if (m && ICAO[m[1]]) return ICAO[m[1]] + m[2] // VJ123 → VJC123
+    return q
+  }
+  const getJson = async (url, ms = 9000) => {
+    try {
+      const r = await fetch(url, { signal: AbortSignal.timeout(ms) })
+      return r.ok ? await r.json() : null
+    } catch {
+      return null
+    }
+  }
+  const esc = (x) => String(x ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c])
+  const place = (a) => (a ? `${esc(a.municipality || a.name)} (${esc(a.iata_code || a.icao_code)})` : '?')
+
+  let card
+  function ensure() {
+    if (card) return card
+    card = document.createElement('div')
+    card.id = 'iris-flight'
+    card.hidden = true
+    card.innerHTML = `<form><input type="search" inputmode="text" autocapitalize="characters" autocomplete="off" enterkeyhint="search" /><button type="submit"></button></form><div class="bar" hidden><i></i></div><div class="out" role="status"></div>`
+    card.querySelector('form').addEventListener('submit', (e) => {
+      e.preventDefault()
+      look(card.querySelector('input').value)
+    })
+    document.body.append(card)
+    paint()
+    return card
+  }
+  function paint() {
+    if (!card) return
+    card.querySelector('input').placeholder = T('Số hiệu: VJ123, VN456…', 'Flight no.: VJ123, VN456…')
+    card.querySelector('button').textContent = T('Tra', 'Search')
+  }
+
+  async function look(raw) {
+    const q = raw.trim()
+    const out = card.querySelector('.out')
+    const bar = card.querySelector('.bar')
+    if (!q) return
+    const cs = callsign(q)
+    bar.hidden = false
+    out.textContent = T('Đang tìm chuyến bay…', 'Looking for the flight…')
+    const [live, route] = await Promise.all([getJson(`/api/flight-lookup?cs=${encodeURIComponent(cs)}`), getJson(`https://api.adsbdb.com/v0/callsign/${encodeURIComponent(cs)}`)])
+    bar.hidden = true
+    const fr = route?.response?.flightroute
+    const head = `<b>${esc(fr?.callsign_iata || q.toUpperCase())}</b>${fr?.airline ? ` · ${esc(fr.airline.name)}` : ''}`
+    const path = fr ? `<p>${place(fr.origin)} → ${place(fr.destination)}</p>` : ''
+    if (!live?.found) {
+      out.innerHTML = `${head}${path}<p>${T('Chưa thấy tín hiệu máy bay này (đang chưa bay, hoặc không có trạm thu sóng ADS-B gần). Giờ trễ/đúng giờ thì dữ liệu miễn phí chưa có.', 'No signal from this aircraft right now (not flying, or no ADS-B receiver nearby). Delay and schedule status is not available from free data.')}</p>`
+      return
+    }
+    const state = live.onGround ? T('Đang ở mặt đất', 'On the ground') : (live.vrateFpm ?? 0) > 500 ? T('Đang bay lên', 'Climbing') : (live.vrateFpm ?? 0) < -500 ? T('Đang hạ độ cao', 'Descending') : T('Đang bay', 'Cruising')
+    const age = live.source === 'snapshot' ? ` · ${T('dữ liệu cách đây', 'data from')} ${Math.round(live.ageSec / 60)} ${T('phút', 'min ago')}` : ''
+    out.innerHTML = `${head}${path}<p><strong>${state}</strong>${age}</p><p>${T('Độ cao', 'Altitude')} ${live.altFt ?? '?'} ft · ${T('Tốc độ', 'Speed')} ${live.speedKt ?? '?'} kt · ${T('Hướng', 'Heading')} ${live.track ?? '?'}°</p><button type="button" class="go">${T('Bay tới máy bay', 'Fly to the aircraft')}</button>`
+    out.querySelector('.go').addEventListener('click', () => {
+      const viewer = window.__godsEyeView?.viewer
+      const Cart = viewer?.camera?.position?.constructor
+      if (!Cart?.fromDegrees) return
+      viewer.camera.flyTo({ destination: Cart.fromDegrees(live.lon, live.lat, 40000), orientation: { heading: 0, pitch: -Math.PI / 2, roll: 0 }, duration: 3 })
+    })
+  }
+
+  window.irisFlightSearch = {
+    toggle() {
+      const c = ensure()
+      c.hidden = !c.hidden
+      if (!c.hidden) c.querySelector('input').focus()
+      return !c.hidden
+    },
+  }
+  document.addEventListener('iris-lang', paint)
+  new MutationObserver(paint).observe(root, { attributes: true, attributeFilter: ['lang'] })
 })()
