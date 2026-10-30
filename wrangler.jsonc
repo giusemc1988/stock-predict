@@ -18,6 +18,8 @@
   ],
   "observability": { "enabled": true },
   "triggers": {
-    "crons": ["*/5 13-21 * * 1-5"]
+    // Cloudflare counts days 1=Sunday..7=Saturday (not like standard cron), so "1-5" meant Sun-Thu and skipped
+    // every Friday. Named days avoid the trap. scheduled() in worker.ts re-checks the weekday itself.
+    "crons": ["*/5 13-21 * * MON-FRI"]
   }
 }
