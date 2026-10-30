@@ -2,7 +2,7 @@
  * Version and "What's new". Bump APP_VERSION and add an entry to the top of RELEASES
  * with each update. The banner shows once per version, then stays dismissed.
  */
-export const APP_VERSION = '1.65.4'
+export const APP_VERSION = '1.66.0'
 
 export interface Release {
   version: string
@@ -13,6 +13,12 @@ export interface Release {
 }
 
 export const RELEASES: Release[] = [
+  {
+    version: '1.66.0',
+    date: '2026-10-30',
+    changes: ['Nova: new Settings switch "Nova channel script rules" (off by default). On: 3 to 5 slides (4 by default), one complete idea per slide, a human-psychology tone as recognition (no manipulation tips, no diagnosing, no invented statistics), and the preview and MP4 run about 44 seconds. Off: nothing changes.'],
+    changesVi: ['Nova: công tắc mới trong Cài đặt "Luật kịch bản kênh Nova" (mặc định tắt). Bật: 3 đến 5 slide (mặc định 4), mỗi slide một ý trọn vẹn, giọng tâm lý con người theo hướng nhận ra bản thân (không dạy thao túng, không chẩn đoán, không bịa số liệu), bản xem trước và MP4 dài khoảng 44 giây. Tắt: không có gì thay đổi.'],
+  },
   {
     version: '1.65.4',
     date: '2026-10-30',

@@ -28,18 +28,26 @@ const MODE_STYLE: Record<StudioMode, Record<Lang, string>> = {
   },
 }
 
+/** The channel's slide limits (Settings > Nova channel script rules): 3 to 5, 4 by default, about 44 s in all. */
+export const CHANNEL = { min: 3, max: 5, def: 4, seconds: 44, maxSlide: 15 }
+
+const CHANNEL_RULES: Record<Lang, string> = {
+  en: ' Each line is one complete, meaningful idea that stands on its own. Tone: human behaviour and psychology facts told as recognition and self-defence, never how to manipulate anyone, never diagnosing a person, never invented statistics. Use concrete, vivid words.',
+  vi: ' Mỗi dòng là một ý trọn vẹn, đứng được một mình. Giọng văn: sự thật về hành vi và tâm lý con người, kể theo hướng giúp người xem nhận ra và tự bảo vệ mình, không bao giờ dạy cách thao túng ai, không chẩn đoán ai, không bịa số liệu. Dùng từ cụ thể, có hình ảnh, đúng cách nói của người Việt.',
+}
+
 /**
  * System and user prompt for one language. Each language is asked on its own and told to write
  * natively, so the two scripts are two originals, not a translation of each other.
  */
-export function studioPrompt(lang: Lang, mode: StudioMode, topic: string, scenes: number): [string, string] {
+export function studioPrompt(lang: Lang, mode: StudioMode, topic: string, scenes: number, channel = false): [string, string] {
   if (lang === 'vi')
     return [
-      `Bạn là biên kịch video ngắn viết bằng tiếng Việt tự nhiên, như người Việt nói. ${MODE_STYLE[mode].vi} Không dịch từ tiếng Anh. Trả về đúng ${scenes} dòng, mỗi dòng là một cảnh, tối đa 16 chữ, không đánh số, không emoji, không hashtag.`,
+      `Bạn là biên kịch video ngắn viết bằng tiếng Việt tự nhiên, như người Việt nói. ${MODE_STYLE[mode].vi} Không dịch từ tiếng Anh. Trả về đúng ${scenes} dòng, mỗi dòng là một cảnh, tối đa 16 chữ, không đánh số, không emoji, không hashtag.${channel ? CHANNEL_RULES.vi : ''}`,
       `Chủ đề: ${topic}`,
     ]
   return [
-    `You are a short-video scriptwriter writing natural English. ${MODE_STYLE[mode].en} Return exactly ${scenes} lines, one per scene, at most 16 words each, no numbering, no emoji, no hashtags.`,
+    `You are a short-video scriptwriter writing natural English. ${MODE_STYLE[mode].en} Return exactly ${scenes} lines, one per scene, at most 16 words each, no numbering, no emoji, no hashtags.${channel ? CHANNEL_RULES.en : ''}`,
     `Topic: ${topic}`,
   ]
 }

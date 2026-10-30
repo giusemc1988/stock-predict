@@ -64,7 +64,7 @@ assert.deepEqual([...yuv], [16, 16, 16, 16, 128, 128])
 
 // server input is cleaned
 assert.equal(cleanWriteAsk({ topic: '  ' }), null)
-assert.deepEqual(cleanWriteAsk({ topic: 'x', mode: 'nope', scenes: 99 }), { topic: 'x', topicVi: 'x', mode: 'faceless', scenes: 12 })
+assert.deepEqual(cleanWriteAsk({ topic: 'x', mode: 'nope', scenes: 99 }), { topic: 'x', topicVi: 'x', mode: 'faceless', scenes: 12, channel: false })
 
 // God's Eye layer reading
 const J = 'application/json'
@@ -131,4 +131,20 @@ console.log('studio ok')
   globalThis.fetch = real
   assert.equal(r?.en.length, 10)
   assert.ok(sent.length === 2 && sent.every((n) => n >= 1000))
+}
+
+{
+  // channel script rules: 3 to 5 slides, the channel's tone, about 44 s; off leaves everything as before
+  const { CHANNEL } = await import('../src/lib/studio/script')
+  assert.equal(cleanWriteAsk({ topic: 'x', scenes: 10, channel: true })!.scenes, 5)
+  assert.equal(cleanWriteAsk({ topic: 'x', channel: true })!.scenes, CHANNEL.def)
+  assert.equal(cleanWriteAsk({ topic: 'x', scenes: 10 })!.scenes, 10)
+  assert.ok(studioPrompt('en', 'faceless', 't', 4, true)[0].includes('invented statistics'))
+  assert.ok(studioPrompt('vi', 'faceless', 't', 4, true)[0].includes('không bịa số liệu'))
+  assert.ok(!studioPrompt('en', 'faceless', 't', 4)[0].includes('invented statistics'))
+  const { plan } = await import('../src/lib/studio/render')
+  const sc = { topic: { en: 'a', vi: 'a' }, mode: 'faceless' as const, en: ['a b c', 'd e f', 'g h i', 'j k l'], vi: ['a b c', 'd e f', 'g h i', 'j k l'] }
+  assert.ok(Math.abs(plan(sc, '9:16', false, [], 44).duration - 44) < 0.01)
+  assert.ok(Math.abs(plan(sc, '9:16', true, [], 44).duration - 44) < 0.01)
+  assert.ok(plan(sc, '9:16', false).duration < 20)
 }

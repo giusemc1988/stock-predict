@@ -4,7 +4,7 @@ import { useHubTheme } from '../lib/themes'
 import { AgentFace } from './AgentFace'
 import { LangSwitch } from './HubPanels'
 import { ProjectLogo } from './ProjectLogo'
-import { LIBRARY, fromText, libraryFor, titleLab, type Script, type StudioMode } from '../lib/studio/script'
+import { CHANNEL, LIBRARY, fromText, libraryFor, titleLab, type Script, type StudioMode } from '../lib/studio/script'
 import { drawFrame, plan, sizeOf, type Aspect, type Media } from '../lib/studio/render'
 import { SAMPLE_RATE, renderMusic } from '../lib/studio/audio'
 import { canExport, exportMp4 } from '../lib/studio/encode'
@@ -54,7 +54,7 @@ function useActiveStep(): string {
 }
 
 /** Bilingual Faceless Video Studio: script EN + VI, preview, MP4 export and Title Lab, all in the browser. */
-export function VideoStudioPage({ onBack, glass = true, trends = true, postKit = true, videoSettings = true, uploads = true, presets = true, lemo = true, handoff = true }: { onBack: () => void; glass?: boolean; trends?: boolean; postKit?: boolean; videoSettings?: boolean; uploads?: boolean; presets?: boolean; lemo?: boolean; handoff?: boolean }) {
+export function VideoStudioPage({ onBack, glass = true, trends = true, postKit = true, videoSettings = true, uploads = true, presets = true, lemo = true, handoff = true, channel = false }: { onBack: () => void; glass?: boolean; trends?: boolean; postKit?: boolean; videoSettings?: boolean; uploads?: boolean; presets?: boolean; lemo?: boolean; handoff?: boolean; channel?: boolean }) {
   const lang = useLang()
   const theme = useHubTheme()
   const active = useActiveStep()
@@ -68,7 +68,9 @@ export function VideoStudioPage({ onBack, glass = true, trends = true, postKit =
   const [en, setEn] = useState(LIBRARY[0].en.join('\n'))
   const [vi, setVi] = useState(LIBRARY[0].vi.join('\n'))
   const [music, setMusic] = useState(true)
-  const [scenes, setScenes] = useState(5)
+  const [scenes, setScenes] = useState<number | null>(null)
+  // channel rules: 3 to 5 slides, 4 unless picked; otherwise 5 and up to 12
+  const sceneN = channel ? Math.max(CHANNEL.min, Math.min(CHANNEL.max, scenes ?? CHANNEL.def)) : (scenes ?? 5)
   // the post kit's chosen hook opens the server video
   const [hook, setHook] = useState({ en: '', vi: '' })
   // ids of the user's uploads for the server video, in order
@@ -90,7 +92,7 @@ export function VideoStudioPage({ onBack, glass = true, trends = true, postKit =
 
   const script: Script = useMemo(() => fromText(topic, mode, en, vi, topicVi), [topic, mode, en, vi, topicVi])
   const shown = useMemo(() => (mode === 'trip' || mode === 'philosophy' ? media : []), [mode, media])
-  const p = useMemo(() => plan(script, aspect, fades, shown), [script, aspect, fades, shown])
+  const p = useMemo(() => plan(script, aspect, fades, shown, channel ? CHANNEL.seconds : 0), [script, aspect, fades, shown, channel])
   const lab = useMemo(() => titleLab(script), [script])
   const { w, h } = sizeOf(aspect)
   const mismatch = en.split('\n').filter((l) => l.trim()).length !== vi.split('\n').filter((l) => l.trim()).length
@@ -117,7 +119,7 @@ export function VideoStudioPage({ onBack, glass = true, trends = true, postKit =
     setMsg(null)
     setBusy(t('writing'))
     try {
-      const body = JSON.stringify({ topic: ask?.topic ?? topic, topicVi: ask?.topicVi ?? topicVi, mode, scenes })
+      const body = JSON.stringify({ topic: ask?.topic ?? topic, topicVi: ask?.topicVi ?? topicVi, mode, scenes: sceneN, channel })
       // two AI calls with fallbacks can take a while; a dropped connection gets one more try
       let r: Response | null = null
       for (let n = 0; n < 2 && !r; n++) r = await fetch('/api/studio/write', { method: 'POST', headers: { 'content-type': 'application/json' }, body, signal: AbortSignal.timeout(75_000) }).catch(() => null)
@@ -326,8 +328,8 @@ export function VideoStudioPage({ onBack, glass = true, trends = true, postKit =
           <NovaProgress active={busy === t('writing')} label={t('writing')} secs={25} />
           {videoSettings && (
             <label className="vs-field nv-scenes">
-              <span className="small muted">{t('scenesCount')}: <b>{scenes}</b></span>
-              <input type="range" min={3} max={12} value={scenes} onChange={(e) => setScenes(Number(e.target.value))} />
+              <span className="small muted">{t('scenesCount')}: <b>{sceneN}</b></span>
+              <input type="range" min={3} max={channel ? CHANNEL.max : 12} value={sceneN} onChange={(e) => setScenes(Number(e.target.value))} />
             </label>
           )}
           <p className="muted small">{t('aiNote')}</p>
