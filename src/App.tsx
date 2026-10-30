@@ -787,11 +787,11 @@ export default function App() {
         </PanelGuard>
       ) : shownPage === 'studio' ? (
         <PanelGuard name="Video Studio">
-          <VideoStudioPage onBack={() => setPage(homePage)} glass={aiRules.novaGlass} trends={aiRules.novaTrends} postKit={aiRules.novaPostKit} videoSettings={aiRules.novaVideoSettings} uploads={aiRules.novaUploads} presets={aiRules.novaPresets} lemo={aiRules.novaLemo} handoff={aiRules.novaHandoff} channel={aiRules.novaChannelScript} importLink={aiRules.novaImportLink} clipText={aiRules.novaClipText} quickPost={aiRules.novaQuickPost} />
+          <VideoStudioPage onBack={() => setPage(homePage)} glass={aiRules.novaGlass} trends={aiRules.novaTrends} postKit={aiRules.novaPostKit} videoSettings={aiRules.novaVideoSettings} uploads={aiRules.novaUploads} presets={aiRules.novaPresets} lemo={aiRules.novaLemo} handoff={aiRules.novaHandoff} channel={aiRules.novaChannelScript} importLink={aiRules.novaImportLink} clipText={aiRules.novaClipText} quickPost={aiRules.novaQuickPost} onViraltech={() => setPage('viraltech')} />
         </PanelGuard>
       ) : shownPage === 'viraltech' ? (
         <PanelGuard name="Viraltech">
-          <ViralTechPage onBack={() => setPage(homePage)} glass={aiRules.agentGlass} nova={aiRules.novaHandoff} />
+          <ViralTechPage onBack={() => setPage(homePage)} glass={aiRules.agentGlass} nova={aiRules.novaHandoff} onNova={() => setPage('studio')} />
         </PanelGuard>
       ) : shownPage === 'max' ? (
         <PanelGuard name="Max">
