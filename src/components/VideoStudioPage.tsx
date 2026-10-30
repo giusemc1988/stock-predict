@@ -55,7 +55,7 @@ function useActiveStep(): string {
 }
 
 /** Bilingual Faceless Video Studio: script EN + VI, preview, MP4 export and Title Lab, all in the browser. */
-export function VideoStudioPage({ onBack, glass = true, trends = true, postKit = true, videoSettings = true, uploads = true, presets = true, lemo = true, handoff = true, channel = false, importLink = true, clipText = true, quickPost = true, onViraltech }: { onBack: () => void; glass?: boolean; trends?: boolean; postKit?: boolean; videoSettings?: boolean; uploads?: boolean; presets?: boolean; lemo?: boolean; handoff?: boolean; channel?: boolean; importLink?: boolean; clipText?: boolean; quickPost?: boolean; onViraltech?: () => void }) {
+export function VideoStudioPage({ onBack, glass = true, trends = true, postKit = true, videoSettings = true, uploads = true, presets = true, lemo = true, handoff = true, channel = false, importLink = true, clipText = true, quickPost = true, hookThemes = true, onViraltech }: { onBack: () => void; glass?: boolean; trends?: boolean; postKit?: boolean; videoSettings?: boolean; uploads?: boolean; presets?: boolean; lemo?: boolean; handoff?: boolean; channel?: boolean; importLink?: boolean; clipText?: boolean; quickPost?: boolean; hookThemes?: boolean; onViraltech?: () => void }) {
   const lang = useLang()
   const theme = useHubTheme()
   const active = useActiveStep()
@@ -295,7 +295,7 @@ export function VideoStudioPage({ onBack, glass = true, trends = true, postKit =
 
         <section id="nv-idea" className={card}>
           {head(1, 'stepIdea')}
-          {trends && <NovaTrends onPick={(it) => void applyTrend(it)} onAuto={autoTrend} busy={!!busy} />}
+          {trends && <NovaTrends onPick={(it) => void applyTrend(it)} onAuto={autoTrend} busy={!!busy} themes={hookThemes} onTopic={(en, vi) => { setTopic(en); setTopicVi(vi); setMsg(t('trendPicked')) }} onAutoTopic={(en, vi) => { setTopic(en); setTopicVi(vi); document.getElementById('nv-script')?.scrollIntoView({ behavior: 'smooth', block: 'start' }); void writeAi({ topic: en, topicVi: vi }) }} />}
           <div className="seg small" role="tablist" aria-label={t('step1')}>
             {modes.map((m) => (
               <button key={m} role="tab" aria-selected={mode === m} className={mode === m ? 'on' : ''} onClick={() => setMode(m)}>{t(m)}</button>

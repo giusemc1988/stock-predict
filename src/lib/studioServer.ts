@@ -5,6 +5,7 @@
  */
 import { PROVIDERS, callHelper, type BrainEnv } from './brainServer'
 import { CHANNEL, parseScenes, studioPrompt, type Script, type StudioMode } from './studio/script'
+import { HOOK_THEMES } from './studio/hookThemes'
 import { cleanKitSettings, fallbackKit, fillKit, itemPrompt, kitPrompt, parseItem, parseKit, PLATFORMS, type KitKind, type KitSettings, type Platform, type PostKit } from './studio/postkit'
 import { fallbackTerms, parseTerms } from './studioJobs'
 
@@ -109,4 +110,35 @@ export async function writeKitItem(a: KitAsk, e: BrainEnv): Promise<{ text: stri
   const r = await ask(e, ...itemPrompt(a.only.lang, a.settings, a.script, a.only.kind, a.only.avoid, a.only.platform))
   const text = r ? parseItem(r.text, a.only.kind) : ''
   return text ? { text, by: r!.by } : null
+}
+
+/** Topic ideas for one hook theme, as the AI sees them. [] when no AI answered. Pure parser below. */
+export function parseIdeas(text: string): { en: string; vi: string }[] {
+  const m = text.match(/\[[\s\S]*\]/)
+  if (!m) return []
+  try {
+    const arr = JSON.parse(m[0]) as unknown
+    if (!Array.isArray(arr)) return []
+    return arr
+      .map((x) => ({ en: line((x as { en?: unknown })?.en, 120), vi: line((x as { vi?: unknown })?.vi, 120) }))
+      .filter((x) => x.en && x.vi)
+      .slice(0, 8)
+  } catch {
+    return []
+  }
+}
+
+export async function writeHookIdeas(themeId: string, e: BrainEnv, avoid: string[] = []): Promise<{ ideas: { en: string; vi: string }[]; by: string | null }> {
+  const t = HOOK_THEMES.find((x) => x.id === themeId)
+  if (!t) return { ideas: [], by: null }
+  const system = [
+    'You suggest video topics for a faceless short-video channel whose videos show a cloaked traveler seen from behind, flying or walking through big scenery, with short text on top.',
+    `Theme: ${t.rule.en}.`,
+    'Suggest 6 different topics that people are searching for, sharing and recognising themselves in right now. Each is one short sentence under 12 words, concrete, with an image, never teaching manipulation, never diagnosing, no invented statistics.',
+    'Write the Vietnamese natively, not as a translation.',
+    'Reply with only JSON: [{"en":"...","vi":"..."}]',
+  ].join(' ')
+  const r = await ask(e, system, avoid.length ? `Already used, give different ones:\n${avoid.slice(0, 10).join('\n')}` : 'Give 6 topics.')
+  const ideas = r ? parseIdeas(r.text) : []
+  return { ideas, by: ideas.length ? r!.by : null }
 }
