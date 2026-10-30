@@ -189,6 +189,10 @@
     }
     bar.append(locateButton(), flightButton(), eventsButton(), langButton())
     document.body.append(bar)
+    // the bar wraps to 1-3 rows depending on the screen: keep the camera buttons just below it
+    const fit = () => root.style.setProperty('--iris-bar-h', `${Math.ceil(bar.getBoundingClientRect().height)}px`)
+    fit()
+    if (window.ResizeObserver) new ResizeObserver(fit).observe(bar)
     // relabel when the app switches language
     const relabel = () => {
       for (const b of bar.querySelectorAll('button[data-side]')) b.querySelector('span').textContent = label[b.dataset.side]()
@@ -443,13 +447,14 @@
     const [q, e] = await Promise.all([getJson('https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/4.5_week.geojson'), getJson('https://eonet.gsfc.nasa.gov/api/v3/events?status=open&limit=80&category=wildfires,severeStorms,floods,volcanoes')])
     const out = []
     for (const f of q?.features || []) {
-      const [lon, lat] = f.geometry.coordinates
-      out.push({ kind: 'quake', lat, lon, t: f.properties.time, title: `M${(f.properties.mag ?? 0).toFixed(1)} · ${f.properties.place || ''}`, weight: f.properties.mag })
+      const coords = f.geometry.coordinates
+      const [lon, lat] = coords
+      out.push({ kind: 'quake', lat, lon, t: f.properties.time, title: `M${(f.properties.mag ?? 0).toFixed(1)} · ${f.properties.place || ''}`, weight: f.properties.mag, depth: coords[2], felt: f.properties.felt, tsunami: f.properties.tsunami, link: f.properties.url })
     }
     for (const ev of e?.events || []) {
       const g = ev.geometry?.[ev.geometry.length - 1]
       if (!g || g.type !== 'Point') continue
-      out.push({ kind: EONET[ev.categories?.[0]?.id] || 'storm', lat: g.coordinates[1], lon: g.coordinates[0], t: Date.parse(g.date), title: ev.title, weight: 0 })
+      out.push({ kind: EONET[ev.categories?.[0]?.id] || 'storm', lat: g.coordinates[1], lon: g.coordinates[0], t: Date.parse(g.date), title: ev.title, weight: 0, cat: ev.categories?.[0]?.title, size: g.magnitudeValue, unit: g.magnitudeUnit, link: ev.sources?.[0]?.url || ev.link })
     }
     return out.length ? out : null
   }
@@ -490,7 +495,43 @@
     out.innerHTML = rows.length
       ? rows.map((i, n) => `<button type="button" class="row" data-n="${n}"><span>${KINDS[i.kind].icon}</span><span><b>${esc(i.title)}</b><small>${ago(i.t)}${me && i.d != null ? ` · ${Math.round(i.d).toLocaleString()} km ${T('từ anh', 'from you')}` : ''}</small></span></button>`).join('')
       : `<p>${T('Chưa có sự kiện nào trong mục này.', 'No events in this list.')}</p>`
-    out.querySelectorAll('.row').forEach((r) => r.addEventListener('click', () => fly(rows[+r.dataset.n])))
+    out.querySelectorAll('.row').forEach((r) => r.addEventListener('click', () => detail(r, rows[+r.dataset.n])))
+  }
+
+  const aqiText = (v) => (v <= 50 ? T('Tốt', 'Good') : v <= 100 ? T('Trung bình', 'Moderate') : v <= 150 ? T('Không tốt cho người nhạy cảm', 'Unhealthy for sensitive groups') : v <= 200 ? T('Xấu', 'Unhealthy') : v <= 300 ? T('Rất xấu', 'Very unhealthy') : T('Nguy hại', 'Hazardous'))
+  // tap a row: facts about the event, air quality and weather there (Open-Meteo, free), and a button to fly there
+  async function detail(row, it) {
+    const open = row.nextElementSibling?.classList.contains('detail')
+    card.querySelectorAll('.detail').forEach((d) => d.remove())
+    if (open) return
+    const d = document.createElement('div')
+    d.className = 'detail'
+    const facts = []
+    if (it.kind === 'quake') {
+      facts.push(`${T('Cấp độ', 'Magnitude')} <b>M${(it.weight ?? 0).toFixed(1)}</b>${it.weight >= 7 ? ` (${T('rất mạnh', 'major')})` : it.weight >= 6 ? ` (${T('mạnh', 'strong')})` : it.weight >= 5 ? ` (${T('khá mạnh', 'moderate')})` : ` (${T('nhẹ', 'light')})`}`)
+      if (it.depth != null) facts.push(`${T('Độ sâu', 'Depth')} ${Math.round(it.depth)} km`)
+      if (it.felt) facts.push(`${it.felt} ${T('người báo cảm nhận được', 'people felt it')}`)
+      facts.push(it.tsunami ? `⚠️ ${T('Có cảnh báo sóng thần', 'Tsunami warning issued')}` : T('Không có cảnh báo sóng thần', 'No tsunami warning'))
+    } else {
+      if (it.cat) facts.push(`${T('Loại', 'Type')}: ${esc(it.cat)}`)
+      if (it.size) facts.push(`${T('Quy mô', 'Size')}: ${esc(it.size)} ${esc(it.unit || '')}`)
+    }
+    facts.push(ago(it.t))
+    d.innerHTML = `<p>${facts.join(' · ')}</p><p class="env">${T('Đang lấy không khí và thời tiết…', 'Loading air quality and weather…')}</p><div class="acts"><button type="button" class="go">${T('Bay tới đây', 'Fly here')}</button>${it.link ? `<a href="${esc(it.link)}" target="_blank" rel="noopener">${T('Nguồn', 'Source')}</a>` : ''}</div>`
+    d.querySelector('.go').addEventListener('click', () => fly(it))
+    row.after(d)
+    const [air, wx] = await Promise.all([
+      getJson(`https://air-quality-api.open-meteo.com/v1/air-quality?latitude=${it.lat}&longitude=${it.lon}&current=us_aqi,pm2_5,pm10`),
+      getJson(`https://api.open-meteo.com/v1/forecast?latitude=${it.lat}&longitude=${it.lon}&current=temperature_2m,wind_speed_10m,precipitation`),
+    ])
+    const env = d.querySelector('.env')
+    if (!env) return
+    const parts = []
+    const a = air?.current
+    if (a?.us_aqi != null) parts.push(`${T('Không khí', 'Air')}: <b>AQI ${Math.round(a.us_aqi)}</b> (${aqiText(a.us_aqi)})${a.pm2_5 != null ? ` · PM2.5 ${a.pm2_5}` : ''}${a.pm10 != null ? ` · PM10 ${a.pm10}` : ''} µg/m³`)
+    const w = wx?.current
+    if (w?.temperature_2m != null) parts.push(`${T('Thời tiết', 'Weather')}: ${Math.round(w.temperature_2m)}°C · ${T('gió', 'wind')} ${Math.round(w.wind_speed_10m)} km/h${w.precipitation ? ` · ${T('mưa', 'rain')} ${w.precipitation} mm` : ''}`)
+    env.innerHTML = parts.length ? parts.join('<br>') : T('Chưa có dữ liệu không khí cho chỗ này.', 'No air data for this spot.')
   }
 
   async function open() {

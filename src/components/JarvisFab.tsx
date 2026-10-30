@@ -351,11 +351,6 @@ export function JarvisFab({ state, rules, journal, learn, killSwitch, priceOf, k
           </form>
         </div>
       )}
-      {page === 'godseye' && !open && (
-        <button type="button" className="jfab-tag" onClick={() => setOpen(true)}>
-          {L('Ask Iris', 'Hỏi Iris')}
-        </button>
-      )}
       <button className={`jfab${open ? ' open' : ''}${phase !== 'idle' ? ' busy' : ''}${rules.jarvisMotion ? '' : ' still'}`} onClick={() => setOpen((o) => !o)} aria-label={open ? L(`Hide ${who}`, `Ẩn ${who}`) : L(`Talk to ${who}`, `Nói chuyện với ${who}`)}>
         <svg viewBox="0 0 48 48" width="30" height="30" aria-hidden="true">
           <path className="jfab-brain" d="M18 9a6 6 0 0 0-6 6 6 6 0 0 0-4 10 6 6 0 0 0 4 9 6 6 0 0 0 10 4V12a5 5 0 0 0-4-3M30 9a6 6 0 0 1 6 6 6 6 0 0 1 4 10 6 6 0 0 1-4 9 6 6 0 0 1-10 4V12a5 5 0 0 1 4-3" />

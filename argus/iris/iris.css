@@ -169,14 +169,13 @@ html.iris-compact[data-iris-open='right'] #right-context-rail > [hidden] {
 
 /* camera buttons sit top-right, clear of the Iris bar */
 html.iris-compact #top-center-actions {
-  top: max(10px, env(safe-area-inset-top)) !important;
+  top: calc(max(10px, env(safe-area-inset-top)) + var(--iris-bar-h, 50px) + 8px) !important;
   right: 10px !important;
   left: auto !important;
   transform: none !important;
 }
 @media (max-width: 480px) {
   html.iris-compact #top-center-actions {
-    top: calc(max(10px, env(safe-area-inset-top)) + 50px) !important;
     flex-direction: column;
   }
 }
@@ -444,4 +443,34 @@ html:not(.iris-compact) #iris-quick {
 }
 #iris-events .row small {
   color: rgba(216, 243, 255, 0.65);
+}
+
+#iris-events .detail {
+  padding: 8px 6px 10px 34px;
+  border-bottom: 1px solid rgba(120, 220, 255, 0.12);
+  background: rgba(14, 26, 38, 0.6);
+}
+#iris-events .detail p {
+  margin: 4px 0;
+}
+#iris-events .detail .env {
+  color: rgba(216, 243, 255, 0.85);
+}
+#iris-events .detail .acts {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-top: 6px;
+}
+#iris-events .detail .go {
+  min-height: 40px;
+  padding: 0 14px;
+  border-radius: 12px;
+  border: 1px solid var(--iris-acc, #5fd4ff);
+  background: color-mix(in srgb, var(--iris-acc, #5fd4ff) 30%, rgba(8, 16, 24, 0.95));
+  color: #fff;
+  font: 600 13px/1 Inter, system-ui, sans-serif;
+}
+#iris-events .detail a {
+  color: var(--iris-acc, #5fd4ff);
 }
