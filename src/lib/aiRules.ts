@@ -97,6 +97,7 @@ export interface AiRules {
   novaVideoSettings: boolean // Nova server video: voice speed/volume, music, clip length, transition, subtitle size/colour/outline/height/style, 3-12 scenes, 1:1, the post kit's hook first
   novaUploads: boolean // Nova step 3: upload your own photos and clips (10 files, 50 MB, 60 s) as footage for the server video
   novaPresets: boolean // Nova presets: save mode, size, post kit and video settings under a name (KV nova:presets) and load them in one tap
+  novaQuickPost: boolean // Nova gallery: Share button that downloads nothing itself, copies caption + hashtags and opens the phone share sheet with the MP4; you post, the app never does
   novaClipText: boolean // Nova Footage: preview an uploaded or imported clip with the EN/VI lines on top; off hides the preview
   novaImportLink: boolean // Nova Footage: paste a Muse file link and the server fetches the clip (no phone transfer); only muse.ai https links
   novaChannelScript: boolean // Nova channel script rules: 3-5 slides (default 4), one full idea per slide, human-psychology tone, about 44 s with a reading-time floor; off = 3-12 scenes as before
@@ -232,6 +233,7 @@ export const DEFAULT_AI_RULES: AiRules = {
   novaGlass: true,
   novaLemo: true,
   novaClipText: true,
+  novaQuickPost: true,
   novaImportLink: true,
   novaChannelScript: false,
   novaHandoff: true,
@@ -365,6 +367,7 @@ export const RULE_FIELDS: RuleField[] = [
   { group: 'jarvis', key: 'ruviewOn', en: 'RuView sensing page: presence at home from Wi-Fi signals with ESP32 nodes, add nodes over USB, pinned RuView version with daily update check (your own home only; needs the home agent and Docker)', vi: 'Trang RuView cảm biến: biết có người trong nhà bằng sóng Wi-Fi với node ESP32, thêm node qua USB, giữ đúng bản RuView và kiểm tra bản mới mỗi ngày (chỉ trong nhà anh; cần chương trình máy nhà và Docker)' },
   { group: 'jarvis', key: 'godsEyeOn', en: "God's Eye View page: the live 3D globe (flights, military aircraft, satellites, ships, earthquakes) inside the Hub, with a clear status for every data layer", vi: "Trang God's Eye View: quả địa cầu 3D trực tiếp (máy bay, máy bay quân sự, vệ tinh, tàu biển, động đất) ngay trong Hub, kèm trạng thái rõ ràng của từng lớp dữ liệu" },
   { group: 'jarvis', key: 'videoStudioOn', en: 'Video Studio page: bilingual (EN + VI) faceless videos made in your browser, 3 modes, MP4 download and Title Lab; never posts by itself', vi: 'Trang Video Studio: video không lộ mặt song ngữ (EN + VI) làm ngay trên trình duyệt, 3 chế độ, tải MP4 và Title Lab; không bao giờ tự đăng' },
+  { group: 'jarvis', key: 'novaQuickPost', en: 'Nova quick-post: a Share button on finished videos copies the caption and hashtags and opens the phone share sheet with the MP4 (you post it yourself; the app never posts)', vi: 'Nova đăng nhanh: nút Chia sẻ trên video xong sẽ copy caption + hashtag và mở khay chia sẻ của điện thoại kèm file MP4 (anh tự đăng, app không bao giờ tự đăng)' },
   { group: 'jarvis', key: 'novaClipText', en: 'Nova Footage: preview a clip you uploaded or imported with the English and Vietnamese lines on top of it (preview only, the file is not changed)', vi: 'Nova Footage: xem trước clip anh đã tải lên hoặc nhập về, kèm các dòng tiếng Anh và tiếng Việt chồng lên (chỉ xem trước, file không bị đổi)' },
   { group: 'jarvis', key: 'novaImportLink', en: 'Nova Footage: paste a Muse file link and the server fetches the clip for you (muse.ai links only, up to 50 MB); off hides the link box', vi: 'Nova Footage: dán link file Muse, máy chủ tự tải clip về (chỉ link muse.ai, tối đa 50 MB); tắt thì ẩn ô dán link' },
   { group: 'jarvis', key: 'novaChannelScript', en: 'Nova channel script rules: 3 to 5 slides (4 by default), one complete idea per slide written natively in English and Vietnamese, human-psychology tone as recognition (no manipulation tips, no diagnosing, no invented statistics), about 44 seconds. Off: 3 to 12 scenes as before', vi: 'Luật kịch bản kênh của Nova: 3 đến 5 slide (mặc định 4), mỗi slide một ý trọn vẹn viết tự nhiên bằng cả tiếng Anh và tiếng Việt, giọng tâm lý con người theo hướng nhận ra bản thân (không dạy thao túng, không chẩn đoán, không bịa số liệu), khoảng 44 giây. Tắt: 3 đến 12 cảnh như trước' },

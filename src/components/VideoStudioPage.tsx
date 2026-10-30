@@ -55,7 +55,7 @@ function useActiveStep(): string {
 }
 
 /** Bilingual Faceless Video Studio: script EN + VI, preview, MP4 export and Title Lab, all in the browser. */
-export function VideoStudioPage({ onBack, glass = true, trends = true, postKit = true, videoSettings = true, uploads = true, presets = true, lemo = true, handoff = true, channel = false, importLink = true, clipText = true }: { onBack: () => void; glass?: boolean; trends?: boolean; postKit?: boolean; videoSettings?: boolean; uploads?: boolean; presets?: boolean; lemo?: boolean; handoff?: boolean; channel?: boolean; importLink?: boolean; clipText?: boolean }) {
+export function VideoStudioPage({ onBack, glass = true, trends = true, postKit = true, videoSettings = true, uploads = true, presets = true, lemo = true, handoff = true, channel = false, importLink = true, clipText = true, quickPost = true }: { onBack: () => void; glass?: boolean; trends?: boolean; postKit?: boolean; videoSettings?: boolean; uploads?: boolean; presets?: boolean; lemo?: boolean; handoff?: boolean; channel?: boolean; importLink?: boolean; clipText?: boolean; quickPost?: boolean }) {
   const lang = useLang()
   const theme = useHubTheme()
   const active = useActiveStep()
@@ -378,7 +378,7 @@ export function VideoStudioPage({ onBack, glass = true, trends = true, postKit =
         </section>
 
         <section id="nv-make" className="nv-make">
-          <StudioRenderPanel key={presetRev} topic={topic} topicVi={topicVi} en={script.en} vi={script.vi} aspect={aspect} glass={glass} settings={videoSettings} hook={postKit ? hook : undefined} onClearHook={() => setHook({ en: '', vi: '' })} media={uploads ? serverMedia : []} lemo={lemo} handoff={handoff} />
+          <StudioRenderPanel key={presetRev} topic={topic} topicVi={topicVi} en={script.en} vi={script.vi} aspect={aspect} glass={glass} settings={videoSettings} hook={postKit ? hook : undefined} onClearHook={() => setHook({ en: '', vi: '' })} media={uploads ? serverMedia : []} lemo={lemo} handoff={handoff} post={quickPost ? { caption: lab.caption, tags: lab.hashtags } : undefined} />
 
           <div className={card}>
             <header><h3>{t('quickTitle')}</h3></header>

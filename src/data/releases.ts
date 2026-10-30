@@ -2,7 +2,7 @@
  * Version and "What's new". Bump APP_VERSION and add an entry to the top of RELEASES
  * with each update. The banner shows once per version, then stays dismissed.
  */
-export const APP_VERSION = '1.69.0'
+export const APP_VERSION = '1.70.0'
 
 export interface Release {
   version: string
@@ -13,6 +13,12 @@ export interface Release {
 }
 
 export const RELEASES: Release[] = [
+  {
+    version: '1.70.0',
+    date: '2026-10-30',
+    changes: ['Nova quick-post: a Share / post button on every finished video copies the caption and hashtags and opens the phone share sheet with the MP4 (falls back to a download). You post it yourself; the app never posts. Switch: Settings, Nova quick-post.'],
+    changesVi: ['Nova đăng nhanh: nút Chia sẻ / đăng trên mỗi video xong sẽ copy caption + hashtag và mở khay chia sẻ của điện thoại kèm file MP4 (không có thì tải về). Anh tự đăng, app không bao giờ tự đăng. Công tắc: Cài đặt, Nova đăng nhanh.'],
+  },
   {
     version: '1.69.0',
     date: '2026-10-30',
