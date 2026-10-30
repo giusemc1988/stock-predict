@@ -81,6 +81,9 @@ async function coingeckoMovers(top = 8): Promise<Mover[]> {
   return cryptoMovers({ gainers: by((r) => r.change), volume: by((r) => r.volume) }, top)
 }
 
+// why a Telegram send failed this run; shown in cronLast so a missing alert is visible (a failed send never stops the cycle)
+let telegramErrors: string[] = []
+
 async function sendTelegram(text: string, token: string, chatId: string): Promise<void> {
   try {
     const res = await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
@@ -88,9 +91,13 @@ async function sendTelegram(text: string, token: string, chatId: string): Promis
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ chat_id: chatId, text }),
     })
-    if (!res.ok) console.log(`Telegram send failed: ${res.status}`)
+    if (!res.ok) {
+      console.log(`Telegram send failed: ${res.status}`)
+      telegramErrors.push(`HTTP ${res.status}`)
+    }
   } catch (e) {
     console.log('Telegram error:', e)
+    telegramErrors.push(e instanceof Error ? e.message : 'network error')
   }
 }
 
@@ -223,6 +230,7 @@ async function sendDailySummary(env: WorkerEnv, s: PracticeState, now: number, c
 }
 
 export async function practiceCycle(env: WorkerEnv): Promise<{ state: PracticeState; message: string; alerts?: TradeAlert[] }> {
+  telegramErrors = []
 
   let prev: PracticeState = emptyPractice()
   try {
@@ -362,5 +370,6 @@ export async function practiceCycle(env: WorkerEnv): Promise<{ state: PracticeSt
   const brakeStatus = brakeMult === 1 ? 'normal' : brakeMult === 0.5 ? 'HALF (-3%)' : brakeMult === 0.25 ? 'QUARTER (-6%)' : 'STOPPED (-15%)'
   const kellyStatus = kellyMult < 1 ? `${(kellyMult * 100).toFixed(1)}% Kelly` : 'Kelly n/a'
   const msg = `scanned ${r.candidates.length} markets (${r.failed.length} failed); best: ${top.join(', ') || 'none'}; open ${next.open.length}, closed ${next.trades.length}, realized ${next.realized.toFixed(2)}; learning ${learningStatus}; brakes ${brakeStatus}; sizing ${kellyStatus}`
-  return { state: next, message: msg, alerts }
+  const tg = telegramErrors.length ? `; Telegram failed ${telegramErrors.length}x (${[...new Set(telegramErrors)].join(', ')})` : ''
+  return { state: next, message: msg + tg, alerts }
 }
