@@ -97,14 +97,22 @@ async function flights(url: URL, env: Env): Promise<Response> {
     // adsb.lol first, then adsb.fi, then airplanes.live (all free, no key, same readsb format)
     const near = await cached(`near/${rl},${ro}`, 15, async () => {
       const why: string[] = []
+      // community feeders are sparse in some regions (Vietnam has one or two aircraft on adsb.lol): when the first answer
+      // is small, ask the others too and merge by aircraft id so the view shows everything any of them sees
+      const rows = new Map<string, unknown[]>()
+      const used: string[] = []
       for (const [src, u] of [['adsb.lol', `https://api.adsb.lol/v2/lat/${rl}/lon/${ro}/dist/250`], ['adsb.fi', `https://opendata.adsb.fi/api/v2/lat/${rl}/lon/${ro}/dist/250`], ['airplanes.live', `https://api.airplanes.live/v2/point/${rl}/${ro}/250`]]) {
         const r = await get(u, 6000).catch((e: Error) => (why.push(`${src} ${e.name}`), null))
         if (r && !r.ok) why.push(`${src} HTTP ${r.status}`)
         if (!r?.ok) continue
         const body = toOpenSky((await r.json()) as Parameters<typeof toOpenSky>[0])
-        return new Response(JSON.stringify(body), { headers: { 'content-type': 'application/json', 'x-flight-source': src, 'x-flight-coverage': '250nm around the view', 'x-flight-count': String(body.states.length) } })
+        used.push(src)
+        for (const st of body.states) if (!rows.has(String(st[0]))) rows.set(String(st[0]), st)
+        if (rows.size >= 40) break
       }
-      return new Response('', { status: 502, statusText: why.join(', ') })
+      if (!used.length) return new Response('', { status: 502, statusText: why.join(', ') })
+      const states = [...rows.values()]
+      return new Response(JSON.stringify({ time: Math.floor(Date.now() / 1000), states }), { headers: { 'content-type': 'application/json', 'x-flight-source': used.join(' + '), 'x-flight-coverage': '250nm around the view', 'x-flight-count': String(states.length) } })
     })
     if (near.ok) return near
     nearWhy = ((await near.json().catch(() => ({}))) as { detail?: string }).detail ?? ''
