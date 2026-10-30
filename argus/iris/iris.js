@@ -33,7 +33,7 @@
   const accent = new URLSearchParams(location.search).get('accent')
   if (accent && /^#[0-9a-f]{3,8}$/i.test(accent)) root.style.setProperty('--iris-acc', accent)
 
-  const vi = () => /^vi/i.test(root.lang || navigator.language || '')
+  const vi = () => (window.irisLang ? window.irisLang.get() === 'vi' : !/^en/i.test(root.lang || ''))
   const icon = {
     left: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m12 3 9 5-9 5-9-5 9-5Z"/><path d="m3 13 9 5 9-5"/></svg>',
     right: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M14 4v16"/></svg>',
@@ -71,6 +71,19 @@
     if (text) toast.timer = setTimeout(() => (t.hidden = true), 6000)
   }
 
+  // VI / EN switch for the Iris text (vi.js holds the dictionary)
+  function langButton() {
+    const b = document.createElement('button')
+    b.type = 'button'
+    b.id = 'iris-lang'
+    b.setAttribute('aria-label', 'Tiếng Việt / English')
+    const paint = () => (b.textContent = vi() ? 'VI' : 'EN')
+    paint()
+    b.addEventListener('click', () => window.irisLang?.toggle())
+    document.addEventListener('iris-lang', paint)
+    return b
+  }
+
   function locateButton() {
     const b = document.createElement('button')
     b.type = 'button'
@@ -104,7 +117,9 @@
         { enableHighAccuracy: false, timeout: 15000, maximumAge: 60000 },
       )
     })
-    new MutationObserver(() => (b.querySelector('span').textContent = msg.label())).observe(root, { attributes: true, attributeFilter: ['lang'] })
+    const relabel = () => (b.querySelector('span').textContent = msg.label())
+    new MutationObserver(relabel).observe(root, { attributes: true, attributeFilter: ['lang'] })
+    document.addEventListener('iris-lang', relabel)
     return b
   }
 
@@ -121,12 +136,14 @@
       b.addEventListener('click', () => open(side))
       bar.append(b)
     }
-    bar.append(locateButton())
+    bar.append(locateButton(), langButton())
     document.body.append(bar)
     // relabel when the app switches language
-    new MutationObserver(() => {
-      for (const b of bar.querySelectorAll('button')) b.querySelector('span').textContent = label[b.dataset.side]()
-    }).observe(root, { attributes: true, attributeFilter: ['lang'] })
+    const relabel = () => {
+      for (const b of bar.querySelectorAll('button[data-side]')) b.querySelector('span').textContent = label[b.dataset.side]()
+    }
+    new MutationObserver(relabel).observe(root, { attributes: true, attributeFilter: ['lang'] })
+    document.addEventListener('iris-lang', relabel)
   }
 
   // a tap on the globe closes the drawer
