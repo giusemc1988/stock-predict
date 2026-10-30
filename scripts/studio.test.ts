@@ -105,6 +105,23 @@ assert.ok(AREAS.length >= 20 && AREAS.every(([, la, lo]) => Math.abs(la) <= 90 &
 
 // every label has both languages
 for (const [k, v] of Object.entries({ ...STUDIO_TEXT, ...GE_TEXT })) assert.ok(v.en.trim() && v.vi.trim(), k)
+{
+  // hook themes: the prompts carry the 4 themes unless switched off; AI idea lists are parsed safely
+  const { HOOK_THEMES, hookRule } = await import('../src/lib/studio/hookThemes')
+  const { cleanKitSettings, kitPrompt, itemPrompt } = await import('../src/lib/studio/postkit')
+  const { parseIdeas } = await import('../src/lib/studioServer')
+  assert.equal(HOOK_THEMES.length, 4)
+  assert.ok(HOOK_THEMES.every((t) => t.seeds.length >= 3 && t.seeds.every((s) => s.en && s.vi)))
+  assert.match(hookRule('vi'), /dưới 15 chữ/)
+  const k = cleanKitSettings({})
+  assert.equal(k.themes, true)
+  assert.ok(kitPrompt('vi', k, LIBRARY[0])[0].includes('tâm lý đen tối'))
+  assert.ok(itemPrompt('en', k, LIBRARY[0], 'hook', [])[0].includes('sad truth'))
+  assert.ok(!itemPrompt('en', k, LIBRARY[0], 'title', [])[0].includes('sad truth'))
+  assert.ok(!kitPrompt('en', cleanKitSettings({ themes: false }), LIBRARY[0])[0].includes('sad truth'))
+  assert.deepEqual(parseIdeas('Sure: [{"en":"a","vi":"b"},{"en":"x"}] ok'), [{ en: 'a', vi: 'b' }])
+  assert.deepEqual(parseIdeas('nope'), [])
+}
 console.log('studio ok')
 
 // phone photos are shrunk to the export size, never enlarged; a clip with no usable length is read at 0

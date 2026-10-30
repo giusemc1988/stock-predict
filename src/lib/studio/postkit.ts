@@ -3,6 +3,7 @@
  * The AI writes it on the Worker (studioServer.writePostKit); with no AI, fallbackKit builds one from the
  * script so the step is never empty. Pure functions, tested in scripts/novapostkit.test.ts.
  */
+import { hookRule } from './hookThemes'
 import type { Lang, Script } from './script'
 
 export type Platform = 'tiktok' | 'instagram' | 'youtube' | 'facebook'
@@ -31,9 +32,11 @@ export interface KitSettings {
   emoji: boolean
   cta: boolean
   langs: Lang[]
+  /** hooks follow the channel's 4 themes (src/lib/studio/hookThemes.ts); off = the old free-form hooks */
+  themes: boolean
 }
 
-export const DEFAULT_KIT: KitSettings = { hooks: 5, titles: 5, tone: 'curious', platforms: ['tiktok', 'instagram', 'youtube', 'facebook'], length: 'medium', hashtags: 8, emoji: true, cta: true, langs: ['vi', 'en'] }
+export const DEFAULT_KIT: KitSettings = { hooks: 5, titles: 5, tone: 'curious', platforms: ['tiktok', 'instagram', 'youtube', 'facebook'], length: 'medium', hashtags: 8, emoji: true, cta: true, langs: ['vi', 'en'], themes: true }
 
 export interface KitLang {
   hooks: string[]
@@ -62,6 +65,7 @@ export function cleanKitSettings(body: unknown): KitSettings {
     emoji: b.emoji === undefined ? DEFAULT_KIT.emoji : !!b.emoji,
     cta: b.cta === undefined ? DEFAULT_KIT.cta : !!b.cta,
     langs: langs.length ? [...new Set(langs)] : DEFAULT_KIT.langs,
+    themes: b.themes === undefined ? DEFAULT_KIT.themes : !!b.themes,
   }
 }
 
@@ -91,13 +95,14 @@ export function kitPrompt(lang: Lang, k: KitSettings, s: Script): [string, strin
         'Bạn viết nội dung đăng mạng xã hội bằng tiếng Việt tự nhiên, như người Việt nói. Không dịch từ tiếng Anh.',
         `Giọng văn: ${TONE_TEXT[k.tone].vi}.`,
         `Viết ${k.hooks} câu hook mở đầu video (mỗi câu tối đa 12 chữ, không emoji, không hashtag, mỗi câu một kiểu khác nhau).`,
+        k.themes ? hookRule('vi') : '',
         `Viết ${k.titles} tiêu đề (tối đa 70 ký tự, không hashtag).`,
         `Viết caption cho từng nền tảng: ${plats}. Mỗi caption ${LENGTH_TEXT[k.length].vi}, hợp với nền tảng đó, KHÔNG có hashtag.`,
         k.emoji ? 'Caption có vài emoji hợp lý.' : 'Caption không có emoji.',
         k.cta ? 'Cuối mỗi caption có một câu kêu gọi (theo dõi, lưu, chia sẻ, bình luận) hợp với nền tảng.' : 'Không có câu kêu gọi hành động.',
         `Đưa ${Math.max(k.hashtags, 1)} hashtag liên quan (không có dấu #, không dấu cách, có thể có dấu tiếng Việt).`,
         `Chỉ trả về JSON đúng dạng: {"hooks": ["..."], "titles": ["..."], "captions": {${keys}}, "hashtags": ["..."]}`,
-      ].join(' '),
+      ].filter(Boolean).join(' '),
       scriptOf(s, lang),
     ]
   return [
@@ -105,13 +110,14 @@ export function kitPrompt(lang: Lang, k: KitSettings, s: Script): [string, strin
       'You write social media copy in natural English.',
       `Tone: ${TONE_TEXT[k.tone].en}.`,
       `Write ${k.hooks} opening hooks for the video (at most 12 words each, no emoji, no hashtags, each a different style).`,
+      k.themes ? hookRule('en') : '',
       `Write ${k.titles} titles (at most 70 characters, no hashtags).`,
       `Write a caption for each platform: ${plats}. Each caption is ${LENGTH_TEXT[k.length].en}, fits that platform, and has NO hashtags.`,
       k.emoji ? 'Captions use a few fitting emoji.' : 'Captions use no emoji.',
       k.cta ? 'Each caption ends with one call to action (follow, save, share, comment) that fits the platform.' : 'No call to action.',
       `Give ${Math.max(k.hashtags, 1)} relevant hashtags (no # sign, no spaces).`,
       `Return only JSON in exactly this shape: {"hooks": ["..."], "titles": ["..."], "captions": {${keys}}, "hashtags": ["..."]}`,
-    ].join(' '),
+    ].filter(Boolean).join(' '),
     scriptOf(s, lang),
   ]
 }
@@ -126,7 +132,7 @@ export function itemPrompt(lang: Lang, k: KitSettings, s: Script, kind: KitKind,
       lang === 'vi'
         ? `một caption cho ${name}, ${LENGTH_TEXT[k.length].vi}, không hashtag${k.emoji ? ', có vài emoji' : ', không emoji'}${k.cta ? ', cuối có một câu kêu gọi hành động' : ''}`
         : `one ${name} caption, ${LENGTH_TEXT[k.length].en}, no hashtags${k.emoji ? ', a few emoji' : ', no emoji'}${k.cta ? ', ending with one call to action' : ''}`,
-  }[kind]
+  }[kind] + (kind === 'hook' && k.themes ? `. ${hookRule(lang)}` : '')
   const not = avoid.filter(Boolean).slice(0, 10).map((a) => `- ${a.replace(/\s+/g, ' ').slice(0, 200)}`).join('\n')
   if (lang === 'vi')
     return [`Bạn viết nội dung mạng xã hội bằng tiếng Việt tự nhiên. Giọng văn: ${TONE_TEXT[k.tone].vi}. Viết ${what}. Phải khác hẳn các bản đã có. Chỉ trả về đúng nội dung đó, không giải thích, không ngoặc kép.`, `${scriptOf(s, lang)}${not ? `\nĐã có:\n${not}` : ''}`]

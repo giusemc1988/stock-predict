@@ -130,6 +130,7 @@ export function NovaPostKit({ script, hook, onHook }: { script: Script; hook?: {
         </div>
         <label className="vs-check"><input type="checkbox" checked={k.emoji} onChange={(e) => set({ emoji: e.target.checked })} /> {t('kitEmoji')}</label>
         <label className="vs-check"><input type="checkbox" checked={k.cta} onChange={(e) => set({ cta: e.target.checked })} /> {t('kitCta')}</label>
+        <label className="vs-check"><input type="checkbox" checked={k.themes ?? true} onChange={(e) => set({ themes: e.target.checked })} /> {t('kitThemes')}</label>
       </details>
 
       {k.langs.length > 1 && (

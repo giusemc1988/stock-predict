@@ -3,6 +3,7 @@ import { useLocalStorage } from '../hooks/useLocalStorage'
 import { NovaProgress } from './NovaProgress'
 import { useLang } from '../lib/i18n'
 import { STUDIO_TEXT, type StudioKey } from '../lib/studio/text'
+import { HOOK_THEMES } from '../lib/studio/hookThemes'
 import { TREND_LINKS, TREND_SOURCES, filterTrends, type TopicView, type TrendGeo, type TrendItem, type TrendSourceId, type TrendsResult } from '../lib/studioTrends'
 
 interface Prefs {
@@ -24,7 +25,7 @@ const TOPICS: { id: TopicView; key: StudioKey }[] = [
 ]
 
 /** Nova step 1: trending topics from free sources; tap one to use it, or let Nova pick and write. */
-export function NovaTrends({ onPick, onAuto, busy }: { onPick: (t: TrendItem) => void; onAuto: (t: TrendItem) => void; busy: boolean }) {
+export function NovaTrends({ onPick, onAuto, busy, themes = false, onTopic, onAutoTopic }: { onPick: (t: TrendItem) => void; onAuto: (t: TrendItem) => void; busy: boolean; themes?: boolean; onTopic?: (en: string, vi: string) => void; onAutoTopic?: (en: string, vi: string) => void }) {
   const lang = useLang()
   const t = (k: StudioKey) => STUDIO_TEXT[k][lang]
   const [prefs, setPrefs] = useLocalStorage<Prefs>('nova.trends.v1', DEFAULT_PREFS)
@@ -34,6 +35,24 @@ export function NovaTrends({ onPick, onAuto, busy }: { onPick: (t: TrendItem) =>
   const [loading, setLoading] = useState(false)
   const [err, setErr] = useState<string | null>(null)
   const [more, setMore] = useState(false)
+  const [theme, setTheme] = useState(HOOK_THEMES[0].id)
+  const [ai, setAi] = useState<Record<string, { en: string; vi: string }[]>>({})
+  const [aiBusy, setAiBusy] = useState(false)
+  const [aiErr, setAiErr] = useState('')
+  const moreIdeas = async (id: string, avoid: string[]) => {
+    setAiBusy(true)
+    setAiErr('')
+    try {
+      const r = await fetch('/api/studio/hook-ideas', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ theme: id, avoid }) })
+      const j = (await r.json().catch(() => ({}))) as { ideas?: { en: string; vi: string }[]; error?: string }
+      if (!r.ok || !j.ideas?.length) throw new Error(j.error ?? `HTTP ${r.status}`)
+      setAi((a) => ({ ...a, [id]: j.ideas! }))
+    } catch (e) {
+      setAiErr((e as Error).message)
+    } finally {
+      setAiBusy(false)
+    }
+  }
 
   const load = useCallback(async (geo: TrendGeo, fresh = false) => {
     setLoading(true)
@@ -63,7 +82,36 @@ export function NovaTrends({ onPick, onAuto, busy }: { onPick: (t: TrendItem) =>
   const age = data ? Math.round((Date.now() - data.at) / 60000) : null
   const count = (id: TrendSourceId) => inTopic.filter((it) => it.source === id).length
 
-  return (
+  const cur = HOOK_THEMES.find((x) => x.id === theme) ?? HOOK_THEMES[0]
+  const themeBlock = themes && onTopic && (
+    <div className="nv-themes">
+      <strong className="small">{t('themeTitle')}</strong>
+      <div className="seg small nv-topic" role="group" aria-label={t('themeTitle')}>
+        {HOOK_THEMES.map((x) => (
+          <button key={x.id} className={theme === x.id ? 'on' : ''} aria-pressed={theme === x.id} onClick={() => setTheme(x.id)}>{x.name[lang]}</button>
+        ))}
+      </div>
+      <div className="nv-trend-list">
+        {(ai[cur.id] ?? cur.seeds).map((sd) => (
+          <button key={sd.en} className="nv-trend" disabled={busy} onClick={() => onTopic(sd.en, sd.vi)}>
+            <span className="nv-trend-t">{lang === 'vi' ? sd.vi : sd.en}</span>
+          </button>
+        ))}
+      </div>
+      <div className="vs-row">
+        <button className="btn small" disabled={busy || aiBusy} onClick={() => void moreIdeas(cur.id, (ai[cur.id] ?? cur.seeds).map((x) => x.en))}>✦ {t('themeAi')}</button>
+      </div>
+      <NovaProgress active={aiBusy} label={t('themeAiLoading')} secs={10} />
+      {aiErr && <p className="small warn">{aiErr}</p>}
+      {onAutoTopic && (
+        <div className="vs-row">
+          <button className="btn primary" disabled={busy} onClick={() => { const pool = ai[cur.id] ?? cur.seeds; const sd = pool[Math.floor(Math.random() * pool.length)]; onAutoTopic(sd.en, sd.vi) }}>✦ {t('themeWrite')}</button>
+        </div>
+      )}
+    </div>
+  )
+
+  const feed = (
     <div className="nv-trends">
       <div className="nv-trends-head">
         <strong className="small">{t('trendTitle')}</strong>
@@ -135,5 +183,15 @@ export function NovaTrends({ onPick, onAuto, busy }: { onPick: (t: TrendItem) =>
         </div>
       </details>
     </div>
+  )
+  if (!themeBlock) return feed
+  return (
+    <>
+      {themeBlock}
+      <details className="vs-pexels nv-later">
+        <summary className="small">{t('laterTitle')}</summary>
+        {feed}
+      </details>
+    </>
   )
 }

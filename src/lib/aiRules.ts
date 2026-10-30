@@ -97,6 +97,7 @@ export interface AiRules {
   novaVideoSettings: boolean // Nova server video: voice speed/volume, music, clip length, transition, subtitle size/colour/outline/height/style, 3-12 scenes, 1:1, the post kit's hook first
   novaUploads: boolean // Nova step 3: upload your own photos and clips (10 files, 50 MB, 60 s) as footage for the server video
   novaPresets: boolean // Nova presets: save mode, size, post kit and video settings under a name (KV nova:presets) and load them in one tap
+  novaHookThemes: boolean // Nova: default ideas and hooks come from the channel's 4 themes; tech/news ideas are kept in a 'saved for later' block. Off = old behaviour
   novaQuickPost: boolean // Nova gallery: Share button that downloads nothing itself, copies caption + hashtags and opens the phone share sheet with the MP4; you post, the app never does
   novaClipText: boolean // Nova Footage: preview an uploaded or imported clip with the EN/VI lines on top; off hides the preview
   novaImportLink: boolean // Nova Footage: paste a Muse file link and the server fetches the clip (no phone transfer); only muse.ai https links
@@ -234,6 +235,7 @@ export const DEFAULT_AI_RULES: AiRules = {
   novaLemo: true,
   novaClipText: true,
   novaQuickPost: true,
+  novaHookThemes: true,
   novaImportLink: true,
   novaChannelScript: false,
   novaHandoff: true,
@@ -367,6 +369,7 @@ export const RULE_FIELDS: RuleField[] = [
   { group: 'jarvis', key: 'ruviewOn', en: 'RuView sensing page: presence at home from Wi-Fi signals with ESP32 nodes, add nodes over USB, pinned RuView version with daily update check (your own home only; needs the home agent and Docker)', vi: 'Trang RuView cảm biến: biết có người trong nhà bằng sóng Wi-Fi với node ESP32, thêm node qua USB, giữ đúng bản RuView và kiểm tra bản mới mỗi ngày (chỉ trong nhà anh; cần chương trình máy nhà và Docker)' },
   { group: 'jarvis', key: 'godsEyeOn', en: "God's Eye View page: the live 3D globe (flights, military aircraft, satellites, ships, earthquakes) inside the Hub, with a clear status for every data layer", vi: "Trang God's Eye View: quả địa cầu 3D trực tiếp (máy bay, máy bay quân sự, vệ tinh, tàu biển, động đất) ngay trong Hub, kèm trạng thái rõ ràng của từng lớp dữ liệu" },
   { group: 'jarvis', key: 'videoStudioOn', en: 'Video Studio page: bilingual (EN + VI) faceless videos made in your browser, 3 modes, MP4 download and Title Lab; never posts by itself', vi: 'Trang Video Studio: video không lộ mặt song ngữ (EN + VI) làm ngay trên trình duyệt, 3 chế độ, tải MP4 và Title Lab; không bao giờ tự đăng' },
+  { group: 'jarvis', key: 'novaHookThemes', en: 'Nova hook themes: hooks and starting ideas come only from the channel\'s 4 themes (dark psychology, sad truths, everyday moments, flying nature); tech and news ideas stay in a "saved for later" block', vi: 'Nova nhóm hook: hook và ý tưởng mở đầu chỉ lấy từ 4 nhóm của kênh (tâm lý đen tối, sự thật buồn, khoảnh khắc đời thường, thiên nhiên bay); ý tưởng tech và tin tức được để dành trong một mục riêng' },
   { group: 'jarvis', key: 'novaQuickPost', en: 'Nova quick-post: a Share button on finished videos copies the caption and hashtags and opens the phone share sheet with the MP4 (you post it yourself; the app never posts)', vi: 'Nova đăng nhanh: nút Chia sẻ trên video xong sẽ copy caption + hashtag và mở khay chia sẻ của điện thoại kèm file MP4 (anh tự đăng, app không bao giờ tự đăng)' },
   { group: 'jarvis', key: 'novaClipText', en: 'Nova Footage: preview a clip you uploaded or imported with the English and Vietnamese lines on top of it (preview only, the file is not changed)', vi: 'Nova Footage: xem trước clip anh đã tải lên hoặc nhập về, kèm các dòng tiếng Anh và tiếng Việt chồng lên (chỉ xem trước, file không bị đổi)' },
   { group: 'jarvis', key: 'novaImportLink', en: 'Nova Footage: paste a Muse file link and the server fetches the clip for you (muse.ai links only, up to 50 MB); off hides the link box', vi: 'Nova Footage: dán link file Muse, máy chủ tự tải clip về (chỉ link muse.ai, tối đa 50 MB); tắt thì ẩn ô dán link' },

@@ -4,7 +4,7 @@
  */
 import { cleanKey, sameOrigin, withSavedKeys, type KeyStore } from '../lib/brainKeys'
 import type { BrainEnv } from '../lib/brainServer'
-import { cleanKitAsk, writeKitItem, writePostKit, writeTerms } from '../lib/studioServer'
+import { cleanKitAsk, writeHookIdeas, writeKitItem, writePostKit, writeTerms } from '../lib/studioServer'
 import { TRENDS_CACHE, TRENDS_TTL_MS, fetchTrends, type TrendGeo, type TrendsResult } from '../lib/studioTrends'
 import { PRESETS_KEY, cleanPresets } from '../lib/studio/presets'
 import { MEDIA_CHUNK, deleteMedia, finishMedia, importPart, importStart, mediaResponse, putMediaPart, readyMedia, startMedia, type MediaStore } from '../lib/studioMedia'
@@ -154,6 +154,14 @@ export async function novaRoute(req: Request, pathname: string, env: BrainEnv, s
     if (!a.only) return json(await writePostKit(a, e))
     const one = await writeKitItem(a, e)
     return one ? json(one) : json({ error: 'No AI helper answered. Add a free Gemini or Groq key in Settings.' }, 503)
+  }
+  if (pathname === '/api/studio/hook-ideas') {
+    if (req.method !== 'POST') return json({ error: 'POST only' }, 405)
+    if (!sameOrigin(req)) return json({ error: 'Not allowed' }, 403)
+    const b = (await req.json().catch(() => null)) as { theme?: unknown; avoid?: unknown } | null
+    const avoid = (Array.isArray(b?.avoid) ? b!.avoid : []).filter((x): x is string => typeof x === 'string')
+    const r = await writeHookIdeas(String(b?.theme ?? ''), await withSavedKeys(env, settings), avoid)
+    return r.ideas.length ? json(r) : json({ error: 'No AI helper answered. Add a free Gemini or Groq key in Settings.' }, 503)
   }
   if (pathname === '/api/studio/trends') {
     if (req.method !== 'GET') return json({ error: 'GET only' }, 405)

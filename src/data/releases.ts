@@ -2,7 +2,7 @@
  * Version and "What's new". Bump APP_VERSION and add an entry to the top of RELEASES
  * with each update. The banner shows once per version, then stays dismissed.
  */
-export const APP_VERSION = '1.71.0'
+export const APP_VERSION = '1.72.0'
 
 export interface Release {
   version: string
@@ -13,6 +13,12 @@ export interface Release {
 }
 
 export const RELEASES: Release[] = [
+  {
+    version: '1.72.0',
+    date: '2026-10-30',
+    changes: ['Nova hook themes: hooks and starting ideas now come only from the channel\'s 4 themes (dark psychology to recognise and defend, sad truths, everyday moments, flying nature). Each theme has tap-to-use ideas and an AI button for fresh ones; hooks are one short concrete sentence under 15 words. Tech and news ideas are kept, folded under "Saved for later". Switch: Settings, Nova hook themes.'],
+    changesVi: ['Nova nhóm hook: hook và ý tưởng mở đầu giờ chỉ lấy từ 4 nhóm của kênh (tâm lý đen tối để nhận diện và tự vệ, sự thật buồn, khoảnh khắc đời thường, thiên nhiên bay). Mỗi nhóm có ý tưởng chạm là dùng và nút nhờ AI gợi ý mới; hook là 1 câu ngắn, cụ thể, dưới 15 chữ. Ý tưởng tech và tin tức vẫn giữ, xếp trong mục "Để dành sau". Công tắc: Cài đặt, Nova nhóm hook.'],
+  },
   {
     version: '1.71.0',
     date: '2026-10-30',
