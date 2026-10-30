@@ -46,10 +46,22 @@ export function studioPrompt(lang: Lang, mode: StudioMode, topic: string, scenes
 
 /** Scene lines from an AI answer: drops numbering, bullets, quotes, JSON brackets and empty lines. */
 export function parseScenes(text: string, max: number): string[] {
-  return text
-    .split(/\r?\n/)
+  const t = text.replace(/```[a-z]*/gi, '')
+  // some models answer with a JSON array (or {"scenes": [...]}) on one line: that is the scenes, not one scene
+  const arr = t.match(/\[[\s\S]*\]/)?.[0]
+  if (arr) {
+    try {
+      const j = JSON.parse(arr) as unknown
+      if (Array.isArray(j) && j.every((x) => typeof x === 'string')) return j.map((x) => x.trim()).filter((x) => x.length > 1).slice(0, max)
+    } catch {
+      /* not JSON: read it line by line */
+    }
+  }
+  // "1. a 2. b 3. c" on one line: break before each number
+  const lines = /\n/.test(t.trim()) ? t.split(/\r?\n/) : t.split(/\s+(?=\d+[.)]\s)/)
+  return lines
     .map((l) => l.replace(/^\s*(?:[-*•>]|\d+[.):]|scene\s*\d+[:.-]?|cảnh\s*\d+[:.-]?)\s*/i, '').replace(/^["“'\[]+|["”'\],]+$/g, '').trim())
-    .filter((l) => l.length > 1 && !/^```/.test(l))
+    .filter((l) => l.length > 1)
     .slice(0, max)
 }
 

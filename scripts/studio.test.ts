@@ -13,6 +13,8 @@ import { AREAS, merge, slim } from '../argus/snapshot'
 // AI answers are cleaned into scene lines
 assert.deepEqual(parseScenes('1. First line\n- Second line\n\n"Third"\n```', 5), ['First line', 'Second line', 'Third'])
 assert.deepEqual(parseScenes('aa\nbb\ncc', 2), ['aa', 'bb'])
+assert.deepEqual(parseScenes('["aa bb","cc dd","ee ff"]', 10), ['aa bb', 'cc dd', 'ee ff'])
+assert.deepEqual(parseScenes('1. One one. 2. Two two. 3. Three three.', 10), ['One one.', 'Two two.', 'Three three.'])
 
 // each language is asked separately and told not to translate
 const [sysVi] = studioPrompt('vi', 'faceless', 'x', 5)

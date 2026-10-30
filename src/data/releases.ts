@@ -2,7 +2,7 @@
  * Version and "What's new". Bump APP_VERSION and add an entry to the top of RELEASES
  * with each update. The banner shows once per version, then stays dismissed.
  */
-export const APP_VERSION = '1.65.2'
+export const APP_VERSION = '1.65.3'
 
 export interface Release {
   version: string
@@ -13,6 +13,12 @@ export interface Release {
 }
 
 export const RELEASES: Release[] = [
+  {
+    version: '1.65.3',
+    date: '2026-10-30',
+    changes: ['Nova: when the AI answers with a JSON list or numbers on one line, the script now keeps every scene instead of collapsing to one.'],
+    changesVi: ['Nova: khi AI trả về danh sách JSON hoặc đánh số trên một dòng, kịch bản giữ đủ mọi cảnh thay vì gộp thành một cảnh.'],
+  },
   {
     version: '1.65.2',
     date: '2026-10-30',
