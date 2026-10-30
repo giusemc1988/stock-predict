@@ -14,6 +14,12 @@
   display: none !important;
 }
 
+/* upstream's "scope" paints a circular keyhole with black all around it (#scope-mask canvas); the map fills the whole view instead.
+   The globe button (#reset-globe-view) still zooms out to the full globe. */
+#scope-mask {
+  display: none !important;
+}
+
 /* the dock's tray offsets are computed from the voice width: zero it so Location and Presets sit side by side */
 #command-dock,
 :root[data-ui-theme='cyber'] #command-dock {
