@@ -181,3 +181,5 @@
 .nv-prog-row { display: flex; justify-content: space-between; gap: 8px; }
 .nv-prog-track { height: 6px; border-radius: 3px; background: rgba(127, 127, 127, 0.25); overflow: hidden; }
 .nv-prog-track i { display: block; height: 100%; border-radius: 3px; background: var(--acc, #d6a4ea); transition: width 0.25s ease; }
+.nv-up .vs-row .vs-input { flex: 1; min-width: 0; padding: 10px 12px; border-radius: 12px; border: 1px solid var(--line); background: rgba(0, 0, 0, 0.25); color: inherit; font: inherit; }
+.nv-up-ph { width: 100%; aspect-ratio: 1; border-radius: 12px; border: 1px solid var(--line); background: rgba(0, 0, 0, 0.3); }

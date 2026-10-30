@@ -70,10 +70,11 @@ async function send(file: File, type: string, onProgress: (p: number) => void): 
 }
 
 /** Nova step 3: the user's own photos and clips for the server video, uploaded in parts and used in this order. */
-export function NovaUploads({ onChange }: { onChange: (ids: string[]) => void }) {
+export function NovaUploads({ onChange, importLink = true }: { onChange: (ids: string[]) => void; importLink?: boolean }) {
   const lang = useLang()
   const t = (k: StudioKey) => STUDIO_TEXT[k][lang]
   const [items, setItems] = useState<Up[]>([])
+  const [link, setLink] = useState('')
   const next = useRef(0)
   const patch = (key: number, p: Partial<Up>) => setItems((list) => list.map((x) => (x.key === key ? { ...x, ...p } : x)))
 
@@ -110,9 +111,42 @@ export function NovaUploads({ onChange }: { onChange: (ids: string[]) => void })
     }
   }
 
+  const fetchLink = () => {
+    const url = link.trim()
+    if (items.length >= MAX_MEDIA_FILES) return
+    const key = next.current++
+    setLink('')
+    setItems((list) => [...list, { key, kind: 'video', thumb: '', status: 'uploading', progress: 0 }])
+    void (async () => {
+      try {
+        if (!/^https:\/\/([a-z0-9-]+\.)*muse\.ai\//i.test(url)) throw new Error('upLinkBad')
+        const post = (method: string, body: unknown) => fetch('/api/studio/media-import', { method, headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) })
+        const start = await post('POST', { url })
+        const s = (await start.json().catch(() => null)) as { id?: string; parts?: number; error?: string } | null
+        if (!start.ok || !s?.id || !s.parts) throw new Error(s?.error === 'full' ? 'upErrFull' : s?.error === 'type' ? 'upErrType' : s?.error === 'size' ? 'upErrSize' : `HTTP ${start.status} ${s?.error ?? ''}`.trim())
+        for (let i = 0; i < s.parts; i++) {
+          let ok = false
+          let why = 'upFailed'
+          for (let n = 0; n < TRIES && !ok; n++) {
+            const r = await post('PUT', { url, id: s.id, i }).catch(() => null)
+            ok = !!r?.ok
+            if (r && !ok) why = `HTTP ${r.status} ${((await r.json().catch(() => null)) as { error?: string } | null)?.error ?? ''}`.trim()
+          }
+          if (!ok) throw new Error(why)
+          patch(key, { progress: (i + 1) / s.parts })
+        }
+        const fin = await fetch(`/api/studio/media?id=${s.id}`, { method: 'PATCH' })
+        if (!fin.ok) throw new Error(`HTTP ${fin.status}`)
+        patch(key, { id: s.id, status: 'ready', progress: 1 })
+      } catch (e) {
+        patch(key, { status: 'error', error: (e as Error).message })
+      }
+    })()
+  }
+
   const remove = (x: Up) => {
     if (x.id) void fetch(`/api/studio/media?id=${x.id}`, { method: 'DELETE' }).catch(() => null)
-    URL.revokeObjectURL(x.thumb)
+    if (x.thumb) URL.revokeObjectURL(x.thumb)
     setItems((list) => list.filter((y) => y.key !== x.key))
   }
   const earlier = (i: number) => setItems((list) => (i < 1 ? list : [...list.slice(0, i - 1), list[i], list[i - 1], ...list.slice(i + 1)]))
@@ -129,6 +163,12 @@ export function NovaUploads({ onChange }: { onChange: (ids: string[]) => void })
         <input type="file" accept={`${Object.keys(MEDIA_TYPES).join(",")},video/*,image/*`} multiple disabled={full} onChange={(e) => { add(e.target.files); e.target.value = '' }} />
         <span>＋ {t('upAdd')}</span>
       </label>
+      {importLink && (
+        <div className="vs-row">
+          <input className="vs-input" type="url" inputMode="url" placeholder={t('upLink')} value={link} onChange={(e) => setLink(e.target.value)} />
+          <button className="btn small" disabled={full || !link.trim()} onClick={fetchLink}>{t('upLinkGo')}</button>
+        </div>
+      )}
       <p className="muted small">{t('upNote')}</p>
       {items.some((x) => x.status === 'uploading' || x.status === 'checking') && (
         <NovaProgress label={t('upUploading')} value={items.reduce((a, x) => a + (x.status === 'ready' || x.status === 'error' ? 1 : x.progress), 0) / items.length} />
@@ -137,7 +177,7 @@ export function NovaUploads({ onChange }: { onChange: (ids: string[]) => void })
         <div className="nv-up-grid">
           {items.map((x, i) => (
             <div key={x.key} className={`nv-up-tile s-${x.status}`}>
-              {x.kind === 'video' ? <video src={x.thumb} muted playsInline preload="metadata" /> : <img src={x.thumb} alt="" />}
+              {!x.thumb ? <div className="nv-up-ph" /> : x.kind === 'video' ? <video src={x.thumb} muted playsInline preload="metadata" /> : <img src={x.thumb} alt="" />}
               <span className="nv-up-n">{i + 1}</span>
               {x.status !== 'ready' && x.status !== 'error' && <span className="nv-up-bar" style={{ width: `${Math.round(x.progress * 100)}%` }} />}
               <div className="nv-up-act">

@@ -2,7 +2,7 @@
  * Version and "What's new". Bump APP_VERSION and add an entry to the top of RELEASES
  * with each update. The banner shows once per version, then stays dismissed.
  */
-export const APP_VERSION = '1.66.0'
+export const APP_VERSION = '1.67.0'
 
 export interface Release {
   version: string
@@ -13,6 +13,12 @@ export interface Release {
 }
 
 export const RELEASES: Release[] = [
+  {
+    version: '1.67.0',
+    date: '2026-10-30',
+    changes: ['Nova Footage: paste a Muse file link (muse.ai only, up to 50 MB) and the server fetches the clip for you, part by part, with a progress bar. A Settings switch turns the link box off.'],
+    changesVi: ['Nova Footage: dán link file Muse (chỉ muse.ai, tối đa 50 MB), máy chủ tự tải clip về từng phần, có thanh tiến trình. Có công tắc trong Cài đặt để ẩn ô dán link.'],
+  },
   {
     version: '1.66.0',
     date: '2026-10-30',
