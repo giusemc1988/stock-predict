@@ -91,8 +91,8 @@ jobs:
         run: |
           cp _headers dist/_headers
           # Iris layer over the upstream UI (argus/iris/): compact phone/tablet mode, no voice dock
-          mkdir -p dist/iris && cp iris/iris.css iris/iris.js dist/iris/
-          sed -i 's#</head>#<link rel="stylesheet" href="/iris/iris.css" />\n<script src="/iris/iris.js"></script>\n</head>#' dist/index.html
+          mkdir -p dist/iris && cp iris/iris.css iris/iris.js iris/vi.js dist/iris/
+          sed -i 's#</head>#<link rel="stylesheet" href="/iris/iris.css" />\n<script src="/iris/vi.js"></script>\n<script src="/iris/iris.js"></script>\n</head>#' dist/index.html
           grep -q '/iris/iris.js' dist/index.html
           sed -i "s/__ARGUS_SNAP_KV__/$(node kv-id.mjs | tail -n 1)/" wrangler.jsonc
           npx -y wrangler@4 deploy
