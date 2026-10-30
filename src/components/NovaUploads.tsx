@@ -141,7 +141,7 @@ export function NovaUploads({ onChange, onClips, importLink = true }: { onChange
         }
         const fin = await fetch(`/api/studio/media?id=${s.id}`, { method: 'PATCH' })
         if (!fin.ok) throw new Error(`HTTP ${fin.status}`)
-        patch(key, { id: s.id, status: 'ready', progress: 1 })
+        patch(key, { id: s.id, status: 'ready', progress: 1, thumb: `/api/studio/media-file?id=${s.id}#t=0.5` })
       } catch (e) {
         patch(key, { status: 'error', error: (e as Error).message })
       }
@@ -150,7 +150,7 @@ export function NovaUploads({ onChange, onClips, importLink = true }: { onChange
 
   const remove = (x: Up) => {
     if (x.id) void fetch(`/api/studio/media?id=${x.id}`, { method: 'DELETE' }).catch(() => null)
-    if (x.thumb) URL.revokeObjectURL(x.thumb)
+    if (x.thumb.startsWith('blob:')) URL.revokeObjectURL(x.thumb)
     setItems((list) => list.filter((y) => y.key !== x.key))
   }
   const earlier = (i: number) => setItems((list) => (i < 1 ? list : [...list.slice(0, i - 1), list[i], list[i - 1], ...list.slice(i + 1)]))

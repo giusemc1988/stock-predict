@@ -187,8 +187,8 @@
 .nv-clip-box { position: relative; container-type: inline-size; width: 100%; max-width: 360px; margin: 0 auto; aspect-ratio: 9 / 16; border-radius: 14px; overflow: hidden; background: #000; }
 .nv-clip-box video { width: 100%; height: 100%; object-fit: cover; display: block; }
 /* same look as the exported frames: soft dark panel, gold tag, EN high and VI low; controls stay clear in the middle */
-.nv-clip-txt { position: absolute; left: 50%; transform: translate(-50%, -50%); width: 90%; padding: 2.2cqw 3cqw; border-radius: 2.6cqw; background: rgba(6, 10, 22, 0.58); text-align: center; pointer-events: none; }
-.nv-clip-txt.en { top: 24%; }
-.nv-clip-txt.vi { top: 74%; }
-.nv-clip-txt span { display: block; font-size: 2.2cqw; font-weight: 700; color: #e8c477; }
-.nv-clip-txt p { margin: 0.4cqw 0 0; font-size: 5.2cqw; line-height: 1.28; font-weight: 600; color: #f5f1e6; }
+.nv-clip-txt { position: absolute; left: 0; right: 0; margin-inline: auto; width: fit-content; max-width: 88%; font-size: 3.6cqw; padding: 0.6em 0.9em; border-radius: 0.55em; background: rgba(6, 10, 22, 0.5); text-align: center; pointer-events: none; }
+.nv-clip-txt p { margin: 0; line-height: 1.3; font-weight: 600; }
+.nv-clip-txt .en { color: #f5f1e6; }
+.nv-clip-txt .vi { color: #e8c477; margin-top: 0.7em; position: relative; }
+.nv-clip-txt .vi::before { content: ''; position: absolute; left: 32%; right: 32%; top: -0.35em; border-top: 1px solid rgba(255, 255, 255, 0.28); }

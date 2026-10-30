@@ -70,6 +70,16 @@ jobs:
           docker pull --quiet "$image"
           for id in $IDS; do
             echo "::group::render $id"
+            # a clip with the EN and VI lines burned on (nova/overlay.py) runs in the same image, no footage search or voice
+            if [ "$(jq -r '.engine // ""' "$WORK/jobs/$id.json")" = overlay ]; then
+              docker run --rm \
+                -v "$WORK:/work" \
+                -v "$PWD/nova/overlay.py:/nova/overlay.py:ro" \
+                -v "$PWD/nova/fonts/BeVietnamPro-Bold.ttf:/MoneyPrinterTurbo/resource/fonts/BeVietnamPro-Bold.ttf:ro" \
+                "$image" python3 /nova/overlay.py "$id" || echo "::warning::overlay $id failed"
+              echo "::endgroup::"
+              continue
+            fi
             docker run --rm \
               -v "$WORK:/work" \
               -v "$WORK/storage:/MoneyPrinterTurbo/storage" \
@@ -114,6 +124,24 @@ jobs:
             docker run --rm -v "$WORK/out:/o" -v "$WORK/check:/c" --entrypoint ffmpeg "$image" -v error -ss "$s" -i "/o/$ID.mp4" -frames:v 1 -vf scale=540:-2 "/c/frame-${s}s.png" || true
           done
           cp "$mp4" "$WORK/check/sample.mp4"
+      - name: Check the clip + text overlay (pull request)
+        if: github.event_name == 'pull_request'
+        run: |
+          image=$(jq -r .image nova/upstream.json)
+          oid=11111111-1111-4111-8111-111111111111
+          mkdir -p "$WORK/jobs" "$WORK/media/$oid" "$WORK/out"
+          cp nova/sample-media/02.mp4 "$WORK/media/$oid/00.mp4"
+          jq -n --arg id "$oid" '{id:$id, engine:"overlay", lines:["One idea on the clip.","A second idea, a little longer than the first."], viLines:["Một ý trên clip.","Ý thứ hai, dài hơn ý đầu một chút."]}' > "$WORK/jobs/$oid.json"
+          docker run --rm -v "$WORK:/work" \
+            -v "$PWD/nova/overlay.py:/nova/overlay.py:ro" \
+            -v "$PWD/nova/fonts/BeVietnamPro-Bold.ttf:/MoneyPrinterTurbo/resource/fonts/BeVietnamPro-Bold.ttf:ro" \
+            "$image" python3 /nova/overlay.py "$oid"
+          cat "$WORK/out/$oid.json"
+          jq -e .ok "$WORK/out/$oid.json" >/dev/null || { echo "::error::overlay failed"; exit 1; }
+          test -s "$WORK/out/$oid.mp4" || { echo "::error::no overlay MP4"; exit 1; }
+          mkdir -p "$WORK/check"
+          docker run --rm -v "$WORK/out:/o" -v "$WORK/check:/c" --entrypoint ffmpeg "$image" -v error -ss 1 -i "/o/$oid.mp4" -frames:v 1 "/c/overlay-1s.png" || true
+          cp "$WORK/out/$oid.mp4" "$WORK/check/overlay.mp4"
       - uses: actions/upload-artifact@v4
         if: github.event_name == 'pull_request' && always()
         with:

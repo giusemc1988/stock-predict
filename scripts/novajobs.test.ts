@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict'
-import { JOB_PREFIX, LEMO_GIVE_UP_MS, LEMO_OFFLINE_ERROR, LEMO_OFFLINE_MS, LEMO_SEEN, MAX_ACTIVE, VID_PREFIX, checkGithubToken, expireLemoJobs, lemoOnline, setHandoff, cleanRenderAsk, kickFarm, deleteJob, fallbackTerms, isJobId, listJobs, parseRange, parseTerms, queueJobs, videoResponse, type JobStore } from '../src/lib/studioJobs'
+import { JOB_PREFIX, LEMO_GIVE_UP_MS, LEMO_OFFLINE_ERROR, LEMO_OFFLINE_MS, LEMO_SEEN, MAX_ACTIVE, VID_PREFIX, checkGithubToken, expireLemoJobs, lemoOnline, setHandoff, cleanRenderAsk, cleanOverlayAsk, queueOverlay, kickFarm, deleteJob, fallbackTerms, isJobId, listJobs, parseRange, parseTerms, queueJobs, videoResponse, type JobStore } from '../src/lib/studioJobs'
 
 /** Map-backed stand-in for the SETTINGS KV binding. */
 function fakeKv(): JobStore & { m: Map<string, string | ArrayBuffer> } {
@@ -175,5 +175,24 @@ assert.equal(await checkGithubToken('tok', gh(404)), false)
   assert.equal(JSON.parse(kv4.m.get(JOB_PREFIX + j.id) as string).handoff, 5, 'stored')
   assert.equal((await setHandoff(kv4, j.id, false, 6))!.handoff, undefined, 'taken back')
   assert.equal(await setHandoff(kv4, '../x', true), null)
+}
+
+{
+  // clip + text: one job, both languages, the clip as its only media
+  const clip = '22222222-2222-4222-8222-222222222222'
+  assert.equal(cleanOverlayAsk({ media: 'nope', en: ['a'], vi: ['b'] }), null)
+  assert.equal(cleanOverlayAsk({ media: clip, en: ['a'], vi: [] }), null)
+  const ask = cleanOverlayAsk({ media: clip, en: ['One', 'Two', 'Three'], vi: ['Một', 'Hai'], smooth60: true })!
+  assert.deepEqual([ask.en.length, ask.vi.length, ask.smooth60, ask.topic], [3, 2, true, 'One'])
+  const kv5 = fakeKv()
+  let k = 0
+  const id5 = () => `00000000-0000-4000-8000-${String(++k).padStart(12, '0')}`
+  const job = (await queueOverlay(kv5, ask, 5, id5))!
+  assert.deepEqual([job.engine, job.status, job.media, job.lines, job.viLines, job.smooth60], ['overlay', 'queued', [clip], ['One', 'Two'], ['Một', 'Hai'], true])
+  assert.equal(job.textTop, 6)
+  assert.equal(cleanOverlayAsk({ media: clip, en: ['a'], vi: ['b'], textTop: 99 })!.textTop, 70)
+  assert.equal((await listJobs(kv5)).length, 1)
+  for (let i = 0; i < MAX_ACTIVE - 1; i++) assert.ok(await queueOverlay(kv5, ask, 6 + i, id5))
+  assert.equal(await queueOverlay(kv5, ask, 99, id5), null, 'the farm is full')
 }
 console.log('novajobs ok')

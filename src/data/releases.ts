@@ -2,7 +2,7 @@
  * Version and "What's new". Bump APP_VERSION and add an entry to the top of RELEASES
  * with each update. The banner shows once per version, then stays dismissed.
  */
-export const APP_VERSION = '1.68.0'
+export const APP_VERSION = '1.69.0'
 
 export interface Release {
   version: string
@@ -13,6 +13,12 @@ export interface Release {
 }
 
 export const RELEASES: Release[] = [
+  {
+    version: '1.69.0',
+    date: '2026-10-30',
+    changes: ['Nova Footage: "Make MP4 with this text" burns the English and Vietnamese lines onto your clip on the server (GitHub Actions) and keeps the clip\'s motion, size and frame rate (60 fps stays 60 fps); the original file is never touched. The text is now one compact pill near the top edge, English in white and Vietnamese in gold with a hairline between, so the scene stays clear; a slider moves it. The clip tile now shows the clip\'s first frame.'],
+    changesVi: ['Nova Footage: "Xuất MP4 kèm chữ này" in dòng tiếng Anh và tiếng Việt lên clip của anh trên máy chủ (GitHub Actions), giữ chuyển động, kích thước và số khung hình của clip (60 fps vẫn là 60 fps); file gốc không bị đụng tới. Chữ giờ là một khung nhỏ gọn sát mép trên, tiếng Anh màu trắng, tiếng Việt màu vàng, có đường kẻ mảnh giữa hai dòng, nên cảnh phía sau vẫn rõ; có thanh trượt để dời lên xuống. Ô clip giờ hiện khung hình đầu tiên.'],
+  },
   {
     version: '1.68.0',
     date: '2026-10-30',

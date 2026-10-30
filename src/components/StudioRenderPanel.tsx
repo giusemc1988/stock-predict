@@ -145,7 +145,7 @@ export function StudioRenderPanel({ topic, topicVi, en, vi, aspect, glass = fals
       {jobs?.map((j) => (
         <div key={j.id} className={`vs-job nv-tile s-${j.status}`}>
           <div className="vs-lab-row">
-            <span className="small"><strong>{j.lang.toUpperCase()}</strong>{j.engine === 'lemo' ? ' · Lemo' : ''} · {j.topic}</span>
+            <span className="small"><strong>{j.engine === 'overlay' ? 'EN+VI' : j.lang.toUpperCase()}</strong>{j.engine === 'lemo' ? ' · Lemo' : j.engine === 'overlay' ? ' · clip' : ''} · {j.topic}</span>
             <span className={`small ${j.status === 'failed' ? 'warn' : 'muted'}`}>{t(j.engine === 'lemo' && j.status === 'queued' ? 'statusLemoQueued' : j.engine === 'lemo' && j.status === 'rendering' ? 'statusLemoRendering' : STATUS[j.status])}</span>
           </div>
           {j.status === 'failed' && j.error && <p className="small muted">{j.error}</p>}
