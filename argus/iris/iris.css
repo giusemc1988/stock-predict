@@ -69,6 +69,34 @@ html.iris-compact #iris-bar {
   background: color-mix(in srgb, var(--iris-acc, #5fd4ff) 30%, rgba(8, 16, 24, 0.92));
   color: #fff;
 }
+#iris-bar button[aria-busy='true'] {
+  opacity: 0.7;
+  animation: iris-pulse 1s ease-in-out infinite;
+}
+@keyframes iris-pulse {
+  50% {
+    opacity: 0.35;
+  }
+}
+#iris-toast {
+  position: fixed;
+  left: 50%;
+  top: calc(max(10px, env(safe-area-inset-top)) + 54px);
+  transform: translateX(-50%);
+  z-index: 1400;
+  max-width: min(420px, calc(100vw - 24px));
+  padding: 10px 14px;
+  border-radius: 14px;
+  background: rgba(8, 16, 24, 0.94);
+  border: 1px solid rgba(120, 220, 255, 0.35);
+  color: #d8f3ff;
+  font: 600 13px/1.35 Inter, system-ui, sans-serif;
+  text-align: center;
+  pointer-events: none;
+}
+#iris-toast[hidden] {
+  display: none;
+}
 #iris-bar svg {
   width: 16px;
   height: 16px;
