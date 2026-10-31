@@ -231,8 +231,9 @@ export function StudioRenderPanel({ topic, topicVi, en, vi, aspect, glass = fals
             </div>
           )}
           <div className="vs-row">
-            {handoff && j.status === 'done' && <button className="btn small" aria-pressed={!!j.handoff} onClick={() => void send(j.id, !j.handoff)}>{t(j.handoff ? 'sentViraltech' : 'sendViraltech')}</button>}
-            {handoff && j.handoff && onViraltech && <button className="btn small" onClick={onViraltech}>{t('openViraltech')}</button>}
+            {handoff && j.status === 'done' && (j.handoff && onViraltech
+              ? <button className="btn small" onClick={onViraltech}>{t('openViraltech')}</button>
+              : <button className="btn small" onClick={() => void send(j.id, true)}>{t('sendViraltech')}</button>)}
             {post && j.status === 'done' && <button className="btn small primary" disabled={!!sharing} onClick={() => void share(j)}>{t('shareGo')}{files.current.has(j.id) ? '' : ' …'}</button>}
             {sharing === j.id && <NovaProgress active label={t('shareBusy')} secs={10} />}
             {j.status === 'done' && <a className="btn small primary" href={`/api/studio/video?id=${j.id}&download`}>{t('download')}{j.size ? ` (${(j.size / 1e6).toFixed(1)} MB)` : ''}</a>}
