@@ -2,7 +2,7 @@
  * Version and "What's new". Bump APP_VERSION and add an entry to the top of RELEASES
  * with each update. The banner shows once per version, then stays dismissed.
  */
-export const APP_VERSION = '1.76.1'
+export const APP_VERSION = '1.77.0'
 
 export interface Release {
   version: string
@@ -13,6 +13,12 @@ export interface Release {
 }
 
 export const RELEASES: Release[] = [
+  {
+    version: '1.77.0',
+    date: '2026-10-31',
+    changes: ['Iris: new "Nearest cam" button. It finds the closest public traffic camera to you, says how far it is, and flies there (the free camera lists only cover some regions, none in Italy or Vietnam yet).'],
+    changesVi: ['Iris: nút mới "Camera gần". Tìm camera giao thông công khai gần anh nhất, báo cách bao nhiêu km và bay tới đó (danh sách camera miễn phí chỉ có ở một số vùng, chưa có ở Ý hay Việt Nam).'],
+  },
   {
     version: '1.76.1',
     date: '2026-10-31',
