@@ -3,7 +3,7 @@
  * in Settings (never in the browser). English and Vietnamese are written as two separate originals:
  * two calls, each told to write natively in its own language, never to translate the other.
  */
-import { PROVIDERS, callHelper, type BrainEnv } from './brainServer'
+import { PROVIDERS, callHelper, modelsToTry, usedModel, type BrainEnv } from './brainServer'
 import { CHANNEL, parseScenes, studioPrompt, type Script, type StudioMode } from './studio/script'
 import { HOOK_THEMES } from './studio/hookThemes'
 import { cleanKitSettings, fallbackKit, fillKit, itemPrompt, kitPrompt, parseItem, parseKit, PLATFORMS, type KitKind, type KitSettings, type Platform, type PostKit } from './studio/postkit'
@@ -43,7 +43,7 @@ async function ask(e: BrainEnv, system: string, user: string, maxTokens = 1200):
     if (!key) continue
     try {
       const text = (await callHelper(p, key, e, system, user, timed, undefined, maxTokens))?.trim()
-      if (text) return { text, by: p.name }
+      if (text) return { text, by: `${p.name} · ${usedModel.get(p.id) ?? '?'}` }
     } catch {
       // down or over its free limit: try the next one
     }
@@ -59,6 +59,18 @@ export async function writeScript(a: WriteAsk, e: BrainEnv): Promise<{ en: strin
   // both sides get the same scene count so each frame shows a pair
   const n = Math.min(enLines.length, viLines.length)
   return { en: enLines.slice(0, n), vi: viLines.slice(0, n), by: [...new Set([en!.by, vi!.by])].join(' + ') }
+}
+
+/** Which AI will write first and which is the backup, with the model each would use right now (the live newest free one). */
+export async function aiPlan(e: BrainEnv): Promise<{ name: string; model: string }[]> {
+  const out: { name: string; model: string }[] = []
+  for (const p of PROVIDERS.filter((x) => x.id === 'gemini' || x.id === 'groq')) {
+    const key = p.key(e)
+    if (!key) continue
+    const model = (await modelsToTry(p, key, e, timed).catch(() => []))[0]
+    if (model) out.push({ name: p.name, model })
+  }
+  return out
 }
 
 /** English stock-footage search terms for the server render; the topic's own words when no AI answers. */

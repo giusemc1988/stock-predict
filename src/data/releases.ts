@@ -2,7 +2,7 @@
  * Version and "What's new". Bump APP_VERSION and add an entry to the top of RELEASES
  * with each update. The banner shows once per version, then stays dismissed.
  */
-export const APP_VERSION = '1.77.3'
+export const APP_VERSION = '1.77.4'
 
 export interface Release {
   version: string
@@ -13,6 +13,12 @@ export interface Release {
 }
 
 export const RELEASES: Release[] = [
+  {
+    version: '1.77.4',
+    date: '2026-10-31',
+    changes: ['Nova shows which AI and model is writing (and the backup) on the progress bar, and which model actually wrote it when done.'],
+    changesVi: ['Nova hiện AI và model nào đang viết (cùng model dự phòng) ngay trên thanh tiến trình, và khi xong ghi rõ model nào đã viết thật.'],
+  },
   {
     version: '1.77.3',
     date: '2026-10-31',
