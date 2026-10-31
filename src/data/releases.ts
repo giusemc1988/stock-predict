@@ -2,7 +2,7 @@
  * Version and "What's new". Bump APP_VERSION and add an entry to the top of RELEASES
  * with each update. The banner shows once per version, then stays dismissed.
  */
-export const APP_VERSION = '1.77.6'
+export const APP_VERSION = '1.77.7'
 
 export interface Release {
   version: string
@@ -13,6 +13,12 @@ export interface Release {
 }
 
 export const RELEASES: Release[] = [
+  {
+    version: '1.77.7',
+    date: '2026-10-31',
+    changes: ['Nova: "Send to Viraltech" now opens Viraltech right after sending, instead of staying on the same page.'],
+    changesVi: ['Nova: nút "Gửi sang Viraltech" giờ tự mở Viraltech ngay sau khi gửi, không đứng yên ở trang cũ nữa.'],
+  },
   {
     version: '1.77.6',
     date: '2026-10-31',
