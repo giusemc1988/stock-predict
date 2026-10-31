@@ -2,7 +2,7 @@
  * Version and "What's new". Bump APP_VERSION and add an entry to the top of RELEASES
  * with each update. The banner shows once per version, then stays dismissed.
  */
-export const APP_VERSION = '1.77.2'
+export const APP_VERSION = '1.77.3'
 
 export interface Release {
   version: string
@@ -13,6 +13,12 @@ export interface Release {
 }
 
 export const RELEASES: Release[] = [
+  {
+    version: '1.77.3',
+    date: '2026-10-31',
+    changes: ['AI auto-rotate everywhere (Neo, Nova, Settings test): Gemini, Groq, Grok and NVIDIA now ask the provider which models it serves today, try the newest free one first and move to the next when a model is gone (404) or out of quota (429). Nova scripts are written as one small story, with no invented statistics or "share your story" endings.'],
+    changesVi: ['AI tự xoay ở mọi nơi (Neo, Nova, nút thử trong Cài đặt): Gemini, Groq, Grok và NVIDIA giờ hỏi nhà cung cấp hôm nay đang có model nào, thử model miễn phí mới nhất trước và chuyển sang model kế khi model cũ bị bỏ (404) hoặc hết hạn mức (429). Kịch bản Nova viết như một câu chuyện nhỏ, không bịa số liệu, không kết bằng "chia sẻ câu chuyện của bạn".'],
+  },
   {
     version: '1.77.2',
     date: '2026-10-31',

@@ -59,8 +59,9 @@ const ok = (async (u: string) => {
 const result = await testProvider('nvidia', { NVIDIA_API_KEY: 'nvapi-secretsecretsecret123', GEMINI_API_KEY: 'AIzaSyDUMMYDUMMYDUMMYDUMMY1234567890' }, ok)
 assert.equal(result.ok, true)
 assert.ok(result.model && typeof result.model === 'string')
-assert.equal(urls.length, 1)
-assert.ok(urls[0].includes('nvidia.com'))
+// one live model lookup, then one tiny chat call, both to that provider only
+assert.equal(urls.filter((u) => /chat\/completions|generateContent/.test(u)).length, 1)
+assert.ok(urls.every((u) => u.includes('nvidia.com')))
 const bad = (async () => new Response('nope', { status: 401 })) as typeof fetch
 const r = await testProvider('nvidia', { NVIDIA_API_KEY: 'nvapi-secretsecretsecret123' }, bad)
 assert.equal(r.ok, false)
@@ -91,7 +92,7 @@ assert.notEqual(tried[0], tried[1])
 let calls = 0
 const denied = (async () => (calls++, new Response('{"error":{"message":"Invalid API Key"}}', { status: 401 }))) as typeof fetch
 assert.equal((await testProvider('groq', { GROQ_API_KEY: 'gsk_secretsecretsecretsecret' }, denied)).ok, false)
-assert.equal(calls, 1)
+assert.equal(calls, 2, 'one model lookup plus one chat call, no retry on every model')
 
 // Groq returning HTTP 200 with empty response (quota/rate limit)
 const groqEmptyResponse = async (_u: string) => new Response(JSON.stringify({ choices: [{ message: { content: '' } }] }), { status: 200 })
@@ -155,3 +156,40 @@ assert.equal(fhHttpResult.ok, false, 'Finnhub test rejects HTTP 401')
 assert.ok(fhHttpResult.error?.includes('401'), 'Finnhub error shows HTTP status')
 
 console.log('brain keys tests passed')
+
+// auto-rotate: the newest free model is found from the provider's own list, and a model out of quota moves on to the next
+{
+  const { rankGemini, rankGroq, rankNvidia, rankXai, callHelper, forgetLiveModels, PROVIDERS } = await import('../src/lib/brainServer')
+  const gm = (name: string, ok = true) => ({ name: `models/${name}`, supportedGenerationMethods: ok ? ['generateContent'] : ['embedContent'] })
+  assert.deepEqual(
+    rankGemini([gm('gemini-2.5-flash'), gm('gemini-3.1-flash-lite'), gm('gemini-3.1-flash'), gm('gemini-3.1-flash-image'), gm('gemini-3.2-flash-preview'), gm('gemini-embedding-001', false), gm('gemini-2.5-pro'), gm('gemma-3-27b-it')]),
+    ['gemini-3.1-flash', 'gemini-3.1-flash-lite', 'gemini-2.5-flash'],
+  )
+  assert.deepEqual(rankGroq([{ id: 'whisper-large-v3' }, { id: 'openai/gpt-oss-120b' }, { id: 'llama-3.3-70b-versatile' }, { id: 'llama-guard-4-12b' }, { id: 'old', active: false }]), ['llama-3.3-70b-versatile', 'openai/gpt-oss-120b'])
+  assert.equal(rankXai(['grok-2-vision', 'grok-4', 'grok-3-mini', 'grok-3'])[0], 'grok-4')
+  assert.ok(rankNvidia(['nvidia/nv-embedqa', 'meta/llama-3.3-70b-instruct', 'nvidia/llama-3.3-nemotron-super-49b']).every((id) => !/embed/.test(id)))
+
+  forgetLiveModels()
+  const seen: string[] = []
+  const live = (async (u: string, init?: RequestInit) => {
+    if (String(u).includes('/v1beta/models?')) return new Response(JSON.stringify({ models: [gm('gemini-3.1-flash'), gm('gemini-2.5-flash')] }))
+    const model = String(u).match(/models\/([^:]+):generate/)?.[1] ?? ''
+    seen.push(model)
+    void init
+    return model === 'gemini-3.1-flash' ? new Response('{"error":{"message":"quota"}}', { status: 429 }) : new Response(JSON.stringify({ candidates: [{ content: { parts: [{ text: 'hi' }] } }] }))
+  }) as typeof fetch
+  const gem = PROVIDERS.find((x) => x.id === 'gemini')!
+  assert.equal(await callHelper(gem, 'k', {}, 's', 'u', live), 'hi')
+  assert.deepEqual(seen, ['gemini-3.1-flash', 'gemini-2.5-flash'], 'newest first, then the next when its quota is used up')
+  // a model Google retired is never tried first once the live list no longer has it
+  forgetLiveModels()
+  seen.length = 0
+  const gone = (async (u: string) => {
+    if (String(u).includes('/v1beta/models?')) return new Response(JSON.stringify({ models: [gm('gemini-4-flash')] }))
+    seen.push(String(u).match(/models\/([^:]+):generate/)?.[1] ?? '')
+    return new Response(JSON.stringify({ candidates: [{ content: { parts: [{ text: 'ok' }] } }] }))
+  }) as typeof fetch
+  await callHelper(gem, 'k', {}, 's', 'u', gone)
+  assert.equal(seen[0], 'gemini-4-flash')
+  forgetLiveModels()
+}
