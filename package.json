@@ -1,7 +1,7 @@
 {
   "name": "stock-predict",
   "private": true,
-  "version": "1.77.5",
+  "version": "1.77.6",
   "type": "module",
   "scripts": {
     "dev": "vite",
