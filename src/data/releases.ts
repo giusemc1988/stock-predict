@@ -2,7 +2,7 @@
  * Version and "What's new". Bump APP_VERSION and add an entry to the top of RELEASES
  * with each update. The banner shows once per version, then stays dismissed.
  */
-export const APP_VERSION = '1.76.0'
+export const APP_VERSION = '1.76.1'
 
 export interface Release {
   version: string
@@ -13,6 +13,12 @@ export interface Release {
 }
 
 export const RELEASES: Release[] = [
+  {
+    version: '1.76.1',
+    date: '2026-10-31',
+    changes: ['Iris on phones: removed the "turn off all layers" button from the top-right column (too easy to tap by mistake; every layer has its own switch in the Layers tab).'],
+    changesVi: ['Iris trên điện thoại: bỏ nút "tắt hết lớp" ở cột nút góc trên phải (dễ bấm nhầm, mỗi lớp đã có công tắc riêng ở tab Lớp).'],
+  },
   {
     version: '1.76.0',
     date: '2026-10-31',
