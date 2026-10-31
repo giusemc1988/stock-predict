@@ -48,7 +48,7 @@ export function NovaPostKit({ script, hook, onHook }: { script: Script; hook?: {
     setBusy('all')
     setMsg(null)
     try {
-      const r = await fetch('/api/studio/postkit', { method: 'POST', headers: { 'content-type': 'application/json' }, body: body() })
+      const r = await fetch('/api/studio/postkit', { method: 'POST', headers: { 'content-type': 'application/json' }, body: body(), signal: AbortSignal.timeout(45_000) })
       const j = (await r.json().catch(() => null)) as { kit?: PostKit; by?: string | null; error?: string } | null
       if (!r.ok || !j?.kit) throw new Error(j?.error ?? `HTTP ${r.status}`)
       setAi({ topic: script.topic.en, kit: j.kit, by: j.by ?? null })
@@ -66,7 +66,7 @@ export function NovaPostKit({ script, hook, onHook }: { script: Script; hook?: {
     setMsg(null)
     const avoid = kind === 'hook' ? kit.hooks : kind === 'title' ? kit.titles : [kit.captions[platform!] ?? '']
     try {
-      const r = await fetch('/api/studio/postkit', { method: 'POST', headers: { 'content-type': 'application/json' }, body: body({ lang: cur, kind, platform, avoid }) })
+      const r = await fetch('/api/studio/postkit', { method: 'POST', headers: { 'content-type': 'application/json' }, body: body({ lang: cur, kind, platform, avoid }), signal: AbortSignal.timeout(45_000) })
       const j = (await r.json().catch(() => null)) as { text?: string; error?: string } | null
       if (!r.ok || !j?.text) throw new Error(j?.error ?? `HTTP ${r.status}`)
       if (kind === 'caption') edit({ captions: { ...kit.captions, [platform!]: j.text } })

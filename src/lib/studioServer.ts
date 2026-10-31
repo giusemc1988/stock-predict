@@ -32,13 +32,17 @@ export function cleanWriteAsk(body: unknown): WriteAsk | null {
   return { topic, topicVi: topicVi || topic, mode, scenes, channel }
 }
 
-/** Gemini, then Groq. Returns null when neither has a key or both fail. */
+/** A helper that does not answer within this long is skipped, so the page never waits on a quota-stuck provider. */
+export const AI_TIMEOUT_MS = 12_000
+const timed: typeof fetch = (input, init) => fetch(input, { ...init, signal: AbortSignal.timeout(AI_TIMEOUT_MS) })
+
+/** Gemini, then Groq. Returns null when neither has a key or both fail (or time out). */
 async function ask(e: BrainEnv, system: string, user: string, maxTokens = 1200): Promise<{ text: string; by: string } | null> {
   for (const p of PROVIDERS.filter((x) => x.id === 'gemini' || x.id === 'groq')) {
     const key = p.key(e)
     if (!key) continue
     try {
-      const text = (await callHelper(p, key, e, system, user, fetch, undefined, maxTokens))?.trim()
+      const text = (await callHelper(p, key, e, system, user, timed, undefined, maxTokens))?.trim()
       if (text) return { text, by: p.name }
     } catch {
       // down or over its free limit: try the next one
