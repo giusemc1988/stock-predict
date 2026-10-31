@@ -127,6 +127,79 @@
     return b
   }
 
+  // "Nearest camera": the public CCTV list (/api/cctv/sources) only covers some regions, so say how far the closest
+  // camera is and fly there. Reference point: the last "My location" fix, else the browser position, else the map centre.
+  const camText = {
+    label: () => (vi() ? 'Camera gần' : 'Nearest cam'),
+    wait: () => (vi() ? 'Đang tìm camera gần nhất…' : 'Finding the nearest camera…'),
+    fail: () => (vi() ? 'Không tải được danh sách camera.' : 'Could not load the camera list.'),
+    found: (c, km) =>
+      vi()
+        ? `Camera gần nhất: ${c.name || c.id} (${c.city || c.provider || ''}), cách ${km} km. Đang bay tới đó.`
+        : `Nearest camera: ${c.name || c.id} (${c.city || c.provider || ''}), ${km} km away. Flying there.`,
+  }
+  const haversine = (a, b, c, d) => {
+    const r = Math.PI / 180
+    const x = Math.sin(((c - a) * r) / 2) ** 2 + Math.cos(a * r) * Math.cos(c * r) * Math.sin(((d - b) * r) / 2) ** 2
+    return 12742 * Math.asin(Math.sqrt(x))
+  }
+  const here = () =>
+    new Promise((resolve) => {
+      if (window.irisPos) return resolve(window.irisPos)
+      const fromMap = () => {
+        const v = window.__godsEyeView?.viewer
+        const C = v?.camera?.positionCartographic
+        resolve(C ? { lat: (C.latitude * 180) / Math.PI, lon: (C.longitude * 180) / Math.PI } : null)
+      }
+      if (!navigator.geolocation) return fromMap()
+      navigator.geolocation.getCurrentPosition(
+        (pos) => resolve((window.irisPos = { lat: pos.coords.latitude, lon: pos.coords.longitude })),
+        fromMap,
+        { timeout: 8000, maximumAge: 60000 },
+      )
+    })
+
+  function cameraButton() {
+    const b = document.createElement('button')
+    b.type = 'button'
+    b.id = 'iris-camnear'
+    b.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="2.5" y="6" width="13" height="12" rx="2"/><path d="m15.5 10 6-3v10l-6-3"/></svg><span></span>'
+    const relabel = () => (b.querySelector('span').textContent = camText.label())
+    relabel()
+    document.addEventListener('iris-lang', relabel)
+    b.addEventListener('click', async () => {
+      if (b.dataset.busy) return
+      b.dataset.busy = '1'
+      b.setAttribute('aria-busy', 'true')
+      toast(camText.wait())
+      try {
+        const [me, res] = await Promise.all([here(), fetch('/api/cctv/sources').then((r) => (r.ok ? r.json() : Promise.reject(r.status)))])
+        const list = (res.sources || res).filter((c) => Number.isFinite(c.lat) && Number.isFinite(c.lon))
+        const viewer = window.__godsEyeView?.viewer
+        const Cart = viewer?.camera?.position?.constructor
+        if (!me || !list.length || !Cart?.fromDegrees) return toast(msg.noMap())
+        let best = null
+        let bestKm = Infinity
+        for (const c of list) {
+          const km = haversine(me.lat, me.lon, c.lat, c.lon)
+          if (km < bestKm) [best, bestKm] = [c, km]
+        }
+        toast(camText.found(best, bestKm < 10 ? bestKm.toFixed(1) : Math.round(bestKm).toLocaleString('en')))
+        viewer.camera.flyTo({
+          destination: Cart.fromDegrees(best.lon, best.lat, 1200),
+          orientation: { heading: 0, pitch: -Math.PI / 2, roll: 0 },
+          duration: 4,
+        })
+      } catch {
+        toast(camText.fail())
+      } finally {
+        delete b.dataset.busy
+        b.removeAttribute('aria-busy')
+      }
+    })
+    return b
+  }
+
   function locateButton() {
     const b = document.createElement('button')
     b.type = 'button'
@@ -180,7 +253,7 @@
       b.addEventListener('click', () => open(side))
       bar.append(b)
     }
-    bar.append(locateButton(), flightButton(), eventsButton())
+    bar.append(locateButton(), cameraButton(), flightButton(), eventsButton())
     document.body.append(bar)
     // the bar wraps to 1-3 rows depending on the screen: keep the camera buttons just below it
     const fit = () => root.style.setProperty('--iris-bar-h', `${Math.ceil(bar.getBoundingClientRect().height)}px`)
