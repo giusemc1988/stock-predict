@@ -102,7 +102,7 @@ export function NovaPostKit({ script, hook, onHook }: { script: Script; hook?: {
       <details className="vs-pexels nv-kit-set">
         <summary className="small">{t('kitSettings')}</summary>
         <div className="nv-kit-grid">
-          {range('kitHooks', 'hooks', 1, 10)}
+          {range('kitHooks', 'hooks', 1, 5)}
           {range('kitTitles', 'titles', 1, 10)}
           {range('kitHashtags', 'hashtags', 0, 15)}
           <label className="vs-field">

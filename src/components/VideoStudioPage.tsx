@@ -283,7 +283,7 @@ export function VideoStudioPage({ onBack, glass = true, trends = true, postKit =
 
         <section id="nv-idea" className={card}>
           {head(1, 'stepIdea')}
-          {trends && <NovaTrends onPick={(it) => void applyTrend(it)} onAuto={autoTrend} busy={!!busy} themes={hookThemes} onTopic={(en, vi) => { chooseTopic(en, vi); setMsg(t('trendPicked')) }} onAutoTopic={(en, vi) => { chooseTopic(en, vi); document.getElementById('nv-script')?.scrollIntoView({ behavior: 'smooth', block: 'start' }); void writeAi({ topic: en, topicVi: vi }) }} />}
+          {trends && <NovaTrends onPick={(it) => void applyTrend(it)} onAuto={autoTrend} busy={!!busy} themes={hookThemes} picked={topic} onTopic={(en, vi) => { chooseTopic(en, vi); setMsg(t('trendPicked')); setTimeout(() => document.getElementById('nv-script')?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 150) }} />}
           <div className="nv-two">
             <label className="vs-field">
               <span className="small muted">{t('topic')} (EN)</span>
@@ -298,6 +298,7 @@ export function VideoStudioPage({ onBack, glass = true, trends = true, postKit =
 
         <section id="nv-script" className={card}>
           {head(2, 'stepScript')}
+          <p className="small">{t('topicChosen')}: <b>{(lang === 'vi' ? topicVi || topic : topic) || '—'}</b></p>
           <div className="vs-row">
             <button className="btn primary" disabled={!!busy || !topic.trim()} onClick={() => void writeAi()}>{t('writeAi')}</button>
           </div>

@@ -7,7 +7,7 @@ const s = LIBRARY[0]
 
 // settings are clamped and cleaned
 const k = cleanKitSettings({ hooks: 99, titles: 0, tone: 'rude', platforms: ['tiktok', 'myspace', 'tiktok'], hashtags: -3, langs: ['fr'] })
-assert.equal(k.hooks, 10)
+assert.equal(k.hooks, 5)
 assert.equal(k.titles, 1)
 assert.equal(k.tone, 'curious')
 assert.deepEqual(k.platforms, ['tiktok'])
@@ -16,7 +16,7 @@ assert.deepEqual(k.langs, DEFAULT_KIT.langs)
 assert.deepEqual(cleanKitSettings(null), DEFAULT_KIT)
 
 // the no-AI kit gives exactly the asked counts, in both languages, for each platform
-for (const n of [1, 4, 10]) {
+for (const n of [1, 4, 5]) {
   const kit = fallbackKit(s, { ...DEFAULT_KIT, hooks: n, titles: n })
   for (const l of ['en', 'vi'] as const) {
     assert.equal(kit[l]!.hooks.length, Math.min(n, 9), `${l} hooks ${n}`)
@@ -56,7 +56,7 @@ assert.equal(cleanTag('##Hello-World!'), 'HelloWorld')
 
 // short AI answers are filled from the no-AI kit
 const filled = fillKit(ai, fallbackKit(s, DEFAULT_KIT).en!, DEFAULT_KIT)
-assert.equal(filled.hooks.length, 5)
+assert.equal(filled.hooks.length, 4)
 assert.deepEqual(filled.hooks.slice(0, 2), ['A', 'B'])
 assert.equal(filled.captions.tiktok, 'Hi there')
 assert.ok(filled.captions.youtube)
@@ -91,7 +91,7 @@ assert.equal(cleanKitAsk({ script: { topic: 'Sea' }, only: { lang: 'fr', kind: '
   assert.deepEqual(list.map((p) => p.name), ['tiktok vi', 'YT'])
   assert.equal(list[0].mode, 'faceless')
   assert.equal(list[1].aspect, '9:16')
-  assert.equal(cleanPresets([{ name: 'A', mode: 'trip', aspect: '1:1', kit: { hooks: 99 }, video: { subSize: 1 } }])[0].kit.hooks, 10)
+  assert.equal(cleanPresets([{ name: 'A', mode: 'trip', aspect: '1:1', kit: { hooks: 99 }, video: { subSize: 1 } }])[0].kit.hooks, 5)
   assert.equal(cleanPresets([{ name: 'A', video: { subSize: 1 } }])[0].video.subSize, 36)
   assert.equal(cleanPresets(Array.from({ length: 30 }, (_, i) => ({ name: `p${i}`, at: i }))).length, MAX_PRESETS)
   assert.deepEqual(cleanPresets(null), [])

@@ -104,6 +104,7 @@
 .nv-trend-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 8px; min-width: 0; }
 .nv-trend { display: grid; gap: 3px; text-align: left; padding: 10px 12px; border-radius: 14px; border: 1px solid var(--line); background: rgba(255, 255, 255, 0.06); color: var(--ink, inherit); cursor: pointer; min-width: 0; transition: background-color 0.2s ease, transform 0.12s ease, border-color 0.2s ease; }
 .nv-trend:hover:not(:disabled) { background: rgba(255, 255, 255, 0.12); border-color: color-mix(in srgb, var(--acc, #d6a4ea) 45%, var(--line)); }
+.nv-trend.on { border-color: var(--acc, #d6a4ea); background: color-mix(in srgb, var(--acc, #d6a4ea) 22%, transparent); }
 .nv-trend:active:not(:disabled) { transform: scale(0.98); }
 .nv-trend:disabled { opacity: 0.5; cursor: default; }
 .nv-trend-t { font-weight: 600; font-size: 14px; overflow-wrap: anywhere; }
