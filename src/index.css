@@ -1560,7 +1560,7 @@ body:has(.jfab) .toasts, body:has(.jfab) .jarvis-alert { bottom: 84px; }
 .vs-field { display: grid; gap: 4px; min-width: 0; }
 .vs-field input, .vs-field textarea { width: 100%; box-sizing: border-box; background: var(--bg); color: inherit; border: 1px solid var(--line); border-radius: 8px; padding: 8px; font: inherit; }
 .vs-scripts { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 10px; align-items: start; }
-.vs-scripts textarea { resize: vertical; max-width: 100%; }
+.vs-scripts textarea { resize: none; max-width: 100%; height: 11em; overflow-y: auto; }
 .vs-check { display: inline-flex; gap: 6px; align-items: center; font-size: 13px; }
 .vs-preview { width: min(100%, 360px); margin: 0 auto; border-radius: 10px; overflow: hidden; border: 1px solid var(--line); }
 .vs-preview canvas { width: 100%; height: 100%; display: block; }
