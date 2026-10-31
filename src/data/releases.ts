@@ -2,7 +2,7 @@
  * Version and "What's new". Bump APP_VERSION and add an entry to the top of RELEASES
  * with each update. The banner shows once per version, then stays dismissed.
  */
-export const APP_VERSION = '1.75.1'
+export const APP_VERSION = '1.76.0'
 
 export interface Release {
   version: string
@@ -13,6 +13,12 @@ export interface Release {
 }
 
 export const RELEASES: Release[] = [
+  {
+    version: '1.76.0',
+    date: '2026-10-31',
+    changes: ['Iris on phones: the bottom tab bar (Layers, Cameras, Context, Search, More) now really opens its panels, with our quick layers on top of Layers. The duplicate Layers/Panels buttons at the top are gone, and the language globe no longer overlaps the camera buttons.'],
+    changesVi: ['Iris trên điện thoại: thanh tab dưới (Lớp, Camera, Ngữ cảnh, Tìm, Thêm) giờ mở đúng bảng, có "Lớp nhanh" trên đầu tab Lớp. Bỏ hai nút trùng "Lớp dữ liệu/Bảng" ở trên, và quả cầu ngôn ngữ không còn đè lên nút camera.'],
+  },
   {
     version: '1.75.1',
     date: '2026-10-31',

@@ -106,10 +106,16 @@ html.iris-compact #iris-bar {
 /* ── Compact: phone and tablet ─────────────── */
 html.iris-compact #intel-hud,
 html.iris-compact #title-bar,
-html.iris-compact #style-indicator,
-html.iris-compact #left-panel-stack,
-html.iris-compact #right-context-rail {
+html.iris-compact #style-indicator {
   display: none !important;
+}
+/* on phones the upstream tab bar opens these two as sheets, so only tablets hide them behind the Iris drawers */
+html.iris-compact:not(.iris-shell) #left-panel-stack,
+html.iris-compact:not(.iris-shell) #right-context-rail {
+  display: none !important;
+}
+html.iris-shell #iris-bar button[data-side] {
+  display: none;
 }
 
 html.iris-compact[data-iris-open='left'] #left-panel-stack,
@@ -559,4 +565,32 @@ body.mobile-shell .mobile-tab[aria-expanded='true'] {
   body.mobile-shell .mobile-tab {
     transition: none;
   }
+}
+
+/* language picker: pinned to the top-right corner of the Iris bar row, clear of the camera buttons below */
+html.iris-compact .locale-picker {
+  position: fixed;
+  top: max(10px, env(safe-area-inset-top));
+  right: 10px;
+  z-index: 1301;
+}
+html.iris-compact .locale-picker-button {
+  min-height: 40px;
+  min-width: 40px;
+}
+/* phone tab bar: darker glass so the labels read over bright maps */
+body.mobile-shell #mobile-tab-bar {
+  --glass-fill: linear-gradient(150deg, rgba(255, 255, 255, 0.2), rgba(255, 255, 255, 0.05) 50%, rgba(255, 255, 255, 0.1)),
+    rgba(10, 18, 30, 0.82);
+}
+/* quick layers sit on top of the phone Layers sheet (upstream only shows its own panels there) */
+body.mobile-shell[data-mobile-sheet='layers'] #left-panel-stack > #iris-quick {
+  display: block !important;
+  position: relative !important;
+  flex: none !important;
+  width: 100% !important;
+  max-height: none !important;
+}
+body.mobile-shell[data-mobile-sheet='layers'] #left-panel-stack > * {
+  flex: none !important;
 }

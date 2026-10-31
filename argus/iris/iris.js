@@ -52,6 +52,12 @@
   const root = document.documentElement
   const compact = matchMedia('(max-width: 1100px), (hover: none)')
   const sync = () => root.classList.toggle('iris-compact', compact.matches)
+  // Phones (<=720px): upstream's own tab bar and sheets (Layers, Cameras, Context, Search, More) run the panels,
+  // so Iris drops its duplicate drawers and pills there. Wider tablets keep the Iris drawers.
+  const shell = matchMedia('(max-width: 720px)')
+  const syncShell = () => root.classList.toggle('iris-shell', shell.matches)
+  syncShell()
+  shell.addEventListener?.('change', syncShell)
   sync()
   compact.addEventListener?.('change', sync)
 
