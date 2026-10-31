@@ -25,7 +25,7 @@ const TOPICS: { id: TopicView; key: StudioKey }[] = [
 ]
 
 /** Nova step 1: trending topics from free sources; tap one to use it, or let Nova pick and write. */
-export function NovaTrends({ onPick, onAuto, busy, themes = false, onTopic, onAutoTopic }: { onPick: (t: TrendItem) => void; onAuto: (t: TrendItem) => void; busy: boolean; themes?: boolean; onTopic?: (en: string, vi: string) => void; onAutoTopic?: (en: string, vi: string) => void }) {
+export function NovaTrends({ onPick, onAuto, busy, themes = false, onTopic, picked }: { onPick: (t: TrendItem) => void; onAuto: (t: TrendItem) => void; busy: boolean; themes?: boolean; onTopic?: (en: string, vi: string) => void; picked?: string }) {
   const lang = useLang()
   const t = (k: StudioKey) => STUDIO_TEXT[k][lang]
   const [prefs, setPrefs] = useLocalStorage<Prefs>('nova.trends.v1', DEFAULT_PREFS)
@@ -93,21 +93,17 @@ export function NovaTrends({ onPick, onAuto, busy, themes = false, onTopic, onAu
       </div>
       <div className="nv-trend-list">
         {(ai[cur.id] ?? cur.seeds).map((sd) => (
-          <button key={sd.en} className="nv-trend" disabled={busy} onClick={() => onTopic(sd.en, sd.vi)}>
+          <button key={sd.en} className={`nv-trend${picked === sd.en ? ' on' : ''}`} aria-pressed={picked === sd.en} disabled={busy} onClick={() => onTopic(sd.en, sd.vi)}>
             <span className="nv-trend-t">{lang === 'vi' ? sd.vi : sd.en}</span>
           </button>
         ))}
       </div>
       <div className="vs-row">
         <button className="btn small" disabled={busy || aiBusy} onClick={() => void moreIdeas(cur.id, (ai[cur.id] ?? cur.seeds).map((x) => x.en))}>✦ {t('themeAi')}</button>
+        <button className="btn small" disabled={busy} onClick={() => { const pool = ai[cur.id] ?? cur.seeds; const sd = pool[Math.floor(Math.random() * pool.length)]; onTopic(sd.en, sd.vi) }}>🎲 {t('themeWrite')}</button>
       </div>
       <NovaProgress active={aiBusy} label={t('themeAiLoading')} secs={10} />
       {aiErr && <p className="small warn">{aiErr}</p>}
-      {onAutoTopic && (
-        <div className="vs-row">
-          <button className="btn primary" disabled={busy} onClick={() => { const pool = ai[cur.id] ?? cur.seeds; const sd = pool[Math.floor(Math.random() * pool.length)]; onAutoTopic(sd.en, sd.vi) }}>✦ {t('themeWrite')}</button>
-        </div>
-      )}
     </div>
   )
 

@@ -2,7 +2,7 @@
  * Version and "What's new". Bump APP_VERSION and add an entry to the top of RELEASES
  * with each update. The banner shows once per version, then stays dismissed.
  */
-export const APP_VERSION = '1.75.0'
+export const APP_VERSION = '1.75.1'
 
 export interface Release {
   version: string
@@ -13,6 +13,12 @@ export interface Release {
 }
 
 export const RELEASES: Release[] = [
+  {
+    version: '1.75.1',
+    date: '2026-10-31',
+    changes: ['Nova has one clear path: tap a topic idea (it is highlighted and fills your topic), then press "Write the script" in step 2. The "Pick one for me and write" button is now just "Random idea" and only picks a topic. Hooks: default 4, max 5. Clearer names.'],
+    changesVi: ['Nova có một đường đi rõ ràng: chạm 1 ý tưởng (được tô sáng và điền vào chủ đề), rồi bấm "Viết kịch bản" ở bước 2. Nút "Chọn giúp rồi viết" giờ chỉ là "Chọn ngẫu nhiên" và chỉ chọn chủ đề. Hook: mặc định 4, tối đa 5. Tên nút dễ hiểu hơn.'],
+  },
   {
     version: '1.75.0',
     date: '2026-10-31',

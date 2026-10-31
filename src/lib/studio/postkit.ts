@@ -36,7 +36,7 @@ export interface KitSettings {
   themes: boolean
 }
 
-export const DEFAULT_KIT: KitSettings = { hooks: 5, titles: 5, tone: 'curious', platforms: ['tiktok', 'instagram', 'youtube', 'facebook'], length: 'medium', hashtags: 8, emoji: true, cta: true, langs: ['vi', 'en'], themes: true }
+export const DEFAULT_KIT: KitSettings = { hooks: 4, titles: 5, tone: 'curious', platforms: ['tiktok', 'instagram', 'youtube', 'facebook'], length: 'medium', hashtags: 8, emoji: true, cta: true, langs: ['vi', 'en'], themes: true }
 
 export interface KitLang {
   hooks: string[]
@@ -56,7 +56,7 @@ export function cleanKitSettings(body: unknown): KitSettings {
   const platforms = (Array.isArray(b.platforms) ? b.platforms : []).filter((p): p is Platform => PLATFORMS.some((x) => x.id === p))
   const langs = (Array.isArray(b.langs) ? b.langs : []).filter((l): l is Lang => l === 'en' || l === 'vi')
   return {
-    hooks: clamp(b.hooks, 1, 10, DEFAULT_KIT.hooks),
+    hooks: clamp(b.hooks, 1, 5, DEFAULT_KIT.hooks),
     titles: clamp(b.titles, 1, 10, DEFAULT_KIT.titles),
     tone: oneOf(b.tone, TONES, DEFAULT_KIT.tone),
     platforms: platforms.length ? [...new Set(platforms)] : DEFAULT_KIT.platforms,
