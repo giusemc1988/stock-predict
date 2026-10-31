@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict'
-import { JOB_PREFIX, LEMO_GIVE_UP_MS, LEMO_OFFLINE_ERROR, LEMO_OFFLINE_MS, LEMO_SEEN, MAX_ACTIVE, VID_PREFIX, checkGithubToken, expireLemoJobs, lemoOnline, setHandoff, cleanRenderAsk, cleanOverlayAsk, queueOverlay, kickFarm, deleteJob, fallbackTerms, isJobId, listJobs, parseRange, parseTerms, queueJobs, videoResponse, type JobStore } from '../src/lib/studioJobs'
+import { JOB_PREFIX, LEMO_GIVE_UP_MS, LEMO_OFFLINE_ERROR, LEMO_OFFLINE_MS, LEMO_SEEN, MAX_ACTIVE, VID_PREFIX, checkGithubToken, expireLemoJobs, expireStaleJobs, retryJob, QUEUE_GIVE_UP_MS, RENDER_GIVE_UP_MS, lemoOnline, setHandoff, cleanRenderAsk, cleanOverlayAsk, queueOverlay, kickFarm, deleteJob, fallbackTerms, isJobId, listJobs, parseRange, parseTerms, queueJobs, videoResponse, type JobStore } from '../src/lib/studioJobs'
 
 /** Map-backed stand-in for the SETTINGS KV binding. */
 function fakeKv(): JobStore & { m: Map<string, string | ArrayBuffer> } {
@@ -196,3 +196,31 @@ assert.equal(await checkGithubToken('tok', gh(404)), false)
   assert.equal(await queueOverlay(kv5, ask, 99, id5), null, 'the farm is full')
 }
 console.log('novajobs ok')
+
+// stuck videos: a waiting one gives up after 20 minutes, a rendering one after 65; "Try again" re-queues a failed one
+{
+  const kv = fakeKv()
+  const mk = (id: string, status: 'queued' | 'rendering', createdAt: number, startedAt?: number) => ({ id, status, createdAt, startedAt, topic: 't', lang: 'en', voice: 'female', aspect: '9:16', lines: ['a'], terms: ['x'], opts: {} }) as never
+  const a = '00000000-0000-4000-8000-0000000000a1'
+  const b = '00000000-0000-4000-8000-0000000000a2'
+  const c = '00000000-0000-4000-8000-0000000000a3'
+  const t0 = 1_000_000_000_000
+  const jobs = [mk(a, 'queued', t0), mk(b, 'rendering', t0, t0), mk(c, 'queued', t0 + QUEUE_GIVE_UP_MS)]
+  for (const j of jobs as { id: string }[]) await kv.put(JOB_PREFIX + j.id, JSON.stringify(j))
+  const early = await expireStaleJobs(kv, jobs, t0 + QUEUE_GIVE_UP_MS)
+  assert.equal(early[0].status, 'queued', 'exactly 20 minutes is not yet over')
+  const out = await expireStaleJobs(kv, jobs, t0 + QUEUE_GIVE_UP_MS + 1)
+  assert.equal(out[0].status, 'failed')
+  assert.match(out[0].error ?? '', /Try again/)
+  assert.equal(out[1].status, 'rendering', 'rendering for 20 minutes is still fine')
+  assert.equal(out[2].status, 'queued')
+  assert.equal((await expireStaleJobs(kv, jobs, t0 + RENDER_GIVE_UP_MS + 1))[1].status, 'failed')
+  assert.equal(JSON.parse((await kv.get(JOB_PREFIX + a)) as string).status, 'failed', 'saved, not only shown')
+  const again = (await retryJob(kv, a, t0 + 5))!
+  assert.equal(again.status, 'queued')
+  assert.equal(again.error, undefined)
+  assert.equal(again.createdAt, t0 + 5)
+  assert.equal((await retryJob(kv, c))!.status, 'queued', 'a waiting one is just returned')
+  assert.equal(await retryJob(kv, '00000000-0000-4000-8000-0000000000ff'), null)
+}
+console.log('stuck-video tests ok')
