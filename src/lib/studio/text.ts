@@ -117,6 +117,8 @@ export const STUDIO_TEXT = {
   shareBusy: { en: 'Getting the video…', vi: 'Đang lấy video…' },
   shareCopied: { en: 'Caption and hashtags copied. Paste them when you post.', vi: 'Đã copy caption và hashtag. Dán vào khi đăng.' },
   shareNoSheet: { en: 'This browser cannot open the share sheet, so the video was downloaded instead. Caption and hashtags are copied.', vi: 'Trình duyệt này không mở được khay chia sẻ nên đã tải video về. Caption và hashtag đã được copy.' },
+  shareTapAgain: { en: 'Video loaded and caption copied. Tap Share once more to open the share sheet.', vi: 'Đã tải video và copy caption. Bấm Chia sẻ thêm một lần nữa để mở khay chia sẻ.' },
+  copyCaptionTags: { en: 'Copy caption + hashtags', vi: 'Copy caption + hashtag' },
   shareFail: { en: 'Could not share:', vi: 'Không chia sẻ được:' },
   sendViraltech: { en: 'Send to Viraltech', vi: 'Gửi sang Viraltech' },
   sentViraltech: { en: 'Waiting in Viraltech ✓ (tap to take back)', vi: 'Đang chờ ở Viraltech ✓ (chạm để lấy lại)' },

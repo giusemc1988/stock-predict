@@ -1,9 +1,10 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useLocalStorage } from '../hooks/useLocalStorage'
 import { VIDEO_STORE } from './NovaPresets'
 import { NovaProgress } from './NovaProgress'
 import { useLang } from '../lib/i18n'
-import { shareVideo } from '../lib/studio/share'
+import { fetchVideoFile, shareVideo } from '../lib/studio/share'
+import { Copy } from './NovaPostKit'
 import { STUDIO_TEXT, type StudioKey } from '../lib/studio/text'
 import { DEFAULT_RENDER_OPTS, TRANSITIONS, cleanRenderOpts, type RenderAspect, type RenderEngine, type RenderLang, type RenderOpts, type RenderVoice, type StudioJob } from '../lib/studioJobs'
 
@@ -104,19 +105,49 @@ export function StudioRenderPanel({ topic, topicVi, en, vi, aspect, glass = fals
 
   // Quick-post: copy caption + hashtags, then hand the MP4 to the phone share sheet. The person posts; nothing is sent from here.
   const [sharing, setSharing] = useState('')
+  // the MP4s are fetched before the tap (the newest few): the phone opens its share sheet only within seconds of a tap
+  const files = useRef(new Map<string, File>())
+  const doneJobs = (jobs ?? []).filter((j) => j.status === 'done').slice(0, 3)
+  const doneKey = doneJobs.map((j) => j.id).join()
+  useEffect(() => {
+    if (!post) return
+    for (const j of doneJobs) {
+      if (files.current.has(j.id)) continue
+      void fetchVideoFile(j.id, j.topic).then((f) => { files.current.set(j.id, f); setReadyKey((k) => k + 1) }).catch(() => null)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [doneKey, !!post])
+  const [, setReadyKey] = useState(0)
+  const captionOf = (j: Pick<StudioJob, 'lang' | 'engine'>) => {
+    if (!post) return ''
+    const cap = j.lang === 'vi' || j.engine === 'overlay' ? post.caption.vi : post.caption.en
+    return post.tags.every((h) => cap.includes(h)) ? cap : `${cap}\n\n${post.tags.join(' ')}`
+  }
   const share = async (j: Pick<StudioJob, 'id' | 'lang' | 'engine' | 'topic'>) => {
     if (!post) return
-    setSharing(j.id)
-    setMsg(t('shareBusy'))
+    const text = captionOf(j)
+    const ready = files.current.get(j.id)
+    if (!ready) {
+      // not loaded yet: load it now and ask for one more tap, which then opens the sheet at once
+      setSharing(j.id)
+      setMsg(t('shareBusy'))
+      try {
+        files.current.set(j.id, await fetchVideoFile(j.id, j.topic))
+        setReadyKey((k) => k + 1)
+        await navigator.clipboard?.writeText(text).catch(() => null)
+        setMsg(t('shareTapAgain'))
+      } catch (e) {
+        setMsg(`${t('shareFail')} ${(e as Error).message}`)
+      } finally {
+        setSharing('')
+      }
+      return
+    }
     try {
-      const cap = j.lang === 'vi' || j.engine === 'overlay' ? post.caption.vi : post.caption.en
-      const text = post.tags.every((h) => cap.includes(h)) ? cap : `${cap}\n\n${post.tags.join(' ')}`
-      const r = await shareVideo(j.id, j.topic, text)
+      const r = await shareVideo(j.id, j.topic, text, ready)
       setMsg(r === 'shared' ? t('shareCopied') : r === 'downloaded' ? t('shareNoSheet') : '')
     } catch (e) {
       setMsg(`${t('shareFail')} ${(e as Error).message}`)
-    } finally {
-      setSharing('')
     }
   }
 
@@ -191,10 +222,16 @@ export function StudioRenderPanel({ topic, topicVi, en, vi, aspect, glass = fals
               <video src={`/api/studio/video?id=${j.id}`} controls playsInline preload="metadata" />
             </div>
           )}
+          {post && j.status === 'done' && (
+            <div className="nv-cap">
+              <p className="small">{captionOf(j)}</p>
+              <Copy text={captionOf(j)} label={t('copyCaptionTags')} />
+            </div>
+          )}
           <div className="vs-row">
             {handoff && j.status === 'done' && <button className="btn small" aria-pressed={!!j.handoff} onClick={() => void send(j.id, !j.handoff)}>{t(j.handoff ? 'sentViraltech' : 'sendViraltech')}</button>}
             {handoff && j.handoff && onViraltech && <button className="btn small" onClick={onViraltech}>{t('openViraltech')}</button>}
-            {post && j.status === 'done' && <button className="btn small primary" disabled={!!sharing} onClick={() => void share(j)}>{t('shareGo')}</button>}
+            {post && j.status === 'done' && <button className="btn small primary" disabled={!!sharing} onClick={() => void share(j)}>{t('shareGo')}{files.current.has(j.id) ? '' : ' …'}</button>}
             {sharing === j.id && <NovaProgress active label={t('shareBusy')} secs={10} />}
             {j.status === 'done' && <a className="btn small primary" href={`/api/studio/video?id=${j.id}&download`}>{t('download')}{j.size ? ` (${(j.size / 1e6).toFixed(1)} MB)` : ''}</a>}
             {j.engine !== 'lemo' && (j.status === 'failed' || (j.status === 'queued' && now - j.createdAt > 3 * 60_000)) && <button className="btn small primary" onClick={() => void again(j.id)}>{t(j.status === 'failed' ? 'farmRetry' : 'farmStart')}</button>}

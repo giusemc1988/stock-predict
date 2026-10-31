@@ -2,7 +2,7 @@
  * Version and "What's new". Bump APP_VERSION and add an entry to the top of RELEASES
  * with each update. The banner shows once per version, then stays dismissed.
  */
-export const APP_VERSION = '1.77.5'
+export const APP_VERSION = '1.77.6'
 
 export interface Release {
   version: string
@@ -13,6 +13,12 @@ export interface Release {
 }
 
 export const RELEASES: Release[] = [
+  {
+    version: '1.77.6',
+    date: '2026-10-31',
+    changes: ['Nova share: the video is loaded before you tap Share so the phone share sheet opens in one tap (no manual download), the caption and hashtags are shown under each finished video with a Copy button and are put on the clipboard when you share.'],
+    changesVi: ['Nova chia sẻ: video được tải sẵn trước khi bấm Chia sẻ nên khay chia sẻ của điện thoại mở ngay một lần bấm (không phải tải tay), caption và hashtag hiện sẵn dưới mỗi video xong kèm nút Copy và tự copy khi chia sẻ.'],
+  },
   {
     version: '1.77.5',
     date: '2026-10-31',
