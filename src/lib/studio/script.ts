@@ -125,7 +125,8 @@ export function fromText(topic: string, mode: StudioMode, en: string, vi: string
 }
 
 const words = (s: string) => s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/đ/g, 'd').match(/[a-z0-9]+/g) ?? []
-const STOP = new Set('the a an of and or to in on is are was for your you my our we it its why how what with that this not still never ever just mostly very really about from into more most'.split(' '))
+const STOP = new Set('the a an of and or to in on is are was for your you my our we it its why how what with that this not still never ever just mostly very really about from into more most some people only they their them than then when who whom have has had been being do does did can could will would should one two get got make made like only'.split(' '))
+const ASK = { en: 'Has this happened to you? Tell me below.', vi: 'Bạn đã từng như vậy chưa? Kể mình nghe ở dưới nhé.' }
 const MODE_TAGS: Record<StudioMode, string[]> = { faceless: ['facts', 'didyouknow', 'shorts'], philosophy: ['philosophy', 'mindset', 'shorts'], trip: ['travel', 'travelvlog', 'shorts'] }
 const MODE_TAGS_VI: Record<StudioMode, string[]> = { faceless: ['sựthật', 'cóthểbạnchưabiết'], philosophy: ['triết lý', 'sống chậm'].map((t) => t.replace(/\s/g, '')), trip: ['dulịch', 'chuyếnđi'] }
 
@@ -140,7 +141,8 @@ export function titleLab(s: Script): TitleLab {
   const tEn = s.topic.en.replace(/\.$/, '')
   const tVi = s.topic.vi.replace(/\.$/, '')
   const hook = { en: s.en[0] ?? tEn, vi: s.vi[0] ?? tVi }
-  const key = words(tEn).filter((w) => !STOP.has(w) && w.length > 2).slice(0, 3)
+  // one or two topic words that name the subject (long, not filler); the fixed tags below carry the rest
+  const key = words(tEn).filter((w) => !STOP.has(w) && w.length > 4).slice(0, 2)
   const hashtags = [...new Set([...key, ...MODE_TAGS[s.mode], ...MODE_TAGS_VI[s.mode]])].map((w) => `#${w}`)
   const titles = {
     en: s.mode === 'trip' ? [tEn, `${tEn} (EN/VI)`, `A little ${tEn.toLowerCase()}`] : [tEn, `${tEn} | EN + VI`, `${hook.en.replace(/[.?!]$/, '')}…`],
@@ -150,6 +152,7 @@ export function titleLab(s: Script): TitleLab {
   return {
     titles,
     hashtags,
-    caption: { en: `${hook.en}\n\n${s.en[s.en.length - 1] ?? ''}\n\n${tags}`, vi: `${hook.vi}\n\n${s.vi[s.vi.length - 1] ?? ''}\n\n${tags}` },
+    // short: the hook, one question to answer in the comments, then the tags; never the whole script
+    caption: { en: `${hook.en}\n\n${ASK.en}\n\n${tags}`, vi: `${hook.vi}\n\n${ASK.vi}\n\n${tags}` },
   }
 }
