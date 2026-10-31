@@ -167,3 +167,13 @@ console.log('studio ok')
   assert.ok(Math.abs(plan(sc, '9:16', true, [], 44).duration - 44) < 0.01)
   assert.ok(plan(sc, '9:16', false).duration < 20)
 }
+
+// captions are short (hook + question + tags, not the script) and tags carry no filler words
+{
+  const l = titleLab({ topic: { en: 'Some people only miss you when they are alone', vi: 'Có người chỉ nhớ bạn khi cô đơn' }, mode: 'faceless', en: ['They do not miss you.', 'Line two.', 'Line three.'], vi: ['Họ không nhớ bạn.', 'Hai.', 'Ba.'] })
+  assert.ok(!l.hashtags.some((h) => ['#some', '#people', '#only'].includes(h)), l.hashtags.join(' '))
+  assert.ok(l.hashtags.every((h) => h.startsWith('#')))
+  assert.ok(l.caption.en.includes('They do not miss you.') && !l.caption.en.includes('Line three.'), 'no script dump')
+  assert.ok(l.caption.en.includes('?'), 'asks a question')
+}
+console.log('caption tests ok')
