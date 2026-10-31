@@ -6,6 +6,13 @@
   const root = document.documentElement
   const dict = {
     // first view, buttons, status
+    // v0.3.0 phone tab bar (upstream mobile shell)
+    'layers': 'Lớp',
+    'cameras': 'Camera',
+    'search': 'Tìm',
+    'more': 'Thêm',
+    'panels': 'Bảng',
+    'tip: the gev mic button in the dock lets you talk to the map.': 'Mẹo: nút MIC ở thanh dưới cho phép nói chuyện với bản đồ.',
     'mission control · first launch': 'Trung tâm điều khiển · lần đầu',
     'choose your first view': 'Chọn cách xem đầu tiên',
     'it feels like a forbidden cockpit—then you realize the sources are public and the data is real.': 'Nghe như buồng lái bí mật, nhưng nguồn đều công khai và dữ liệu là thật.',
