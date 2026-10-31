@@ -121,19 +121,6 @@
     return b
   }
 
-  // VI / EN switch for the Iris text (vi.js holds the dictionary)
-  function langButton() {
-    const b = document.createElement('button')
-    b.type = 'button'
-    b.id = 'iris-lang'
-    b.setAttribute('aria-label', 'Tiếng Việt / English')
-    const paint = () => (b.textContent = vi() ? 'VI' : 'EN')
-    paint()
-    b.addEventListener('click', () => window.irisLang?.toggle())
-    document.addEventListener('iris-lang', paint)
-    return b
-  }
-
   function locateButton() {
     const b = document.createElement('button')
     b.type = 'button'
@@ -187,7 +174,7 @@
       b.addEventListener('click', () => open(side))
       bar.append(b)
     }
-    bar.append(locateButton(), flightButton(), eventsButton(), langButton())
+    bar.append(locateButton(), flightButton(), eventsButton())
     document.body.append(bar)
     // the bar wraps to 1-3 rows depending on the screen: keep the camera buttons just below it
     const fit = () => root.style.setProperty('--iris-bar-h', `${Math.ceil(bar.getBoundingClientRect().height)}px`)
