@@ -8,7 +8,7 @@ import { aiPlan, cleanKitAsk, writeHookIdeas, writeKitItem, writePostKit, writeT
 import { TRENDS_CACHE, TRENDS_TTL_MS, fetchTrends, type TrendGeo, type TrendsResult } from '../lib/studioTrends'
 import { PRESETS_KEY, cleanPresets } from '../lib/studio/presets'
 import { MEDIA_CHUNK, deleteMedia, finishMedia, importPart, importStart, mediaResponse, putMediaPart, readyMedia, startMedia, type MediaStore } from '../lib/studioMedia'
-import { GITHUB_KEY, PEXELS_KEY, checkGithubToken, cleanOverlayAsk, cleanRenderAsk, queueOverlay, expireLemoJobs, kickFarm, deleteJob, isJobId, lemoOnline, listJobs, queueJobs, setHandoff, videoResponse, type JobStore } from '../lib/studioJobs'
+import { GITHUB_KEY, PEXELS_KEY, checkGithubToken, cleanOverlayAsk, cleanRenderAsk, queueOverlay, expireLemoJobs, expireStaleJobs, retryJob, kickFarm, deleteJob, isJobId, lemoOnline, listJobs, queueJobs, setHandoff, videoResponse, type JobStore } from '../lib/studioJobs'
 
 const json = (data: unknown, status = 200) => new Response(JSON.stringify(data), { status, headers: { 'content-type': 'application/json', 'cache-control': 'no-store' } })
 
@@ -45,7 +45,7 @@ export async function novaRoute(req: Request, pathname: string, env: BrainEnv, s
   if (pathname === '/api/studio/jobs') {
     if (req.method === 'GET') {
       const lemo = await lemoOnline(kv)
-      const jobs = await expireLemoJobs(kv, await listJobs(kv), lemo)
+      const jobs = await expireStaleJobs(kv, await expireLemoJobs(kv, await listJobs(kv), lemo))
       return json({ jobs: jobs.map(({ lines: _l, terms: _t, ...j }) => j), pexels: !!(await kv.get(PEXELS_KEY)), github: !!(await kv.get(GITHUB_KEY)), lemo })
     }
     if (req.method !== 'DELETE') return json({ error: 'GET or DELETE only' }, 405)
@@ -67,6 +67,16 @@ export async function novaRoute(req: Request, pathname: string, env: BrainEnv, s
     const token = ask.engine === 'mpt' ? await kv.get(GITHUB_KEY) : null
     const kicked = ask.engine === 'lemo' || (token ? await kickFarm(token) : false)
     return json({ jobs: jobs.map((j) => j.id), terms, kicked })
+  }
+  if (pathname === '/api/studio/retry') {
+    // "Try again" on a failed video, or "Start now" on one that waits: puts it in the queue and starts the farm
+    if (req.method !== 'POST') return json({ error: 'POST only' }, 405)
+    if (!sameOrigin(req)) return json({ error: 'Not allowed' }, 403)
+    const id = url.searchParams.get('id')
+    const job = isJobId(id) ? await retryJob(kv, id) : null
+    if (!job) return json({ error: 'This video cannot be retried' }, 404)
+    const token = await kv.get(GITHUB_KEY)
+    return json({ status: job.status, kicked: token ? await kickFarm(token) : false })
   }
   if (pathname === '/api/studio/overlay') {
     // the user's own clip + the EN and VI lines burned on, made by nova/overlay.py on GitHub Actions

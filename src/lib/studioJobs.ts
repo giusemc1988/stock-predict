@@ -239,6 +239,36 @@ export async function expireLemoJobs(kv: JobStore, jobs: StudioJob[], online: bo
   }))
 }
 
+/** A video nobody picked up in 20 minutes, or one still "rendering" after 65, is marked failed so the gallery says why and offers "Try again". */
+export const QUEUE_GIVE_UP_MS = 20 * 60 * 1000
+export const RENDER_GIVE_UP_MS = 65 * 60 * 1000
+export const QUEUE_TIMEOUT_ERROR = 'The render farm did not start this video within 20 minutes. Press "Try again".'
+export const RENDER_TIMEOUT_ERROR = 'This video took longer than 65 minutes and was stopped. Press "Try again".'
+
+export async function expireStaleJobs(kv: JobStore, jobs: StudioJob[], now = Date.now()): Promise<StudioJob[]> {
+  return Promise.all(jobs.map(async (j) => {
+    if (j.engine === 'lemo') return j
+    const error = j.status === 'queued' && now - j.createdAt > QUEUE_GIVE_UP_MS ? QUEUE_TIMEOUT_ERROR : j.status === 'rendering' && now - (j.startedAt ?? j.createdAt) > RENDER_GIVE_UP_MS ? RENDER_TIMEOUT_ERROR : ''
+    if (!error) return j
+    const failed: StudioJob = { ...j, status: 'failed', doneAt: now, error }
+    await kv.put(JOB_PREFIX + j.id, JSON.stringify(failed))
+    return failed
+  }))
+}
+
+/** "Try again": a failed GitHub-farm job goes back in the queue as new; a queued one is returned as it is (the caller just starts the farm). */
+export async function retryJob(kv: JobStore, id: string, now = Date.now()): Promise<StudioJob | null> {
+  const j = await getJob(kv, id)
+  if (!j || j.engine === 'lemo') return null
+  if (j.status === 'queued') return j
+  if (j.status !== 'failed') return null
+  const { startedAt: _s, doneAt: _d, error: _e, run: _r, ...rest } = j as StudioJob & { retried?: boolean }
+  delete (rest as { retried?: boolean }).retried
+  const again: StudioJob = { ...rest, status: 'queued', createdAt: now }
+  await kv.put(JOB_PREFIX + id, JSON.stringify(again))
+  return again
+}
+
 const STOP = new Set('a an and are as at be by for from how i in is it its my of on or that the this to was what why with you your'.split(' '))
 /** Search terms when no AI helper answers: the topic's own words, two at a time. */
 export function fallbackTerms(topic: string): string[] {

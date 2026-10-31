@@ -2,7 +2,7 @@
  * Version and "What's new". Bump APP_VERSION and add an entry to the top of RELEASES
  * with each update. The banner shows once per version, then stays dismissed.
  */
-export const APP_VERSION = '1.77.4'
+export const APP_VERSION = '1.77.5'
 
 export interface Release {
   version: string
@@ -13,6 +13,12 @@ export interface Release {
 }
 
 export const RELEASES: Release[] = [
+  {
+    version: '1.77.5',
+    date: '2026-10-31',
+    changes: ['Nova videos can no longer sit forever: a video not started in 20 minutes (or rendering over 65) shows a clear error with a "Try again" button, waiting videos show how long they have waited with "Start now", and the render farm restarts itself while videos are still waiting.'],
+    changesVi: ['Video Nova không còn kẹt mãi: video chưa chạy sau 20 phút (hoặc render quá 65 phút) sẽ báo lỗi rõ kèm nút "Thử lại", video đang chờ hiện đã chờ bao lâu và có nút "Chạy ngay", farm tự chạy lại khi vẫn còn video chờ.'],
+  },
   {
     version: '1.77.4',
     date: '2026-10-31',

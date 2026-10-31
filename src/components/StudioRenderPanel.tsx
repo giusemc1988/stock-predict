@@ -44,6 +44,8 @@ export function StudioRenderPanel({ topic, topicVi, en, vi, aspect, glass = fals
     }
   }, [])
 
+  // elapsed minutes on waiting videos tick every 15 s without asking the server
+  const [now, setNow] = useState(() => Date.now())
   const waiting = !!jobs?.some((j) => j.status === 'queued' || j.status === 'rendering')
   useEffect(() => {
     void load()
@@ -51,8 +53,22 @@ export function StudioRenderPanel({ topic, topicVi, en, vi, aspect, glass = fals
     if (!waiting && !lemo) return
     // idle checks only watch the PC; slower, to stay well inside the free KV reads
     const id = setInterval(() => void load(), waiting ? POLL_MS : IDLE_POLL_MS)
-    return () => clearInterval(id)
+    const tick = setInterval(() => setNow(Date.now()), 15_000)
+    return () => {
+      clearInterval(id)
+      clearInterval(tick)
+    }
   }, [load, waiting, lemo])
+
+  // "Try again" on a failed video and "Start now" on one that waits: both put it in the queue and start the farm
+  const again = async (id: string) => {
+    setMsg(null)
+    const r = await fetch(`/api/studio/retry?id=${id}`, { method: 'POST' }).catch(() => null)
+    const j = (await r?.json().catch(() => ({}))) as { error?: string; kicked?: boolean } | undefined
+    if (!r?.ok) setMsg(`${t('serverFailed')} ${j?.error ?? t('netDown')}`)
+    else setMsg(t(j?.kicked ? 'serverQueued' : 'farmNoKey'))
+    await load()
+  }
 
   const make = async () => {
     setMsg(null)
@@ -167,6 +183,7 @@ export function StudioRenderPanel({ topic, topicVi, en, vi, aspect, glass = fals
             <span className="small"><strong>{j.engine === 'overlay' ? 'EN+VI' : j.lang.toUpperCase()}</strong>{j.engine === 'lemo' ? ' · Lemo' : j.engine === 'overlay' ? ' · clip' : ''} · {j.topic}</span>
             <span className={`small ${j.status === 'failed' ? 'warn' : 'muted'}`}>{t(j.engine === 'lemo' && j.status === 'queued' ? 'statusLemoQueued' : j.engine === 'lemo' && j.status === 'rendering' ? 'statusLemoRendering' : STATUS[j.status])}</span>
           </div>
+          {(j.status === 'queued' || j.status === 'rendering') && j.engine !== 'lemo' && <p className="small muted">{Math.max(0, Math.floor((now - (j.status === 'rendering' ? j.startedAt ?? j.createdAt : j.createdAt)) / 60000))} {t('farmMin')} · {t('farmUsually')}</p>}
           {j.status === 'failed' && j.error && <p className="small muted">{j.error}</p>}
           {j.status === 'done' && j.footage === 'gradient' && <p className="small muted">{t('footageGradient')}</p>}
           {j.status === 'done' && (
@@ -180,6 +197,7 @@ export function StudioRenderPanel({ topic, topicVi, en, vi, aspect, glass = fals
             {post && j.status === 'done' && <button className="btn small primary" disabled={!!sharing} onClick={() => void share(j)}>{t('shareGo')}</button>}
             {sharing === j.id && <NovaProgress active label={t('shareBusy')} secs={10} />}
             {j.status === 'done' && <a className="btn small primary" href={`/api/studio/video?id=${j.id}&download`}>{t('download')}{j.size ? ` (${(j.size / 1e6).toFixed(1)} MB)` : ''}</a>}
+            {j.engine !== 'lemo' && (j.status === 'failed' || (j.status === 'queued' && now - j.createdAt > 3 * 60_000)) && <button className="btn small primary" onClick={() => void again(j.id)}>{t(j.status === 'failed' ? 'farmRetry' : 'farmStart')}</button>}
             {j.run && j.status !== 'done' && <a className="btn small" href={j.run} target="_blank" rel="noreferrer">{t('serverLog')}</a>}
             {j.status !== 'rendering' && <button className="btn small" onClick={() => void remove(j.id)}>{t('serverDelete')}</button>}
           </div>

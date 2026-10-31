@@ -96,15 +96,19 @@ jobs:
           IDS: ${{ steps.pick.outputs.ids }}
         run: for id in $IDS; do node nova/queue.mjs store "$WORK" "$id"; done
 
+      - name: Anything still waiting?
+        # videos added while this run was rendering, or beyond the batch of 3, must not wait for the slow cron
+        id: more
+        if: always() && github.event_name != 'pull_request'
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        run: node nova/queue.mjs pending "$WORK"
+
       - name: Start again for the rest of the queue
-        # pick takes at most 3; a full batch means more may be waiting, and the cron is too slow to rely on
-        if: always() && steps.pick.outputs.ids != ''
+        if: always() && steps.more.outputs.pending != '' && steps.more.outputs.pending != '0'
         env:
           GH_TOKEN: ${{ github.token }}
-          IDS: ${{ steps.pick.outputs.ids }}
-        run: |
-          set -- $IDS
-          if [ "$#" -ge 3 ]; then gh workflow run nova-render.yml --repo "$GITHUB_REPOSITORY" --ref main; fi
+        run: gh workflow run nova-render.yml --repo "$GITHUB_REPOSITORY" --ref main
 
       - name: Check the sample video (pull request)
         if: github.event_name == 'pull_request'

@@ -137,6 +137,13 @@ async function pick(dir) {
   console.log(runnable.length ? `picked ${runnable.length} job(s), footage: ${key ? 'pexels' : 'openverse'}` : 'queue empty')
 }
 
+/** How many GitHub-farm jobs are still waiting; the workflow starts itself again when this is not 0. */
+async function pending() {
+  const n = (await jobs()).filter((j) => UUID.test(j.id) && j.engine !== 'lemo' && j.status === 'queued').length
+  output(`pending=${n}`)
+  console.log(`${n} job(s) still waiting`)
+}
+
 /** One queued Lemo job for the PC, or none. Prints its id so the bridge knows what to render. */
 async function pickLemo(dir) {
   const job = (await jobs())
@@ -181,6 +188,7 @@ async function prune() {
 const [cmd, dir, id] = process.argv.slice(2)
 if (cmd === 'pick') await pick(dir)
 else if (cmd === 'store') await store(dir, id)
+else if (cmd === 'pending') await pending()
 else if (cmd === 'ping') await put(LEMO_SEEN, String(Date.now()))
 else if (cmd === 'pick-lemo') await pickLemo(dir)
 else throw new Error('usage: queue.mjs pick <dir> | store <dir> <id> | ping | pick-lemo <dir>')
