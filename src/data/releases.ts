@@ -2,7 +2,7 @@
  * Version and "What's new". Bump APP_VERSION and add an entry to the top of RELEASES
  * with each update. The banner shows once per version, then stays dismissed.
  */
-export const APP_VERSION = '1.72.1'
+export const APP_VERSION = '1.73.0'
 
 export interface Release {
   version: string
@@ -13,6 +13,12 @@ export interface Release {
 }
 
 export const RELEASES: Release[] = [
+  {
+    version: '1.73.0',
+    date: '2026-10-31',
+    changes: ['Iris now runs on God\'s Eye View v0.3.0: new phone tab bar (Layers, Cameras, Context, Search, More), short share links, "Environmental" first view, and many fixes. Our Vietnamese UI and Iris buttons are kept.'],
+    changesVi: ['Iris nâng lên God\'s Eye View v0.3.0: có thanh tab mới ở điện thoại (Lớp, Camera, Ngữ cảnh, Tìm, Thêm), link chia sẻ ngắn, màn đầu "Môi trường" và nhiều sửa lỗi. Giữ nguyên tiếng Việt và các nút Iris.'],
+  },
   {
     version: '1.72.1',
     date: '2026-10-30',
