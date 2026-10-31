@@ -594,3 +594,7 @@ body.mobile-shell[data-mobile-sheet='layers'] #left-panel-stack > #iris-quick {
 body.mobile-shell[data-mobile-sheet='layers'] #left-panel-stack > * {
   flex: none !important;
 }
+/* phone: "turn off all layers" is one tap from wiping every layer, and each layer already has its own switch in the Layers tab */
+html.iris-shell #clear-selected-layers {
+  display: none !important;
+}
