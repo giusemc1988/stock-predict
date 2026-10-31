@@ -787,7 +787,7 @@ export default function App() {
         </PanelGuard>
       ) : shownPage === 'studio' ? (
         <PanelGuard name="Video Studio">
-          <VideoStudioPage onBack={() => setPage(homePage)} glass={aiRules.novaGlass} trends={aiRules.novaTrends} postKit={aiRules.novaPostKit} videoSettings={aiRules.novaVideoSettings} uploads={aiRules.novaUploads} presets={aiRules.novaPresets} lemo={aiRules.novaLemo} handoff={aiRules.novaHandoff} channel={aiRules.novaChannelScript} importLink={aiRules.novaImportLink} clipText={aiRules.novaClipText} quickPost={aiRules.novaQuickPost} hookThemes={aiRules.novaHookThemes} onViraltech={() => setPage('viraltech')} />
+          <VideoStudioPage onBack={() => setPage(homePage)} glass={aiRules.novaGlass} trends={aiRules.novaTrends} postKit={aiRules.novaPostKit} videoSettings={aiRules.novaVideoSettings} uploads={aiRules.novaUploads} lemo={aiRules.novaLemo} handoff={aiRules.novaHandoff} channel={aiRules.novaChannelScript} importLink={aiRules.novaImportLink} clipText={aiRules.novaClipText} quickPost={aiRules.novaQuickPost} hookThemes={aiRules.novaHookThemes} onViraltech={() => setPage('viraltech')} />
         </PanelGuard>
       ) : shownPage === 'viraltech' ? (
         <PanelGuard name="Viraltech">

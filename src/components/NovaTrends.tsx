@@ -43,7 +43,7 @@ export function NovaTrends({ onPick, onAuto, busy, themes = false, onTopic, onAu
     setAiBusy(true)
     setAiErr('')
     try {
-      const r = await fetch('/api/studio/hook-ideas', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ theme: id, avoid }) })
+      const r = await fetch('/api/studio/hook-ideas', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ theme: id, avoid }), signal: AbortSignal.timeout(30_000) })
       const j = (await r.json().catch(() => ({}))) as { ideas?: { en: string; vi: string }[]; error?: string }
       if (!r.ok || !j.ideas?.length) throw new Error(j.error ?? `HTTP ${r.status}`)
       setAi((a) => ({ ...a, [id]: j.ideas! }))
