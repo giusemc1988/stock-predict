@@ -99,8 +99,10 @@ export function StudioRenderPanel({ topic, topicVi, en, vi, aspect, glass = fals
 
   // Viraltech's waiting list only; nothing is posted from here
   const send = async (id: string, on: boolean) => {
-    await fetch(`/api/studio/handoff?id=${id}`, { method: on ? 'POST' : 'DELETE' }).catch(() => null)
+    const r = await fetch(`/api/studio/handoff?id=${id}`, { method: on ? 'POST' : 'DELETE' }).catch(() => null)
     await load()
+    // sending means "I want to post it there": go straight to Viraltech instead of leaving the tap looking dead
+    if (on && r?.ok) onViraltech?.()
   }
 
   // Quick-post: copy caption + hashtags, then hand the MP4 to the phone share sheet. The person posts; nothing is sent from here.
