@@ -321,6 +321,12 @@ export function VideoStudioPage({ onBack, glass = true, trends = true, postKit =
         </section>
 
         <section id="nv-make" className="nv-make">
+          {uploads && (
+            <div className={card}>
+              <NovaUploads onChange={setServerMedia} onClips={setClipIds} importLink={importLink} />
+              {clipText && clipIds.length > 0 && <NovaClipPreview ids={clipIds} script={script} topic={topic} />}
+            </div>
+          )}
           <details className={`${card} nv-adv`}>
             <summary className="small">{t('advTitle')} {media.length > 0 && <span className="muted">· {media.length}/{MAX_MEDIA}</span>}</summary>
             <div className="seg small" role="group" aria-label={t('aspect')}>
@@ -349,8 +355,6 @@ export function VideoStudioPage({ onBack, glass = true, trends = true, postKit =
               </div>
             )}
             {media.length > 0 && <button className="btn small" onClick={() => { setMedia([]); setFootMsg([]) }}>{t('clear')}</button>}
-            {uploads && <NovaUploads onChange={setServerMedia} onClips={setClipIds} importLink={importLink} />}
-            {uploads && clipText && clipIds.length > 0 && <NovaClipPreview ids={clipIds} script={script} topic={topic} />}
           </details>
           <StudioRenderPanel topic={topic} topicVi={topicVi} en={script.en} vi={script.vi} aspect={aspect} glass={glass} settings={videoSettings} hook={postKit ? hook : undefined} onClearHook={() => setHook({ en: '', vi: '' })} media={uploads ? serverMedia : []} lemo={lemo} handoff={handoff} onViraltech={onViraltech} post={quickPost ? { caption: lab.caption, tags: lab.hashtags } : undefined} />
 
