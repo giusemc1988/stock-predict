@@ -2,7 +2,7 @@
  * Version and "What's new". Bump APP_VERSION and add an entry to the top of RELEASES
  * with each update. The banner shows once per version, then stays dismissed.
  */
-export const APP_VERSION = '1.77.0'
+export const APP_VERSION = '1.77.1'
 
 export interface Release {
   version: string
@@ -13,6 +13,12 @@ export interface Release {
 }
 
 export const RELEASES: Release[] = [
+  {
+    version: '1.77.1',
+    date: '2026-10-31',
+    changes: ['Nova: the Muse clip link and clip upload are back in plain sight in step 3 (they had been tucked into Advanced).'],
+    changesVi: ['Nova: ô dán link video Muse và tải clip lên đã hiện lại rõ ràng ở bước 3 (trước đó lỡ nằm trong mục Nâng cao).'],
+  },
   {
     version: '1.77.0',
     date: '2026-10-31',
