@@ -16,8 +16,8 @@ export const RELEASES: Release[] = [
   {
     version: '1.77.2',
     date: '2026-10-31',
-    changes: ['Nova: the EN and VI script boxes can no longer be dragged wider and overlap each other; they only resize in height.'],
-    changesVi: ['Nova: hai khung kịch bản EN và VI không còn kéo rộng đè lên nhau được nữa, chỉ kéo dài thêm theo chiều cao.'],
+    changes: ['Nova: the EN and VI script boxes are no longer resizable (they could overlap each other); they are fixed-size and scroll.'],
+    changesVi: ['Nova: hai khung kịch bản EN và VI không còn kéo giãn được nữa (trước đây đè lên nhau), cố định kích thước và cuộn được.'],
   },
   {
     version: '1.77.1',
