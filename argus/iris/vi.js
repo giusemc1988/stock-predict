@@ -204,7 +204,7 @@
     let n
     while ((n = w.nextNode())) {
       if (n.nodeType === 3) {
-        if (n.parentElement && !/^(SCRIPT|STYLE|TEXTAREA)$/.test(n.parentElement.tagName)) text(n)
+        if (n.parentElement && !/^(SCRIPT|STYLE|TEXTAREA)$/.test(n.parentElement.tagName) && !n.parentElement.closest('.material-symbols-outlined')) text(n) // icon ligatures ("layers", "search") must stay English
       } else attrs(n)
     }
     if (scope.nodeType === 1) attrs(scope)
