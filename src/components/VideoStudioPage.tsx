@@ -16,6 +16,7 @@ import { Copy, NovaPostKit } from './NovaPostKit'
 import { NovaUploads } from './NovaUploads'
 import { NovaClipPreview } from './NovaClipPreview'
 import { NovaProgress } from './NovaProgress'
+import { aiPlanText, useAiPlan } from './useAiPlan'
 import type { TrendItem } from '../lib/studioTrends'
 import './JarvisHub.css'
 import './NovaStudio.css'
@@ -57,6 +58,7 @@ export function VideoStudioPage({ onBack, glass = true, trends = true, postKit =
   const lang = useLang()
   const theme = useHubTheme()
   const active = useActiveStep()
+  const aiNow = aiPlanText(useAiPlan(), STUDIO_TEXT.aiBackup[lang])
   // the glass look (AI rule novaGlass); off = the plain cards from before
   const card = glass ? 'bf-card nv-card hg-glass' : 'bf-card'
   const t = (k: StudioKey) => STUDIO_TEXT[k][lang]
@@ -302,7 +304,7 @@ export function VideoStudioPage({ onBack, glass = true, trends = true, postKit =
           <div className="vs-row">
             <button className="btn primary" disabled={!!busy || !topic.trim()} onClick={() => void writeAi()}>{t('writeAi')}</button>
           </div>
-          <NovaProgress active={busy === t('writing')} label={t('writing')} secs={25} />
+          <NovaProgress active={busy === t('writing')} label={`${t('writing')} ${aiNow ? `(${aiNow})` : ''}`.trim()} secs={25} />
           {videoSettings && (
             <label className="vs-field nv-scenes">
               <span className="small muted">{t('scenesCount')}: <b>{sceneN}</b></span>

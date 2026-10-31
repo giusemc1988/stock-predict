@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useLocalStorage } from '../hooks/useLocalStorage'
 import { NovaProgress } from './NovaProgress'
+import { aiPlanText, useAiPlan } from './useAiPlan'
 import { useLang } from '../lib/i18n'
 import { STUDIO_TEXT, type StudioKey } from '../lib/studio/text'
 import { HOOK_THEMES } from '../lib/studio/hookThemes'
@@ -28,6 +29,7 @@ const TOPICS: { id: TopicView; key: StudioKey }[] = [
 export function NovaTrends({ onPick, onAuto, busy, themes = false, onTopic, picked }: { onPick: (t: TrendItem) => void; onAuto: (t: TrendItem) => void; busy: boolean; themes?: boolean; onTopic?: (en: string, vi: string) => void; picked?: string }) {
   const lang = useLang()
   const t = (k: StudioKey) => STUDIO_TEXT[k][lang]
+  const aiNow = aiPlanText(useAiPlan(), STUDIO_TEXT.aiBackup[lang])
   const [prefs, setPrefs] = useLocalStorage<Prefs>('nova.trends.v1', DEFAULT_PREFS)
   const p = { ...DEFAULT_PREFS, ...prefs }
   const set = (patch: Partial<Prefs>) => setPrefs({ ...p, ...patch })
@@ -102,7 +104,7 @@ export function NovaTrends({ onPick, onAuto, busy, themes = false, onTopic, pick
         <button className="btn small" disabled={busy || aiBusy} onClick={() => void moreIdeas(cur.id, (ai[cur.id] ?? cur.seeds).map((x) => x.en))}>✦ {t('themeAi')}</button>
         <button className="btn small" disabled={busy} onClick={() => { const pool = ai[cur.id] ?? cur.seeds; const sd = pool[Math.floor(Math.random() * pool.length)]; onTopic(sd.en, sd.vi) }}>🎲 {t('themeWrite')}</button>
       </div>
-      <NovaProgress active={aiBusy} label={t('themeAiLoading')} secs={10} />
+      <NovaProgress active={aiBusy} label={`${t('themeAiLoading')} ${aiNow}`.trim()} secs={10} />
       {aiErr && <p className="small warn">{aiErr}</p>}
     </div>
   )

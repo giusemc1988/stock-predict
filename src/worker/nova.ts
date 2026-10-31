@@ -4,7 +4,7 @@
  */
 import { cleanKey, sameOrigin, withSavedKeys, type KeyStore } from '../lib/brainKeys'
 import type { BrainEnv } from '../lib/brainServer'
-import { cleanKitAsk, writeHookIdeas, writeKitItem, writePostKit, writeTerms } from '../lib/studioServer'
+import { aiPlan, cleanKitAsk, writeHookIdeas, writeKitItem, writePostKit, writeTerms } from '../lib/studioServer'
 import { TRENDS_CACHE, TRENDS_TTL_MS, fetchTrends, type TrendGeo, type TrendsResult } from '../lib/studioTrends'
 import { PRESETS_KEY, cleanPresets } from '../lib/studio/presets'
 import { MEDIA_CHUNK, deleteMedia, finishMedia, importPart, importStart, mediaResponse, putMediaPart, readyMedia, startMedia, type MediaStore } from '../lib/studioMedia'
@@ -31,6 +31,10 @@ export async function novaRoute(req: Request, pathname: string, env: BrainEnv, s
   const kv = settings as unknown as JobStore
   const url = new URL(req.url)
 
+  if (pathname === '/api/studio/ai-plan') {
+    // which free AI and model would answer right now; no key or answer is returned
+    return json({ plan: await aiPlan(await withSavedKeys(env, settings)) })
+  }
   if (pathname === '/api/studio/handoff') {
     // only puts a finished video on Viraltech's waiting list; posting stays with Chanh
     if (req.method !== 'POST' && req.method !== 'DELETE') return json({ error: 'POST or DELETE only' }, 405)

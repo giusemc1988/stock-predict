@@ -28,6 +28,8 @@ export const STUDIO_TEXT = {
   serverSending: { en: 'Sending to the video server…', vi: 'Đang gửi lên máy chủ video…' },
   upChecking: { en: 'Checking your file…', vi: 'Đang kiểm tra file…' },
   writing: { en: 'Writing both scripts…', vi: 'Đang viết hai kịch bản…' },
+  aiUsing: { en: 'AI in use', vi: 'AI đang dùng' },
+  aiBackup: { en: 'backup', vi: 'dự phòng' },
   writtenBy: { en: 'Written by', vi: 'Viết bởi' },
   aiFailed: { en: 'AI could not write it (free quota may be used up). Try again later or type your own lines.', vi: 'AI chưa viết được (có thể hết hạn mức miễn phí). Thử lại sau hoặc tự gõ.' },
   loadingMedia: { en: 'Loading your files…', vi: 'Đang nạp file…' },

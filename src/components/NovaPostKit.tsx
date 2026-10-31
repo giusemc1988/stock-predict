@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react'
 import { useLocalStorage } from '../hooks/useLocalStorage'
 import { KIT_STORE } from './NovaPresets'
 import { NovaProgress } from './NovaProgress'
+import { aiPlanText, useAiPlan } from './useAiPlan'
 import { useLang } from '../lib/i18n'
 import { STUDIO_TEXT, type StudioKey } from '../lib/studio/text'
 import type { Lang, Script } from '../lib/studio/script'
@@ -26,6 +27,7 @@ const LEN_KEY = { short: 'lenShort', medium: 'lenMedium', long: 'lenLong' } as c
 export function NovaPostKit({ script, hook, onHook }: { script: Script; hook?: { en: string; vi: string }; onHook?: (lang: Lang, text: string) => void }) {
   const lang = useLang()
   const t = (k: StudioKey) => STUDIO_TEXT[k][lang]
+  const aiNow = aiPlanText(useAiPlan(), STUDIO_TEXT.aiBackup[lang])
   const [saved, setSaved] = useLocalStorage<Partial<KitSettings>>(KIT_STORE, {})
   const k = useMemo(() => cleanKitSettings(saved), [saved])
   const set = (patch: Partial<KitSettings>) => setSaved({ ...k, ...patch })
@@ -96,7 +98,7 @@ export function NovaPostKit({ script, hook, onHook }: { script: Script; hook?: {
       <div className="vs-row">
         <button className="btn primary" disabled={!!busy || !script.topic.en.trim()} onClick={() => void writeAll()}>✦ {busy === 'all' ? t('kitWriting') : t('kitWrite')}</button>
       </div>
-      <NovaProgress active={busy !== null} label={busy === 'all' ? t('kitWriting') : t('kitRedoing')} secs={20} />
+      <NovaProgress active={busy !== null} label={`${busy === 'all' ? t('kitWriting') : t('kitRedoing')} ${aiNow}`.trim()} secs={20} />
       <p className="small muted">{msg ?? (mine?.by ? `${t('writtenBy')} ${mine.by}` : t('kitLocal'))}</p>
 
       <details className="vs-pexels nv-kit-set">
