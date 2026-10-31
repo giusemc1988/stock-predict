@@ -50,6 +50,8 @@ interface Provider {
   /** Models to try in order; providers retire models, so a gone model falls through to the next. */
   models: string[]
   key: (e: BrainEnv) => string | undefined
+  /** Asks the provider which models it serves right now, best first (undefined = use `models` only). */
+  list?: (key: string, f: Fetch) => Promise<string[]>
   call: (key: string, model: string | undefined, system: string, user: string, f: Fetch, onFail?: OnFail, maxTokens?: number) => Promise<string | null>
 }
 
@@ -74,12 +76,92 @@ const openAiStyle = (url: string) => async (key: string, model: string | undefin
   return text
 }
 
+
+/** Newest first: "gemini-3.1-flash" before "gemini-2.5-flash". Pure, tested. */
+export function rankGemini(models: { name?: string; supportedGenerationMethods?: string[] }[]): string[] {
+  const BAD = /preview|exp|thinking|image|tts|live|audio|embed|vision|robotics|computer|learnlm|gemma|nano|banana|customtools|deep-research|aqa/i
+  const ids = models
+    .filter((m) => m.supportedGenerationMethods?.includes('generateContent'))
+    .map((m) => (m.name ?? '').replace(/^models\//, ''))
+    .filter((id) => /^gemini-\d/.test(id) && /flash/.test(id) && !BAD.test(id))
+  const ver = (id: string) => Number(id.match(/^gemini-(\d+(?:\.\d+)?)/)?.[1] ?? 0)
+  const rank = (id: string) => (/lite/.test(id) ? 1 : 0)
+  // plain flash of the newest version first, then its lite sibling, then older versions
+  return [...new Set(ids)].sort((a, b) => ver(b) - ver(a) || rank(a) - rank(b) || a.localeCompare(b))
+}
+
+/** Groq: active chat models, llama first (reasoning models can spend the whole token budget thinking). */
+export function rankGroq(models: { id?: string; active?: boolean }[]): string[] {
+  const BAD = /whisper|guard|tts|playai|orpheus|safeguard|compound|distil|embed|vision-preview/i
+  const ids = models.filter((m) => m.active !== false).map((m) => m.id ?? '').filter((id) => id && !BAD.test(id))
+  const pref = [/llama-3\.3-70b/, /llama-?4/, /llama.*70b/, /qwen/, /gpt-oss-120b/, /gpt-oss-20b/, /llama.*(8b|instant)/]
+  const score = (id: string) => { const i = pref.findIndex((r) => r.test(id)); return i < 0 ? pref.length : i }
+  return [...new Set(ids)].sort((a, b) => score(a) - score(b) || b.localeCompare(a))
+}
+
+async function listGemini(key: string, f: Fetch): Promise<string[]> {
+  const r = await f('https://generativelanguage.googleapis.com/v1beta/models?pageSize=200', { headers: { 'x-goog-api-key': key } })
+  if (!r.ok) return []
+  return rankGemini(((await r.json()) as { models?: { name?: string; supportedGenerationMethods?: string[] }[] }).models ?? [])
+}
+
+/** xAI and NVIDIA speak the OpenAI dialect: GET /models lists what they serve. */
+const OPENAI_LIST = (url: string, rank: (ids: string[]) => string[]) => async (key: string, f: Fetch): Promise<string[]> => {
+  const r = await f(url, { headers: { authorization: `Bearer ${key}` } })
+  if (!r.ok) return []
+  return rank((((await r.json()) as { data?: { id?: string }[] }).data ?? []).map((m) => m.id ?? '').filter(Boolean))
+}
+const BAD_CHAT = /vision|embed|reward|guard|safety|parse|retriever|image|video|audio|tts|asr|rerank|code|translate|clip|ocr|fuyu|neva|vila/i
+export const rankXai = (ids: string[]) => ids.filter((id) => /^grok-/.test(id) && !BAD_CHAT.test(id)).sort((a, b) => Number(b.match(/grok-(\d+(?:\.\d+)?)/)?.[1] ?? 0) - Number(a.match(/grok-(\d+(?:\.\d+)?)/)?.[1] ?? 0) || Number(/mini/.test(b)) - Number(/mini/.test(a)))
+export const rankNvidia = (ids: string[]) => {
+  const pref = [/nemotron.*(super|ultra|70b)/, /nemotron/, /llama-3\.3.*instruct/, /llama-?4/, /llama-3\.1.*70b.*instruct/, /gpt-oss/]
+  const score = (id: string) => { const i = pref.findIndex((r) => r.test(id)); return i < 0 ? 99 : i }
+  return ids.filter((id) => score(id) < 99 && !BAD_CHAT.test(id)).sort((a, b) => score(a) - score(b) || b.localeCompare(a))
+}
+
+async function listGroq(key: string, f: Fetch): Promise<string[]> {
+  const r = await f('https://api.groq.com/openai/v1/models', { headers: { authorization: `Bearer ${key}` } })
+  if (!r.ok) return []
+  return rankGroq(((await r.json()) as { data?: { id?: string; active?: boolean }[] }).data ?? [])
+}
+
+/** What each provider served last, for the Settings test. */
+export const usedModel = new Map<string, string>()
+
+// the live model list changes rarely: remember it for 6 hours (a failed lookup for 10 minutes)
+const LIVE_TTL = 6 * 3600_000
+const FAIL_TTL = 10 * 60_000
+const live = new Map<string, { at: number; ids: string[]; ttl: number }>()
+
+/** Models to try, in order: the one pinned in Settings, the provider's own live list (newest first), then the built-in list. */
+export async function modelsToTry(p: Provider, key: string, e: BrainEnv, f: Fetch): Promise<string[]> {
+  let ids: string[] = []
+  if (p.list) {
+    const hit = live.get(p.id)
+    if (hit && Date.now() - hit.at < hit.ttl) ids = hit.ids
+    else {
+      try {
+        ids = await p.list(key, f)
+      } catch {
+        ids = []
+      }
+      live.set(p.id, { at: Date.now(), ids, ttl: ids.length ? LIVE_TTL : FAIL_TTL })
+    }
+  }
+  const pinned = modelFor(p.id, e)
+  return [...new Set([...(pinned ? [pinned] : []), ...ids.slice(0, 3), ...p.models])].slice(0, 6)
+}
+
+/** Forget the live lists (tests, and the Settings "test" button). */
+export const forgetLiveModels = () => live.clear()
+
 export const PROVIDERS: Provider[] = [
   {
     id: 'gemini',
     name: 'Gemini',
     key: (e) => e.GEMINI_API_KEY,
     models: ['gemini-2.5-flash', 'gemini-flash-latest', 'gemini-2.5-flash-lite'],
+    list: listGemini,
     call: async (key, model, system, user, f, onFail, maxTokens = LIMIT.answer) => {
       const r = await f(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`, {
         method: 'POST',
@@ -97,28 +179,35 @@ export const PROVIDERS: Provider[] = [
       return text
     },
   },
-  { id: 'groq', name: 'Groq', key: (e) => keyFor(e, 'gsk_'), models: ['llama-3.3-70b-versatile', 'openai/gpt-oss-20b', 'llama-3.1-8b-instant'], call: openAiStyle('https://api.groq.com/openai/v1/chat/completions') },
-  { id: 'xai', name: 'Grok', key: (e) => keyFor(e, 'xai-'), models: ['grok-3-mini'], call: openAiStyle('https://api.x.ai/v1/chat/completions') },
+  { id: 'groq', name: 'Groq', key: (e) => keyFor(e, 'gsk_'), models: ['llama-3.3-70b-versatile', 'openai/gpt-oss-20b', 'llama-3.1-8b-instant'], list: listGroq, call: openAiStyle('https://api.groq.com/openai/v1/chat/completions') },
+  { id: 'xai', name: 'Grok', key: (e) => keyFor(e, 'xai-'), models: ['grok-3-mini'], list: OPENAI_LIST('https://api.x.ai/v1/models', rankXai), call: openAiStyle('https://api.x.ai/v1/chat/completions') },
   // meta/llama-3.3-70b-instruct was retired on 2026-08-26
-  { id: 'nvidia', name: 'NVIDIA NIM', key: (e) => e.NVIDIA_API_KEY, models: ['nvidia/llama-3.1-nemotron-70b-instruct', 'nvidia/nemotron-3.5-lightning-30b-a3b', 'openai/gpt-oss-20b'], call: openAiStyle('https://integrate.api.nvidia.com/v1/chat/completions') },
+  { id: 'nvidia', name: 'NVIDIA NIM', key: (e) => e.NVIDIA_API_KEY, models: ['nvidia/llama-3.1-nemotron-70b-instruct', 'nvidia/nemotron-3.5-lightning-30b-a3b', 'openai/gpt-oss-20b'], list: OPENAI_LIST('https://integrate.api.nvidia.com/v1/models', rankNvidia), call: openAiStyle('https://integrate.api.nvidia.com/v1/chat/completions') },
 ]
 
 export const modelFor = (id: string, e: BrainEnv) => ({ gemini: e.GEMINI_MODEL, groq: e.GROQ_MODEL, xai: e.XAI_MODEL, nvidia: e.NVIDIA_MODEL })[id]
 
-/** A refusal that means "this model is gone or unknown", not "bad key" or "over the limit". */
+/** A refusal that means "this model is gone or unknown", not "bad key". */
 const modelGone = (status: number, reason: string) => status === 404 || status === 410 || (status === 400 && /model|decommission/i.test(reason))
+/** Worth trying the next model: gone, or this model's own free quota / capacity is used up (limits are per model). */
+const tryNext = (status: number, reason: string) => modelGone(status, reason) || status === 429 || status === 503 || status === 500
 
-/** Calls one helper, moving to its next model when the provider says a model no longer exists. */
+/** Calls one helper, moving to its next model when a model is gone, retired, rate-limited or busy. */
 export async function callHelper(p: Provider, key: string, e: BrainEnv, system: string, user: string, f: Fetch, onFail?: OnFail, maxTokens?: number): Promise<string | null> {
-  const pinned = modelFor(p.id, e)
-  const list = pinned ? [pinned, ...p.models.filter((m) => m !== pinned)] : p.models
+  const list = await modelsToTry(p, key, e, f)
+  let last: string | null = null
   for (const model of list) {
-    let gone = false
+    let next = false
     const text = await p.call(key, model, system, user, f, (status, reason) => {
-      gone = modelGone(status, reason)
+      next = tryNext(status, reason)
       onFail?.(status, reason)
     }, maxTokens)
-    if (text?.trim() || !gone) return text
+    if (text?.trim()) {
+      usedModel.set(p.id, model)
+      return text
+    }
+    last = text
+    if (!next) return last
   }
   return null
 }
@@ -149,7 +238,8 @@ export function cleanAsk(body: unknown): BrainAsk | null {
 }
 
 /** Ask each helper with a key, in order, until one answers. */
-export async function askBrain(ask: BrainAsk, e: BrainEnv, f: Fetch = fetch): Promise<{ text: string; by: string } | null> {
+const timedFetch: Fetch = (i, init) => fetch(i, { ...init, signal: AbortSignal.timeout(12_000) })
+export async function askBrain(ask: BrainAsk, e: BrainEnv, f: Fetch = timedFetch): Promise<{ text: string; by: string } | null> {
   const user = `Facts from the app:\n${ask.facts.map((x) => `- ${x}`).join('\n') || '- (none)'}\n\nQuestion: ${ask.question}`
   for (const p of PROVIDERS) {
     const key = p.key(e)

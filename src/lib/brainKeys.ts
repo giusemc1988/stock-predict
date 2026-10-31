@@ -2,7 +2,7 @@
  * All API keys typed into Settings. They are stored in the Worker's KV (never in the browser or
  * the repo), and are never sent back: the app only learns whether a key is set and whether it works.
  */
-import { callHelper, PROVIDERS, systemPrompt, type BrainEnv } from './brainServer'
+import { callHelper, forgetLiveModels, PROVIDERS, systemPrompt, usedModel, type BrainEnv } from './brainServer'
 
 /** Plain next step for the usual refusals. */
 function hint(why: string): string {
@@ -94,6 +94,7 @@ export async function testAiProvider(id: string, env: BrainEnv, f: typeof fetch 
   if (!key) return { ok: false, error: 'No key saved' }
 
   let why = ''
+  forgetLiveModels()
   try {
     const text = await callHelper(p, key, env, systemPrompt('en'), 'Reply with the single word: pong', f, (status, reason) => {
       why = `${status ? `HTTP ${status}` : ''}${reason ? `${status ? ': ' : ''}${reason}` : ''}`
@@ -106,7 +107,7 @@ export async function testAiProvider(id: string, env: BrainEnv, f: typeof fetch 
         nvidia: env.NVIDIA_MODEL
       }
       const modelFor = modelMap[id]
-      const model = modelFor || p.models[0]
+      const model = modelFor || usedModel.get(id) || p.models[0]
       return { ok: true, model }
     }
     return { ok: false, error: `${p.name} refused${why ? ` (${why})` : ''}. ${hint(why)}`.trim() }
