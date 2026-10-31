@@ -290,7 +290,7 @@ export default {
       const ask = cleanWriteAsk(await req.json().catch(() => null))
       if (!ask) return json({ error: 'No topic' }, 400)
       const r = await writeScript(ask, await withSavedKeys(env, env.SETTINGS)).catch(() => null)
-      return r ? json(r) : json({ error: 'No AI helper answered. Add a free Gemini or Groq key in Settings.' }, 503)
+      return r ? json(r) : json({ error: 'AI did not answer in time (free quota may be used up). Try again later, or type the lines yourself.' }, 503)
     }
     const nova = await novaRoute(req, pathname, env, env.SETTINGS)
     if (nova) return nova

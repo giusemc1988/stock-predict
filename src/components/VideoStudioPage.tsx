@@ -4,7 +4,7 @@ import { useHubTheme } from '../lib/themes'
 import { AgentFace } from './AgentFace'
 import { LangSwitch } from './HubPanels'
 import { ProjectLogo } from './ProjectLogo'
-import { CHANNEL, LIBRARY, fromText, libraryFor, titleLab, type Script, type StudioMode } from '../lib/studio/script'
+import { CHANNEL, fromText, titleLab, type Script, type StudioMode } from '../lib/studio/script'
 import { drawFrame, plan, sizeOf, type Aspect, type Media } from '../lib/studio/render'
 import { SAMPLE_RATE, renderMusic } from '../lib/studio/audio'
 import { canExport, exportMp4 } from '../lib/studio/encode'
@@ -16,7 +16,6 @@ import { Copy, NovaPostKit } from './NovaPostKit'
 import { NovaUploads } from './NovaUploads'
 import { NovaClipPreview } from './NovaClipPreview'
 import { NovaProgress } from './NovaProgress'
-import { NovaPresets } from './NovaPresets'
 import type { TrendItem } from '../lib/studioTrends'
 import './JarvisHub.css'
 import './NovaStudio.css'
@@ -28,7 +27,6 @@ const NOVA_HUE = '#d6a4ea'
 const STEPS = [
   { id: 'nv-idea', key: 'stepIdea' },
   { id: 'nv-script', key: 'stepScript' },
-  { id: 'nv-footage', key: 'stepFootage' },
   { id: 'nv-make', key: 'stepMake' },
   { id: 'nv-post', key: 'stepPost' },
 ] as const satisfies readonly { id: string; key: StudioKey }[]
@@ -55,19 +53,22 @@ function useActiveStep(): string {
 }
 
 /** Bilingual Faceless Video Studio: script EN + VI, preview, MP4 export and Title Lab, all in the browser. */
-export function VideoStudioPage({ onBack, glass = true, trends = true, postKit = true, videoSettings = true, uploads = true, presets = true, lemo = true, handoff = true, channel = false, importLink = true, clipText = true, quickPost = true, hookThemes = true, onViraltech }: { onBack: () => void; glass?: boolean; trends?: boolean; postKit?: boolean; videoSettings?: boolean; uploads?: boolean; presets?: boolean; lemo?: boolean; handoff?: boolean; channel?: boolean; importLink?: boolean; clipText?: boolean; quickPost?: boolean; hookThemes?: boolean; onViraltech?: () => void }) {
+export function VideoStudioPage({ onBack, glass = true, trends = true, postKit = true, videoSettings = true, uploads = true, lemo = true, handoff = true, channel = false, importLink = true, clipText = true, quickPost = true, hookThemes = true, onViraltech }: { onBack: () => void; glass?: boolean; trends?: boolean; postKit?: boolean; videoSettings?: boolean; uploads?: boolean; lemo?: boolean; handoff?: boolean; channel?: boolean; importLink?: boolean; clipText?: boolean; quickPost?: boolean; hookThemes?: boolean; onViraltech?: () => void }) {
   const lang = useLang()
   const theme = useHubTheme()
   const active = useActiveStep()
   // the glass look (AI rule novaGlass); off = the plain cards from before
   const card = glass ? 'bf-card nv-card hg-glass' : 'bf-card'
   const t = (k: StudioKey) => STUDIO_TEXT[k][lang]
-  const [mode, setMode] = useState<StudioMode>('faceless')
+  // Nova makes the channel's faceless videos; the old Philosophy and My Trip tabs are gone
+  const mode: StudioMode = 'faceless'
   const [aspect, setAspect] = useState<Aspect>('9:16')
-  const [topic, setTopic] = useState(LIBRARY[0].topic.en)
-  const [topicVi, setTopicVi] = useState(LIBRARY[0].topic.vi)
-  const [en, setEn] = useState(LIBRARY[0].en.join('\n'))
-  const [vi, setVi] = useState(LIBRARY[0].vi.join('\n'))
+  const [topic, setTopic] = useState('')
+  const [topicVi, setTopicVi] = useState('')
+  const [en, setEn] = useState('')
+  const [vi, setVi] = useState('')
+  // the topic the lines on screen were written for; a different topic means the lines are old
+  const [scriptFor, setScriptFor] = useState('')
   const [music, setMusic] = useState(true)
   const [scenes, setScenes] = useState<number | null>(null)
   // channel rules: 3 to 5 slides, 4 unless picked; otherwise 5 and up to 12
@@ -78,8 +79,6 @@ export function VideoStudioPage({ onBack, glass = true, trends = true, postKit =
   const [serverMedia, setServerMedia] = useState<string[]>([])
   // the uploaded or imported clips, for the preview with text
   const [clipIds, setClipIds] = useState<string[]>([])
-  // a loaded preset rewrites the saved settings; this remounts the parts that read them
-  const [presetRev, setPresetRev] = useState(0)
   const [fades, setFades] = useState(true)
   const [voice, setVoice] = useState(false)
   const [media, setMedia] = useState<(Media & { thumb: string })[]>([])
@@ -94,7 +93,7 @@ export function VideoStudioPage({ onBack, glass = true, trends = true, postKit =
   const stopRef = useRef<() => void>(() => {})
 
   const script: Script = useMemo(() => fromText(topic, mode, en, vi, topicVi), [topic, mode, en, vi, topicVi])
-  const shown = useMemo(() => (mode === 'trip' || mode === 'philosophy' ? media : []), [mode, media])
+  const shown = media
   const p = useMemo(() => plan(script, aspect, fades, shown, channel ? CHANNEL.seconds : 0), [script, aspect, fades, shown, channel])
   const lab = useMemo(() => titleLab(script), [script])
   const { w, h } = sizeOf(aspect)
@@ -109,28 +108,32 @@ export function VideoStudioPage({ onBack, glass = true, trends = true, postKit =
 
   useEffect(() => () => { stopRef.current(); if (out) URL.revokeObjectURL(out.url) }, [out])
 
-  const pickLibrary = (i: number) => {
-    const s = libraryFor(mode)[i]
-    if (!s) return
-    setTopic(s.topic.en)
-    setTopicVi(s.topic.vi)
-    setEn(s.en.join('\n'))
-    setVi(s.vi.join('\n'))
+  // picking a new topic throws away the old lines and hooks, so nothing from the last topic is left behind
+  const chooseTopic = (a: string, b: string) => {
+    setTopic(a)
+    setTopicVi(b)
+    if (a !== scriptFor) {
+      setEn('')
+      setVi('')
+      setHook({ en: '', vi: '' })
+      setOut(null)
+    }
   }
+  const stale = !!scriptFor && !!en.trim() && topic.trim() !== scriptFor
 
   const writeAi = async (ask?: { topic: string; topicVi: string }) => {
     setMsg(null)
     setBusy(t('writing'))
     try {
       const body = JSON.stringify({ topic: ask?.topic ?? topic, topicVi: ask?.topicVi ?? topicVi, mode, scenes: sceneN, channel })
-      // two AI calls with fallbacks can take a while; a dropped connection gets one more try
-      let r: Response | null = null
-      for (let n = 0; n < 2 && !r; n++) r = await fetch('/api/studio/write', { method: 'POST', headers: { 'content-type': 'application/json' }, body, signal: AbortSignal.timeout(75_000) }).catch(() => null)
+      // the server gives each AI helper 12 s, so 45 s is more than enough; after that the wait ends with a message
+      const r = await fetch('/api/studio/write', { method: 'POST', headers: { 'content-type': 'application/json' }, body, signal: AbortSignal.timeout(45_000) }).catch(() => null)
       if (!r) throw new Error(t('netDown'))
       const j = (await r.json().catch(() => ({}))) as { en?: string[]; vi?: string[]; by?: string; error?: string }
       if (!r.ok || !j.en?.length || !j.vi?.length) throw new Error(j.error ?? `HTTP ${r.status}`)
       setEn(j.en.join('\n'))
       setVi(j.vi.join('\n'))
+      setScriptFor((ask?.topic ?? topic).trim())
       setMsg(`${t('writtenBy')} ${j.by}`)
     } catch (e) {
       setMsg(`${t('aiFailed')} (${(e as Error).message})`)
@@ -141,8 +144,7 @@ export function VideoStudioPage({ onBack, glass = true, trends = true, postKit =
 
   // a trending topic fills both topic boxes; the AI writes each script in its own language
   const applyTrend = (it: TrendItem) => {
-    setTopic(it.title)
-    setTopicVi(it.title)
+    chooseTopic(it.title, it.title)
     setMsg(t('trendPicked'))
     return { topic: it.title, topicVi: it.title }
   }
@@ -239,8 +241,6 @@ export function VideoStudioPage({ onBack, glass = true, trends = true, postKit =
     }
   }
 
-  const modes: StudioMode[] = ['faceless', 'philosophy', 'trip']
-  const usesMedia = mode === 'trip' || mode === 'philosophy'
   const jump = (id: string) => document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
   const head = (n: number, key: StudioKey, extra?: ReactNode) => (
     <header>
@@ -281,32 +281,9 @@ export function VideoStudioPage({ onBack, glass = true, trends = true, postKit =
           ))}
         </nav>
 
-        {presets && (
-          <NovaPresets
-            mode={mode}
-            aspect={aspect}
-            onApply={(pr) => {
-              setMode(pr.mode)
-              setAspect(pr.aspect)
-              setPresetRev((n) => n + 1)
-            }}
-          />
-        )}
-
         <section id="nv-idea" className={card}>
           {head(1, 'stepIdea')}
-          {trends && <NovaTrends onPick={(it) => void applyTrend(it)} onAuto={autoTrend} busy={!!busy} themes={hookThemes} onTopic={(en, vi) => { setTopic(en); setTopicVi(vi); setMsg(t('trendPicked')) }} onAutoTopic={(en, vi) => { setTopic(en); setTopicVi(vi); document.getElementById('nv-script')?.scrollIntoView({ behavior: 'smooth', block: 'start' }); void writeAi({ topic: en, topicVi: vi }) }} />}
-          <div className="seg small" role="tablist" aria-label={t('step1')}>
-            {modes.map((m) => (
-              <button key={m} role="tab" aria-selected={mode === m} className={mode === m ? 'on' : ''} onClick={() => setMode(m)}>{t(m)}</button>
-            ))}
-          </div>
-          <p className="muted small">{t(`${mode}Note` as StudioKey)}</p>
-          <div className="seg small" role="group" aria-label={t('aspect')}>
-            {(['9:16', '16:9', '1:1'] as Aspect[]).map((a) => (
-              <button key={a} className={aspect === a ? 'on' : ''} onClick={() => setAspect(a)}>{a}</button>
-            ))}
-          </div>
+          {trends && <NovaTrends onPick={(it) => void applyTrend(it)} onAuto={autoTrend} busy={!!busy} themes={hookThemes} onTopic={(en, vi) => { chooseTopic(en, vi); setMsg(t('trendPicked')) }} onAutoTopic={(en, vi) => { chooseTopic(en, vi); document.getElementById('nv-script')?.scrollIntoView({ behavior: 'smooth', block: 'start' }); void writeAi({ topic: en, topicVi: vi }) }} />}
           <div className="nv-two">
             <label className="vs-field">
               <span className="small muted">{t('topic')} (EN)</span>
@@ -317,10 +294,6 @@ export function VideoStudioPage({ onBack, glass = true, trends = true, postKit =
               <input value={topicVi} onChange={(e) => setTopicVi(e.target.value)} maxLength={200} />
             </label>
           </div>
-          <select className="btn" value="" onChange={(e) => pickLibrary(Number(e.target.value))} aria-label={t('library')}>
-            <option value="">{t('library')}</option>
-            {libraryFor(mode).map((s, i) => <option key={i} value={i}>{s.topic[lang]}</option>)}
-          </select>
         </section>
 
         <section id="nv-script" className={card}>
@@ -340,45 +313,45 @@ export function VideoStudioPage({ onBack, glass = true, trends = true, postKit =
             <label className="vs-field"><span className="small muted">EN · {t('oneLine')}</span><textarea rows={6} value={en} onChange={(e) => setEn(e.target.value)} /></label>
             <label className="vs-field"><span className="small muted">VI · {t('oneLine')}</span><textarea rows={6} value={vi} onChange={(e) => setVi(e.target.value)} /></label>
           </div>
+          {stale && <p className="warn">{t('staleScript')}</p>}
+          {!en.trim() && !vi.trim() && busy !== t('writing') && <p className="muted small">{t('scriptEmpty')}</p>}
           {mismatch && <p className="warn">{t('mismatch')}</p>}
           {msg && busy == null && !out && <p className="small">{msg}</p>}
         </section>
 
-        <section id="nv-footage" className={card}>
-          {head(3, 'stepFootage', usesMedia ? <span className="small muted">{media.length}/{MAX_MEDIA}</span> : undefined)}
-          {usesMedia ? (
-            <>
-              <label className={`nv-drop${media.length >= MAX_MEDIA || busy ? ' off' : ''}`}>
-                <input type="file" accept="image/*,video/*" multiple disabled={media.length >= MAX_MEDIA || !!busy} onChange={(e) => { void addMedia(e.target.files); e.target.value = '' }} />
-                <span>＋ {t('step3')}</span>
-              </label>
-              <p className="muted small">{t('mediaNote')}</p>
-              <NovaProgress active={busy === t('loadingMedia')} label={t('loadingMedia')} secs={10} />
-              {footMsg.map((m) => <p key={m} className="warn small">{m}</p>)}
-              {media.length > 0 && (
-                <div className="nv-up-grid">
-                  {media.map((m, i) => (
-                    <div key={m.thumb + i} className="nv-up-tile">
-                      <img src={m.thumb} alt="" />
-                      <span className="nv-up-n">{i + 1}</span>
-                      <div className="nv-up-act">
-                        <button className="btn small" aria-label={t('serverDelete')} title={t('serverDelete')} onClick={() => setMedia((list) => list.filter((_, j) => j !== i))}>✕</button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-              {media.length > 0 && <button className="btn small" onClick={() => { setMedia([]); setFootMsg([]) }}>{t('clear')}</button>}
-            </>
-          ) : (
-            <p className="muted small">{t('footageAuto')}</p>
-          )}
-          {uploads && <NovaUploads onChange={setServerMedia} onClips={setClipIds} importLink={importLink} />}
-          {uploads && clipText && clipIds.length > 0 && <NovaClipPreview ids={clipIds} script={script} topic={topic} />}
-        </section>
-
         <section id="nv-make" className="nv-make">
-          <StudioRenderPanel key={presetRev} topic={topic} topicVi={topicVi} en={script.en} vi={script.vi} aspect={aspect} glass={glass} settings={videoSettings} hook={postKit ? hook : undefined} onClearHook={() => setHook({ en: '', vi: '' })} media={uploads ? serverMedia : []} lemo={lemo} handoff={handoff} onViraltech={onViraltech} post={quickPost ? { caption: lab.caption, tags: lab.hashtags } : undefined} />
+          <details className={`${card} nv-adv`}>
+            <summary className="small">{t('advTitle')} {media.length > 0 && <span className="muted">· {media.length}/{MAX_MEDIA}</span>}</summary>
+            <div className="seg small" role="group" aria-label={t('aspect')}>
+              {(['9:16', '16:9', '1:1'] as Aspect[]).map((a) => (
+                <button key={a} className={aspect === a ? 'on' : ''} onClick={() => setAspect(a)}>{a}</button>
+              ))}
+            </div>
+            <p className="muted small">{t('footageAuto')}</p>
+            <label className={`nv-drop${media.length >= MAX_MEDIA || busy ? ' off' : ''}`}>
+              <input type="file" accept="image/*,video/*" multiple disabled={media.length >= MAX_MEDIA || !!busy} onChange={(e) => { void addMedia(e.target.files); e.target.value = '' }} />
+              <span>＋ {t('step3')}</span>
+            </label>
+            <NovaProgress active={busy === t('loadingMedia')} label={t('loadingMedia')} secs={10} />
+            {footMsg.map((m) => <p key={m} className="warn small">{m}</p>)}
+            {media.length > 0 && (
+              <div className="nv-up-grid">
+                {media.map((m, i) => (
+                  <div key={m.thumb + i} className="nv-up-tile">
+                    <img src={m.thumb} alt="" />
+                    <span className="nv-up-n">{i + 1}</span>
+                    <div className="nv-up-act">
+                      <button className="btn small" aria-label={t('serverDelete')} title={t('serverDelete')} onClick={() => setMedia((list) => list.filter((_, j) => j !== i))}>✕</button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+            {media.length > 0 && <button className="btn small" onClick={() => { setMedia([]); setFootMsg([]) }}>{t('clear')}</button>}
+            {uploads && <NovaUploads onChange={setServerMedia} onClips={setClipIds} importLink={importLink} />}
+            {uploads && clipText && clipIds.length > 0 && <NovaClipPreview ids={clipIds} script={script} topic={topic} />}
+          </details>
+          <StudioRenderPanel topic={topic} topicVi={topicVi} en={script.en} vi={script.vi} aspect={aspect} glass={glass} settings={videoSettings} hook={postKit ? hook : undefined} onClearHook={() => setHook({ en: '', vi: '' })} media={uploads ? serverMedia : []} lemo={lemo} handoff={handoff} onViraltech={onViraltech} post={quickPost ? { caption: lab.caption, tags: lab.hashtags } : undefined} />
 
           <div className={card}>
             <header><h3>{t('quickTitle')}</h3></header>
@@ -412,12 +385,12 @@ export function VideoStudioPage({ onBack, glass = true, trends = true, postKit =
         <section id="nv-post" className={card}>
           {postKit ? (
             <>
-              {head(5, 'stepPost')}
-              <NovaPostKit key={presetRev} script={script} hook={hook} onHook={videoSettings ? (l, x) => setHook((h) => ({ ...h, [l]: x })) : undefined} />
+              {head(4, 'stepPost')}
+              <NovaPostKit script={script} hook={hook} onHook={videoSettings ? (l, x) => setHook((h) => ({ ...h, [l]: x })) : undefined} />
             </>
           ) : (
             <>
-              {head(5, 'stepPost', <Copy text={lab.hashtags.join(' ')} label={t('copyTags')} />)}
+              {head(4, 'stepPost', <Copy text={lab.hashtags.join(' ')} label={t('copyTags')} />)}
               <p className="muted small">{t('postNote')}</p>
               <div className="nv-two">
                 {(['en', 'vi'] as const).map((l) => (

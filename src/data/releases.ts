@@ -2,7 +2,7 @@
  * Version and "What's new". Bump APP_VERSION and add an entry to the top of RELEASES
  * with each update. The banner shows once per version, then stays dismissed.
  */
-export const APP_VERSION = '1.73.0'
+export const APP_VERSION = '1.74.0'
 
 export interface Release {
   version: string
@@ -13,6 +13,12 @@ export interface Release {
 }
 
 export const RELEASES: Release[] = [
+  {
+    version: '1.74.0',
+    date: '2026-10-31',
+    changes: ['Nova is simpler: 4 steps (Topic, Script, Make video, Post). Removed the Faceless/Philosophy/My Trip tabs, presets bar and library picker. Picking a new topic clears the old script and hooks. AI waits now end after about 12 seconds per helper with a clear message instead of hanging at 90%.'],
+    changesVi: ['Nova gọn hơn: 4 bước (Chủ đề, Kịch bản, Làm video, Đăng bài). Bỏ 3 tab Faceless/Triết lý/Chuyến đi, thanh Presets và ô chọn thư viện. Chọn chủ đề mới thì kịch bản và hook cũ bị xoá. Chờ AI tối đa khoảng 12 giây mỗi nhà cung cấp rồi báo lỗi rõ ràng, không còn treo ở 90%.'],
+  },
   {
     version: '1.73.0',
     date: '2026-10-31',
