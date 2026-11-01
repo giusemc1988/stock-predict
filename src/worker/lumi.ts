@@ -8,8 +8,11 @@
  * - /trips: GET lists saved trip summaries, POST appends one (text only, capped list, one KV key).
  */
 import { callHelper, keyFor, PROVIDERS, type BrainEnv } from '../lib/brainServer'
+
+const GEMINI_VISION = ['gemini-2.5-flash', 'gemini-2.5-flash-lite', 'gemini-flash-latest']
+const GROQ_VISION = ['meta-llama/llama-4-scout-17b-16e-instruct', 'meta-llama/llama-4-maverick-17b-128e-instruct']
 import { sameOrigin, withSavedKeys, type KeyStore } from '../lib/brainKeys'
-import { buildGroupPrompt, buildSayPrompt, cleanSayText, cleanTripSave, fallbackGroup, mergeTrips, parseGroupResponse, parseSayResponse, parseTrips, TRIPS_KEY, type LumiLine, type LumiMode, type SayDir } from '../lib/lumiTranslate'
+import { buildGroupPrompt, buildSayPrompt, cleanSayText, MENU_PROMPT, parseImageDataUrl, parseMenuResponse, cleanTripSave, fallbackGroup, mergeTrips, parseGroupResponse, parseSayResponse, parseTrips, TRIPS_KEY, type LumiLine, type LumiMode, type SayDir } from '../lib/lumiTranslate'
 import { isLumiLang, LANG_EN } from '../lib/lumiPhrases'
 import { parseRates } from '../lib/lumiMoney'
 
@@ -96,6 +99,47 @@ export async function lumiRoute(req: Request, pathname: string, env: BrainEnv, s
       }
     }
     return json({ error: 'Các AI miễn phí đều hết lượt, thử lại sau ít phút.' }, 503)
+  }
+
+  if (pathname === '/api/lumi/menu') {
+    if (req.method !== 'POST') return json({ error: 'POST only' }, 405)
+    if (!sameOrigin(req)) return json({ error: 'Not allowed' }, 403)
+    const b = (await req.json().catch(() => null)) as { image?: unknown } | null
+    const img = parseImageDataUrl(b?.image)
+    if (!img) return json({ error: 'Ảnh không hợp lệ hoặc quá lớn' }, 400)
+    const e = await withSavedKeys(env, settings)
+    // the photo only lives in this request: sent to one vision model, never stored
+    const gem = e.GEMINI_API_KEY
+    if (gem) {
+      for (const model of GEMINI_VISION) {
+        const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`, {
+          method: 'POST',
+          headers: { 'content-type': 'application/json', 'x-goog-api-key': gem },
+          body: JSON.stringify({ contents: [{ role: 'user', parts: [{ inlineData: { mimeType: img.mime, data: img.b64 } }, { text: MENU_PROMPT }] }], generationConfig: { maxOutputTokens: 2000, temperature: 0.2, thinkingConfig: { thinkingBudget: 0 } } }),
+          signal: AbortSignal.timeout(25000),
+        }).catch(() => null)
+        if (!r?.ok) continue
+        const j = (await r.json().catch(() => null)) as { candidates?: { content?: { parts?: { text?: string }[] } }[] } | null
+        const text = j?.candidates?.[0]?.content?.parts?.map((p) => p.text ?? '').join('') ?? ''
+        if (text) return json({ items: parseMenuResponse(text), by: 'Gemini' })
+      }
+    }
+    const groq = keyFor(e, 'gsk_')
+    if (groq) {
+      for (const model of GROQ_VISION) {
+        const r = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+          method: 'POST',
+          headers: { 'content-type': 'application/json', authorization: `Bearer ${groq}` },
+          body: JSON.stringify({ model, max_tokens: 2000, temperature: 0.2, messages: [{ role: 'user', content: [{ type: 'text', text: MENU_PROMPT }, { type: 'image_url', image_url: { url: `data:${img.mime};base64,${img.b64}` } }] }] }),
+          signal: AbortSignal.timeout(25000),
+        }).catch(() => null)
+        if (!r?.ok) continue
+        const j = (await r.json().catch(() => null)) as { choices?: { message?: { content?: string } }[] } | null
+        const text = j?.choices?.[0]?.message?.content ?? ''
+        if (text) return json({ items: parseMenuResponse(text), by: 'Groq' })
+      }
+    }
+    return json({ error: gem || groq ? 'AI đọc ảnh miễn phí đang hết lượt, thử lại sau ít phút.' : 'Cần key Gemini hoặc Groq miễn phí trong Cài đặt để đọc ảnh.' }, gem || groq ? 503 : 409)
   }
 
   if (pathname === '/api/lumi/rates') {

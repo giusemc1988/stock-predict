@@ -59,6 +59,13 @@ assert.equal((await lumiRoute(req('/api/lumi/say'), '/api/lumi/say', {}))?.statu
   assert.equal((await lumiRoute(post({ text: '', lang: 'ja' }), '/api/lumi/say', {}))?.status, 400)
   assert.equal((await lumiRoute(post({ text: 'xin chào', lang: 'ja' }), '/api/lumi/say', {}))?.status, 503)
 }
+// /api/lumi/menu: method, bad image, no keys -> 409
+assert.equal((await lumiRoute(req('/api/lumi/menu'), '/api/lumi/menu', {}))?.status, 405)
+{
+  const post = (body: unknown) => req('/api/lumi/menu', { method: 'POST', headers: { origin: 'https://x', 'content-type': 'application/json' }, body: JSON.stringify(body) })
+  assert.equal((await lumiRoute(post({ image: 'nope' }), '/api/lumi/menu', {}))?.status, 400)
+  assert.equal((await lumiRoute(post({ image: 'data:image/jpeg;base64,QUJD' }), '/api/lumi/menu', {}))?.status, 409)
+}
 // /api/lumi/rates: GET only
 assert.equal((await lumiRoute(req('/api/lumi/rates', { method: 'POST' }), '/api/lumi/rates', {}))?.status, 405)
 

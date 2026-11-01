@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useState } from 'react'
 import type { Bi } from '../lib/hubText'
-import { CURRENCIES, convert, formatVnd, parseStoredRates, RATES_KEY, ratesFresh, type Money, type Rates } from '../lib/lumiMoney'
-import { CULTURE, LUMI_LANGS, PHRASE_CATS, phrasesFor, speechTag, type LumiLang, type PhraseCat } from '../lib/lumiPhrases'
-import { addWord, parseVocab, removeWord, VOCAB_KEY, type LumiWord } from '../lib/lumiTranslate'
+import { CURRENCIES, convert, findMoney, formatVnd, parseStoredRates, RATES_KEY, ratesFresh, type Money, type Rates } from '../lib/lumiMoney'
+import { CULTURE, SCAMS, LUMI_LANGS, PHRASE_CATS, phrasesFor, speechTag, type LumiLang, type PhraseCat } from '../lib/lumiPhrases'
+import { addWord, parseVocab, removeWord, tripsToText, VOCAB_KEY, type LumiTrip, type LumiWord } from '../lib/lumiTranslate'
 
 /**
  * Lumi's travel tools beside "Listen": two-way talk, offline phrasebook, money to VND, trip
@@ -319,6 +319,132 @@ export function LumiCulture({ lang, target }: { lang: Lang; target: LumiLang }) 
       <ul className="lumi-tips">
         {c.tips.map((t, i) => <li key={i}>{t[lang]}</li>)}
       </ul>
+    </section>
+  )
+}
+
+const T2 = {
+  snap: { en: '📷 Take or pick a photo of a menu / sign', vi: '📷 Chụp hoặc chọn ảnh thực đơn / biển báo' },
+  reading: { en: 'Reading the photo…', vi: 'Đang đọc ảnh…' },
+  nothing: { en: 'No readable text found. Try a closer, sharper photo.', vi: 'Không đọc được chữ. Chụp gần và rõ hơn nhé.' },
+  photoNote: { en: 'The photo is only sent to the free AI to read it, never stored.', vi: 'Ảnh chỉ gửi cho AI miễn phí đọc, không lưu lại.' },
+  notesEmpty: { en: 'No saved trips yet. In Listen, tap "☆ Save this trip".', vi: 'Chưa có chuyến nào. Ở tab Nghe, bấm "☆ Lưu chuyến này".' },
+  copy: { en: 'Copy all', vi: 'Chép tất cả' },
+  share: { en: 'Share', vi: 'Chia sẻ' },
+  copied: { en: 'Copied.', vi: 'Đã chép.' },
+  scams: { en: 'Common scams', vi: 'Chiêu lừa hay gặp' },
+} satisfies Record<string, Bi>
+
+/** Shrinks a photo in the browser so the upload is small (max 1280px, JPEG). */
+async function shrink(file: File): Promise<string> {
+  const bmp = await createImageBitmap(file)
+  const k = Math.min(1, 1280 / Math.max(bmp.width, bmp.height))
+  const c = document.createElement('canvas')
+  c.width = Math.round(bmp.width * k)
+  c.height = Math.round(bmp.height * k)
+  c.getContext('2d')!.drawImage(bmp, 0, 0, c.width, c.height)
+  return c.toDataURL('image/jpeg', 0.8)
+}
+
+/** Menu / sign photo -> Vietnamese, with a short note per dish. */
+export function LumiMenu({ lang, target, vocab, rates }: ToolProps & { rates: Rates | null }) {
+  const L = (k: keyof typeof T2) => T2[k][lang]
+  const LT = (k: keyof typeof T) => T[k][lang]
+  const [busy, setBusy] = useState(false)
+  const [err, setErr] = useState<string | null>(null)
+  const [items, setItems] = useState<{ orig: string; vi: string; note?: string; price?: string }[] | null>(null)
+  const [preview, setPreview] = useState<string | null>(null)
+  const onFile = async (f: File | undefined) => {
+    if (!f) return
+    setErr(null)
+    setItems(null)
+    setBusy(true)
+    try {
+      const url = await shrink(f)
+      setPreview(url)
+      const r = await fetch('/api/lumi/menu', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ image: url }) })
+      const j = (await r.json()) as { items?: typeof items; error?: string }
+      if (!r.ok) throw new Error(j.error)
+      setItems(j.items ?? [])
+    } catch (e) {
+      setErr((e as Error).message || LT('failed'))
+    } finally {
+      setBusy(false)
+    }
+  }
+  return (
+    <section className="bf-card">
+      <label className="btn primary lumi-snap">
+        {L('snap')}
+        <input type="file" accept="image/*" capture="environment" hidden onChange={(e) => void onFile(e.target.files?.[0])} />
+      </label>
+      <p className="small muted">{L('photoNote')}</p>
+      {preview && <img className="lumi-preview" src={preview} alt="" />}
+      {busy && <p className="small ok">{L('reading')}</p>}
+      {err && <p className="small" role="alert">{err}</p>}
+      {items && !items.length && <p className="small">{L('nothing')}</p>}
+      {items && items.length > 0 && (
+        <div className="lumi-phrases">
+          {items.map((it, i) => {
+            const money = it.price ? findMoney(it.price) : []
+            return (
+              <div key={i} className="lumi-conv">
+                <p><b>{it.vi}</b>{it.price && <span className="muted"> · {it.price}</span>}</p>
+                <small>{it.orig}</small>
+                {it.note && <small>{it.note}</small>}
+                <MoneyChips found={money} rates={rates} />
+                <div className="ag-acts">
+                  <button className="btn" onClick={() => speak(it.orig, speechTag(target))}>{LT('speak')}</button>
+                  <button className="btn" onClick={() => vocab.keep({ lang: target, text: it.orig, vi: it.vi })}>{vocab.has(it.orig) ? LT('kept') : LT('keep')}</button>
+                </div>
+              </div>
+            )
+          })}
+        </div>
+      )}
+    </section>
+  )
+}
+
+/** Saved trips (summaries only), grouped by day, with Copy / Share as plain text. */
+export function LumiNotebook({ lang }: { lang: Lang }) {
+  const L = (k: keyof typeof T2) => T2[k][lang]
+  const [trips, setTrips] = useState<LumiTrip[] | null>(null)
+  const [msg, setMsg] = useState<string | null>(null)
+  useEffect(() => {
+    fetch('/api/lumi/trips')
+      .then((r) => (r.ok ? r.json() : { trips: [] }))
+      .then((j: { trips?: LumiTrip[] }) => setTrips(j.trips ?? []))
+      .catch(() => setTrips([]))
+  }, [])
+  if (trips == null) return <section className="bf-card"><p className="small muted">…</p></section>
+  if (!trips.length) return <section className="bf-card"><p className="small muted">{L('notesEmpty')}</p></section>
+  const text = tripsToText(trips, lang === 'vi' ? 'vi-VN' : 'en-US')
+  const share = async () => {
+    const nav = navigator as Navigator & { share?: (d: { title: string; text: string }) => Promise<void> }
+    if (nav.share) await nav.share({ title: 'Lumi', text }).catch(() => {})
+    else { await navigator.clipboard?.writeText(text).catch(() => {}); setMsg(L('copied')) }
+  }
+  return (
+    <section className="bf-card">
+      <div className="ag-acts">
+        <button className="btn" onClick={() => { void navigator.clipboard?.writeText(text).then(() => setMsg(L('copied'))).catch(() => {}) }}>{L('copy')}</button>
+        <button className="btn" onClick={() => void share()}>{L('share')}</button>
+        {msg && <span className="small ok">{msg}</span>}
+      </div>
+      <pre className="lumi-notes">{text}</pre>
+    </section>
+  )
+}
+
+/** Static list of scams per country (shown under etiquette tips). */
+export function ScamList({ lang, target }: { lang: Lang; target: LumiLang }) {
+  const s = SCAMS[target]
+  if (!s?.length) return null
+  return (
+    <section className="bf-card">
+      <header><h3>⚠ {T2.scams[lang]}</h3></header>
+      <ul className="lumi-tips">{s.map((x, i) => <li key={i}>{x[lang]}</li>)}</ul>
     </section>
   )
 }

@@ -7,7 +7,7 @@ import { AgentShell } from './AgentShell'
 import { useAiRules } from '../lib/aiRules'
 import { findMoney } from '../lib/lumiMoney'
 import { isLumiLang, type LumiLang } from '../lib/lumiPhrases'
-import { LangPicker, LumiCulture, LumiMoney, LumiPhrasebook, LumiTalk, LumiVocab, MoneyChips, useRates, useVocab } from './LumiTools'
+import { LangPicker, LumiCulture, LumiMenu, LumiMoney, LumiNotebook, LumiPhrasebook, LumiTalk, LumiVocab, MoneyChips, ScamList, useRates, useVocab } from './LumiTools'
 
 const T = {
   back: { en: '← Hub', vi: '← Hub' },
@@ -35,6 +35,8 @@ const T = {
   tabMoney: { en: '💱 Money', vi: '💱 Đổi tiền' },
   tabWords: { en: '⭐ Words', vi: '⭐ Từ vựng' },
   tabTips: { en: '🧭 Etiquette', vi: '🧭 Văn hóa' },
+  tabMenu: { en: '📷 Menu', vi: '📷 Chụp menu' },
+  tabNotes: { en: '📓 Trip notes', vi: '📓 Sổ tay' },
   langOf: { en: 'Their language', vi: 'Tiếng của họ' },
 } satisfies Record<string, Bi>
 
@@ -54,7 +56,7 @@ export function LumiPage({ onBack, glass = true }: { onBack: () => void; glass?:
   useHubTheme()
   const rules = useAiRules()
   const tools = rules.lumiTools !== false
-  type Tab = 'listen' | 'talk' | 'phrases' | 'money' | 'words' | 'tips'
+  type Tab = 'listen' | 'talk' | 'menu' | 'phrases' | 'money' | 'words' | 'tips' | 'notes'
   const [tab, setTab] = useState<Tab>('listen')
   const [target, setTargetRaw] = useState<LumiLang>(() => {
     const v = typeof localStorage === 'undefined' ? null : localStorage.getItem('lumi:lang')
@@ -163,7 +165,7 @@ export function LumiPage({ onBack, glass = true }: { onBack: () => void; glass?:
       const r = await fetch('/api/lumi/trips', {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ mode, conversations: conversations.map((c) => ({ lang: c.lang, summaryVi: c.summaryVi })) }),
+        body: JSON.stringify({ mode, conversations: conversations.map((c) => ({ lang: c.lang, summaryVi: c.summaryVi, alertVi: c.alertVi })) }),
       })
       setSaveMsg(r.ok ? L('saved') : null)
     } catch {
@@ -177,14 +179,14 @@ export function LumiPage({ onBack, glass = true }: { onBack: () => void; glass?:
     <AgentShell id="lumi" glass={glass} onBack={onBack} backLabel={L('back')} title={L('title')} sub={L('sub')}>
       {tools && (
         <nav className="lumi-tabs lumi-main-tabs" aria-label="Lumi">
-          {(['listen', 'talk', 'phrases', 'money', 'words', 'tips'] as const).map((k) => (
+          {(['listen', 'talk', 'menu', 'phrases', 'money', 'words', 'tips', 'notes'] as const).map((k) => (
             <button key={k} className={tab === k ? 'on' : ''} onClick={() => setTab(k)}>
               {L(`tab${k[0].toUpperCase()}${k.slice(1)}` as keyof typeof T)}
             </button>
           ))}
         </nav>
       )}
-      {tools && (tab === 'talk' || tab === 'phrases' || tab === 'tips') && (
+      {tools && (tab === 'talk' || tab === 'menu' || tab === 'phrases' || tab === 'tips') && (
         <section className="bf-card lumi-lang">
           <span className="small muted">{L('langOf')}</span>
           <LangPicker value={target} onChange={setTarget} />
@@ -195,6 +197,9 @@ export function LumiPage({ onBack, glass = true }: { onBack: () => void; glass?:
       {tools && tab === 'money' && <LumiMoney lang={lang} rates={rates} />}
       {tools && tab === 'words' && <LumiVocab lang={lang} vocab={vocab} />}
       {tools && tab === 'tips' && <LumiCulture lang={lang} target={target} />}
+      {tools && tab === 'tips' && <ScamList lang={lang} target={target} />}
+      {tools && tab === 'menu' && <LumiMenu lang={lang} target={target} vocab={vocab} rates={rates} />}
+      {tools && tab === 'notes' && <LumiNotebook lang={lang} />}
       {(!tools || tab === 'listen') && (<>
       <section className="bf-card">
         <div className="seg">
@@ -227,6 +232,7 @@ export function LumiPage({ onBack, glass = true }: { onBack: () => void; glass?:
               <button key={c.id} className="lumi-conv" onClick={() => setOpenId(c.id)}>
                 <b>[{c.lang}]</b>
                 <p>{c.summaryVi || c.lines.map((l) => l.text).join(' / ')}</p>
+                {c.alertVi && <span className="lumi-alert">⚠ {c.alertVi}</span>}
                 {tools && <MoneyChips found={c.lines.flatMap((l) => findMoney(l.text))} rates={rates} />}
                 <small>{c.lines.length} {L('lines')} · {L('tapForDetail')}</small>
               </button>

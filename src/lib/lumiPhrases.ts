@@ -106,3 +106,36 @@ export const CULTURE: Record<LumiLang, { country: string; tips: { vi: string; en
 
 /** English names, used in AI prompts. */
 export const LANG_EN: Record<LumiLang, string> = { en: 'English', es: 'Spanish', fr: 'French', ja: 'Japanese', ko: 'Korean', zh: 'Simplified Chinese', th: 'Thai' }
+
+/** Common tourist scams per country, hand-written (offline). Lumi's Listen also flags them live. */
+export const SCAMS: Record<LumiLang, { vi: string; en: string }[]> = {
+  en: [
+    { vi: 'Người lạ "tặng" vòng tay/hoa hồng rồi đòi tiền.', en: 'Strangers "gift" a bracelet or rose, then demand money.' },
+    { vi: 'Máy ATM lạ ở chỗ vắng có thể gắn thiết bị đọc thẻ; dùng ATM trong ngân hàng.', en: 'Lonely street ATMs may have skimmers; use bank ATMs.' },
+  ],
+  es: [
+    { vi: 'Móc túi ở tàu điện và quảng trường đông người (Barcelona, Madrid).', en: 'Pickpockets on metros and busy squares.' },
+    { vi: 'Người giả đánh rơi đồ / hỏi đường để đánh lạc hướng trong khi đồng bọn móc túi.', en: 'Fake "you dropped this" or map questions as a distraction.' },
+  ],
+  fr: [
+    { vi: 'Ở Paris: nhóm xin chữ ký "từ thiện" rồi đòi tiền, hoặc móc túi khi anh ký.', en: 'Paris: "charity petition" groups who pickpocket or demand money.' },
+    { vi: 'Trò nhặt được nhẫn vàng rồi bán lại cho anh.', en: 'The "found a gold ring" trick.' },
+  ],
+  ja: [
+    { vi: 'Ít lừa đảo. Cẩn thận quán bar có người mời chào ở Kabukicho/Roppongi: hóa đơn rất cao.', en: 'Rare, but avoid touts for bars in Kabukicho/Roppongi: huge bills.' },
+    { vi: 'Đi taxi hợp pháp (biển xanh), không đi xe "trắng" nhận khách lậu ở sân bay.', en: 'Use licensed taxis, not unlicensed airport "white" cars.' },
+  ],
+  ko: [
+    { vi: 'Taxi không bật đồng hồ hoặc đi vòng; dùng app Kakao T để thấy giá trước.', en: 'Taxis without meter or long routes; Kakao T shows the fare.' },
+    { vi: 'Người lạ mời đi "lễ hội văn hóa" hay "trà đạo" thường là dụ vào nhóm tôn giáo hoặc bán hàng.', en: 'Invitations to "culture events" or tea can be recruitment or sales.' },
+  ],
+  zh: [
+    { vi: 'Trò mời uống trà/cà phê "luyện tiếng Anh" rồi đưa hóa đơn rất cao.', en: 'The "practice English over tea" trick with a huge bill.' },
+    { vi: 'Tiền giả khi thối tiền mặt; ưu tiên thanh toán điện thoại.', en: 'Fake notes in change; prefer mobile payment.' },
+  ],
+  th: [
+    { vi: 'Tuk-tuk "chỉ 20 baht" rồi chở vào tiệm đá quý/may đồ.', en: 'The "20 baht tuk-tuk" that detours to gem or tailor shops.' },
+    { vi: 'Người lạ nói "cung điện hôm nay đóng cửa" để dẫn anh đi nơi khác; kiểm tra ở cổng chính.', en: '"The palace is closed today" — check at the official gate.' },
+    { vi: 'Cho thuê xe máy rồi đòi tiền "xe bị trầy"; chụp ảnh xe trước khi nhận.', en: 'Scooter rentals claiming damage; photograph the bike first.' },
+  ],
+}

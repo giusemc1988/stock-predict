@@ -2,7 +2,7 @@
  * Version and "What's new". Bump APP_VERSION and add an entry to the top of RELEASES
  * with each update. The banner shows once per version, then stays dismissed.
  */
-export const APP_VERSION = '1.83.0'
+export const APP_VERSION = '1.84.0'
 
 export interface Release {
   version: string
@@ -13,6 +13,20 @@ export interface Release {
 }
 
 export const RELEASES: Release[] = [
+  {
+    version: '1.84.0',
+    date: '2026-11-01',
+    changes: [
+      'Lumi Menu tab: take a photo of a menu or sign; the free AI (Gemini, or Groq as backup) reads it and explains each dish in Vietnamese with a short note and the price in VND. The photo is never stored.',
+      'Lumi scam alerts: while listening, a conversation that looks like a common tourist scam or overcharge gets a red warning. The Etiquette tab also lists the usual scams per country.',
+      'Lumi Trip notes tab: your saved trips grouped by day, with Copy and Share as plain text.',
+    ],
+    changesVi: [
+      'Lumi tab Chụp menu: chụp ảnh thực đơn hoặc biển báo, AI miễn phí (Gemini, dự phòng Groq) đọc và giải thích từng món bằng tiếng Việt kèm ghi chú ngắn và giá ra VND. Không lưu ảnh.',
+      'Lumi cảnh báo lừa đảo: khi đang nghe, cuộc trò chuyện có dấu hiệu chiêu lừa khách du lịch hoặc chặt chém sẽ hiện cảnh báo đỏ. Tab Văn hóa cũng liệt kê các chiêu lừa hay gặp theo từng nước.',
+      'Lumi tab Sổ tay: các chuyến đã lưu gom theo ngày, có nút Chép và Chia sẻ dạng chữ.',
+    ],
+  },
   {
     version: '1.83.0',
     date: '2026-11-01',
