@@ -28,3 +28,32 @@ assert.ok(lab.rules.some((r) => r.passed && r.name.startsWith('volume >= 2x')), 
 assert.ok(!lab.rules.some((r) => r.passed && r.name === 'volume < 1x'), 'a losing rule never passes')
 assert.ok(stats([]).n === 0)
 console.log('replaylab ok')
+
+// strategy simulator: costs, gap-through stop, target as limit, out by the close
+{
+  const { netRetPct, simulateExit, s3LastHalfHour } = await import('../src/lib/replayStrategies')
+  assert.equal(netRetPct(100, 101, null, false), 1)
+  const c = { feeBps: 1, spreadBps: 4, slippageBps: 2 }
+  assert.ok(netRetPct(100, 100, c, false) < -0.09 && netRetPct(100, 100, c, false) > -0.11, 'round trip costs about 0.1%')
+  const t0 = Date.UTC(2026, 9, 28, 14, 0) / 1000
+  const bar = (k: number, o: number, h: number, l: number, cl: number) => ({ time: t0 + k * 900, open: o, high: h, low: l, close: cl, volume: 1 })
+  const bars = [bar(0, 100, 100, 100, 100), bar(1, 97, 98, 96, 97), bar(2, 100, 103, 99, 102)]
+  const gap = simulateExit(bars, { i: 0, price: 100, stop: 98, target: 105 }, Infinity, null)
+  assert.deepEqual([gap.exitReason, gap.retPct], ['stop', -3], 'a gap below the stop fills at the open')
+  const hit = simulateExit([bars[0], bars[2]], { i: 0, price: 100, stop: 95, target: 102 }, Infinity, null)
+  assert.deepEqual([hit.exitReason, hit.retPct], ['target', 2])
+  const closed = simulateExit(bars, { i: 0, price: 100, stop: 90, target: 110 }, (t0 + 900) * 1000, null)
+  assert.equal(closed.exitReason, 'close')
+  // last half hour: up at 10:00 vs yesterday's close -> one trade 15:30 -> 16:00
+  const day = (d: number, base: number, up: boolean) => {
+    const start = Date.UTC(2026, 9, d, 13, 30) / 1000 // 09:30 EDT
+    return Array.from({ length: 26 }, (_, k) => {
+      const p = base + (up ? k * 0.1 : -k * 0.1)
+      return { time: start + k * 900, open: p, high: p + 0.05, low: p - 0.05, close: p, volume: 1 }
+    })
+  }
+  const s3 = s3LastHalfHour({ bars: [...day(26, 100, true), ...day(27, 103, true), ...day(28, 100, false)], asset: 'stock', atlas: [], costs: null, dayEnd: () => Infinity })
+  assert.equal(s3.length, 1, 'only the day that was up at 10:00 (and has a previous close) trades')
+  assert.ok(Math.abs(s3[0].retPct - (105.5 / 105.3 - 1) * 100) < 1e-9)
+}
+console.log('replaylab strategies ok')

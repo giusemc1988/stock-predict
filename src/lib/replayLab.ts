@@ -82,7 +82,7 @@ export const CONDITIONS: Cond[] = [
   { feature: 'asset', name: 'crypto only', vi: 'chỉ crypto', test: (t) => t.asset === 'crypto' },
 ]
 
-export function stats(rows: ReplayTrade[]): Stats {
+export function stats(rows: { retPct: number }[]): Stats {
   const n = rows.length
   if (!n) return { n: 0, winRate: 0, avgRet: 0, pf: 0, sharpe: 0 }
   const r = rows.map((t) => t.retPct)
@@ -179,4 +179,34 @@ export function mineRules(trades: ReplayTrade[], opts: { bookShare?: number; min
     rules: results,
     vi,
   }
+}
+
+export interface StrategyResult {
+  id: string
+  vi: string
+  book: Stats
+  exam: Stats
+  dsr: number
+  passed: boolean
+}
+
+/** Judge whole strategies on the same split as the rule search: positive and better than Atlas as it is
+ *  on the exam, and a Deflated Sharpe >= 0.95 counting every strategy tried (Atlas included). */
+export function evalStrategies(examFrom: string, atlas: { retPct: number; openedAt: number }[], runs: { id: string; vi: string; trades: { retPct: number; openedAt: number }[] }[]): StrategyResult[] {
+  const split = (rows: { retPct: number; openedAt: number }[]) => [rows.filter((t) => dayKey(t.openedAt) < examFrom), rows.filter((t) => dayKey(t.openedAt) >= examFrom)]
+  const [ab, ae] = split(atlas)
+  const base = { book: stats(ab), exam: stats(ae) }
+  const all = [{ id: 'S0', vi: 'Atlas như hiện tại', trades: atlas }, ...runs]
+  const books = all.map((r) => split(r.trades)[0])
+  const srs = books.map((b) => stats(b).sharpe)
+  const mu = srs.reduce((a, b) => a + b, 0) / srs.length
+  const v = srs.reduce((a, b) => a + (b - mu) ** 2, 0) / Math.max(1, srs.length - 1)
+  return all.map((r) => {
+    const [b, e] = split(r.trades)
+    const book = stats(b)
+    const exam = stats(e)
+    const dsr = deflatedSharpe(b.map((t) => t.retPct), all.length, v)
+    const passed = r.id !== 'S0' && book.avgRet > 0 && exam.n >= 15 && exam.avgRet > 0 && exam.avgRet > base.exam.avgRet && dsr >= 0.95
+    return { id: r.id, vi: r.vi, book, exam, dsr, passed }
+  }).map((x, k) => (k === 0 ? { ...x, book: base.book, exam: base.exam } : x))
 }
