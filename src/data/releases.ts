@@ -2,7 +2,7 @@
  * Version and "What's new". Bump APP_VERSION and add an entry to the top of RELEASES
  * with each update. The banner shows once per version, then stays dismissed.
  */
-export const APP_VERSION = '1.92.0'
+export const APP_VERSION = '1.93.0'
 
 export interface Release {
   version: string
@@ -13,6 +13,16 @@ export interface Release {
 }
 
 export const RELEASES: Release[] = [
+  {
+    version: '1.93.0',
+    date: '2026-11-01',
+    changes: [
+      'Atlas replay lab: learns from old data instead of waiting for trading days. It replays Atlas bar by bar on the last 60 days of free 15-minute data (107 stocks and crypto, same code and costs as live), searches simple filter rules on the older two thirds, and keeps only rules that also win on the newest third and pass a luck check for how many rules were tried. Run it from GitHub Actions ("Atlas replay lab"); results in replay-lab.json.',
+    ],
+    changesVi: [
+      'Phòng thí nghiệm replay cho Atlas: học trên dữ liệu cũ thay vì chờ ngày giao dịch. Atlas được chạy lại từng cây nến trên 60 ngày dữ liệu 15 phút miễn phí (107 cổ phiếu và crypto, cùng code và phí như bản live). Máy dò luật lọc trên 2/3 thời gian cũ hơn, rồi chỉ giữ luật nào cũng thắng trên 1/3 mới nhất và qua được bài kiểm tra "đúng do may" (tính theo số luật đã thử). Chạy trong GitHub Actions ("Atlas replay lab"); kết quả nằm ở replay-lab.json.',
+    ],
+  },
   {
     version: '1.92.0',
     date: '2026-11-01',
