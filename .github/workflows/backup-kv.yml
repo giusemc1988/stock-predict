@@ -15,7 +15,19 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write # push the snapshot to the `backups` branch
+      actions: write # delete older backup artifacts
     steps:
+      # The repo is public, so artifacts are downloadable by anyone signed in to GitHub.
+      # Keep only the newest backup: delete every earlier kv-backup-* artifact first.
+      - name: Delete older backup artifacts
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const arts = await github.paginate(github.rest.actions.listArtifactsForRepo, { owner: context.repo.owner, repo: context.repo.repo, per_page: 100 })
+            for (const a of arts.filter((a) => a.name.startsWith('kv-backup-'))) {
+              await github.rest.actions.deleteArtifact({ owner: context.repo.owner, repo: context.repo.repo, artifact_id: a.id })
+              core.info(`deleted ${a.name} (${a.id})`)
+            }
       - uses: actions/checkout@v4
 
       - uses: actions/setup-node@v4
@@ -35,7 +47,7 @@ jobs:
         with:
           name: kv-backup-${{ github.run_number }}
           path: ./kv-backups/
-          retention-days: 90
+          retention-days: 7
 
       - name: Archive backup to the `backups` branch
         # keeps a dated folder per day on its own branch (never touches main)
