@@ -41,6 +41,8 @@ export interface SummaryInfo {
   totalRetPct: number
   learning: string
   brakes: string
+  /** One plain line from shadowReport().vi: what the proposed (not yet live) filters would have done. */
+  shadow?: string
 }
 
 const EXIT_VI: Record<ExitCode, string> = {
@@ -99,5 +101,6 @@ export function summaryText(x: SummaryInfo): string {
   const lessons = r.trades ? r.lessons.slice(1) : r.lessons.filter((l) => !l.vi.startsWith('Hôm nay không'))
   if (lessons.length) lines.push('', '💡 Bài học:', ...lessons.map((l) => `• ${l.vi}`))
   lines.push('', `⚙️ AI tự học: ${x.learning} · Phanh: ${x.brakes}`)
+  if (x.shadow) lines.push(`🧪 Chạy bóng (volume ≥1x, bỏ watchlist): ${x.shadow}`)
   return lines.join('\n')
 }

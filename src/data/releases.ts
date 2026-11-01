@@ -2,7 +2,7 @@
  * Version and "What's new". Bump APP_VERSION and add an entry to the top of RELEASES
  * with each update. The banner shows once per version, then stays dismissed.
  */
-export const APP_VERSION = '1.90.2'
+export const APP_VERSION = '1.91.0'
 
 export interface Release {
   version: string
@@ -13,6 +13,18 @@ export interface Release {
 }
 
 export const RELEASES: Release[] = [
+  {
+    version: '1.91.0',
+    date: '2026-11-01',
+    changes: [
+      'Atlas test run ("shadow"): three rules found in the 314-trade check are now recorded on every new trade but do not change any trade yet: buy only when volume is at least normal, no day trades from the watchlist, and what the learner would say. The daily Telegram summary and the status page show whether the trades these rules would skip really lose money, so you can decide to switch them on.',
+      'Atlas learner now gets real data: the server learner never had any (nothing saved its journal), so it now reads the journal the 24/7 learning job publishes. It still only labels trades and never blocks one.',
+    ],
+    changesVi: [
+      'Atlas chạy bóng: 3 luật tìm được từ đợt mổ xẻ 314 lệnh giờ được ghi lại trên mỗi lệnh mới, nhưng chưa thay đổi lệnh nào. Ba luật đó là: chỉ mua khi khối lượng giao dịch từ mức bình thường trở lên, không lấy lệnh trong ngày từ danh sách theo dõi, và ghi lại ý kiến của bộ học. Bản tổng kết Telegram hằng ngày và trang trạng thái sẽ cho thấy những lệnh bị các luật này bỏ đi có thật sự lỗ không, để anh quyết định bật.',
+      'Bộ học của Atlas giờ có dữ liệu thật: trước đây bộ học trên server chưa từng có dữ liệu (không có chỗ nào lưu nhật ký), nay nó đọc nhật ký mà tác vụ học 24/7 xuất ra. Bộ học vẫn chỉ gắn nhãn cho lệnh, không chặn lệnh nào.',
+    ],
+  },
   {
     version: '1.90.2',
     date: '2026-11-01',
