@@ -38,6 +38,7 @@ jobs:
       - name: Merge into one flashable image (bootloader + partitions + app at 0x0)
         working-directory: firmware/nexus-scout
         run: |
+          pip install -q esptool
           B=.pio/build/${{ matrix.env }}
           FW=$(ls -d ~/.platformio/packages/framework-arduinoespressif32*/ | head -1)
           if [ "${{ matrix.env }}" = "esp32-s3" ]; then CHIP=esp32s3; BOOT=0x0; SIZE=16MB; else CHIP=esp32; BOOT=0x1000; SIZE=4MB; fi
