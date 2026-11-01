@@ -36,7 +36,7 @@ export interface ImageHeader {
   chipName: string | null
 }
 
-/** Reads the 8-byte base header, and the 16-byte esp-idf extension when present (chip_id at byte 14). */
+/** Reads the 8-byte base header, and the 16-byte esp-idf extension when present (chip_id at bytes 12-13, verified against the real nexus-scout S3 image). */
 export function parseImageHeader(data: Uint8Array): ImageHeader | null {
   if (data.length < 8) return null
   const magic = data[0]
@@ -47,7 +47,7 @@ export function parseImageHeader(data: Uint8Array): ImageHeader | null {
   const flashSizeMB = sizeNibble <= 7 ? 2 ** sizeNibble : null
   let chipId: number | null = null
   if (data.length >= 24) {
-    chipId = data[14] | (data[15] << 8)
+    chipId = data[12] | (data[13] << 8)
   }
   return { magic, segmentCount, flashMode, flashSizeMB, chipId, chipName: chipId !== null ? (CHIP_ID_NAME[chipId] ?? null) : null }
 }
