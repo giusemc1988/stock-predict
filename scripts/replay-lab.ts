@@ -23,7 +23,8 @@ import { costsFrom } from '../src/lib/costs'
 import { emptyPractice, onBarClose, onBars, onPrice, sessionEnd, type PracticeState, type PracticeTrade } from '../src/lib/practice'
 import { dollarVolume, gainToday, volumeVsAvg } from '../src/lib/practicePicks'
 import { runStrategy } from '../src/lib/strategy'
-import { mineRules, type ReplayTrade } from '../src/lib/replayLab'
+import { evalStrategies, mineRules, type ReplayTrade } from '../src/lib/replayLab'
+import { STRATEGIES, type Fill, type SimTrade } from '../src/lib/replayStrategies'
 
 const args = process.argv.slice(2)
 const arg = (k: string) => (args.includes(k) ? args[args.indexOf(k) + 1] : undefined)
@@ -88,8 +89,9 @@ function spyDayAt(spy: Candle[], t: number): number | null {
   return idx < 1 ? null : gainToday(spy.slice(Math.max(0, idx - 40), idx + 1))
 }
 
-function replayMarket(symbol: string, asset: 'stock' | 'crypto', bars: Candle[], spy: Candle[]): ReplayTrade[] {
+function replayMarket(symbol: string, asset: 'stock' | 'crypto', bars: Candle[], spy: Candle[]): { trades: ReplayTrade[]; fills: Fill[] } {
   let s: PracticeState = emptyPractice()
+  const fills: Fill[] = []
   const extra = new Map<string, { spyDay: number | null }>()
   for (let i = 80; i < bars.length; i++) {
     const b = bars[i]
@@ -134,11 +136,14 @@ function replayMarket(symbol: string, asset: 'stock' | 'crypto', bars: Candle[],
       audit: false,
     })
     const opened = s.open.find((p) => !before.has(p.id))
-    if (opened) extra.set(opened.id, { spyDay: asset === 'stock' ? spyDayAt(spy, b.time) : null })
+    if (opened) {
+      extra.set(opened.id, { spyDay: asset === 'stock' ? spyDayAt(spy, b.time) : null })
+      fills.push({ i, price: b.close, stop: opened.stop, target: opened.target })
+    }
     // keep the state small: the account is per market and only the trade list matters
     if (s.events.length > 50) s.events.length = 50
   }
-  return s.trades.map((t: PracticeTrade) => toReplay(t, extra.get(t.id)))
+  return { trades: s.trades.map((t: PracticeTrade) => toReplay(t, extra.get(t.id))), fills }
 }
 
 function toReplay(t: PracticeTrade, x?: { spyDay: number | null }): ReplayTrade {
@@ -165,6 +170,7 @@ async function main() {
   const markets = LIMIT ? MARKETS.slice(0, LIMIT) : MARKETS
   const spy = await yahoo15m60d('SPY')
   const trades: ReplayTrade[] = []
+  const runs: Record<string, SimTrade[]> = Object.fromEntries(STRATEGIES.map((x) => [x.id, [] as SimTrade[]]))
   const failed: string[] = []
   let bars = 0
   for (const m of markets) {
@@ -172,8 +178,9 @@ async function main() {
       const b = m.symbol === 'SPY' ? spy : await yahoo15m60d(m.symbol)
       bars += b.length
       const got = replayMarket(m.symbol, m.asset, b, spy)
-      trades.push(...got)
-      console.log(`${m.symbol}: ${b.length} bars, ${got.length} trades`)
+      trades.push(...got.trades)
+      for (const x of STRATEGIES) runs[x.id].push(...x.run({ bars: b, asset: m.asset, atlas: got.fills, costs: costsFrom(rules), dayEnd: (ms) => sessionEnd(m.asset, ms) }))
+      console.log(`${m.symbol}: ${b.length} bars, ${got.trades.length} trades`)
       await sleep(250)
     } catch (e) {
       failed.push(m.symbol)
@@ -181,10 +188,15 @@ async function main() {
     }
   }
   const lab = mineRules(trades)
-  const out = { updated: new Date().toISOString(), markets: markets.length, failed, bars, seconds: Math.round((Date.now() - t0) / 1000), ...lab }
+  const strategies = evalStrategies(lab.split.examFrom, trades, STRATEGIES.map((x) => ({ id: x.id, vi: x.vi, trades: runs[x.id] })))
+  const won = strategies.filter((x) => x.passed)
+  const strategiesVi = won.length ? `Chiến lược qua bài thi: ${won.map((x) => `${x.id} (${x.vi})`).join('; ')}.` : 'Chưa chiến lược nào qua bài thi.'
+  const out = { updated: new Date().toISOString(), markets: markets.length, failed, bars, seconds: Math.round((Date.now() - t0) / 1000), ...lab, strategies, strategiesVi }
   writeFileSync(OUT, JSON.stringify(out, null, 1))
   console.log(`\n${trades.length} trades from ${markets.length - failed.length} markets in ${out.seconds}s`)
   console.log(lab.vi)
+  console.log(strategiesVi)
+  for (const x of strategies) console.log(`${x.passed ? 'PASS' : '    '} ${x.id} ${x.vi.padEnd(52)} book n=${x.book.n} WR=${(x.book.winRate * 100).toFixed(0)}% ${x.book.avgRet.toFixed(3)}% | exam n=${x.exam.n} WR=${(x.exam.winRate * 100).toFixed(0)}% ${x.exam.avgRet.toFixed(3)}% DSR=${x.dsr.toFixed(2)}`)
   for (const r of lab.rules.slice(0, 12)) console.log(`${r.passed ? 'PASS' : '    '} ${r.name.padEnd(42)} book n=${r.book.n} ${r.book.avgRet.toFixed(3)}% | exam n=${r.exam.n} ${r.exam.avgRet.toFixed(3)}% (base ${lab.base.exam.avgRet.toFixed(3)}%) DSR=${r.dsr.toFixed(2)}`)
 }
 

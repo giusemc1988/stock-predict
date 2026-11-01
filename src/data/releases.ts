@@ -2,7 +2,7 @@
  * Version and "What's new". Bump APP_VERSION and add an entry to the top of RELEASES
  * with each update. The banner shows once per version, then stays dismissed.
  */
-export const APP_VERSION = '1.93.0'
+export const APP_VERSION = '1.94.0'
 
 export interface Release {
   version: string
@@ -13,6 +13,16 @@ export interface Release {
 }
 
 export const RELEASES: Release[] = [
+  {
+    version: '1.94.0',
+    date: '2026-11-01',
+    changes: [
+      'Atlas replay lab now also tests whole strategies, not just filters: Atlas held to the close, Atlas with ATR stops, last-half-hour momentum (Gao et al. 2018) and an intraday bounce after a 2%+ drop. Each is judged on the same unseen days and luck check. First run: none beats Atlas on unseen days after costs.',
+    ],
+    changesVi: [
+      'Phòng lab replay của Atlas giờ thi cả chiến lược chứ không chỉ luật lọc. Bốn chiến lược: Atlas giữ lệnh đến cuối phiên, Atlas đặt stop theo ATR, động lượng nửa giờ cuối (Gao et al. 2018), và mua bật lại sau khi giảm 2%+ trong ngày. Mỗi chiến lược được chấm trên cùng những ngày chưa thấy và qua cùng bài kiểm tra "đúng do may". Lần chạy đầu: sau khi trừ phí, chưa chiến lược nào thắng Atlas trên những ngày chưa thấy.',
+    ],
+  },
   {
     version: '1.93.0',
     date: '2026-11-01',
