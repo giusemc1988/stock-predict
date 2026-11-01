@@ -12,6 +12,8 @@ import { upstreamAsset } from './lib/webFlash'
 import { cleanWriteAsk, writeScript } from './lib/studioServer'
 import { novaRoute } from './worker/nova'
 import { hubRoute } from './worker/hub'
+import { voltRoute } from './worker/volt'
+import { lumiRoute } from './worker/lumi'
 
 interface Env extends BrainEnv, PracticeEnv {
   ASSETS: { fetch: (r: Request) => Promise<Response> }
@@ -296,6 +298,10 @@ export default {
     if (nova) return nova
     const hub = await hubRoute(req, pathname, env.SETTINGS)
     if (hub) return hub
+    const volt = await voltRoute(req, pathname)
+    if (volt) return volt
+    const lumi = await lumiRoute(req, pathname, env, env.SETTINGS)
+    if (lumi) return lumi
     if (pathname === '/api/brain/status') {
       const e = await withSavedKeys(env, env.SETTINGS)
       return json({ providers: brainStatus(e), keys: await keySources(env, env.SETTINGS), canSave: !!env.SETTINGS })

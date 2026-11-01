@@ -135,6 +135,8 @@ export interface AiRules {
   telegramToken: string // Telegram bot token (stored on server, never in browser)
   walkForwardValidatorOn: boolean // validate signals on data the ranking was not tuned on; mark as "Proven" only when win rate > 50% out-of-sample
   potentialListOn: boolean // show a "Potential" list of stocks with good BUY signals in the watchlist
+  voltFlasher: boolean // Volt page: flash any ESP32 board from a GitHub repo link or a dropped .bin file, checked against the chip before writing
+  lumiTranslator: boolean // Lumi page: ambient travel translator (Groq Whisper + free AI translate/summarize), audio never stored
 }
 
 export const DEFAULT_AI_RULES: AiRules = {
@@ -268,6 +270,8 @@ export const DEFAULT_AI_RULES: AiRules = {
   telegramToken: '',
   walkForwardValidatorOn: true,
   potentialListOn: true,
+  voltFlasher: true,
+  lumiTranslator: true,
 }
 
 type NumKey = { [K in keyof AiRules]: AiRules[K] extends number ? K : never }[keyof AiRules]
@@ -394,6 +398,8 @@ export const RULE_FIELDS: RuleField[] = [
   { group: 'jarvis', key: 'hubRuns', en: 'Neo runs hub jobs: say "render the Nova videos", "refresh the Iris snapshot" or "build the Android app", tap Do it, and Neo starts it on GitHub with the key saved in Nova; ask "how did the last runs go?" for results', vi: 'Neo chạy việc trong hub: nói "dựng video Nova", "làm mới snapshot Iris" hay "build app Android", bấm Làm đi là Neo chạy trên GitHub bằng key đã lưu ở Nova; hỏi "lần chạy gần nhất thế nào?" để xem kết quả' },
   { group: 'jarvis', key: 'hubTasks', en: 'Code tasks for Claude: say "fix the ... button" or "make an app that ...", tap Do it, and Neo files it on GitHub; about once an hour Claude opens a pull request for you to check (nothing changes until you merge). Ask "how are the code tasks?"', vi: 'Việc code cho Claude: nói "sửa lỗi nút ..." hay "tạo app ...", bấm Làm đi là Neo ghi lên GitHub; khoảng mỗi giờ Claude mở PR để anh duyệt (chưa merge thì chưa đổi gì). Hỏi "việc code thế nào?"' },
   { group: 'jarvis', key: 'briefHome', en: 'Neo Brief as the home page (off: open the Trading desk first)', vi: 'Neo Brief là trang chủ (tắt: mở Bàn giao dịch trước)' },
+  { group: 'jarvis', key: 'voltFlasher', en: 'Volt: flash any ESP32 board from a GitHub repo link or a dropped .bin file, in Chrome or Edge over USB (checked against the chip before writing, never touches eFuse/secure-boot)', vi: 'Volt: nạp firmware cho mọi board ESP32 từ link repo GitHub hay file .bin thả vào, trên Chrome/Edge qua USB (kiểm tra khớp chip trước khi ghi, không đụng eFuse/secure-boot)' },
+  { group: 'jarvis', key: 'lumiTranslator', en: 'Lumi: ambient travel translator on your phone — listens, detects the language, groups into conversations and gives a rolling Vietnamese summary (audio is never stored)', vi: 'Lumi: tai phiên dịch du lịch trên điện thoại — nghe, tự nhận thứ tiếng, gom theo cuộc trò chuyện và tóm tắt tiếng Việt liên tục (không lưu âm thanh)' },
   { group: 'jarvis', key: 'briefAi', en: 'Free AI writes the Neo Brief from real data (once per scan; plain text if every AI key fails)', vi: 'AI miễn phí viết Neo Brief từ dữ liệu thật (mỗi lần quét một lần; nếu mọi key AI lỗi thì dùng văn bản thường)' },
   { group: 'jarvis', key: 'localExplain', en: 'Local AI explains your trades (on your device, no cloud keys)', vi: 'AI cục bộ giải thích lệnh của bạn (trên máy, không cần key đám mây)' },
   { group: 'jarvis', key: 'localQA', en: 'Local AI answers questions about your trades and rules (on your device)', vi: 'AI cục bộ trả lời câu hỏi về lệnh và quy tắc (trên máy)' },

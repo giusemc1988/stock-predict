@@ -58,7 +58,7 @@ interface Provider {
 const LIMIT = { question: 500, fact: 400, facts: 12, answer: 450 }
 
 /** A Groq key starts gsk_, an xAI key xai-: either slot accepts either, so a pasted key just works. */
-const keyFor = (e: BrainEnv, prefix: string) => [e.GROQ_API_KEY, e.XAI_API_KEY].find((k) => k?.startsWith(prefix))
+export const keyFor = (e: BrainEnv, prefix: string) => [e.GROQ_API_KEY, e.XAI_API_KEY].find((k) => k?.startsWith(prefix))
 
 const openAiStyle = (url: string) => async (key: string, model: string | undefined, system: string, user: string, f: Fetch, onFail?: OnFail, maxTokens = LIMIT.answer) => {
   const r = await f(url, {

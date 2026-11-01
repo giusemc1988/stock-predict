@@ -4,7 +4,7 @@ import { chatReply } from '../src/lib/jarvisChat'
 import { DEFAULT_AI_RULES } from '../src/lib/aiRules'
 
 const facts: HubFacts = {
-  on: { net: true, ruview: false, godseye: true, studio: true },
+  on: { net: true, ruview: false, godseye: true, studio: true, volt: true, lumi: true },
   equity: 10250,
   changePct: 2.5,
   openTrades: 2,
@@ -50,7 +50,7 @@ const off = answerHub({ kind: 'open', project: namedProject('echo')! }, 'home', 
 assert.equal(off.open, undefined)
 assert.ok(off.text[0].vi.includes('đang tắt'))
 assert.equal(answerHub({ kind: 'open', project: namedProject('max')! }, 'home', facts).open, 'max')
-assert.equal(answerHub({ kind: 'open', project: namedProject('lumi')! }, 'home', facts).open, undefined)
+assert.equal(answerHub({ kind: 'open', project: namedProject('lumi')! }, 'home', facts).open, 'lumi')
 const atlas = answerHub({ kind: 'status', project: namedProject('atlas')! }, 'home', facts).text[0]
 assert.ok(atlas.en.includes('$10,250') && atlas.en.includes('+2.5%') && atlas.en.includes('2 open practice trades') && atlas.en.includes('Paper money only'))
 assert.ok(atlas.vi.includes('tiền ảo'))
@@ -58,7 +58,7 @@ const vt = answerHub({ kind: 'status', project: namedProject('viraltech')! }, 'h
 assert.ok(vt.en.includes('2 of 4 channels'))
 const list = answerHub({ kind: 'list' }, 'home', facts).text
 assert.equal(list.length, 10)
-assert.ok(list[0].en.startsWith('6 of 9 projects are on'))
+assert.ok(list[0].en.startsWith('8 of 9 projects are on'))
 
 // the free-AI helper hears who is speaking first, and stays within its 12 facts
 const ai = hubFactsForAi('godseye', facts)

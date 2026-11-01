@@ -26,11 +26,11 @@ export const PROJECTS: Project[] = [
   { id: 'atlas', name: 'Atlas', what: { en: 'Stock Predictor', vi: 'Dự đoán cổ phiếu' }, hue: '#4fd1ff', opens: 'brief', tools: ['desk', 'portfolio', 'board', 'kronos'] },
   { id: 'argus', name: 'Iris', what: { en: "God's Eye globe", vi: "Địa cầu God's Eye" }, hue: '#7aa7ff', opens: 'godseye', tools: ['godseye', 'godseye-full'] },
   { id: 'echo', name: 'Echo', what: { en: 'RuView sensing', vi: 'Cảm biến RuView' }, hue: '#5fd6c8', opens: 'ruview', tools: ['ruview'] },
-  { id: 'volt', name: 'Volt', what: { en: 'ESP32 Lab', vi: 'Phòng ESP32' }, hue: '#7ee0b5', opens: 'ruview-flash', tools: ['flash', 'espconnect', 'firmware', 'esp32div'] },
+  { id: 'volt', name: 'Volt', what: { en: 'ESP32 Lab', vi: 'Phòng ESP32' }, hue: '#7ee0b5', opens: 'volt', tools: ['flash', 'espconnect', 'firmware', 'esp32div'] },
   { id: 'nexus', name: 'Nexus', what: { en: 'Wi-Fi & Bluetooth', vi: 'Wi-Fi & Bluetooth' }, hue: '#8fb8ff', opens: 'net', tools: ['wifi', 'speed', 'android'] },
   { id: 'nova', name: 'Nova', what: { en: 'Bilingual Video Studio', vi: 'Studio video song ngữ' }, hue: '#d9a3ff', opens: 'studio', tools: ['video'] },
   { id: 'viraltech', name: 'Viraltech', what: { en: 'Social channels', vi: 'Kênh mạng xã hội' }, hue: '#ff7ab6', opens: 'viraltech', tools: ['viraltech', 'explainers'] },
-  { id: 'lumi', name: 'Lumi', what: { en: 'Media Lab', vi: 'Media Lab' }, hue: '#ffb36b', opens: null, tools: ['media', 'outside'] },
+  { id: 'lumi', name: 'Lumi', what: { en: 'Travel translator', vi: 'Tai phiên dịch du lịch' }, hue: '#ffb36b', opens: 'lumi', tools: ['media', 'outside'] },
   { id: 'forge', name: 'Max', what: { en: 'Build & app builder', vi: 'Xây dựng & tạo app' }, hue: '#f2c46d', opens: 'max', tools: ['prs', 'repo', 'dev', 'apps'] },
 ]
 
@@ -39,6 +39,8 @@ export interface HubOn {
   ruview: boolean
   godseye: boolean
   studio: boolean
+  volt: boolean
+  lumi: boolean
 }
 
 /** Whether the page a project opens is switched on in Settings. */
@@ -47,6 +49,8 @@ export function pageOn(p: HubPage | 'brief' | null, on: HubOn): boolean {
   if (p === 'ruview' || p === 'ruview-flash') return on.ruview
   if (p === 'godseye') return on.godseye
   if (p === 'studio') return on.studio
+  if (p === 'volt') return on.volt
+  if (p === 'lumi') return on.lumi
   return p != null
 }
 

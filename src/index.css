@@ -1383,6 +1383,31 @@ body:has(.jfab) .toasts, body:has(.jfab) .jarvis-alert { bottom: 84px; }
 .net-demo { margin: 0; display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; padding: 8px 12px; border-radius: 10px; background: rgba(240, 185, 11, 0.08); border: 1px solid rgba(240, 185, 11, 0.3); color: #f5d77a; }
 .net-demo span { flex: 1 1 240px; }
 .net-demo .btn, .net-setup .bf-acts .btn:not(.prime) { padding: 5px 12px; border-radius: 999px; border: 1px solid var(--line-2); font-size: 12px; color: var(--text); }
+
+/* Volt: safe firmware flashing (repo link / dropped .bin, pre-flash checks) */
+.volt-drop { margin-top: 8px; padding: 18px; border-radius: 12px; border: 1px dashed var(--line-2); text-align: center; color: var(--muted); cursor: pointer; font-size: 13px; transition: border-color 0.2s, background 0.2s; }
+.volt-drop:hover { border-color: var(--robot); background: rgba(79, 209, 255, 0.06); }
+.volt-assets { display: grid; gap: 6px; margin-top: 8px; }
+.volt-tags { display: flex; flex-wrap: wrap; gap: 6px; margin: 6px 0; }
+.tag { display: inline-flex; align-items: center; gap: 4px; padding: 5px 10px; border-radius: 999px; font-size: 11.5px; border: 1px solid var(--line-2); }
+.tag-ok { color: var(--up); background: var(--up-bg); border-color: transparent; }
+.tag-warn { color: #f5d77a; background: rgba(240, 185, 11, 0.1); border-color: rgba(240, 185, 11, 0.3); }
+.tag-bad { color: var(--down); background: rgba(246, 70, 93, 0.1); border-color: rgba(246, 70, 93, 0.3); }
+.volt-flash-btn { width: 100%; margin-top: 8px; padding: 12px; font-size: 14px; }
+
+/* Lumi: ambient travel translator */
+.lumi-listen { display: flex; align-items: center; gap: 8px; margin-top: 8px; color: var(--up); }
+.lumi-dot { width: 9px; height: 9px; border-radius: 50%; background: var(--up); box-shadow: 0 0 8px var(--up); flex: none; }
+.lumi-meter { flex: 1; height: 6px; border-radius: 4px; background: var(--panel-2); overflow: hidden; }
+.lumi-meter i { display: block; height: 100%; background: var(--up); transition: width 0.15s linear; }
+.lumi-conv-grid { grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); }
+.lumi-conv { display: grid; gap: 4px; padding: 10px 12px; border-radius: 10px; background: var(--panel-2); border: 1px solid var(--line); text-align: left; cursor: pointer; color: var(--text); }
+.lumi-conv:hover { border-color: var(--robot); }
+.lumi-conv p { margin: 0; font-size: 13px; }
+.lumi-conv small { color: var(--muted); font-size: 11px; }
+.lumi-modal { position: fixed; inset: 0; z-index: 50; display: grid; place-items: center; padding: 16px; background: rgba(0, 0, 0, 0.55); }
+.lumi-modal .bf-card { max-width: 420px; max-height: 70vh; overflow: auto; width: 100%; }
+.lumi-privacy { margin-top: 10px; padding: 10px 12px; border-radius: 10px; background: rgba(240, 185, 11, 0.06); border: 1px dashed var(--line-2); }
 .net-app { display: block; text-decoration: none; color: var(--text); }
 
 /* Tool Hub (Jarvis OS): graph + list, calm and reduced-motion safe */

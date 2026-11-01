@@ -187,6 +187,7 @@ const fakeFetch = (async (url: string) => {
 }) as typeof fetch
 const aiAns = await askBrain({ question: 'what is a stop loss', lang: 'en', facts: ['I hold HIMS.'] }, { GEMINI_API_KEY: 'g', GROQ_API_KEY: 'gsk_1' }, fakeFetch)
 assert.deepEqual(aiAns, { text: 'Practice answer.', by: 'Groq' })
-assert.equal(calls.length, 2)
+// Gemini's list + its 3 built-in models all fail (429), then Groq's list + its first model succeeds
+assert.equal(calls.length, 6)
 assert.equal(await askBrain({ question: 'q', lang: 'en', facts: [] }, {}, fakeFetch), null)
 console.log('free AI helper ok')

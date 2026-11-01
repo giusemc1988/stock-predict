@@ -2,7 +2,7 @@
  * Version and "What's new". Bump APP_VERSION and add an entry to the top of RELEASES
  * with each update. The banner shows once per version, then stays dismissed.
  */
-export const APP_VERSION = '1.77.9'
+export const APP_VERSION = '1.78.0'
 
 export interface Release {
   version: string
@@ -13,6 +13,18 @@ export interface Release {
 }
 
 export const RELEASES: Release[] = [
+  {
+    version: '1.78.0',
+    date: '2026-11-01',
+    changes: [
+      'Volt: paste any GitHub repo or release link, connect an ESP32-S3/C6/C3/S2/original board over USB, and Volt checks the firmware against the connected chip (chip match, flash size, offsets, no overlap) before it ever flashes, so it cannot burn a mismatched image.',
+      'New: Lumi, an ambient travel translator. Turn it on in a café abroad; it listens, auto-detects language, groups what it hears into separate conversations, and gives a rolling Vietnamese summary. Audio is never stored. Two modes: "Nói với em" (one person, safer) and "Nghe xung quanh" (everyone nearby, your call on local recording laws). Off switches for both in Settings > AI rules.',
+    ],
+    changesVi: [
+      'Volt: dán link repo hay bản phát hành GitHub bất kỳ, cắm board ESP32-S3/C6/C3/S2/gốc qua USB, Volt sẽ so firmware với chip đang cắm (đúng chip, đủ dung lượng, đúng offset, không chồng lấn) trước khi flash, nên không thể làm hỏng board vì nạp nhầm file.',
+      'Mới: Lumi, tai phiên dịch du lịch xung quanh. Mở lên khi ngồi quán cà phê ở nước ngoài; Lumi nghe, tự nhận ngôn ngữ, gom thành từng cuộc nói chuyện riêng, và tóm tắt tiếng Việt gần như theo thời gian thực. Không lưu âm thanh. Hai chế độ: "Nói với em" (một người, an toàn hơn) và "Nghe xung quanh" (nghe cả xung quanh, tự chịu trách nhiệm theo luật ghi âm nơi bạn đến). Có nút tắt riêng cho cả hai trong Cài đặt > Luật AI.',
+    ],
+  },
   {
     version: '1.77.9',
     date: '2026-10-31',
