@@ -2,7 +2,7 @@
  * Version and "What's new". Bump APP_VERSION and add an entry to the top of RELEASES
  * with each update. The banner shows once per version, then stays dismissed.
  */
-export const APP_VERSION = '1.88.0'
+export const APP_VERSION = '1.89.0'
 
 export interface Release {
   version: string
@@ -13,6 +13,16 @@ export interface Release {
 }
 
 export const RELEASES: Release[] = [
+  {
+    version: '1.89.0',
+    date: '2026-11-01',
+    changes: [
+      'Fixed: Chrome said "This app cannot be installed". The app\'s install file sat behind the login gate and Chrome could not read it, so it showed a plain "W" icon. The app is now installable as "Neo Hub" with its own icon (including a round-safe icon for Android). Tap the Chrome menu, then Install app.',
+    ],
+    changesVi: [
+      'Sửa lỗi: Chrome báo "Không thể cài đặt ứng dụng". Tệp cài đặt của app nằm sau cổng đăng nhập nên Chrome không đọc được, nên chỉ hiện biểu tượng chữ "W". Giờ app cài được với tên "Neo Hub" và biểu tượng riêng (có cả biểu tượng bo tròn cho Android). Mở menu Chrome, chọn Cài đặt ứng dụng.',
+    ],
+  },
   {
     version: '1.88.0',
     date: '2026-11-01',

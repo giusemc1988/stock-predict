@@ -15,7 +15,7 @@ createRoot(document.getElementById('root')!).render(
 // Offline app shell for the installed (home-screen) build only; dev uses Vite's live reload.
 if (import.meta.env.PROD && 'serviceWorker' in navigator) {
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('./sw.js').catch(() => {})
+    navigator.serviceWorker.register('/sw.js').catch(() => {})
   })
 }
 
