@@ -19,6 +19,8 @@ export interface LumiConversation {
   lang: string
   /** 1-3 short Vietnamese sentences, rolling as more lines arrive */
   summaryVi: string
+  /** set only when the talk shows signs of a common tourist scam or overcharge aimed at the listener */
+  alertVi?: string
   lines: LumiLine[]
 }
 
@@ -41,13 +43,14 @@ export function buildGroupPrompt(lines: LumiLine[], mode: LumiMode): string {
     scope,
     'Group the numbered lines below into separate conversations by topic and language (a language switch usually means a new conversation).',
     'For each conversation, write 1 to 3 short Vietnamese sentences summarizing what is being said - plain, factual, no invented details.',
-    'Answer ONLY as JSON: {"conversations":[{"lang":"en","lineNumbers":[1,2],"summaryVi":"..."}]}. No other text.',
+    'Also, ONLY if a conversation clearly shows signs of a common tourist scam or overcharging aimed at the traveler (fake "closed" attraction, taxi without meter, inflated price, pushy "free" gift, fake police, gem/tailor shop detour), add "alertVi": one short Vietnamese warning. Otherwise omit "alertVi". Do not guess.',
+    'Answer ONLY as JSON: {"conversations":[{"lang":"en","lineNumbers":[1,2],"summaryVi":"...","alertVi":"..."}]}. No other text.',
     '',
     body,
   ].join('\n')
 }
 
-interface RawGroup { lang?: unknown; lineNumbers?: unknown; summaryVi?: unknown }
+interface RawGroup { lang?: unknown; lineNumbers?: unknown; summaryVi?: unknown; alertVi?: unknown }
 
 /** Parses the AI's JSON answer into conversations, matching line numbers back to the original lines. */
 export function parseGroupResponse(text: string, lines: LumiLine[]): LumiConversation[] {
@@ -68,7 +71,10 @@ export function parseGroupResponse(text: string, lines: LumiLine[]): LumiConvers
       const picked = nums.map((n) => lines[n - 1]).filter((l): l is LumiLine => !!l)
       const summaryVi = typeof g.summaryVi === 'string' ? g.summaryVi.trim().slice(0, 400) : ''
       if (!picked.length || !summaryVi) return null
-      return { id: `g${i}`, lang: typeof g.lang === 'string' ? g.lang : picked[0].lang, summaryVi, lines: picked }
+      const alertVi = typeof g.alertVi === 'string' ? g.alertVi.trim().slice(0, 200) : ''
+      const out: LumiConversation = { id: `g${i}`, lang: typeof g.lang === 'string' ? g.lang : picked[0].lang, summaryVi, lines: picked }
+      if (alertVi) out.alertVi = alertVi
+      return out
     })
     .filter((g): g is LumiConversation => g !== null)
 }
@@ -84,7 +90,7 @@ export interface LumiTrip {
   id: string
   at: number
   mode: LumiMode
-  conversations: { lang: string; summaryVi: string }[]
+  conversations: { lang: string; summaryVi: string; alertVi?: string }[]
 }
 
 const TRIP_LIMIT = { summary: 400, conversations: 12 }
@@ -94,8 +100,12 @@ export function cleanTripSave(body: unknown): Omit<LumiTrip, 'id' | 'at'> | null
   const b = body as { mode?: unknown; conversations?: unknown } | null
   if (!b || (b.mode !== 'talk' && b.mode !== 'ambient') || !Array.isArray(b.conversations)) return null
   const conversations = b.conversations
-    .filter((c): c is { lang: unknown; summaryVi: unknown } => !!c && typeof c === 'object')
-    .map((c) => ({ lang: typeof c.lang === 'string' ? c.lang.slice(0, 16) : '?', summaryVi: typeof c.summaryVi === 'string' ? c.summaryVi.slice(0, TRIP_LIMIT.summary) : '' }))
+    .filter((c): c is { lang: unknown; summaryVi: unknown; alertVi?: unknown } => !!c && typeof c === 'object')
+    .map((c) => {
+      const row: { lang: string; summaryVi: string; alertVi?: string } = { lang: typeof c.lang === 'string' ? c.lang.slice(0, 16) : '?', summaryVi: typeof c.summaryVi === 'string' ? c.summaryVi.slice(0, TRIP_LIMIT.summary) : '' }
+      if (typeof c.alertVi === 'string' && c.alertVi.trim()) row.alertVi = c.alertVi.slice(0, 200)
+      return row
+    })
     .filter((c) => c.summaryVi)
     .slice(0, TRIP_LIMIT.conversations)
   if (!conversations.length) return null
@@ -190,4 +200,75 @@ export function parseVocab(raw: string | null): LumiWord[] {
   } catch {
     return []
   }
+}
+
+/** ---- Menu / sign photo: the free vision AI reads it and explains in Vietnamese ---- */
+
+export interface MenuItem {
+  orig: string
+  vi: string
+  note?: string
+  price?: string
+}
+
+export const MENU_PROMPT = [
+  'This photo is a restaurant menu, a sign, or a label that a Vietnamese traveler is looking at.',
+  'Read the visible text. For each dish or line (at most 25), give the original text, a natural Vietnamese translation, and for dishes a very short Vietnamese note on what it is (main ingredients, spicy, contains pork/beef/seafood/nuts when obvious). Copy the price exactly as written if there is one.',
+  'Never invent items that are not in the photo. If the photo has no readable text, answer {"items":[]}.',
+  'Answer ONLY as JSON: {"items":[{"orig":"...","vi":"...","note":"...","price":"..."}]}.',
+].join('\n')
+
+export function parseMenuResponse(raw: string): MenuItem[] {
+  const m = raw.replace(/```[a-z]*/gi, '').match(/\{[\s\S]*\}/)
+  if (!m) return []
+  try {
+    const j = JSON.parse(m[0]) as { items?: unknown }
+    if (!Array.isArray(j.items)) return []
+    const str = (v: unknown, n: number) => (typeof v === 'string' ? v.trim().slice(0, n) : '')
+    return j.items
+      .slice(0, 25)
+      .map((it): MenuItem | null => {
+        const o = it as Record<string, unknown>
+        const orig = str(o?.orig, 200)
+        const vi = str(o?.vi, 200)
+        if (!orig || !vi) return null
+        const item: MenuItem = { orig, vi }
+        const note = str(o.note, 200)
+        const price = str(o.price, 40)
+        if (note) item.note = note
+        if (price) item.price = price
+        return item
+      })
+      .filter((x): x is MenuItem => x !== null)
+  } catch {
+    return []
+  }
+}
+
+/** Accepts only a JPEG/PNG/WebP data URL under the size cap; returns its mime + base64 body. */
+export function parseImageDataUrl(v: unknown, maxBytes = 1_500_000): { mime: string; b64: string } | null {
+  if (typeof v !== 'string') return null
+  const m = v.match(/^data:(image\/(?:jpeg|png|webp));base64,([A-Za-z0-9+/=]+)$/)
+  if (!m) return null
+  if (m[2].length * 0.75 > maxBytes) return null
+  return { mime: m[1], b64: m[2] }
+}
+
+/** ---- Trip notebook: saved trips as plain text, for Copy / Share ---- */
+
+export function tripsToText(trips: LumiTrip[], locale = 'vi-VN'): string {
+  const byDay = new Map<string, LumiTrip[]>()
+  for (const t of trips) {
+    const d = new Date(t.at).toLocaleDateString(locale, { weekday: 'short', day: '2-digit', month: '2-digit', year: 'numeric' })
+    byDay.set(d, [...(byDay.get(d) ?? []), t])
+  }
+  const out: string[] = ['Sổ tay chuyến đi (Lumi)']
+  for (const [day, ts] of byDay) {
+    out.push('', `# ${day}`)
+    for (const t of ts) {
+      const time = new Date(t.at).toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' })
+      for (const c of t.conversations) out.push(`- ${time} [${c.lang}] ${c.summaryVi}${c.alertVi ? ` (⚠ ${c.alertVi})` : ''}`)
+    }
+  }
+  return out.join('\n')
 }

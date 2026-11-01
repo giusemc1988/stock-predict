@@ -1859,3 +1859,7 @@ body:has(.jfab) .toasts, body:has(.jfab) .jarvis-alert { bottom: 84px; }
 .lumi-tips { margin: 0; padding-left: 18px; display: grid; gap: 6px; }
 @media (max-width: 400px) { .lumi-two { grid-template-columns: 1fr; } .lumi-phrases { grid-template-columns: 1fr; } }
 .lumi-say input { flex-basis: 100%; } .lumi-say .btn { flex: 1 1 0; }
+.lumi-snap { display: block; text-align: center; cursor: pointer; }
+.lumi-preview { display: block; max-width: 100%; max-height: 220px; margin: 8px auto; border-radius: 10px; border: 1px solid var(--line); }
+.lumi-notes { white-space: pre-wrap; overflow-wrap: anywhere; font-size: 13px; line-height: 1.5; margin: 8px 0 0; padding: 10px; border-radius: 10px; background: var(--panel-2); border: 1px solid var(--line); color: var(--text); font-family: inherit; }
+.lumi-alert { display: block; font-size: 12px; padding: 4px 8px; border-radius: 8px; background: rgba(246, 70, 93, 0.12); border: 1px solid rgba(246, 70, 93, 0.45); color: var(--text); }

@@ -134,3 +134,38 @@ for (const l of LUMI_LANGS) {
 assert.equal(phrasesFor('eat', 'ja').every((p) => p.text && p.vi), true)
 assert.ok(new Set(PHRASES.map((p) => p.id)).size === PHRASES.length)
 console.log('lumi travel tools: ok')
+
+// ---- batch 2: scam alert, menu photo, trip notebook ----
+import { MENU_PROMPT, parseImageDataUrl, parseMenuResponse, tripsToText } from '../src/lib/lumiTranslate'
+import { SCAMS } from '../src/lib/lumiPhrases'
+{
+  const lines: LumiLine[] = [{ text: 'palace closed today, my friend takes you by tuk-tuk for 20 baht', lang: 'en', at: 1 }]
+  assert.ok(/alertVi/.test(buildGroupPrompt(lines, 'talk')))
+  const g = parseGroupResponse('{"conversations":[{"lang":"en","lineNumbers":[1],"summaryVi":"Mời đi tuk-tuk","alertVi":"Có thể là chiêu lừa"}]}', lines)
+  assert.equal(g[0].alertVi, 'Có thể là chiêu lừa')
+  const g2 = parseGroupResponse('{"conversations":[{"lang":"en","lineNumbers":[1],"summaryVi":"x"}]}', lines)
+  assert.equal('alertVi' in g2[0], false)
+  const saved = cleanTripSave({ mode: 'talk', conversations: [{ lang: 'en', summaryVi: 'a', alertVi: 'b' }, { lang: 'en', summaryVi: 'c' }] })!
+  assert.equal(saved.conversations[0].alertVi, 'b')
+  assert.equal('alertVi' in saved.conversations[1], false)
+}
+{
+  assert.ok(/Never invent/.test(MENU_PROMPT))
+  const items = parseMenuResponse('```json\n{"items":[{"orig":"Pad Thai","vi":"Phở xào Thái","note":"có đậu phộng","price":"฿80"},{"orig":"","vi":"x"}]}\n```')
+  assert.deepEqual(items, [{ orig: 'Pad Thai', vi: 'Phở xào Thái', note: 'có đậu phộng', price: '฿80' }])
+  assert.deepEqual(parseMenuResponse('{"items":[]}'), [])
+  assert.deepEqual(parseMenuResponse('garbage'), [])
+  assert.deepEqual(findMoney('฿80'), [{ amount: 80, cur: 'THB' }])
+  assert.deepEqual(parseImageDataUrl('data:image/jpeg;base64,QUJD'), { mime: 'image/jpeg', b64: 'QUJD' })
+  assert.equal(parseImageDataUrl('data:text/html;base64,QUJD'), null)
+  assert.equal(parseImageDataUrl('data:image/png;base64,' + 'A'.repeat(100), 10), null)
+  assert.equal(parseImageDataUrl(42), null)
+}
+{
+  const at = Date.UTC(2026, 10, 1, 10, 0)
+  const txt = tripsToText([{ id: '1', at, mode: 'talk', conversations: [{ lang: 'ja', summaryVi: 'Hỏi đường', alertVi: 'cẩn thận' }] }], 'en-US')
+  assert.ok(txt.startsWith('Sổ tay chuyến đi'))
+  assert.ok(txt.includes('[ja] Hỏi đường (⚠ cẩn thận)'))
+  for (const l of LUMI_LANGS) assert.ok(SCAMS[l.code].length >= 2)
+}
+console.log('lumi batch 2: ok')
