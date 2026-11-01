@@ -51,6 +51,17 @@ assert.equal((await lumiRoute(req('/api/lumi/trips'), '/api/lumi/trips', {}))?.s
   assert.equal(j.trips[0].conversations[0].summaryVi, 'Tóm tắt')
 }
 
+// /api/lumi/say: method, bad input, no helper keys -> 503
+assert.equal((await lumiRoute(req('/api/lumi/say'), '/api/lumi/say', {}))?.status, 405)
+{
+  const post = (body: unknown) => req('/api/lumi/say', { method: 'POST', headers: { origin: 'https://x', 'content-type': 'application/json' }, body: JSON.stringify(body) })
+  assert.equal((await lumiRoute(post({ text: 'xin chào', lang: 'xx' }), '/api/lumi/say', {}))?.status, 400)
+  assert.equal((await lumiRoute(post({ text: '', lang: 'ja' }), '/api/lumi/say', {}))?.status, 400)
+  assert.equal((await lumiRoute(post({ text: 'xin chào', lang: 'ja' }), '/api/lumi/say', {}))?.status, 503)
+}
+// /api/lumi/rates: GET only
+assert.equal((await lumiRoute(req('/api/lumi/rates', { method: 'POST' }), '/api/lumi/rates', {}))?.status, 405)
+
 // an unrelated path is not handled here
 assert.equal(await lumiRoute(req('/api/other'), '/api/other', {}), null)
 
