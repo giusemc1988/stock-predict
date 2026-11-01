@@ -172,3 +172,18 @@ export function parseRepo(input: string): { owner: string; repo: string } | null
   const m = /^([\w.-]+)\/([\w.-]+)/.exec(s)
   return m ? { owner: m[1], repo: m[2] } : null
 }
+
+/**
+ * Quick-pick list shown on the Volt page. To add a new firmware: have its CI publish a GitHub release
+ * (merged image + manifest.json, see .github/workflows/nexus-scout.yml) and add one entry here.
+ */
+export interface VoltPreset {
+  id: string
+  repo: string
+  tag: string
+  en: string
+  vi: string
+}
+export const VOLT_PRESETS: VoltPreset[] = [
+  { id: 'nexus-scout', repo: 'giusemc1988/stock-predict', tag: 'nexus-scout-latest', en: 'Nexus Scout (Wi-Fi/BLE scanner)', vi: 'Nexus Scout (quét Wi-Fi/BLE)' },
+]
