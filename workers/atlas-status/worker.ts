@@ -3,6 +3,7 @@
  * Serves live metrics from practice trading account without Cloudflare Access protection
  */
 import type { PracticeState } from '../../src/lib/practice'
+import { shadowReport } from '../../src/lib/shadowFilters'
 
 interface Env {
   PRACTICE: KVNamespace
@@ -98,6 +99,8 @@ export default {
           learning: learningStatus,
           brakes: brakeStatus,
           kelly: kellyStatus,
+          // proposed rules recorded on every trade but never applied (src/lib/shadowFilters.ts)
+          shadow: shadowReport(trades),
           diag: { ...diagnostics(state), cronLast: await env.PRACTICE.get('cronLast', 'json').catch(() => null) },
         })
       } catch (e) {

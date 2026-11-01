@@ -51,6 +51,8 @@ export interface PracticeEntryInfo {
   penny?: boolean
   /** Recent news sentiment at entry: -1..1 (bullish to bearish). */
   newsSentiment?: number
+  /** Shadow filters: what the proposed rules would have said. Recorded only, never blocks (src/lib/shadowFilters.ts). */
+  shadow?: import('./shadowFilters').ShadowTag
 }
 
 export interface PracticePickInfo {

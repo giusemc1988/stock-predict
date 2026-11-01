@@ -12,6 +12,7 @@ import { baseRate, decide, type JournalEntry } from './journal'
 import { onBarClose, onBars, onPrice, type EntryContext, type PickRow, type PracticeState } from './practice'
 import { dollarVolume, gainToday, pickWhy, rankCandidates, volumeVsAvg, type PickSource, type PracticeCandidate } from './practicePicks'
 import { runStrategy } from './strategy'
+import { shadowTag } from './shadowFilters'
 import { fetchAlpacaNews } from './newsProvider'
 import { analyzeSentiment } from './newsSentiment'
 
@@ -31,6 +32,8 @@ export interface ScanInput {
   fetchBars: (m: ScanMarket) => Promise<Candle[]>
   rules: AiRules
   journal: JournalEntry[]
+  /** Journal for the shadow learner call (works while learning is paused); defaults to `journal`. */
+  shadowJournal?: JournalEntry[]
   killSwitch: boolean
   maxTradesPerDay: number
   /** Last closed bar already decided on, per market. */
@@ -171,6 +174,7 @@ export async function scanCycle(input: ScanInput): Promise<ScanResult> {
       const learner: EntryContext['learner'] =
         !canLearn ? 'n/a' : decide(journal, x.probUp!, 0.55, rules.learnEdgeMarginPct / 100).signal === 'BUY' ? 'BUY' : 'HOLD'
       const why = x.place != null ? pickWhy(x, buys) : null
+      const before = new Set(s.open.map((p) => p.id))
       s = onBarClose(s, {
         symbol: x.symbol,
         tf: PICK_TF,
@@ -211,6 +215,14 @@ export async function scanCycle(input: ScanInput): Promise<ScanResult> {
         drawdownBrakeMultiplier: input.drawdownBrakeMultiplier,
         kellyMultiplier: input.kellyMultiplier,
       })
+      // shadow filters: tag the position this bar opened (if any); recorded only, never blocks
+      const opened = s.open.find((p) => !before.has(p.id) && p.symbol === x.symbol)
+      if (opened && !opened.info.shadow) {
+        const sj = input.shadowJournal ?? journal
+        const shadowLearner = x.probUp != null && baseRate(sj) ? (decide(sj, x.probUp, 0.55, rules.learnEdgeMarginPct / 100).signal === 'BUY' ? 'BUY' : 'HOLD') : 'n/a'
+        const tag = shadowTag({ kind: opened.kind ?? 'day', source: x.source, volVsAvg: x.volVsAvg }, shadowLearner)
+        s = { ...s, open: s.open.map((p) => (p.id === opened.id ? { ...p, info: { ...p.info, shadow: tag } } : p)) }
+      }
     }
     return s
   }
