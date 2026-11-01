@@ -2,7 +2,7 @@
  * Version and "What's new". Bump APP_VERSION and add an entry to the top of RELEASES
  * with each update. The banner shows once per version, then stays dismissed.
  */
-export const APP_VERSION = '1.90.0'
+export const APP_VERSION = '1.90.1'
 
 export interface Release {
   version: string
@@ -13,6 +13,16 @@ export interface Release {
 }
 
 export const RELEASES: Release[] = [
+  {
+    version: '1.90.1',
+    date: '2026-11-01',
+    changes: [
+      'Fixed: the daily Atlas data backup said "success" but saved nothing, because it used an old command. It now really saves Atlas\'s practice account (all trades) every day, fails loudly if it cannot, never saves tokens or keys, and keeps each day\'s copy on its own backups branch.',
+    ],
+    changesVi: [
+      'Sửa lỗi: bản sao lưu dữ liệu Atlas hằng ngày báo "thành công" nhưng không lưu gì, vì dùng lệnh cũ. Giờ nó lưu thật tài khoản tập của Atlas (toàn bộ lệnh) mỗi ngày, báo lỗi rõ nếu không lưu được, không bao giờ lưu token hay key, và giữ bản của từng ngày trên nhánh backups riêng.',
+    ],
+  },
   {
     version: '1.90.0',
     date: '2026-11-01',

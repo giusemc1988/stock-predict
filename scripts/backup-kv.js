@@ -1,12 +1,12 @@
 #!/usr/bin/env node
 /**
  * Backup Cloudflare KV namespaces (PRACTICE + SETTINGS)
- * Filters out sensitive data (API keys) since repo is public
+ * Skips keys that hold secrets (API keys, tokens, Telegram config)
  * Usage: node scripts/backup-kv.js [--output-dir ./backups]
  */
 import fs from "fs";
 import path from "path";
-import { execSync } from "child_process";
+import { execFileSync, execSync } from "child_process";
 
 const outputDir = process.argv[2] === "--output-dir" ? process.argv[3] : "./backups";
 const timestamp = new Date().toISOString().split("T")[0];
@@ -18,7 +18,7 @@ fs.mkdirSync(backupPath, { recursive: true });
 
 console.log(`📦 Backing up KV to ${backupPath}`);
 
-// List of sensitive keys in SETTINGS to exclude
+// Keys that hold secrets are never written to a backup (checked in both namespaces).
 const sensitivePatterns = [
   /gemini.*key/i,
   /groq.*key/i,
@@ -28,58 +28,62 @@ const sensitivePatterns = [
   /alpha.*vantage.*key/i,
   /api.*key/i,
   /secret/i,
+  /token/i,
+  /telegram/i,
+  /password/i,
 ];
 
-function isSensitive(key) {
+export function isSensitive(key) {
   return sensitivePatterns.some((pattern) => pattern.test(key));
 }
 
-async function backupNamespace(bindingName, fileName) {
+const NAMESPACES = {
+  PRACTICE: "c7406fc64a454ccfa114c6aa39f35c64",
+  SETTINGS: "6ca496318670484e99a4a97008d8e0d4",
+};
+
+// wrangler 4 syntax: `kv key ...` (the old `kv:key` form fails) and `--remote`
+// (without it wrangler reads the empty local store).
+function wrangler(args) {
+  return execFileSync("npx", ["wrangler", ...args], {
+    encoding: "utf-8",
+    stdio: ["ignore", "pipe", "pipe"],
+    maxBuffer: 256 * 1024 * 1024,
+  });
+}
+
+function backupNamespace(bindingName, fileName) {
   console.log(`  Exporting ${bindingName}...`);
-
-  try {
-    // Use wrangler kv:key list to get all keys
-    const listCmd = `npx wrangler kv:key list --namespace-id ${bindingName === "PRACTICE" ? "c7406fc64a454ccfa114c6aa39f35c64" : "6ca496318670484e99a4a97008d8e0d4"} 2>/dev/null || echo "[]"`;
-    const keysOutput = execSync(listCmd, {
-      encoding: "utf-8",
-      stdio: ["pipe", "pipe", "pipe"],
-    });
-
-    const keys = JSON.parse(keysOutput);
-    const data = {};
-
-    for (const key of keys) {
-      const name = key.name || key;
-
-      // Skip sensitive keys in SETTINGS
-      if (bindingName === "SETTINGS" && isSensitive(name)) {
-        console.log(`    ⊘ Skipping sensitive key: ${name}`);
-        continue;
-      }
-
-      try {
-        const getCmd = `npx wrangler kv:key get "${name}" --namespace-id ${bindingName === "PRACTICE" ? "c7406fc64a454ccfa114c6aa39f35c64" : "6ca496318670484e99a4a97008d8e0d4"}`;
-        const value = execSync(getCmd, { encoding: "utf-8" }).trim();
-        data[name] = value;
-      } catch (e) {
-        console.warn(`    ⚠ Failed to read ${name}: ${e.message}`);
-      }
+  const id = NAMESPACES[bindingName];
+  // a failed list must fail the run, never silently save "{}"
+  const keys = JSON.parse(wrangler(["kv", "key", "list", "--namespace-id", id, "--remote"]));
+  const data = {};
+  let failed = 0;
+  for (const key of keys) {
+    const name = key.name || key;
+    if (isSensitive(name)) {
+      console.log(`    ⊘ Skipping sensitive key: ${name}`);
+      continue;
     }
-
-    fs.writeFileSync(
-      path.join(backupPath, fileName),
-      JSON.stringify(data, null, 2)
-    );
-    console.log(`    ✓ Saved ${Object.keys(data).length} keys`);
-  } catch (err) {
-    console.error(`  ✗ Error backing up ${bindingName}: ${err.message}`);
-    fs.writeFileSync(path.join(backupPath, fileName), "{}");
+    try {
+      data[name] = wrangler(["kv", "key", "get", name, "--namespace-id", id, "--remote", "--text"]);
+    } catch (e) {
+      failed++;
+      console.warn(`    ⚠ Failed to read ${name}: ${e.message}`);
+    }
   }
+  fs.writeFileSync(path.join(backupPath, fileName), JSON.stringify(data, null, 2));
+  console.log(`    ✓ Saved ${Object.keys(data).length} of ${keys.length} keys (${failed} failed)`);
+  return { keys: keys.length, saved: Object.keys(data).length, failed };
 }
 
 // Backup both namespaces
-await backupNamespace("PRACTICE", "practice.json");
-await backupNamespace("SETTINGS", "settings.json");
+const practice = backupNamespace("PRACTICE", "practice.json");
+const settings = backupNamespace("SETTINGS", "settings.json");
+if (!practice.saved || !("state" in JSON.parse(fs.readFileSync(path.join(backupPath, "practice.json"), "utf-8")))) {
+  console.error("✗ PRACTICE backup has no `state` key: refusing to report success");
+  process.exit(1);
+}
 
 // Save metadata
 const metadata = {
@@ -89,7 +93,8 @@ const metadata = {
     encoding: "utf-8",
   }).trim(),
   commit: execSync("git rev-parse HEAD", { encoding: "utf-8" }).trim(),
-  note: "SETTINGS excludes API keys (repo is public). Restore with scripts/restore-kv.js",
+  counts: { practice, settings },
+  note: "Keys holding secrets (API keys, tokens, Telegram config) are excluded. Restore with scripts/restore-kv.js",
 };
 
 fs.writeFileSync(

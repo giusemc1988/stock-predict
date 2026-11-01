@@ -13,6 +13,8 @@ on:
 jobs:
   backup:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write # push the snapshot to the `backups` branch
     steps:
       - uses: actions/checkout@v4
 
@@ -35,14 +37,16 @@ jobs:
           path: ./kv-backups/
           retention-days: 90
 
-      - name: Archive backup to repo (optional - comment out if backups get too large)
+      - name: Archive backup to the `backups` branch
+        # keeps a dated folder per day on its own branch (never touches main)
         run: |
-          mkdir -p backups
-          cp -r kv-backups/backup-* backups/
           git config user.email "backup@stock-predict"
           git config user.name "Backup Bot"
-          git add backups/ || true
-          git diff --cached --quiet || git commit -m "backup: KV data snapshot $(date -u +%Y-%m-%d)" || true
-          git pull --rebase origin main || true
-          git push origin HEAD:backups || echo "Backup branch push skipped"
-        if: always()
+          if git fetch origin backups:backups; then git worktree add bk backups; else git worktree add --orphan -b backups bk; fi
+          mkdir -p bk/backups
+          cp -r kv-backups/backup-* bk/backups/
+          cd bk
+          git add backups/
+          git diff --cached --quiet || git commit -m "backup: KV data snapshot $(date -u +%Y-%m-%d)"
+          git push origin backups
+        if: success()

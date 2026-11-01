@@ -64,7 +64,7 @@ async function restoreNamespace(bindingName) {
       fs.writeFileSync(tempFile, value);
 
       execSync(
-        `npx wrangler kv:key put "${key}" --path "${tempFile}" --namespace-id ${namespaceId}`,
+        `npx wrangler kv key put "${key}" --path "${tempFile}" --namespace-id ${namespaceId} --remote`,
         { stdio: "pipe" }
       );
 
