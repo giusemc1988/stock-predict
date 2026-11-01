@@ -1912,3 +1912,4 @@ body:has(.jfab) .toasts, body:has(.jfab) .jarvis-alert { bottom: 84px; }
 
 .how-to { display: grid; gap: 3px; padding: 8px 10px; margin: 4px 0; border-radius: 10px; background: rgba(79, 209, 255, 0.06); border: 1px dashed var(--line-2); }
 .how-to p { margin: 0; }
+.lumi-auto { display: flex; align-items: center; gap: 6px; margin-top: 6px; cursor: pointer; }

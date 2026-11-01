@@ -52,6 +52,12 @@ const GIST_EVERY_MS = 15_000
 const MAX_LIVE = 40
 /** instant layer counts as "working" if it produced a phrase this recently */
 const INSTANT_FRESH_MS = 20_000
+/**
+ * If the recognizer's words have not changed for this long, translate them as a sentence right away
+ * instead of waiting for its own "final" (Chrome on Android waits ~1 s of silence for that).
+ */
+const STALL_MS = 650
+const norm = (t: string) => t.trim().toLowerCase().replace(/[\s.,!?。、！？]+/g, ' ').trim()
 
 export type SpeakLang = 'auto' | string
 
@@ -100,6 +106,10 @@ export function useLumiListen(mode: LumiMode, speakLang: SpeakLang, text: Listen
     lang: 'en',
     speakLang: 'auto' as SpeakLang,
     speechEndAt: 0,
+    /** line already shown for the phrase still being spoken (committed when the words stalled) */
+    earlyId: '',
+    earlyText: '',
+    stallTimer: 0,
   })
   r.current.speakLang = speakLang
   const T = useRef(text)
@@ -128,20 +138,39 @@ export function useLumiListen(mode: LumiMode, speakLang: SpeakLang, text: Listen
     return j.vi
   }, [])
 
-  const onFinal = useCallback(async (phrase: string) => {
+  /** Show + translate a phrase. Reuses the early line for the same utterance instead of adding a new one. */
+  const commit = useCallback(async (phrase: string, final: boolean) => {
     const s = r.current
     const clean = phrase.trim()
     if (!clean) return
     s.lastInstant = Date.now()
     setInstantOn(true)
     const lang = s.speakLang !== 'auto' ? s.speakLang : s.lang
-    const id = `i${Date.now().toString(36)}${Math.random().toString(36).slice(2, 5)}`
-    const end = Date.now()
-    pushLine({ id, src: 'instant', text: clean, lang, at: end, vi: '', pending: true })
+    // speech ended when the words stopped changing, not when the stall timer fired
+    const end = Date.now() - (final ? 0 : STALL_MS)
+    let id = s.earlyId
+    // a different utterance (the recognizer never confirmed the last one): start a new line
+    if (id && !norm(clean).startsWith(norm(s.earlyText).slice(0, 12))) { id = ''; s.earlyId = ''; s.earlyText = '' }
+    if (id && norm(clean) === norm(s.earlyText)) {
+      // the recognizer confirmed what we already translated
+      if (final) { s.earlyId = ''; s.earlyText = '' }
+      return
+    }
+    if (id) {
+      patchLine(id, { text: clean, pending: true })
+    } else {
+      id = `i${Date.now().toString(36)}${Math.random().toString(36).slice(2, 5)}`
+      pushLine({ id, src: 'instant', text: clean, lang, at: end, vi: '', pending: true })
+    }
+    if (final) { s.earlyId = ''; s.earlyText = '' } else { s.earlyId = id; s.earlyText = clean }
     setDraft(null)
     s.draftSent = ''
     try {
-      const vi = await fastTranslate({ text: clean, lang, context: context().slice(0, -1), draft: false })
+      const ctx = s.lines.filter((l) => (l as LiveLine).id !== id).slice(-3).map((l) => l.text)
+      const vi = await fastTranslate({ text: clean, lang, context: ctx, draft: false })
+      // a newer, longer version of this line may have been sent meanwhile: keep the latest text's translation
+      const cur = s.lines.find((l) => (l as LiveLine).id === id)
+      if (cur && cur.text !== clean) return
       patchLine(id, { vi, pending: false, ms: Date.now() - end })
       setErr(null)
     } catch (e) {
@@ -151,22 +180,32 @@ export function useLumiListen(mode: LumiMode, speakLang: SpeakLang, text: Listen
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [fastTranslate, pushLine, patchLine])
 
+  const onFinal = useCallback((phrase: string) => {
+    window.clearTimeout(r.current.stallTimer)
+    void commit(phrase, true)
+  }, [commit])
+
   const onInterim = useCallback(async (partial: string) => {
     const s = r.current
-    setDraft((d) => ({ text: partial, vi: d?.vi ?? '' }))
-    if (s.draftBusy || !draftWorthIt(s.draftSent, partial)) return
+    // words stalled -> treat as a sentence now
+    window.clearTimeout(s.stallTimer)
+    s.stallTimer = window.setTimeout(() => { if (s.running) void commit(partial, false) }, STALL_MS)
+    const shown = s.earlyId && partial.toLowerCase().startsWith(s.earlyText.toLowerCase()) ? partial.slice(s.earlyText.length).trim() : partial
+    if (!shown) return
+    setDraft((d) => ({ text: shown, vi: d?.vi ?? '' }))
+    if (s.draftBusy || !draftWorthIt(s.draftSent, partial, 2)) return
     s.draftBusy = true
     s.draftSent = partial
     try {
       const lang = s.speakLang !== 'auto' ? s.speakLang : s.lang
-      const vi = await fastTranslate({ text: partial, lang, context: [], draft: true })
+      const vi = await fastTranslate({ text: shown, lang, context: [], draft: true })
       setDraft((d) => (d ? { ...d, vi } : d))
     } catch {
       // drafts are best effort
     } finally {
       s.draftBusy = false
     }
-  }, [fastTranslate])
+  }, [fastTranslate, commit])
 
   const startInstant = useCallback(() => {
     const s = r.current
@@ -183,7 +222,7 @@ export function useLumiListen(mode: LumiMode, speakLang: SpeakLang, text: Listen
       for (let i = e.resultIndex; i < e.results.length; i++) {
         const res = e.results[i]
         const t = res[0]?.transcript ?? ''
-        if (res.isFinal) void onFinal(t)
+        if (res.isFinal) onFinal(t)
         else interim += t
       }
       if (interim.trim()) void onInterim(interim.trim())
@@ -288,6 +327,9 @@ export function useLumiListen(mode: LumiMode, speakLang: SpeakLang, text: Listen
   const stop = useCallback(() => {
     const s = r.current
     s.running = false
+    window.clearTimeout(s.stallTimer)
+    s.earlyId = ''
+    s.earlyText = ''
     s.timers.forEach((t) => window.clearInterval(t))
     s.timers = []
     const recog = s.recog
@@ -341,6 +383,8 @@ export function useLumiListen(mode: LumiMode, speakLang: SpeakLang, text: Listen
     setWarn(null)
     setGist(null)
     s.mode = mode
+    // wake the worker + its connections while the mic is being opened
+    void fetch('/api/lumi/warm').catch(() => {})
     s.instantDead = !Recognizer()
     s.lastInstant = 0
     const mime = recorderMime()
@@ -360,6 +404,8 @@ export function useLumiListen(mode: LumiMode, speakLang: SpeakLang, text: Listen
       s.stream = stream
       const ctx = new (window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext)()
       s.ctx = ctx
+      // opened without a fresh tap (auto-start): make sure the analyser actually runs
+      if (ctx.state === 'suspended') void ctx.resume().catch(() => {})
       const analyser = ctx.createAnalyser()
       analyser.fftSize = 512
       ctx.createMediaStreamSource(stream).connect(analyser)

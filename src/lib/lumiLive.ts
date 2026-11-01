@@ -18,7 +18,7 @@ export interface VadState {
   chunkMs: number
 }
 
-export const VAD = { minSpeechMs: 1200, pauseMs: 550, maxChunkMs: 8000, minFloor: 0.015, ratio: 1.8 }
+export const VAD = { minSpeechMs: 800, pauseMs: 400, maxChunkMs: 6000, minFloor: 0.015, ratio: 1.8 }
 
 export function vadStart(floor = 0.03): VadState {
   return { floor, speechMs: 0, quietMs: 0, chunkMs: 0 }

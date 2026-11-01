@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import type { Bi } from '../lib/hubText'
 import { useLang } from '../lib/i18n'
 import type { LumiMode } from '../lib/lumiTranslate'
@@ -36,6 +36,7 @@ const T = {
   noInstant: { en: 'Instant captions are not available in this browser, using the slower mode (a few seconds per sentence).', vi: 'Trình duyệt này không có chữ tức thì, Lumi dùng chế độ chậm hơn (vài giây mỗi câu).' },
   hearLang: { en: 'Language they speak', vi: 'Tiếng họ nói' },
   auto: { en: 'Auto', vi: 'Tự nhận' },
+  autoStart: { en: 'Start listening as soon as Lumi opens', vi: 'Mở Lumi là tự bật nghe và dịch luôn' },
   hearHelp: { en: 'Pick the language if you know it: captions start faster. "Auto" works it out after the first sentence.', vi: 'Biết tiếng gì thì chọn luôn để chữ hiện nhanh hơn. "Tự nhận" sẽ tự đoán sau câu đầu tiên.' },
   instant: { en: '⚡ Instant', vi: '⚡ Tức thì' },
   slow: { en: 'Standard', vi: 'Thường' },
@@ -74,7 +75,12 @@ export function LumiPage({ onBack, glass = true }: { onBack: () => void; glass?:
   const vocab = useVocab()
   const rates = useRates()
 
-  const [mode, setMode] = useState<LumiMode>('talk')
+  // opening Lumi starts "Listen around" right away (Chanh, 11-01); the switch below turns that off
+  const [mode, setMode] = useState<LumiMode>('ambient')
+  const [autoStart, setAutoStartRaw] = useState(() => {
+    try { return localStorage.getItem('lumi:auto') !== '0' } catch { return true }
+  })
+  const setAutoStart = (v: boolean) => { setAutoStartRaw(v); try { localStorage.setItem('lumi:auto', v ? '1' : '0') } catch { /* ignore */ } }
   const [speakLang, setSpeakLangRaw] = useState<SpeakLang>(() => {
     const v = typeof localStorage === 'undefined' ? null : localStorage.getItem('lumi:hear')
     return v && (v === 'auto' || isLumiLang(v)) ? v : 'auto'
@@ -85,6 +91,15 @@ export function LumiPage({ onBack, glass = true }: { onBack: () => void; glass?:
   const listen = useLumiListen(mode, speakLang, { needMic: L('needMic'), hearFail: L('hearFail'), netFail: L('netFail'), noInstant: L('noInstant') })
   const { running, level, speaking, busy, hearing, err, warn, live, setLive, draft, gist, conversations, heardLang, instantOn, stop } = listen
   const start = () => { setSaveMsg(null); void listen.start() }
+  const autoDone = useRef(false)
+  useEffect(() => {
+    if (autoDone.current || !autoStart) return
+    autoDone.current = true
+    void listen.start()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+  // Two-way uses the microphone itself: pause listening there so the two do not fight over it
+  useEffect(() => { if (tab === 'talk' && running) stop() }, [tab, running, stop])
 
   const save = useCallback(async () => {
     if (!conversations.length) return
@@ -150,6 +165,9 @@ export function LumiPage({ onBack, glass = true }: { onBack: () => void; glass?:
         ) : (
           <button className="btn volt-flash-btn" onClick={stop}>{L('stop')}</button>
         )}
+        <label className="small muted lumi-auto">
+          <input type="checkbox" checked={autoStart} onChange={(e) => setAutoStart(e.target.checked)} /> {L('autoStart')}
+        </label>
         {err && <p className="small lumi-err" role="alert">⚠ {err}</p>}
         {warn && <p className="small muted">{warn}</p>}
 
