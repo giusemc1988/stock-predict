@@ -79,6 +79,6 @@ jobs:
           if gh release view nexus-scout-latest >/dev/null 2>&1; then
             gh release delete nexus-scout-latest --yes --cleanup-tag
           fi
-          gh release create nexus-scout-latest out/*.bin out/SHA256SUMS \
+          gh release create nexus-scout-latest out/*.bin out/manifest.json out/SHA256SUMS \
             --title "nexus-scout (latest)" \
             --notes "Passive-only Wi-Fi/BLE scanner firmware, built from $(git rev-parse --short HEAD). Flash with Volt (/#volt in Neo Hub)."
