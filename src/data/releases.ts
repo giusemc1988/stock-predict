@@ -2,7 +2,7 @@
  * Version and "What's new". Bump APP_VERSION and add an entry to the top of RELEASES
  * with each update. The banner shows once per version, then stays dismissed.
  */
-export const APP_VERSION = '1.79.1'
+export const APP_VERSION = '1.80.0'
 
 export interface Release {
   version: string
@@ -13,6 +13,16 @@ export interface Release {
 }
 
 export const RELEASES: Release[] = [
+  {
+    version: '1.80.0',
+    date: '2026-11-01',
+    changes: [
+      'Echo: new "Room watch (USB)". Plug an ESP32-S3 flashed with RuView firmware into your phone or PC, tap Connect, and the page shows whether someone is in the room, whether they move, and breathing, read straight from the board over USB. No home PC needed, nothing leaves the device. Experimental and not medical; use only in your own places. Not yet tested on a real board.',
+    ],
+    changesVi: [
+      'Echo: thêm "Canh phòng (USB)". Cắm board ESP32-S3 đã flash firmware RuView vào điện thoại hoặc máy tính, bấm Nối, trang sẽ cho biết phòng có người không, có cử động không và nhịp thở, đọc thẳng từ board qua USB. Không cần máy nhà, dữ liệu không rời thiết bị. Đang thử nghiệm, không phải y tế, chỉ dùng ở nơi của anh. Chưa thử trên board thật.',
+    ],
+  },
   {
     version: '1.79.1',
     date: '2026-11-01',
