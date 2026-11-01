@@ -2,7 +2,7 @@
  * Version and "What's new". Bump APP_VERSION and add an entry to the top of RELEASES
  * with each update. The banner shows once per version, then stays dismissed.
  */
-export const APP_VERSION = '1.87.0'
+export const APP_VERSION = '1.88.0'
 
 export interface Release {
   version: string
@@ -13,6 +13,16 @@ export interface Release {
 }
 
 export const RELEASES: Release[] = [
+  {
+    version: '1.88.0',
+    date: '2026-11-01',
+    changes: [
+      'Nexus pocket scout now does the things it promised, all listening only. One big "Check this room" button listens for about 30 seconds and gives a plain verdict (Nothing obvious / Worth a look / Suspicious) with a "Details" list of possible hidden cameras (camera-style network names and makers) and Bluetooth trackers (AirTag, Tile, SmartTag). A hot / cold finder walks you to a flagged device by signal strength. Fixed: Bluetooth devices always showed 0 because half-finished scans were displayed. New "Switch to Echo" button opens the RuView flashing steps in one tap. Every card (Pocket scout, Volt steps and What\'s new) now has a short "what is here / what to do / what to tap" guide. Re-flash the board from Volt (Nexus Scout) to get the new firmware 1.1.0.',
+    ],
+    changesVi: [
+      'Nexus (thiết bị bỏ túi) giờ làm đúng những gì đã hứa, tất cả chỉ lắng nghe. Một nút to "Kiểm tra phòng này" nghe khoảng 30 giây rồi đưa ra kết luận đơn giản (Chưa thấy gì đáng ngờ / Cần xem lại / Đáng ngờ), kèm danh sách "Chi tiết" về camera ẩn có thể có (tên mạng và hãng kiểu camera) và thiết bị theo dõi Bluetooth (AirTag, Tile, SmartTag). Có thêm dò nóng/lạnh để tìm đúng thiết bị bị báo theo độ mạnh tín hiệu. Sửa lỗi: số thiết bị Bluetooth luôn bằng 0 vì app hiện lần quét chưa xong. Nút "Chuyển sang Echo" mở sẵn các bước nạp RuView chỉ với một chạm. Mọi thẻ (Thiết bị bỏ túi, các bước của Volt và Mới cập nhật) đều có khung hướng dẫn ngắn "có gì / làm gì / bấm gì". Cần nạp lại bo từ Volt (Nexus Scout) để có firmware 1.1.0 mới.',
+    ],
+  },
   {
     version: '1.87.0',
     date: '2026-11-01',

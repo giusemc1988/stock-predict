@@ -20,6 +20,12 @@ export interface ScoutBle {
   name: string | null
   rssi: number
   kind: 'ibeacon' | 'other'
+  /** Bluetooth company id from the manufacturer data (76 = Apple), when the advertisement has one. */
+  co?: number
+  /** First byte of the manufacturer payload (Apple: 0x12 = Find My network accessory). */
+  ty?: number
+  /** Short (16-bit) service UUIDs in the advertisement, lowercase hex, e.g. "feed" (Tile), "fd5a" (SmartTag). */
+  su?: string[]
 }
 
 export interface ScoutScan {
@@ -63,7 +69,12 @@ export function parseScoutChunk(raw: string, into: ScoutScan = emptyScan()): Sco
       .map((x): ScoutBle | null => {
         const id = typeof x.id === 'string' ? x.id : null
         if (id == null) return null
-        return { id, name: typeof x.name === 'string' ? x.name : null, rssi: typeof x.rssi === 'number' ? x.rssi : -99, kind: x.kind === 'ibeacon' ? 'ibeacon' : 'other' }
+        const out: ScoutBle = { id, name: typeof x.name === 'string' && x.name ? x.name : null, rssi: typeof x.rssi === 'number' ? x.rssi : -99, kind: x.kind === 'ibeacon' ? 'ibeacon' : 'other' }
+        if (typeof x.co === 'number') out.co = x.co
+        if (typeof x.ty === 'number') out.ty = x.ty
+        if (typeof x.su === 'string') out.su = [x.su.toLowerCase()]
+        else if (Array.isArray(x.su)) out.su = x.su.filter((u): u is string => typeof u === 'string').map((u) => u.toLowerCase())
+        return out
       })
       .filter((x): x is ScoutBle => x != null)
     return { ...into, ble: [...into.ble, ...items] }

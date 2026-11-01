@@ -5,10 +5,14 @@
  */
 import { useEffect, useState } from 'react'
 import type { Bi } from '../lib/hubText'
+import { HowTo } from './HowTo'
 import { useLang } from '../lib/i18n'
 import { ageDays, buildNews, chipFit, parseNews, sortNews, type GhGet, type NewsFeed, type RecentFlash } from '../lib/voltNews'
 
 const T = {
+  how: { en: 'New ESP32 firmware found on GitHub, and what you flashed lately.', vi: 'Firmware ESP32 mới tìm thấy trên GitHub, và những gì anh đã nạp gần đây.' },
+  howDo: { en: 'Look for items marked "fits your board", and tap Use to send one to Step 2. Nothing is written to the board until you flash in Step 3.', vi: 'Tìm mục ghi "hợp board của anh", bấm Dùng để chuyển nó xuống Bước 2. Chưa có gì được ghi vào bo cho đến khi anh nạp ở Bước 3.' },
+  howTap: { en: '"Refresh" to look again, "Use" on an item.', vi: '"Làm mới" để tìm lại, "Dùng" trên một mục.' },
   title: { en: 'What\'s new', vi: 'Mới cập nhật' },
   note: { en: 'New ESP32 firmware releases found on GitHub when you tap Refresh (free, nothing runs in the background). Attack tools are filtered out.', vi: 'Firmware ESP32 mới trên GitHub, chỉ tìm khi anh bấm Làm mới (miễn phí, không chạy nền). Đã lọc bỏ công cụ tấn công.' },
   recent: { en: 'Flashed recently', vi: 'Đã nạp gần đây' },
@@ -84,6 +88,7 @@ export function VoltNews({ chipName, recent, onPick }: { chipName: string | null
     <section className="bf-card volt-news">
       <header><h3>{L('title')}</h3></header>
       <p className="small muted">{L('note')}</p>
+      <HowTo what={L('how')} doIt={L('howDo')} tap={L('howTap')} />
 
       {recent.length > 0 && (
         <>
