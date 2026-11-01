@@ -2,7 +2,7 @@
  * Version and "What's new". Bump APP_VERSION and add an entry to the top of RELEASES
  * with each update. The banner shows once per version, then stays dismissed.
  */
-export const APP_VERSION = '1.80.0'
+export const APP_VERSION = '1.83.0'
 
 export interface Release {
   version: string
@@ -13,6 +13,42 @@ export interface Release {
 }
 
 export const RELEASES: Release[] = [
+  {
+    version: '1.83.0',
+    date: '2026-11-01',
+    changes: [
+      'Volt: new "What\'s new" card. Tap Refresh to look on GitHub (free, nothing runs in the background) for new ESP32 firmware releases; each one shows its chip and a one-tap "Use" button. Attack tools are filtered out. Recently flashed firmware is remembered.',
+      'Each agent page now shows its own version next to its name (Volt, Nexus, Echo, Lumi), so you can see which agent changed.',
+    ],
+    changesVi: [
+      'Volt: thêm khung "Mới cập nhật". Bấm Làm mới để tìm trên GitHub (miễn phí, không chạy nền) các bản firmware ESP32 mới; mỗi cái hiện chip và nút "Dùng" một chạm. Đã lọc bỏ công cụ tấn công. Firmware vừa nạp được nhớ lại.',
+      'Mỗi trang agent giờ hiện phiên bản riêng cạnh tên (Volt, Nexus, Echo, Lumi), để thấy agent nào vừa đổi.',
+    ],
+  },
+  {
+    version: '1.82.2',
+    date: '2026-11-01',
+    changes: ['Fixed: Volt thought a correct ESP32-S3 firmware was for a plain ESP32 and locked the Flash button. It now reads the chip type from the right place in the file.'],
+    changesVi: ['Sửa lỗi: Volt tưởng firmware ESP32-S3 đúng là của ESP32 thường nên khóa nút Flash. Giờ đọc loại chip đúng chỗ trong file.'],
+  },
+  {
+    version: '1.82.1',
+    date: '2026-11-01',
+    changes: ['Fixed: Volt\'s "Find firmware in this repo" failed with GitHub error 403. It now falls back to the public release page.'],
+    changesVi: ['Sửa lỗi: nút "Tìm firmware trong repo" của Volt báo lỗi GitHub 403. Giờ tự chuyển sang trang release công khai.'],
+  },
+  {
+    version: '1.82.0',
+    date: '2026-11-01',
+    changes: ['Volt: a "Nexus Scout" quick-pick button fills the repo and release for you. The nexus-scout release now ships one merged ESP32-S3 image plus a manifest, so Volt flashes it in one step.'],
+    changesVi: ['Volt: nút chọn nhanh "Nexus Scout" tự điền repo và release. Bản release nexus-scout giờ có một ảnh ESP32-S3 gộp sẵn kèm manifest, Volt nạp một bước.'],
+  },
+  {
+    version: '1.81.0',
+    date: '2026-11-01',
+    changes: ['Nexus: the Pocket scout card can connect over USB (Web Serial) as well as Bluetooth, and shows which firmware the shared ESP32-S3 board is running with a switch to Echo.'],
+    changesVi: ['Nexus: khung Thiết bị bỏ túi nối được qua USB (Web Serial) ngoài Bluetooth, và hiện board ESP32-S3 dùng chung đang chạy firmware nào kèm nút chuyển sang Echo.'],
+  },
   {
     version: '1.80.0',
     date: '2026-11-01',
