@@ -90,3 +90,24 @@ assert.ok(findings.some((f) => f.kind === 'wep'))
 console.log('findings ok')
 
 console.log('nexusscout: ok')
+
+// USB serial path: banner, line splitting across chunks, and feeding lines into a scan
+import { feedScoutLine, parseScoutBanner, splitLines } from '../src/lib/nexusSerial'
+assert.deepEqual(parseScoutBanner('NEXUS-SCOUT v1.0.0 board=esp32-s3 ready\r'), { version: '1.0.0', board: 'esp32-s3' })
+assert.equal(parseScoutBanner('RUVIEW_HELLO_OK_V1 x'), null)
+let sp = splitLines('{"t":"end"')
+assert.deepEqual(sp, { lines: [], rest: '{"t":"end"' })
+sp = splitLines(sp.rest + ',"at":5}\r\nboot log\n{"t"')
+assert.deepEqual(sp.lines, ['{"t":"end","at":5}', 'boot log'])
+assert.equal(sp.rest, '{"t"')
+let ss: ScoutScan = { wifi: [], ble: [], at: 0 }
+let fed = feedScoutLine('I (123) wifi: scan start', ss)
+assert.equal(fed.complete, false)
+fed = feedScoutLine('{"t":"wifi","items":[{"ssid":"Hotel","bssid":"aa:bb:cc:dd:ee:ff","ch":1,"rssi":-60,"auth":"open","wps":false}]}', ss)
+ss = fed.scan
+assert.equal(ss.wifi.length, 1)
+fed = feedScoutLine('NEXUS-SCOUT v1.0.0 board=esp32 ready', ss)
+assert.equal(fed.banner?.board, 'esp32')
+fed = feedScoutLine('{"t":"end","at":4000}', ss)
+assert.equal(fed.complete, true)
+console.log('usb serial ok')

@@ -10,7 +10,7 @@ network — see `AGENTS.md` rule 5 in the repo root.
 - Scans nearby Wi-Fi networks (SSID, BSSID, channel, signal, auth type) passively.
 - Scans nearby BLE advertisements (name if broadcast, signal, rough kind) passively — it
   never sends a connect request.
-- Reports both over one BLE GATT characteristic as small JSON chunks, read live by the
+- Reports both over USB serial (115200, one JSON object per line; the host sends `ping` every 10s to keep it streaming) and over one BLE GATT characteristic as small JSON chunks, read live by the
   Nexus page in Neo Hub (`src/components/NexusScoutPanel.tsx` / `src/lib/nexusScout.ts`).
 - Falls back to its own `NexusScout-xxxx` Wi-Fi access point with a read-only status page
   if nothing connects over Bluetooth within a minute of boot — useful to confirm it's
@@ -34,6 +34,14 @@ GitHub Actions builds both targets on every pull request that touches this folde
 (`.github/workflows/nexus-scout.yml`), and on a push to `main` publishes the two `.bin`
 files plus a `SHA256SUMS` file to a rolling `nexus-scout-latest` release. Volt (the ESP32
 flasher page in Neo Hub) can flash straight from that release's link.
+
+## USB serial and the shared S3 kit
+
+The same ESP32-S3 kit also runs RuView (Echo). Nexus and Echo are told apart by the boot line
+`NEXUS-SCOUT v<ver> board=<chip> ready` (printed at boot and in reply to every `ping`).
+Connect with "Kết nối qua USB" on the Nexus page (Web Serial; Chrome on a phone works over OTG).
+Switching between Nexus and Echo is a reflash through Volt. The release ships a merged image
+(`nexus-scout-esp32-s3.bin`, offset 0x0) plus `manifest.json`, so Volt flashes it in one step.
 
 ## Flashing
 
