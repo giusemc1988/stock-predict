@@ -8,8 +8,8 @@ function img(chipId: number, flashSizeNibble: number, len = 64): Uint8Array {
   b[2] = 2
   b[3] = (flashSizeNibble << 4) | 0x0
   if (len >= 24) {
-    b[14] = chipId & 0xff
-    b[15] = (chipId >> 8) & 0xff
+    b[12] = chipId & 0xff
+    b[13] = (chipId >> 8) & 0xff
   }
   return b
 }
@@ -108,3 +108,12 @@ assert.equal(partsFromManifest({ builds: [{ chipFamily: 'x' }] }), null)
 assert.equal(partsFromManifest({}), null)
 
 console.log('voltflash: ok')
+
+// first 32 bytes of the real nexus-scout-esp32-s3.bin release image (16 MB flash, chip id 9 at bytes 12-13)
+const real = Uint8Array.from([0xe9, 0x03, 0x02, 0x4f, 0xb8, 0x88, 0x3c, 0x40, 0xee, 0x00, 0x00, 0x00, 0x09, 0x00, 0x00, 0x00, 0x00, 0xff, 0xff, 0x00, 0x00, 0x00, 0x00, 0x01, 0x20, 0x28, 0xce, 0x3f, 0xcc, 0x10, 0x00, 0x00])
+const rh = parseImageHeader(real)
+assert.equal(rh?.chipName, 'ESP32-S3')
+assert.equal(rh?.flashSizeMB, 16)
+const realChecks = checkParts([describePart('nexus-scout-esp32-s3.bin', 0, real)], { chipName: 'ESP32-S3', flashSizeMB: 16 })
+assert.ok(canFlash(realChecks), JSON.stringify(realChecks))
+console.log('real s3 image ok')
