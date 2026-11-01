@@ -22,7 +22,6 @@ const LOOK: Record<AgentId, { skin: string; skin2: string; hair: string; beard?:
 }
 
 const HEART = 'c-1.6-2.4-4.8-.8-3.2 1.6l3.2 3.2 3.2-3.2c1.6-2.4-1.6-4-3.2-1.6z'
-const STAR = 'l2 6 6 2-6 2-2 6-2-6-6-2 6-2z'
 
 export function AgentFace({ id, hue, className = '' }: { id: AgentId; hue: string; className?: string }) {
   const k = LOOK[id]
@@ -154,8 +153,10 @@ export function AgentFace({ id, hue, className = '' }: { id: AgentId; hue: strin
           {is('lumi') && (
             <>
               <path className="agf-hair" d="M37 52C35 30 48 23 60 23C72 23 85 30 83 52C80 44 78 40 76 38C68 42 52 42 44 38C42 42 39 46 37 52Z" />
-              <ellipse className="agf-fill" cx="63" cy="26" rx="22" ry="7.5" transform="rotate(-9 63 26)" />
-              <circle className="agf-fill" cx="66" cy="17" r="2.6" />
+              {/* travel translator: earbud in the ear + mic arm, no beret */}
+              <ellipse className="agf-fill" cx="82" cy="57" rx="3.4" ry="4.4" />
+              <path className="agf-acc" d="M83 61C84 68 78 72 70 70" strokeWidth="1.6" />
+              <circle className="agf-fill agf-blink" cx="69" cy="70" r="2" />
             </>
           )}
           {is('forge') && (
@@ -194,11 +195,20 @@ export function AgentFace({ id, hue, className = '' }: { id: AgentId; hue: strin
         )}
         {is('lumi') && (
           <>
-            <circle className="agf-skin" cx="80" cy="110" r="5" />
-            <rect x="78" y="96" width="28" height="18" rx="4" fill="#2a2430" />
-            <circle cx="92" cy="105" r="6" fill="#1c1418" stroke={hue} strokeWidth="2" />
-            <circle fill="#fff" cx="90" cy="103" r="1.4" />
-            <path className="agf-fill agf-flash" d={`M106 84${STAR}`} />
+            {/* backpack straps */}
+            <path d="M38 96L44 118M82 96L76 118" stroke="#15121a" strokeOpacity=".45" strokeWidth="4" strokeLinecap="round" />
+            {/* phone in hand + two speech bubbles trading A <-> 文 */}
+            <circle className="agf-skin" cx="90" cy="110" r="5" />
+            <rect x="84" y="92" width="13" height="21" rx="3" fill="#1c1820" stroke={hue} strokeWidth="1.5" />
+            <path className="agf-fill agf-talkbar" d="M87 99h7v2h-7zM87 104h5v2h-5z" />
+            <g className="agf-bub">
+              <path className="agf-fill" d="M70 4h28a5 5 0 0 1 5 5v10a5 5 0 0 1-5 5H85l-7 7v-7h-8a5 5 0 0 1-5-5V9a5 5 0 0 1 5-5z" />
+              <text x="84" y="19" fontSize="12" fontWeight="800" fill="#1c1418" textAnchor="middle">A</text>
+            </g>
+            <g className="agf-bub agf-bub2">
+              <path className="agf-acc" fill="#1c1820" d="M92 32h20a5 5 0 0 1 5 5v8a5 5 0 0 1-5 5h-3v6l-6-6H92a5 5 0 0 1-5-5v-8a5 5 0 0 1 5-5z" />
+              <text x="102" y="45" fontSize="11" fontWeight="800" fill={hue} textAnchor="middle">文</text>
+            </g>
           </>
         )}
         {is('forge') && (

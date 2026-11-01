@@ -4,7 +4,7 @@ import type { ProjectId } from '../lib/projects'
 /**
  * Each project's logo, moving the way the project works: Atlas's bars rise, the Iris globe turns,
  * Echo sends out rings, Volt's chip sparks, Nexus's Wi-Fi arcs light up, Nova plays, Viraltech's heart
- * beats, Lumi's aperture turns and Max's gears spin. Motion lives in JarvisHub.css (`.plg`).
+ * beats, Lumi's speech bubbles talk and Max's gears spin. Motion lives in JarvisHub.css (`.plg`).
  */
 export function ProjectLogo({ id, hue, className = '' }: { id: ProjectId; hue: string; className?: string }) {
   const style = { '--k': hue } as CSSProperties
@@ -71,9 +71,12 @@ export function ProjectLogo({ id, hue, className = '' }: { id: ProjectId; hue: s
         )}
         {id === 'lumi' && (
           <>
-            <circle className="plg-s" cx="30" cy="30" r="20" />
-            <path className="plg-s plg-ap" d="M30 10 38 26M50 30 34 38M30 50 22 34M10 30 26 22M44 16 36 30M44 44 30 36M16 44 24 30M16 16 30 24" strokeWidth="1.8" />
-            <circle cx="30" cy="30" r="5" fill="#fff" />
+            {/* two speech bubbles trading words: outline one + filled one with a talking equaliser */}
+            <path className="plg-s" d="M8 10h26a5 5 0 0 1 5 5v12a5 5 0 0 1-5 5H20l-8 8v-8H8a5 5 0 0 1-5-5V15a5 5 0 0 1 5-5z" />
+            <path className="plg-f plg-bub" d="M26 24h26a5 5 0 0 1 5 5v12a5 5 0 0 1-5 5h-3v8l-8-8H26a5 5 0 0 1-5-5V29a5 5 0 0 1 5-5z" />
+            {[33, 39, 45].map((x, i) => (
+              <rect key={x} className={`plg-eq plg-eq${i}`} x={x} y="30" width="3.4" height="10" rx="1.7" fill="#1c1418" />
+            ))}
           </>
         )}
         {id === 'forge' && (
