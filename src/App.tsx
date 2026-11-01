@@ -777,7 +777,7 @@ export default function App() {
         </PanelGuard>
       ) : shownPage === 'net' ? (
         <PanelGuard name="Wi-Fi">
-          <NetPage onBack={() => setPage(homePage)} onEcho={aiRules.ruviewOn ? () => setPage('ruview') : undefined} phoneScan={aiRules.phoneScan} glass={aiRules.agentGlass} />
+          <NetPage onBack={() => setPage(homePage)} onEcho={aiRules.ruviewOn ? () => { setRuviewFlash(false); setPage('ruview') } : undefined} onEchoFlash={aiRules.ruviewOn ? () => { setRuviewFlash(true); setPage('ruview') } : undefined} phoneScan={aiRules.phoneScan} glass={aiRules.agentGlass} />
         </PanelGuard>
       ) : shownPage === 'ruview' ? (
         <PanelGuard name="RuView">

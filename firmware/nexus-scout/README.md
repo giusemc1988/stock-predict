@@ -43,6 +43,15 @@ Connect with "Kết nối qua USB" on the Nexus page (Web Serial; Chrome on a ph
 Switching between Nexus and Echo is a reflash through Volt. The release ships a merged image
 (`nexus-scout-esp32-s3.bin`, offset 0x0) plus `manifest.json`, so Volt flashes it in one step.
 
+### Room check, trackers and the hot / cold finder (v1.1.0)
+
+Still listen-only. BLE items now also carry optional `co` (manufacturer company id), `ty` (first payload
+byte) and `su` (16-bit service uuid) so the app can spot AirTag (company 76, type 0x12), Tile (feed/feec) and
+Samsung SmartTag (fd5a). Over USB the host may send `hunt wifi <mac> <channel>`, `hunt ble <mac>` or
+`hunt off`: the board then only listens for that one device and prints `{"t":"hunt","rssi":-60}` (or `null`)
+about once a second, pausing full scans. The app's room check merges 3 scan cycles and shows a plain verdict.
+Limits: only self-announcing access points and BLE ads are visible, so a clean result means "nothing obvious".
+
 ## Flashing
 
 Use Volt (`/#volt` in Neo Hub): paste `giusemc1988/stock-predict` as the repo, pick the

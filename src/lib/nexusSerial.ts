@@ -23,6 +23,8 @@ export function splitLines(buffer: string): { lines: string[]; rest: string } {
 }
 
 export interface ScoutFeed {
+  /** A hot/cold reading from the board's finder: dBm, or null when the target was not heard this round. undefined = not a hunt line. */
+  hunt?: number | null
   scan: ScoutScan
   /** Set when a scan cycle just finished (the "end" chunk); the caller shows `scan` and calls next() to start a fresh one. */
   complete: boolean
@@ -34,6 +36,14 @@ export function feedScoutLine(line: string, scan: ScoutScan): ScoutFeed {
   const banner = parseScoutBanner(line)
   if (banner) return { scan, complete: false, banner }
   if (!line.trimStart().startsWith('{')) return { scan, complete: false, banner: null }
+  if (line.includes('"t":"hunt"')) {
+    try {
+      const j = JSON.parse(line) as { rssi?: unknown }
+      return { scan, complete: false, banner: null, hunt: typeof j.rssi === 'number' ? j.rssi : null }
+    } catch {
+      return { scan, complete: false, banner: null }
+    }
+  }
   const next = parseScoutChunk(line, scan)
   return { scan: next, complete: next.at !== scan.at, banner: null }
 }
