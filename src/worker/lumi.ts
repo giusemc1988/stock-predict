@@ -168,6 +168,9 @@ export async function lumiRoute(req: Request, pathname: string, env: BrainEnv, s
     return json({ error: 'Các AI miễn phí đều hết lượt, thử lại sau ít phút.' }, 503)
   }
 
+  // cheap ping when Lumi opens, so the first real sentence does not pay for a cold start
+  if (pathname === '/api/lumi/warm') return json({ ok: true, ai: !!(env as LumiEnv).AI })
+
   if (pathname === '/api/lumi/fast') {
     if (req.method !== 'POST') return json({ error: 'POST only' }, 405)
     if (!sameOrigin(req)) return json({ error: 'Not allowed' }, 403)

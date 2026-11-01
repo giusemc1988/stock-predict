@@ -2,7 +2,7 @@
  * Version and "What's new". Bump APP_VERSION and add an entry to the top of RELEASES
  * with each update. The banner shows once per version, then stays dismissed.
  */
-export const APP_VERSION = '1.91.0'
+export const APP_VERSION = '1.92.0'
 
 export interface Release {
   version: string
@@ -13,6 +13,16 @@ export interface Release {
 }
 
 export const RELEASES: Release[] = [
+  {
+    version: '1.92.0',
+    date: '2026-11-01',
+    changes: [
+      'Lumi starts listening around and translating as soon as you open it (a switch turns this off; Stop is always there). Faster captions: a sentence is translated as soon as the words stop changing (about 0.65 s) instead of waiting for the phone to decide the sentence ended, the draft line updates every 2 words, the server is woken up when Lumi opens, and the backup recordings are cut at shorter pauses (max 6 s). Listening pauses on the Two-way tab so the two do not fight over the microphone.',
+    ],
+    changesVi: [
+      'Mở Lumi là tự bật nghe xung quanh và dịch luôn (có nút tắt chế độ này, nút Dừng luôn ở đó). Chữ dịch nhanh hơn: chữ ngừng thay đổi khoảng 0.65 giây là dịch câu đó ngay, không chờ điện thoại tự quyết câu đã hết; dòng dịch nháp cập nhật mỗi 2 từ; máy chủ được đánh thức sẵn khi mở Lumi; đoạn ghi âm dự phòng cắt ở chỗ ngừng ngắn hơn (tối đa 6 giây). Sang tab Hai chiều thì tạm dừng nghe để không giành micro.',
+    ],
+  },
   {
     version: '1.91.0',
     date: '2026-11-01',
