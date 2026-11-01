@@ -1,0 +1,68 @@
+name: nexus-scout firmware
+
+# Builds the passive-only Wi-Fi/BLE scanner firmware (firmware/nexus-scout/) on every PR that
+# touches it, so a broken build is caught before merge. On push to main it also republishes the
+# built .bin files (plus a SHA256SUMS) to a rolling "nexus-scout-latest" release, so Volt (the
+# ESP32 flasher page in Neo Hub) can flash straight from this repo's release link.
+
+on:
+  pull_request:
+    paths:
+      - 'firmware/nexus-scout/**'
+      - '.github/workflows/nexus-scout.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'firmware/nexus-scout/**'
+      - '.github/workflows/nexus-scout.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        env: [esp32-s3, esp32dev]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: pip install -U platformio
+      - name: Build ${{ matrix.env }}
+        working-directory: firmware/nexus-scout
+        run: pio run -e ${{ matrix.env }}
+      - uses: actions/upload-artifact@v4
+        with:
+          name: nexus-scout-${{ matrix.env }}
+          path: firmware/nexus-scout/.pio/build/${{ matrix.env }}/firmware.bin
+          if-no-files-found: error
+
+  release:
+    if: github.event_name == 'push'
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+      - name: Rename and checksum
+        run: |
+          mkdir -p out
+          cp artifacts/nexus-scout-esp32-s3/firmware.bin out/nexus-scout-esp32-s3.bin
+          cp artifacts/nexus-scout-esp32dev/firmware.bin out/nexus-scout-esp32.bin
+          cd out && sha256sum *.bin > SHA256SUMS
+      - name: Publish nexus-scout-latest release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if gh release view nexus-scout-latest >/dev/null 2>&1; then
+            gh release delete nexus-scout-latest --yes --cleanup-tag
+          fi
+          gh release create nexus-scout-latest out/*.bin out/SHA256SUMS \
+            --title "nexus-scout (latest)" \
+            --notes "Passive-only Wi-Fi/BLE scanner firmware, built from $(git rev-parse --short HEAD). Flash with Volt (/#volt in Neo Hub)."

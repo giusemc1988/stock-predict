@@ -1290,8 +1290,20 @@ body:has(.jfab) .toasts, body:has(.jfab) .jarvis-alert { bottom: 84px; }
 .net-sum .btn.prime { padding: 8px 16px; border-radius: 999px; background: var(--robot); color: #04111c; font-weight: 600; }
 .net-sum .btn.prime:disabled { opacity: 0.6; }
 .net-note { margin: 0; padding: 8px 12px; border-radius: 10px; background: rgba(79, 209, 255, 0.08); border: 1px solid rgba(79, 209, 255, 0.3); font-size: 13px; }
-.net-grid { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr); grid-template-areas: "dev ana" "dev ble" "tools tools"; gap: 12px; align-items: start; }
-.net-devices { grid-area: dev; } .net-analyzer { grid-area: ana; } .net-ble { grid-area: ble; } .net-tools { grid-area: tools; }
+.net-grid { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr); grid-template-areas: "dev ana" "dev ble" "scout scout" "tools tools"; gap: 12px; align-items: start; }
+.net-devices { grid-area: dev; } .net-analyzer { grid-area: ana; } .net-ble { grid-area: ble; } .net-scout { grid-area: scout; } .net-tools { grid-area: tools; }
+.net-scout { display: grid; gap: 8px; }
+.net-scout .btn { justify-self: start; padding: 7px 14px; border-radius: 999px; border: 1px solid var(--line-2); }
+.scout-tabs { display: flex; gap: 6px; }
+.scout-tabs button { padding: 4px 12px; border-radius: 999px; border: 1px solid var(--line-2); font-size: 12px; color: var(--muted); }
+.scout-tabs button.on { color: var(--robot); border-color: var(--robot); background: rgba(79, 209, 255, 0.1); }
+.scout-radar { display: block; margin: 0 auto; border-radius: 50%; background: radial-gradient(circle, rgba(79,209,255,0.06), transparent 70%); }
+.scout-list { display: grid; gap: 4px; max-height: 200px; overflow-y: auto; }
+.scout-row { display: flex; justify-content: space-between; gap: 8px; padding: 5px 8px; border-radius: 8px; background: var(--panel-2); font-size: 12.5px; }
+.scout-row.risk-risk { box-shadow: inset 3px 0 0 #ff5b5b; }
+.scout-row.risk-caution { box-shadow: inset 3px 0 0 var(--gold); }
+.scout-findings { display: grid; gap: 4px; }
+.scout-findings p { margin: 0; }
 .net-row { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(70px, 0.6fr) auto auto; gap: 10px; align-items: center; padding: 8px 10px; border-radius: 10px; background: var(--panel-2); }
 .net-row.alert { box-shadow: inset 3px 0 0 var(--gold); }
 .net-row.off { opacity: 0.6; margin-top: 4px; }
@@ -1321,10 +1333,10 @@ body:has(.jfab) .toasts, body:has(.jfab) .jarvis-alert { bottom: 84px; }
 .net-tg button:hover:not(:disabled) { border-color: var(--robot); }
 .net-tg b { font-size: 13px; font-weight: 600; }
 .net-tg small { color: var(--muted); font-size: 11.5px; }
-@media (max-width: 1100px) { .net-grid { grid-template-columns: 1fr 1fr; grid-template-areas: "dev dev" "ana ble" "tools tools"; } .net-tg { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+@media (max-width: 1100px) { .net-grid { grid-template-columns: 1fr 1fr; grid-template-areas: "dev dev" "ana ble" "scout scout" "tools tools"; } .net-tg { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
 @media (max-width: 900px) { .page-net .net-page { grid-area: center; overflow: visible; } .page-net .right { display: none; } }
 @media (max-width: 699px) {
-  .net-grid { grid-template-columns: minmax(0, 1fr); grid-template-areas: "dev" "ana" "ble" "tools"; }
+  .net-grid { grid-template-columns: minmax(0, 1fr); grid-template-areas: "dev" "ana" "ble" "scout" "tools"; }
   .net-kpi { flex: 1 1 40%; min-width: 0; }
   .net-wifi-name { width: 100%; }
   .net-sum .btn.prime { width: 100%; }
