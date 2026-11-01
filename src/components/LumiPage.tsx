@@ -1,13 +1,15 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useState } from 'react'
 import type { Bi } from '../lib/hubText'
 import { useLang } from '../lib/i18n'
-import { audioFileName, type LumiConversation, type LumiLine, type LumiMode } from '../lib/lumiTranslate'
+import type { LumiMode } from '../lib/lumiTranslate'
+import { speechTagFor } from '../lib/lumiLive'
+import { useLumiListen, type SpeakLang } from './useLumiListen'
 import { useHubTheme } from '../lib/themes'
 import { AgentShell } from './AgentShell'
 import { useAiRules } from '../lib/aiRules'
 import { findMoney } from '../lib/lumiMoney'
-import { isLumiLang, type LumiLang } from '../lib/lumiPhrases'
-import { LangPicker, LumiCulture, LumiMenu, LumiMoney, LumiNotebook, LumiPhrasebook, LumiTalk, LumiVocab, MoneyChips, ScamList, useRates, useVocab } from './LumiTools'
+import { isLumiLang, LUMI_LANGS, type LumiLang } from '../lib/lumiPhrases'
+import { LangPicker, LumiCulture, LumiMenu, LumiMoney, LumiNotebook, LumiPhrasebook, LumiTalk, LumiVocab, MoneyChips, ScamList, speak, useRates, useVocab } from './LumiTools'
 
 const T = {
   back: { en: '← Hub', vi: '← Hub' },
@@ -30,7 +32,16 @@ const T = {
   privacy: { en: 'Audio is never stored. No one is identified. Recording strangers can be illegal in some places — "Talk to me" is the safe mode.', vi: 'Không lưu âm thanh. Không nhận diện ai. Ở một số nơi, ghi âm người lạ có thể phạm luật — "Nói với em" là chế độ an toàn.' },
   close: { en: 'Close', vi: 'Đóng' },
   liveTitle: { en: 'Live translation', vi: 'Dịch trực tiếp' },
-  liveWait: { en: 'First caption appears about 6-8 seconds after someone speaks.', vi: 'Câu dịch đầu tiên hiện sau khoảng 6-8 giây khi có người nói.' },
+  liveWait: { en: 'Speak or play something: words appear as they are said, Vietnamese about 1 second after each sentence.', vi: 'Cứ nói hoặc mở video: chữ hiện ngay khi đang nói, tiếng Việt hiện khoảng 1 giây sau mỗi câu.' },
+  noInstant: { en: 'Instant captions are not available in this browser, using the slower mode (a few seconds per sentence).', vi: 'Trình duyệt này không có chữ tức thì, Lumi dùng chế độ chậm hơn (vài giây mỗi câu).' },
+  hearLang: { en: 'Language they speak', vi: 'Tiếng họ nói' },
+  auto: { en: 'Auto', vi: 'Tự nhận' },
+  hearHelp: { en: 'Pick the language if you know it: captions start faster. "Auto" works it out after the first sentence.', vi: 'Biết tiếng gì thì chọn luôn để chữ hiện nhanh hơn. "Tự nhận" sẽ tự đoán sau câu đầu tiên.' },
+  instant: { en: '⚡ Instant', vi: '⚡ Tức thì' },
+  slow: { en: 'Standard', vi: 'Thường' },
+  draftLbl: { en: 'hearing…', vi: 'đang nghe…' },
+  topic: { en: '💡 They are talking about', vi: '💡 Đang nói về' },
+  replies: { en: 'You could answer (tap to say it)', vi: 'Anh có thể trả lời (chạm để máy đọc)' },
   hearingNow: { en: 'Translating…', vi: 'Đang dịch…' },
   hearFail: { en: 'Could not recognise speech', vi: 'Không nhận được giọng nói' },
   netFail: { en: 'Network problem, retrying with the next chunk…', vi: 'Lỗi mạng, sẽ thử lại ở đoạn sau…' },
@@ -46,21 +57,6 @@ const T = {
   tabNotes: { en: '📓 Trip notes', vi: '📓 Sổ tay' },
   langOf: { en: 'Their language', vi: 'Tiếng của họ' },
 } satisfies Record<string, Bi>
-
-/** Browsers that support MediaRecorder + audio/webm; Safari/iOS need a different mime and are out of scope for v1. */
-function recorderMime(): string | null {
-  if (typeof MediaRecorder === 'undefined') return null
-  for (const t of ['audio/webm;codecs=opus', 'audio/webm', 'audio/mp4']) if (MediaRecorder.isTypeSupported(t)) return t
-  return null
-}
-
-/**
- * Each chunk is a separate, complete recording (stop + restart), because MediaRecorder's timeslice
- * chunks after the first have no container header and Whisper rejects them. 6 s keeps captions live.
- */
-const CHUNK_MS = 6_000
-const GROUP_EVERY_MS = 45_000
-const MAX_LIVE = 40
 
 export function LumiPage({ onBack, glass = true }: { onBack: () => void; glass?: boolean }) {
   const lang = useLang()
@@ -79,141 +75,16 @@ export function LumiPage({ onBack, glass = true }: { onBack: () => void; glass?:
   const rates = useRates()
 
   const [mode, setMode] = useState<LumiMode>('talk')
-  const [running, setRunning] = useState(false)
-  const [level, setLevel] = useState(0)
-  const [busy, setBusy] = useState(false)
-  const [hearing, setHearing] = useState(0)
-  const [err, setErr] = useState<string | null>(null)
-  const [warn, setWarn] = useState<string | null>(null)
-  const [live, setLive] = useState<LumiLine[]>([])
-  const [conversations, setConversations] = useState<LumiConversation[]>([])
+  const [speakLang, setSpeakLangRaw] = useState<SpeakLang>(() => {
+    const v = typeof localStorage === 'undefined' ? null : localStorage.getItem('lumi:hear')
+    return v && (v === 'auto' || isLumiLang(v)) ? v : 'auto'
+  })
+  const setSpeakLang = (l: SpeakLang) => { setSpeakLangRaw(l); try { localStorage.setItem('lumi:hear', l) } catch { /* ignore */ } }
   const [openId, setOpenId] = useState<string | null>(null)
   const [saveMsg, setSaveMsg] = useState<string | null>(null)
-
-  const streamRef = useRef<MediaStream | null>(null)
-  const recorderRef = useRef<MediaRecorder | null>(null)
-  const ctxRef = useRef<AudioContext | null>(null)
-  const runningRef = useRef(false)
-  const linesRef = useRef<LumiLine[]>([])
-  const modeRef = useRef<LumiMode>('talk')
-  const busyRef = useRef(false)
-  const groupTimer = useRef<number | null>(null)
-  const levelTimer = useRef<number | null>(null)
-  const chunkTimer = useRef<number | null>(null)
-
-  const stop = useCallback(() => {
-    runningRef.current = false
-    if (chunkTimer.current) window.clearTimeout(chunkTimer.current)
-    if (recorderRef.current?.state === 'recording') recorderRef.current.stop()
-    recorderRef.current = null
-    streamRef.current?.getTracks().forEach((t) => t.stop())
-    streamRef.current = null
-    void ctxRef.current?.close().catch(() => {})
-    ctxRef.current = null
-    if (groupTimer.current) window.clearInterval(groupTimer.current)
-    if (levelTimer.current) window.clearInterval(levelTimer.current)
-    setRunning(false)
-    setLevel(0)
-  }, [])
-
-  const transcribeChunk = useCallback(async (blob: Blob, mime: string) => {
-    const form = new FormData()
-    form.append('audio', blob, audioFileName(mime))
-    setHearing((n) => n + 1)
-    try {
-      const r = await fetch('/api/lumi/hear', { method: 'POST', body: form })
-      const j = (await r.json().catch(() => ({}))) as { text?: string; lang?: string; vi?: string; viError?: string; error?: string }
-      if (!r.ok) {
-        setErr(j.error || `${L('hearFail')} (${r.status})`)
-        // a missing/wrong key will not fix itself: stop instead of failing every 6 s
-        if (r.status === 409 || r.status === 401 || r.status === 403) stop()
-        return
-      }
-      setErr(null)
-      setWarn(j.viError ?? null)
-      if (!j.text) return
-      const line: LumiLine = { text: j.text, lang: j.lang ?? 'und', at: Date.now(), vi: j.vi ?? '' }
-      linesRef.current = [...linesRef.current, line].slice(-60)
-      setLive((l) => [line, ...l].slice(0, MAX_LIVE))
-    } catch {
-      setErr(L('netFail'))
-    } finally {
-      setHearing((n) => n - 1)
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [stop, lang])
-
-  const runGrouping = useCallback(async () => {
-    if (!linesRef.current.length || busyRef.current) return
-    busyRef.current = true
-    setBusy(true)
-    try {
-      const r = await fetch('/api/lumi/group', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ lines: linesRef.current, mode: modeRef.current }) })
-      const j = (await r.json()) as { conversations?: LumiConversation[] }
-      if (j.conversations) setConversations(j.conversations)
-    } catch {
-      // keep showing the last grouping; try again next tick
-    } finally {
-      busyRef.current = false
-      setBusy(false)
-    }
-  }, [])
-
-  /** Records one complete chunk, sends it, and starts the next one while this one is translated. */
-  const recordChunk = useCallback((stream: MediaStream, mime: string) => {
-    if (!runningRef.current) return
-    const rec = new MediaRecorder(stream, { mimeType: mime })
-    const parts: Blob[] = []
-    rec.ondataavailable = (e) => { if (e.data.size > 0) parts.push(e.data) }
-    rec.onstop = () => {
-      if (parts.length) void transcribeChunk(new Blob(parts, { type: mime }), mime)
-      recordChunk(stream, mime)
-    }
-    rec.start()
-    recorderRef.current = rec
-    chunkTimer.current = window.setTimeout(() => { if (rec.state === 'recording') rec.stop() }, CHUNK_MS)
-  }, [transcribeChunk])
-
-  const start = useCallback(async () => {
-    setErr(null)
-    setWarn(null)
-    setSaveMsg(null)
-    const mime = recorderMime()
-    if (!mime) {
-      setErr(L('needMic'))
-      return
-    }
-    let stream: MediaStream
-    try {
-      // no echo cancellation / noise suppression: those cut out speakers playing a video or a nearby voice
-      stream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: true } })
-    } catch {
-      setErr(L('needMic'))
-      return
-    }
-    streamRef.current = stream
-    modeRef.current = mode
-
-    const ctx = new (window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext)()
-    ctxRef.current = ctx
-    const src = ctx.createMediaStreamSource(stream)
-    const analyser = ctx.createAnalyser()
-    analyser.fftSize = 256
-    src.connect(analyser)
-    const data = new Uint8Array(analyser.frequencyBinCount)
-    levelTimer.current = window.setInterval(() => {
-      analyser.getByteFrequencyData(data)
-      setLevel(data.reduce((a, b) => a + b, 0) / data.length / 255)
-    }, 150)
-
-    runningRef.current = true
-    recordChunk(stream, mime)
-    groupTimer.current = window.setInterval(() => void runGrouping(), GROUP_EVERY_MS)
-    setRunning(true)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [recordChunk, runGrouping, lang, mode])
-
-  useEffect(() => () => stop(), [stop])
+  const listen = useLumiListen(mode, speakLang, { needMic: L('needMic'), hearFail: L('hearFail'), netFail: L('netFail'), noInstant: L('noInstant') })
+  const { running, level, speaking, busy, hearing, err, warn, live, setLive, draft, gist, conversations, heardLang, instantOn, stop } = listen
+  const start = () => { setSaveMsg(null); void listen.start() }
 
   const save = useCallback(async () => {
     if (!conversations.length) return
@@ -263,8 +134,19 @@ export function LumiPage({ onBack, glass = true }: { onBack: () => void; glass?:
           <button className={mode === 'ambient' ? 'on' : ''} onClick={() => setMode('ambient')} disabled={running}>{L('modeAmbient')}</button>
         </div>
 
+        <div className="lumi-hear">
+          <span className="small muted">{L('hearLang')}</span>
+          <div className="lumi-tabs" role="radiogroup" aria-label={L('hearLang')}>
+            <button className={speakLang === 'auto' ? 'on' : ''} onClick={() => setSpeakLang('auto')}>{L('auto')}</button>
+            {LUMI_LANGS.map((l) => (
+              <button key={l.code} className={speakLang === l.code ? 'on' : ''} onClick={() => setSpeakLang(l.code)}>{l.name}</button>
+            ))}
+          </div>
+          <span className="small muted">{L('hearHelp')}</span>
+        </div>
+
         {!running ? (
-          <button className="btn primary volt-flash-btn" onClick={() => void start()}>{L('start')}</button>
+          <button className="btn primary volt-flash-btn" onClick={start}>{L('start')}</button>
         ) : (
           <button className="btn volt-flash-btn" onClick={stop}>{L('stop')}</button>
         )}
@@ -273,9 +155,10 @@ export function LumiPage({ onBack, glass = true }: { onBack: () => void; glass?:
 
         {running && (
           <div className="lumi-listen">
-            <span className="lumi-dot" />
-            <span className="small">{L('listening')}</span>
+            <span className={`lumi-dot${speaking ? ' talk' : ''}`} />
+            <span className="small">{L('listening')} · {speakLang === 'auto' ? heardLang : speakLang}</span>
             <span className="lumi-meter"><i style={{ width: `${Math.round(level * 100)}%` }} /></span>
+            <span className={`lumi-chip lumi-speed${instantOn ? ' on' : ''}`}>{instantOn ? L('instant') : L('slow')}</span>
           </div>
         )}
         {busy && <p className="small muted">{L('translating')}</p>}
@@ -288,10 +171,34 @@ export function LumiPage({ onBack, glass = true }: { onBack: () => void; glass?:
             {hearing > 0 && <span className="small muted">{L('hearingNow')}</span>}
             {!running && live.length > 0 && <button className="btn" onClick={() => setLive([])}>{L('clear')}</button>}
           </header>
-          {!live.length && <p className="small muted">{L('liveWait')}</p>}
+          {gist && (
+            <div className="lumi-gist">
+              <p><b>{L('topic')}:</b> {gist.topicVi}</p>
+              {mode === 'talk' && gist.replies.length > 0 && (<>
+                <p className="small muted">{L('replies')}</p>
+                <div className="lumi-replies">
+                  {gist.replies.map((rp, i) => (
+                    <button key={i} className="lumi-chip" onClick={() => speak(rp.text, speechTagFor(heardLang) ?? 'en-US')}>
+                      🔊 {rp.text}<small>{rp.vi}</small>
+                    </button>
+                  ))}
+                </div>
+              </>)}
+            </div>
+          )}
+          {!live.length && !draft && <p className="small muted">{L('liveWait')}</p>}
+          {draft && (
+            <div className="lumi-cap lumi-draft">
+              <p className="lumi-cap-vi">{draft.vi || <span className="muted">{L('draftLbl')}</span>}</p>
+              <p className="small muted">{draft.text}</p>
+            </div>
+          )}
           {live.map((l) => (
-            <div key={l.at} className="lumi-cap">
-              <p className="lumi-cap-vi">{l.vi || <span className="muted">{L('noVi')}</span>}</p>
+            <div key={l.id} className="lumi-cap">
+              <p className="lumi-cap-vi">
+                {l.vi || <span className="muted">{l.pending ? L('hearingNow') : L('noVi')}</span>}
+                {l.ms != null && l.vi && <span className={`lumi-ms${l.ms < 2500 ? ' fast' : ''}`}>{l.src === 'instant' ? '⚡' : ''}{(l.ms / 1000).toFixed(1)}s</span>}
+              </p>
               <p className="small muted"><b>[{l.lang}]</b> {l.text}</p>
               {tools && <MoneyChips found={findMoney(l.text)} rates={rates} />}
             </div>

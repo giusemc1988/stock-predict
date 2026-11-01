@@ -1871,3 +1871,18 @@ body:has(.jfab) .toasts, body:has(.jfab) .jarvis-alert { bottom: 84px; }
 .lumi-cap-vi { font-size: 17px; font-weight: 600; color: var(--text); line-height: 1.4; }
 .lumi-err { color: var(--down, #f6465d); }
 @keyframes lumi-in { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: none; } }
+/* Lumi fast live: language picker, speed chip, draft line, latency badge, gist + reply chips */
+.lumi-hear { display: grid; gap: 4px; margin: 10px 0; }
+.lumi-speed { flex: none; opacity: 0.8; }
+.lumi-speed.on { background: rgba(14, 203, 129, 0.14); border-color: rgba(14, 203, 129, 0.5); opacity: 1; }
+.lumi-dot.talk { animation: lumi-pulse 0.6s ease-in-out infinite alternate; }
+@keyframes lumi-pulse { from { transform: scale(1); } to { transform: scale(1.5); } }
+.lumi-draft { opacity: 0.75; border-bottom-style: dashed; }
+.lumi-draft .lumi-cap-vi { font-style: italic; }
+.lumi-ms { margin-left: 8px; font-size: 11px; font-weight: 500; padding: 1px 6px; border-radius: 999px; background: var(--panel-2); border: 1px solid var(--line); color: var(--muted, #9aa); vertical-align: middle; white-space: nowrap; }
+.lumi-ms.fast { color: var(--up); border-color: rgba(14, 203, 129, 0.45); }
+.lumi-gist { margin: 6px 0 8px; padding: 8px 10px; border-radius: 10px; background: rgba(255, 179, 107, 0.08); border: 1px solid rgba(255, 179, 107, 0.3); }
+.lumi-gist p { margin: 2px 0; overflow-wrap: anywhere; }
+.lumi-replies { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px; }
+.lumi-replies .lumi-chip { display: grid; text-align: left; font-size: 13px; padding: 6px 10px; border-radius: 12px; cursor: pointer; max-width: 100%; overflow-wrap: anywhere; }
+.lumi-replies .lumi-chip small { opacity: 0.7; font-size: 11px; }
