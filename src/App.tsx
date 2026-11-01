@@ -781,7 +781,7 @@ export default function App() {
         </PanelGuard>
       ) : shownPage === 'ruview' ? (
         <PanelGuard name="RuView">
-          <RuViewPage onBack={() => setPage(homePage)} webFlash={aiRules.webFlash} startAdding={ruviewFlash} glass={aiRules.agentGlass} />
+          <RuViewPage onBack={() => setPage(homePage)} webFlash={aiRules.webFlash} roomWatch={aiRules.echoRoomWatch} startAdding={ruviewFlash} glass={aiRules.agentGlass} />
         </PanelGuard>
       ) : shownPage === 'godseye' ? (
         <PanelGuard name="God's Eye">

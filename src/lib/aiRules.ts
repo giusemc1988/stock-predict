@@ -136,6 +136,7 @@ export interface AiRules {
   walkForwardValidatorOn: boolean // validate signals on data the ranking was not tuned on; mark as "Proven" only when win rate > 50% out-of-sample
   potentialListOn: boolean // show a "Potential" list of stocks with good BUY signals in the watchlist
   voltFlasher: boolean // Volt page: flash any ESP32 board from a GitHub repo link or a dropped .bin file, checked against the chip before writing
+  echoRoomWatch: boolean // Echo page: read one ESP32-S3 running RuView firmware over USB (Web Serial) and show presence, motion, breathing; no home PC, nothing leaves the phone
   lumiTranslator: boolean // Lumi page: ambient travel translator (Groq Whisper + free AI translate/summarize), audio never stored
   nexusScout: boolean // Nexus "Thiết bị bỏ túi" panel: connect to a nexus-scout ESP32 over Web Bluetooth, passive Wi-Fi/BLE scan only
 }
@@ -272,6 +273,7 @@ export const DEFAULT_AI_RULES: AiRules = {
   walkForwardValidatorOn: true,
   potentialListOn: true,
   voltFlasher: true,
+  echoRoomWatch: true,
   lumiTranslator: true,
   nexusScout: true,
 }
@@ -401,6 +403,7 @@ export const RULE_FIELDS: RuleField[] = [
   { group: 'jarvis', key: 'hubTasks', en: 'Code tasks for Claude: say "fix the ... button" or "make an app that ...", tap Do it, and Neo files it on GitHub; about once an hour Claude opens a pull request for you to check (nothing changes until you merge). Ask "how are the code tasks?"', vi: 'Việc code cho Claude: nói "sửa lỗi nút ..." hay "tạo app ...", bấm Làm đi là Neo ghi lên GitHub; khoảng mỗi giờ Claude mở PR để anh duyệt (chưa merge thì chưa đổi gì). Hỏi "việc code thế nào?"' },
   { group: 'jarvis', key: 'briefHome', en: 'Neo Brief as the home page (off: open the Trading desk first)', vi: 'Neo Brief là trang chủ (tắt: mở Bàn giao dịch trước)' },
   { group: 'jarvis', key: 'voltFlasher', en: 'Volt: flash any ESP32 board from a GitHub repo link or a dropped .bin file, in Chrome or Edge over USB (checked against the chip before writing, never touches eFuse/secure-boot)', vi: 'Volt: nạp firmware cho mọi board ESP32 từ link repo GitHub hay file .bin thả vào, trên Chrome/Edge qua USB (kiểm tra khớp chip trước khi ghi, không đụng eFuse/secure-boot)' },
+  { group: 'jarvis', key: 'echoRoomWatch', en: 'Echo: room watch over USB — plug in an ESP32-S3 with RuView firmware and see presence, motion and breathing right on the phone, no home PC (experimental, not medical, your own places only)', vi: 'Echo: canh phòng qua USB — cắm board ESP32-S3 có firmware RuView để xem có người, cử động, nhịp thở ngay trên điện thoại, không cần máy nhà (thử nghiệm, không phải y tế, chỉ ở nơi của anh)' },
   { group: 'jarvis', key: 'lumiTranslator', en: 'Lumi: ambient travel translator on your phone — listens, detects the language, groups into conversations and gives a rolling Vietnamese summary (audio is never stored)', vi: 'Lumi: tai phiên dịch du lịch trên điện thoại — nghe, tự nhận thứ tiếng, gom theo cuộc trò chuyện và tóm tắt tiếng Việt liên tục (không lưu âm thanh)' },
   { group: 'jarvis', key: 'nexusScout', en: 'Nexus pocket scout: connect to a nexus-scout ESP32 over Bluetooth to see Wi-Fi/BLE around it — watch only, never transmits deauth or any attack frame', vi: 'Nexus bỏ túi: kết nối Bluetooth tới ESP32 chạy nexus-scout để xem Wi-Fi/BLE xung quanh — chỉ quan sát, không bao giờ gửi deauth hay bất kỳ khung tấn công nào' },
   { group: 'jarvis', key: 'briefAi', en: 'Free AI writes the Neo Brief from real data (once per scan; plain text if every AI key fails)', vi: 'AI miễn phí viết Neo Brief từ dữ liệu thật (mỗi lần quét một lần; nếu mọi key AI lỗi thì dùng văn bản thường)' },

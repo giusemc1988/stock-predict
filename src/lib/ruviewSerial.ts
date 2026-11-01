@@ -86,6 +86,7 @@ export class NodeLink {
   private buf = ''
   private lines: string[] = []
   private waiters: (() => void)[] = []
+  private listeners: ((line: string) => void)[] = []
   private reader: ReadableStreamDefaultReader<Uint8Array> | null = null
   private port: SerialPortLike
   private constructor(port: SerialPortLike) {
@@ -113,11 +114,24 @@ export class NodeLink {
         this.buf += dec.decode(value, { stream: true })
         const parts = this.buf.split('\n')
         this.buf = parts.pop() ?? ''
-        for (const p of parts) this.lines.push(p.replace(/\r$/, ''))
+        for (const p of parts) {
+          const line = p.replace(/\r$/, '')
+          this.lines.push(line)
+          this.listeners.forEach((f) => f(line))
+        }
+        if (this.lines.length > 200) this.lines.splice(0, this.lines.length - 200)
         this.waiters.splice(0).forEach((w) => w())
       }
     } catch {
       /* the board rebooted or the cable came out */
+    }
+  }
+
+  /** Every line the board prints from now on (log output included). Returns an unsubscribe function. */
+  onLine(cb: (line: string) => void): () => void {
+    this.listeners.push(cb)
+    return () => {
+      this.listeners = this.listeners.filter((f) => f !== cb)
     }
   }
 
