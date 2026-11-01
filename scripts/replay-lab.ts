@@ -24,6 +24,7 @@ import { emptyPractice, onBarClose, onBars, onPrice, sessionEnd, type PracticeSt
 import { dollarVolume, gainToday, volumeVsAvg } from '../src/lib/practicePicks'
 import { runStrategy } from '../src/lib/strategy'
 import { evalStrategies, mineRules, type ReplayTrade } from '../src/lib/replayLab'
+import { STOCKS } from '../src/lib/replayUniverse'
 import { STRATEGIES, type Fill, type SimTrade } from '../src/lib/replayStrategies'
 
 const args = process.argv.slice(2)
@@ -31,17 +32,7 @@ const arg = (k: string) => (args.includes(k) ? args[args.indexOf(k) + 1] : undef
 const OUT = arg('--out') ?? 'public/replay-lab.json'
 const LIMIT = Number(arg('--symbols') ?? 0)
 
-/** Liquid, widely traded names across sectors, plus the crypto Atlas trades. Fixed on purpose: Yahoo keeps
- *  no history of each day's top-gainer list, so the replay cannot copy the live picker's universe. */
-const STOCKS = `AAPL MSFT NVDA AMZN GOOGL META TSLA AVGO AMD NFLX ADBE CRM ORCL INTC QCOM MU TXN AMAT LRCX KLAC
-PLTR SNOW SHOP UBER ABNB COIN HOOD SOFI RIVN LCID NIO PLUG MARA RIOT SMCI ARM PANW CRWD NET DDOG
-JPM BAC WFC C GS MS SCHW V MA PYPL AXP
-XOM CVX OXY SLB COP HAL DVN
-UNH LLY JNJ PFE MRK ABBV MRNA BMY GILD AMGN
-WMT COST TGT HD LOW NKE SBUX MCD DIS KO PEP
-BA CAT DE GE HON LMT RTX UPS FDX F GM
-T VZ TMUS CMCSA
-SPY QQQ IWM`.split(/\s+/).filter(Boolean)
+/** The stock list is shared with the daily lab (src/lib/replayUniverse.ts); the crypto Atlas trades is added here. */
 const CRYPTO = ['BTC', 'ETH', 'SOL', 'BNB', 'XRP', 'DOGE', 'ADA', 'AVAX', 'LINK', 'ZEC']
 const MARKETS = [...STOCKS.map((s) => ({ symbol: s, asset: 'stock' as const })), ...CRYPTO.map((c) => ({ symbol: `${c}/USDT`, asset: 'crypto' as const }))]
 
