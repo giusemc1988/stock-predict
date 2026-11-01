@@ -1837,3 +1837,25 @@ body:has(.jfab) .toasts, body:has(.jfab) .jarvis-alert { bottom: 84px; }
 @keyframes jfab-bar { from { transform: translateX(-100%); } to { transform: translateX(300%); } }
 .s3kit { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; margin-bottom: 8px; }
 .s3kit .net-note { flex-basis: 100%; margin: 0; }
+/* Lumi travel tools */
+.lumi-tabs { display: flex; flex-wrap: wrap; gap: 6px; }
+.lumi-tabs button { padding: 6px 10px; border-radius: 999px; border: 1px solid var(--line); background: var(--panel-2); color: var(--muted); font-size: 13px; cursor: pointer; }
+.lumi-tabs button.on { color: var(--text); border-color: var(--robot); background: var(--line-2); }
+.lumi-main-tabs { margin-bottom: 10px; }
+.lumi-lang { display: grid; gap: 6px; }
+.lumi-two { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.lumi-two .btn { min-height: 52px; white-space: normal; }
+.lumi-type { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+.lumi-type input { flex: 1 1 160px; min-width: 0; padding: 8px 10px; border-radius: 8px; border: 1px solid var(--line); background: var(--panel-2); color: var(--text); font-size: 15px; }
+.lumi-type select { padding: 8px; border-radius: 8px; border: 1px solid var(--line); background: var(--panel-2); color: var(--text); }
+.lumi-turn { margin-top: 10px; padding: 10px 12px; border-radius: 10px; background: var(--panel-2); border: 1px solid var(--line); }
+.lumi-turn.x2vi { border-left: 3px solid var(--robot); }
+.lumi-turn p { margin: 2px 0; }
+.lumi-big { font-size: 18px; font-weight: 600; color: var(--text); overflow-wrap: anywhere; }
+.lumi-huge { font-size: 26px; font-weight: 700; line-height: 1.3; color: var(--text); overflow-wrap: anywhere; margin: 6px 0; }
+.lumi-phrases { display: grid; gap: 8px; margin-top: 10px; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); }
+.lumi-chips { display: flex; flex-wrap: wrap; gap: 6px; margin: 4px 0; }
+.lumi-chip { font-size: 12px; padding: 3px 8px; border-radius: 999px; background: rgba(255, 179, 107, 0.12); border: 1px solid rgba(255, 179, 107, 0.35); color: var(--text); }
+.lumi-tips { margin: 0; padding-left: 18px; display: grid; gap: 6px; }
+@media (max-width: 400px) { .lumi-two { grid-template-columns: 1fr; } .lumi-phrases { grid-template-columns: 1fr; } }
+.lumi-say input { flex-basis: 100%; } .lumi-say .btn { flex: 1 1 0; }

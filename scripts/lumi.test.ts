@@ -72,3 +72,65 @@ assert.deepEqual(parseTrips('{"not":"an array"}'), [])
 assert.equal(parseTrips('[{"id":"a","at":1,"mode":"talk","conversations":[]}]').length, 1)
 
 console.log('lumi: ok')
+
+// ---- travel tools ----
+import { addWord, buildSayPrompt, parseSayResponse, parseVocab, removeWord } from '../src/lib/lumiTranslate'
+import { convert, findMoney, formatVnd, parseAmount, parseRates, parseStoredRates, ratesFresh } from '../src/lib/lumiMoney'
+import { CULTURE, LANG_EN, LUMI_LANGS, PHRASES, phrasesFor } from '../src/lib/lumiPhrases'
+
+// money: amounts in common written forms
+assert.equal(parseAmount('1,500'), 1500)
+assert.equal(parseAmount('12.50'), 12.5)
+assert.equal(parseAmount('1.500,50'), 1500.5)
+assert.equal(parseAmount('3,5'), 3.5)
+assert.equal(parseAmount('abc'), null)
+{
+  const m = findMoney('It costs ten euros, or $5.50, and the hotel is 12,000 yen')
+  assert.deepEqual(m.map((x) => [x.amount, x.cur]).sort(), [[10, 'EUR'], [12000, 'JPY'], [5.5, 'USD']].sort())
+  assert.deepEqual(findMoney('twenty five dollars please').map((x) => [x.amount, x.cur]), [[25, 'USD']])
+  assert.deepEqual(findMoney('300 baht'), [{ amount: 300, cur: 'THB' }])
+  assert.deepEqual(findMoney('see you at five'), [])
+}
+{
+  const r = parseRates({ result: 'success', time_last_update_unix: 1000, rates: { USD: 1, EUR: 0.9, VND: 26000, JPY: 150 } })!
+  assert.ok(r)
+  assert.equal(r.at, 1_000_000)
+  assert.equal(Math.round(convert(9, 'EUR', 'VND', r)!), 260000)
+  assert.equal(convert(1, 'XXX', 'VND', r), null)
+  assert.equal(parseRates({ result: 'error' }), null)
+  assert.ok(formatVnd(260123).includes('260.000'))
+  assert.equal(ratesFresh(r, 1_000_000 + 3600_000), true)
+  assert.equal(ratesFresh(r, 1_000_000 + 13 * 3600_000), false)
+  assert.deepEqual(parseStoredRates(JSON.stringify(r)), r)
+  assert.equal(parseStoredRates('{bad'), null)
+}
+
+// two-way: prompt direction + parsing
+assert.ok(/Translate this Vietnamese sentence into natural, polite Japanese/.test(buildSayPrompt('xin chào', 'vi2x', 'Japanese')))
+assert.ok(/Translate this Japanese sentence into natural, polite Vietnamese/.test(buildSayPrompt('こんにちは', 'x2vi', 'Japanese')))
+assert.deepEqual(parseSayResponse('```json\n{"text":"こんにちは","roman":"konnichiwa"}\n```'), { text: 'こんにちは', roman: 'konnichiwa' })
+assert.deepEqual(parseSayResponse('{"text":"Hello"}'), { text: 'Hello' })
+assert.equal(parseSayResponse('{"text":""}'), null)
+assert.equal(parseSayResponse('no json'), null)
+
+// vocab: add, dedupe, remove, parse
+{
+  let v = addWord([], { lang: 'ja', text: 'お会計', vi: 'tính tiền' }, 1)
+  v = addWord(v, { lang: 'ja', text: 'お会計', vi: 'tính tiền' }, 2)
+  assert.equal(v.length, 1)
+  v = addWord(v, { lang: 'en', text: '  ', vi: 'x' }, 3)
+  assert.equal(v.length, 1)
+  assert.deepEqual(parseVocab(JSON.stringify(v)), v)
+  assert.equal(removeWord(v, v[0].id).length, 0)
+  assert.deepEqual(parseVocab('nope'), [])
+}
+
+// phrasebook + culture: every phrase/tip exists in every language, no empty strings
+for (const p of PHRASES) for (const l of LUMI_LANGS) assert.ok(p.t[l.code]?.trim(), `${p.id} missing ${l.code}`)
+for (const l of LUMI_LANGS) {
+  assert.ok(CULTURE[l.code].tips.length >= 3)
+  assert.ok(LANG_EN[l.code])
+}
+assert.equal(phrasesFor('eat', 'ja').every((p) => p.text && p.vi), true)
+assert.ok(new Set(PHRASES.map((p) => p.id)).size === PHRASES.length)
+console.log('lumi travel tools: ok')

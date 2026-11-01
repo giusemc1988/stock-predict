@@ -120,3 +120,74 @@ export function parseTrips(raw: string | null): LumiTrip[] {
     return []
   }
 }
+
+/** ---- Two-way talk: translate one short sentence between Vietnamese and a travel language ---- */
+
+export type SayDir = 'vi2x' | 'x2vi'
+
+const SAY_LIMIT = 300
+
+export function cleanSayText(v: unknown): string {
+  return typeof v === 'string' ? v.trim().slice(0, SAY_LIMIT) : ''
+}
+
+/** Prompt for one sentence. `langName` is the English name of the foreign language (e.g. "Japanese"). */
+export function buildSayPrompt(text: string, dir: SayDir, langName: string): string {
+  const [from, to] = dir === 'vi2x' ? ['Vietnamese', langName] : [langName, 'Vietnamese']
+  return [
+    `Translate this ${from} sentence into natural, polite ${to} that a native speaker would say in daily life.`,
+    'Answer ONLY as JSON: {"text":"<translation>"}. No explanation, no romanization unless the target is not written in Latin letters and a short romanization helps; then add it as "roman".',
+    '',
+    text,
+  ].join('\n')
+}
+
+/** Parses the AI's {"text","roman"} answer; null when there is no usable translation. */
+export function parseSayResponse(raw: string): { text: string; roman?: string } | null {
+  const m = raw.replace(/```[a-z]*/gi, '').match(/\{[\s\S]*\}/)
+  if (!m) return null
+  try {
+    const j = JSON.parse(m[0]) as { text?: unknown; roman?: unknown }
+    const text = typeof j.text === 'string' ? j.text.trim().slice(0, 600) : ''
+    if (!text) return null
+    const roman = typeof j.roman === 'string' && j.roman.trim() ? j.roman.trim().slice(0, 600) : undefined
+    return roman ? { text, roman } : { text }
+  } catch {
+    return null
+  }
+}
+
+/** ---- Trip vocabulary: sentence pairs kept on the phone (localStorage), never sent anywhere ---- */
+
+export interface LumiWord {
+  id: string
+  lang: string
+  text: string
+  vi: string
+  at: number
+}
+
+export const VOCAB_KEY = 'lumi:vocab'
+const VOCAB_MAX = 200
+
+export function addWord(list: LumiWord[], w: Omit<LumiWord, 'id' | 'at'>, now = Date.now()): LumiWord[] {
+  const text = w.text.trim().slice(0, 300)
+  const vi = w.vi.trim().slice(0, 300)
+  if (!text || !vi) return list
+  if (list.some((x) => x.text === text && x.lang === w.lang)) return list
+  return [{ id: `${now.toString(36)}${list.length}`, lang: w.lang, text, vi, at: now }, ...list].slice(0, VOCAB_MAX)
+}
+
+export function removeWord(list: LumiWord[], id: string): LumiWord[] {
+  return list.filter((x) => x.id !== id)
+}
+
+export function parseVocab(raw: string | null): LumiWord[] {
+  if (!raw) return []
+  try {
+    const j = JSON.parse(raw) as unknown
+    return Array.isArray(j) ? (j as LumiWord[]).filter((x) => x && typeof x.text === 'string' && typeof x.vi === 'string') : []
+  } catch {
+    return []
+  }
+}
