@@ -60,3 +60,9 @@ hardware. At home:
 2. Power it from any USB power bank — no PC needed after that.
 3. Open Nexus in Neo Hub on your phone, tap "Connect to Nexus Scout", and pick
    `NexusScout-xxxx` from the Bluetooth picker.
+
+## Adding another firmware to Volt's quick-pick
+
+Have the firmware's CI publish a GitHub release (merged image at 0x0 plus `manifest.json`, like
+`.github/workflows/nexus-scout.yml`), then add one entry to `VOLT_PRESETS` in `src/lib/voltFlash.ts`.
+It shows up as a button on the Volt page and fills in the repo and tag for you.

@@ -1,7 +1,7 @@
-import { useCallback, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import type { Bi } from '../lib/hubText'
 import { useLang } from '../lib/i18n'
-import { canFlash, checkParts, describePart, guessOffset, partsFromManifest, type CheckResult, type FlashPart, type WebToolsManifest } from '../lib/voltFlash'
+import { VOLT_PRESETS, canFlash, checkParts, describePart, guessOffset, partsFromManifest, type CheckResult, type FlashPart, type WebToolsManifest } from '../lib/voltFlash'
 import { backupFlash, connect, flashParts, probe, VoltError, type BoardProbe } from '../lib/voltFlashRun'
 import { AgentShell } from './AgentShell'
 import { NovaProgress } from './NovaProgress'
@@ -22,6 +22,7 @@ const T = {
   repoLabel: { en: 'GitHub repo or release link', vi: 'Link repo hay bản release GitHub' },
   repoPlaceholder: { en: 'e.g. ruvnet/ruview or a github.com link', vi: 'ví dụ ruvnet/ruview hoặc link github.com' },
   tag: { en: 'Release tag (blank = latest)', vi: 'Tag bản release (để trống = mới nhất)' },
+  presetsLabel: { en: 'Quick pick', vi: 'Chọn nhanh' },
   loadRepo: { en: 'Find firmware in this repo', vi: 'Tìm firmware trong repo này' },
   loadingRepo: { en: 'Reading the release…', vi: 'Đang đọc bản release…' },
   pickAssets: { en: 'Pick the files to load', vi: 'Chọn file cần nạp' },
@@ -109,6 +110,14 @@ export function VoltPage({ onBack, glass = true }: { onBack: () => void; glass?:
       setRepoBusy(false)
     }
   }, [repo, tag])
+
+  const [autoFind, setAutoFind] = useState(false)
+  useEffect(() => {
+    if (autoFind && repo.trim()) {
+      setAutoFind(false)
+      void findRelease()
+    }
+  }, [autoFind, repo, findRelease])
 
   const downloadAsset = useCallback(
     async (name: string): Promise<Uint8Array> => {
@@ -218,6 +227,11 @@ export function VoltPage({ onBack, glass = true }: { onBack: () => void; glass?:
 
       <section className="bf-card">
         <header><h3>{L('s2')}</h3></header>
+        <div className="ag-acts" role="group" aria-label={L('presetsLabel')}>
+          {VOLT_PRESETS.map((p) => (
+            <button key={p.id} className="btn" onClick={() => { setRepo(p.repo); setTag(p.tag); setAutoFind(true) }}>{lang === 'vi' ? p.vi : p.en}</button>
+          ))}
+        </div>
         <label className="small">{L('repoLabel')}</label>
         <input value={repo} onChange={(e) => setRepo(e.target.value)} placeholder={L('repoPlaceholder')} />
         <label className="small">{L('tag')}</label>
