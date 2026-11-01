@@ -2,7 +2,7 @@
  * Version and "What's new". Bump APP_VERSION and add an entry to the top of RELEASES
  * with each update. The banner shows once per version, then stays dismissed.
  */
-export const APP_VERSION = '1.85.0'
+export const APP_VERSION = '1.86.0'
 
 export interface Release {
   version: string
@@ -13,6 +13,16 @@ export interface Release {
 }
 
 export const RELEASES: Release[] = [
+  {
+    version: '1.86.0',
+    date: '2026-11-01',
+    changes: [
+      'Home cards brought up to date: Volt, Nexus, Echo and Lumi now show their own version (v1.3.0, v1.2.0, v1.1.0, v1.2.0). Echo shows Room watch (USB) instead of "Beta" and no longer says it needs the home PC when this browser can use USB. Nexus shows its Pocket scout (USB/BLE). Lumi no longer says "Media Lab: Coming soon" and shows its tabs and languages. Volt shows its own version instead of RuView\'s firmware number.',
+    ],
+    changesVi: [
+      'Các thẻ ngoài trang chủ đã cập nhật: Volt, Nexus, Echo và Lumi hiện version riêng (v1.3.0, v1.2.0, v1.1.0, v1.2.0). Echo hiện Canh phòng (USB) thay cho "Beta" và không còn báo cần máy nhà khi trình duyệt dùng được USB. Nexus hiện Quét bỏ túi (USB/BLE). Lumi hết báo "Media Lab: Sắp có" và hiện số tab, số ngôn ngữ. Volt hiện version của chính nó thay cho số firmware RuView.',
+    ],
+  },
   {
     version: '1.85.0',
     date: '2026-11-01',

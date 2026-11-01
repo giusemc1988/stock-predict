@@ -11,6 +11,8 @@ import { useLang } from '../lib/i18n'
 import { GODS_EYE_HEALTH } from '../lib/godsEye'
 import { greeting } from '../lib/jarvis'
 import { practiceEquity, PRACTICE_START, type PickRow, type PracticeState } from '../lib/practice'
+import { AGENT_VERSIONS } from '../data/agentVersions'
+import { LUMI_LANGS } from '../lib/lumiPhrases'
 import { PROJECTS, pageOn, readyCount, searchHub, type Hit, type HubOn, type Project, type ProjectState } from '../lib/projects'
 import { RUVIEW, BOARDS } from '../lib/ruview'
 import { postCounts, VIRALTECH } from '../data/viraltech'
@@ -108,6 +110,9 @@ export const TX = {
   drafts: { en: 'Drafts', vi: 'Nháp' },
   outside: { en: 'Outside tools', vi: 'Tool ngoài' },
   mediaLab: { en: 'Media Lab', vi: 'Media Lab' },
+  ruviewFw: { en: 'RuView fw', vi: 'RuView fw' },
+  pocket: { en: 'Pocket scout', vi: 'Quét bỏ túi' },
+  roomWatch: { en: 'Room watch', vi: 'Canh phòng' },
 } as const
 export type TxKey = keyof typeof TX
 
@@ -150,6 +155,10 @@ export function useHubModel(p: HubProps) {
   const equity = practiceEquity(p.practice)
   const change = (equity / PRACTICE_START - 1) * 100
   const calls = p.learn.score.right + p.learn.score.wrong
+  const agentV = (id: 'echo' | 'volt' | 'nexus' | 'lumi'): Fact => ({ label: 'version', value: `v${AGENT_VERSIONS[id] ?? '1.0.0'}` })
+  // Web Serial / Bluetooth work in this browser: Echo's room watch and Nexus's pocket scout don't need the home PC then
+  const usb = typeof navigator !== 'undefined' && 'serial' in navigator
+  const ble = typeof navigator !== 'undefined' && 'bluetooth' in navigator
   const pcFact = (): Fact => ({ label: 'homePcShort', value: homeUp == null ? '…' : homeUp ? L('on') : L('offShort'), tone: homeUp ? 'up' : homeUp === false ? 'warn' : '' })
   const geoOk = geo?.filter((l) => l.state === 'ok').length ?? null
   const geoOf = (id: string) => {
@@ -185,12 +194,12 @@ export function useHubModel(p: HubProps) {
           ],
         }
       case 'echo': {
-        const parts = [on, homeUp === true]
+        const parts = [on, usb || homeUp === true]
         return {
           ...base,
-          state: !on ? 'off' : homeUp ? 'live' : 'home',
+          state: !on ? 'off' : usb || homeUp ? 'ready' : 'home',
           ring: { v: parts.filter(Boolean).length / parts.length, label: `${parts.filter(Boolean).length}/${parts.length}`, cap: 'partsOk' },
-          facts: [{ label: 'version', value: RUVIEW.release.replace(/-.*$/, '') }, pcFact(), { label: 'stage', value: L('beta') }],
+          facts: [agentV('echo'), { label: 'roomWatch', value: usb ? 'USB' : L('offShort'), tone: usb ? 'up' : 'warn' }, { label: 'ruviewFw', value: `v${RUVIEW.release.replace(/^v/, '').replace(/-.*$/, '')}` }],
         }
       }
       case 'volt':
@@ -199,18 +208,19 @@ export function useHubModel(p: HubProps) {
           state: !on ? 'off' : 'ready',
           ring: { v: rc.total ? rc.ready / rc.total : null, label: `${rc.ready}/${rc.total}`, cap: 'partsOk' },
           facts: [
-            { label: 'firmware', value: RUVIEW.firmware.replace(/-.*$/, '') },
+            agentV('volt'),
             { label: 'boards', value: String(BOARDS.filter((b) => b.supported).length) },
             { label: 'flash', value: on && p.webFlash ? 'Chrome' : L('offShort') },
           ],
         }
       case 'nexus': {
-        const parts = [on, homeUp === true, true]
+        const pocket = usb || ble
+        const parts = [on, pocket || homeUp === true, true]
         return {
           ...base,
-          state: !on ? 'off' : homeUp ? 'ready' : 'home',
+          state: !on ? 'off' : pocket || homeUp ? 'ready' : 'home',
           ring: { v: parts.filter(Boolean).length / parts.length, label: `${parts.filter(Boolean).length}/${parts.length}`, cap: 'partsOk' },
-          facts: [pcFact(), { label: 'phoneApp', value: L('android') }, { label: 'tools', value: String(rc.total) }],
+          facts: [agentV('nexus'), { label: 'pocket', value: usb && ble ? 'USB + BLE' : usb ? 'USB' : ble ? 'BLE' : L('offShort'), tone: pocket ? 'up' : 'warn' }, pcFact()],
         }
       }
       case 'nova':
@@ -244,9 +254,9 @@ export function useHubModel(p: HubProps) {
           state: !on ? 'off' : 'ready',
           ring: { v: on ? 1 : 0, label: on ? '1/1' : '0/1', cap: 'partsOk' },
           facts: [
-            { label: 'modes', value: '2' },
-            { label: 'mediaLab', value: L('soon') },
-            { label: 'outside', value: on ? L('ready') : L('offShort') },
+            agentV('lumi'),
+            { label: 'modes', value: '8' },
+            { label: 'langs', value: String(LUMI_LANGS.length) },
           ],
         }
       case 'forge':
