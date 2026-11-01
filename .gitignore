@@ -35,3 +35,4 @@ dist-ssr
 .agent
 argus/dist
 __pycache__/
+firmware/*/.pio/

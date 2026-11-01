@@ -103,14 +103,14 @@ static void scanWifi() {
 static void scanBle() {
   BLEScan *scan = BLEDevice::getScan();
   scan->setActiveScan(false); // passive: no scan-request frames sent to advertisers
-  BLEScanResults results = scan->start(3 /*seconds*/, false);
-  int n = results.getCount();
+  BLEScanResults *results = scan->start(3 /*seconds*/, false);
+  int n = results->getCount();
   for (int i = 0; i < n; i += MAX_ITEMS_PER_CHUNK) {
     JsonDocument doc;
     doc["t"] = "ble";
     JsonArray items = doc["items"].to<JsonArray>();
     for (int j = i; j < n && j < i + MAX_ITEMS_PER_CHUNK; j++) {
-      BLEAdvertisedDevice d = results.getDevice(j);
+      BLEAdvertisedDevice d = results->getDevice(j);
       JsonObject it = items.add<JsonObject>();
       it["id"] = d.getAddress().toString();
       it["name"] = d.haveName() ? d.getName() : "";
