@@ -1346,7 +1346,7 @@ body:has(.jfab) .toasts, body:has(.jfab) .jarvis-alert { bottom: 84px; }
   .net-tg { grid-template-columns: 1fr 1fr; }
   .net-back { padding: 4px 10px; }
 }
-.net-grid.bare { grid-template-columns: minmax(0, 1fr); grid-template-areas: "ble" "tools"; }
+.net-grid.bare { grid-template-columns: minmax(0, 1fr); grid-template-areas: "ble" "scout" "tools"; }
 .net-back { white-space: nowrap; }
 @media (max-width: 699px) { .net-page .hub-head { flex-wrap: wrap; } .net-status > span.small { display: none; } .net-title .hub-hello { font-size: 16px; } }
 
