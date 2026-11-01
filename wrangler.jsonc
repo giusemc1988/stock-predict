@@ -16,6 +16,8 @@
     { "binding": "PRACTICE", "id": "c7406fc64a454ccfa114c6aa39f35c64" },
     { "binding": "SETTINGS", "id": "6ca496318670484e99a4a97008d8e0d4" }
   ],
+  // Workers AI (free daily quota): Lumi's fast translation model m2m100 (src/worker/lumi.ts)
+  "ai": { "binding": "AI" },
   "observability": { "enabled": true },
   "triggers": {
     // Cloudflare counts days 1=Sunday..7=Saturday (not like standard cron), so "1-5" meant Sun-Thu and skipped

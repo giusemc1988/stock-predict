@@ -12,12 +12,67 @@ import { callHelper, keyFor, PROVIDERS, type BrainEnv } from '../lib/brainServer
 const GEMINI_VISION = ['gemini-2.5-flash', 'gemini-2.5-flash-lite', 'gemini-flash-latest']
 const GROQ_VISION = ['meta-llama/llama-4-scout-17b-16e-instruct', 'meta-llama/llama-4-maverick-17b-128e-instruct']
 import { sameOrigin, withSavedKeys, type KeyStore } from '../lib/brainKeys'
-import { audioFileName, buildGroupPrompt, buildLiveViPrompt, buildSayPrompt, cleanHeard, cleanLiveVi, cleanSayText, MENU_PROMPT, parseImageDataUrl, parseMenuResponse, cleanTripSave, fallbackGroup, mergeTrips, parseGroupResponse, parseSayResponse, parseTrips, TRIPS_KEY, type LumiLine, type LumiMode, type SayDir } from '../lib/lumiTranslate'
+import { audioFileName, buildGroupPrompt, buildSayPrompt, cleanHeard, cleanLiveVi, cleanSayText, MENU_PROMPT, parseImageDataUrl, parseMenuResponse, cleanTripSave, fallbackGroup, mergeTrips, parseGroupResponse, parseSayResponse, parseTrips, TRIPS_KEY, type LumiLine, type LumiMode, type SayDir } from '../lib/lumiTranslate'
 import { isLumiLang, LANG_EN } from '../lib/lumiPhrases'
+import { buildFastPrompt, buildGistPrompt, parseGist } from '../lib/lumiLive'
 import { parseRates } from '../lib/lumiMoney'
 
 const json = (data: unknown, status = 200) => new Response(JSON.stringify(data), { status, headers: { 'content-type': 'application/json', 'cache-control': 'no-store' } })
 const MAX_AUDIO_BYTES = 4 * 1024 * 1024
+
+/** Cloudflare Workers AI binding (wrangler.jsonc "ai"): free daily quota, runs next to this Worker. */
+type AiBinding = { run: (model: string, input: Record<string, unknown>) => Promise<unknown> }
+type LumiEnv = BrainEnv & { AI?: AiBinding }
+
+const FAST_GROQ = 'llama-3.1-8b-instant'
+const FAST_SYS = 'You translate live speech into natural spoken Vietnamese. Output only the translation.'
+
+/** m2m100: a translation-only model on Workers AI. Very fast; literal, so it is used for drafts. */
+async function workersAiTranslate(env: LumiEnv, text: string, lang: string): Promise<string> {
+  if (!env.AI || !text.trim()) return ''
+  try {
+    const out = (await env.AI.run('@cf/meta/m2m100-1.2b', { text: text.slice(0, 600), source_lang: lang && lang !== 'und' ? lang : 'en', target_lang: 'vi' })) as { translated_text?: string }
+    return cleanLiveVi(out?.translated_text)
+  } catch {
+    return ''
+  }
+}
+
+/**
+ * Live Vietnamese for one caption, fastest first:
+ * draft -> Workers AI m2m100, then Groq 8B; final -> Groq 8B with context, then the free rotation, then m2m100.
+ */
+export async function liveTranslate(env: LumiEnv, e: BrainEnv, text: string, lang: string, context: string[], draft: boolean): Promise<{ vi: string; by: string }> {
+  if (lang === 'vi') return { vi: text, by: 'none' }
+  if (draft) {
+    const vi = await workersAiTranslate(env, text, lang)
+    if (vi) return { vi, by: 'Workers AI m2m100' }
+  }
+  const user = buildFastPrompt(text, lang, context)
+  const groq = PROVIDERS.find((p) => p.id === 'groq')
+  const gk = groq?.key(e)
+  if (groq && gk) {
+    const vi = cleanLiveVi(await groq.call(gk, FAST_GROQ, FAST_SYS, user, fetch, undefined, 300).catch(() => null))
+    if (vi) return { vi, by: `Groq ${FAST_GROQ}` }
+  }
+  for (const p of PROVIDERS) {
+    const key = p.key(e)
+    if (!key) continue
+    try {
+      const vi = cleanLiveVi(await callHelper(p, key, e, FAST_SYS, user, fetch, undefined, 300))
+      if (vi) return { vi, by: p.name }
+    } catch {
+      // next helper
+    }
+  }
+  if (!draft) {
+    const vi = await workersAiTranslate(env, text, lang)
+    if (vi) return { vi, by: 'Workers AI m2m100' }
+  }
+  return { vi: '', by: 'none' }
+}
+
+const cleanContext = (v: unknown): string[] => (Array.isArray(v) ? v.filter((x): x is string => typeof x === 'string').slice(-3).map((x) => x.slice(0, 300)) : [])
 
 export async function lumiRoute(req: Request, pathname: string, env: BrainEnv, settings?: KeyStore): Promise<Response | null> {
   if (pathname === '/api/lumi/hear') {
@@ -48,19 +103,13 @@ export async function lumiRoute(req: Request, pathname: string, env: BrainEnv, s
     const heard = cleanHeard((await r.json().catch(() => ({}))) as Parameters<typeof cleanHeard>[0])
     if (!heard.text) return json({ text: '', lang: heard.lang, vi: '' })
     if (heard.lang === 'vi') return json({ ...heard, vi: heard.text })
-    // translate right away so the page can show a live Vietnamese caption
-    const sys = 'You translate short speech transcripts into natural Vietnamese. Output only the translation.'
-    const user = buildLiveViPrompt(heard.text, heard.lang)
-    for (const p of PROVIDERS) {
-      const key = p.key(e)
-      if (!key) continue
-      try {
-        const vi = cleanLiveVi(await callHelper(p, key, e, sys, user, fetch, undefined, 400))
-        if (vi) return json({ ...heard, vi, by: p.name })
-      } catch {
-        // next helper
-      }
-    }
+    // the page may only want the text (its instant browser captions already show a translation)
+    if (form?.get('translate') === '0') return json({ ...heard, vi: '' })
+    let context: string[] = []
+    try { context = cleanContext(JSON.parse(String(form?.get('context') ?? '[]'))) } catch { /* no context */ }
+    const t0 = Date.now()
+    const tr = await liveTranslate(env as LumiEnv, e, heard.text, heard.lang, context, false)
+    if (tr.vi) return json({ ...heard, vi: tr.vi, by: tr.by, ms: Date.now() - t0 })
     return json({ ...heard, vi: '', viError: 'Các AI miễn phí đều hết lượt, đang hiện bản gốc.' })
   }
 
@@ -117,6 +166,45 @@ export async function lumiRoute(req: Request, pathname: string, env: BrainEnv, s
       }
     }
     return json({ error: 'Các AI miễn phí đều hết lượt, thử lại sau ít phút.' }, 503)
+  }
+
+  if (pathname === '/api/lumi/fast') {
+    if (req.method !== 'POST') return json({ error: 'POST only' }, 405)
+    if (!sameOrigin(req)) return json({ error: 'Not allowed' }, 403)
+    const b = (await req.json().catch(() => null)) as { text?: unknown; lang?: unknown; context?: unknown; draft?: unknown } | null
+    const text = typeof b?.text === 'string' ? b.text.trim().slice(0, 600) : ''
+    if (!text) return json({ error: 'Thiếu câu' }, 400)
+    const lang = typeof b?.lang === 'string' ? b.lang.slice(0, 12) : 'und'
+    const e = await withSavedKeys(env, settings)
+    const t0 = Date.now()
+    const out = await liveTranslate(env as LumiEnv, e, text, lang, cleanContext(b?.context), b?.draft === true)
+    if (!out.vi) return json({ error: 'Các AI miễn phí đều hết lượt, thử lại sau ít phút.' }, 503)
+    return json({ vi: out.vi, by: out.by, ms: Date.now() - t0 })
+  }
+
+  if (pathname === '/api/lumi/gist') {
+    if (req.method !== 'POST') return json({ error: 'POST only' }, 405)
+    if (!sameOrigin(req)) return json({ error: 'Not allowed' }, 403)
+    const b = (await req.json().catch(() => null)) as { lines?: unknown; talk?: unknown } | null
+    const lines = (Array.isArray(b?.lines) ? b!.lines : [])
+      .filter((l): l is { text: string; lang?: unknown } => !!l && typeof (l as { text?: unknown }).text === 'string')
+      .map((l) => ({ text: l.text, lang: typeof l.lang === 'string' ? l.lang : 'und' }))
+      .slice(-12)
+    if (!lines.length) return json({ error: 'Chưa có gì để tóm tắt' }, 400)
+    const e = await withSavedKeys(env, settings)
+    const user = buildGistPrompt(lines, b?.talk === true)
+    const sys = 'You follow live conversations for a Vietnamese traveler. Be brief and honest. Answer with JSON only.'
+    for (const p of PROVIDERS) {
+      const key = p.key(e)
+      if (!key) continue
+      try {
+        const g = parseGist(await callHelper(p, key, e, sys, user, fetch, undefined, 400))
+        if (g) return json({ ...g, by: p.name })
+      } catch {
+        // next helper
+      }
+    }
+    return json({ error: 'Các AI miễn phí đều hết lượt.' }, 503)
   }
 
   if (pathname === '/api/lumi/menu') {
