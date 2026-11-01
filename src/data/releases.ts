@@ -2,7 +2,7 @@
  * Version and "What's new". Bump APP_VERSION and add an entry to the top of RELEASES
  * with each update. The banner shows once per version, then stays dismissed.
  */
-export const APP_VERSION = '1.90.1'
+export const APP_VERSION = '1.90.2'
 
 export interface Release {
   version: string
@@ -13,6 +13,16 @@ export interface Release {
 }
 
 export const RELEASES: Release[] = [
+  {
+    version: '1.90.2',
+    date: '2026-11-01',
+    changes: [
+      'Safety fix for the Atlas data backup: it no longer saves any key, token or uploaded Nova video/image, keeps only the newest backup (older ones are deleted), and keeps it for 7 days.',
+    ],
+    changesVi: [
+      'Sửa an toàn cho bản sao lưu dữ liệu Atlas: không còn lưu bất kỳ key, token hay video/ảnh Nova đã tải lên, chỉ giữ bản mới nhất (bản cũ bị xoá), và giữ trong 7 ngày.',
+    ],
+  },
   {
     version: '1.90.1',
     date: '2026-11-01',

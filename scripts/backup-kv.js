@@ -19,19 +19,13 @@ fs.mkdirSync(backupPath, { recursive: true });
 console.log(`📦 Backing up KV to ${backupPath}`);
 
 // Keys that hold secrets are never written to a backup (checked in both namespaces).
-const sensitivePatterns = [
-  /gemini.*key/i,
-  /groq.*key/i,
-  /nvidia.*key/i,
-  /grok.*key/i,
-  /alpaca.*key/i,
-  /alpha.*vantage.*key/i,
-  /api.*key/i,
-  /secret/i,
-  /token/i,
-  /telegram/i,
-  /password/i,
-];
+// The repo is PUBLIC and run artifacts can be downloaded by any GitHub user, so this list is broad:
+// any key name with "key", "token", "secret", "github", "telegram" or "password" in it is never saved
+// (brain keys are stored as `brainkey:<provider>`, the Nova GitHub token as `nova:github`).
+const sensitivePatterns = [/key/i, /token/i, /secret/i, /github/i, /telegram/i, /password/i, /auth/i, /cred/i];
+// Nova's uploaded videos and images are the person's own media (MBs each): never in a public backup.
+const privatePatterns = [/^nova:(vid|media):/];
+const MAX_VALUE_BYTES = 2 * 1024 * 1024;
 
 export function isSensitive(key) {
   return sensitivePatterns.some((pattern) => pattern.test(key));
@@ -61,12 +55,18 @@ function backupNamespace(bindingName, fileName) {
   let failed = 0;
   for (const key of keys) {
     const name = key.name || key;
-    if (isSensitive(name)) {
-      console.log(`    ⊘ Skipping sensitive key: ${name}`);
+    if (isSensitive(name) || privatePatterns.some((p) => p.test(name))) {
+      console.log(`    ⊘ Skipping private key: ${name}`);
       continue;
     }
     try {
-      data[name] = wrangler(["kv", "key", "get", name, "--namespace-id", id, "--remote", "--text"]);
+      const value = wrangler(["kv", "key", "get", name, "--namespace-id", id, "--remote", "--text"]);
+      // PRACTICE `state` is the one big value we must keep; anything else this large is media or a cache
+      if (Buffer.byteLength(value) > MAX_VALUE_BYTES && !(bindingName === "PRACTICE" && name === "state")) {
+        console.log(`    ⊘ Skipping large value: ${name} (${Buffer.byteLength(value)} bytes)`);
+        continue;
+      }
+      data[name] = value;
     } catch (e) {
       failed++;
       console.warn(`    ⚠ Failed to read ${name}: ${e.message}`);
