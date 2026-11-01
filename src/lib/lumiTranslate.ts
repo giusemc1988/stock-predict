@@ -11,6 +11,8 @@ export interface LumiLine {
   text: string
   lang: string
   at: number
+  /** live Vietnamese translation of this line ('' if the AI could not translate it) */
+  vi?: string
 }
 
 export interface LumiConversation {
@@ -271,4 +273,62 @@ export function tripsToText(trips: LumiTrip[], locale = 'vi-VN'): string {
     }
   }
   return out.join('\n')
+}
+
+/** ---- Live captions: every short chunk Whisper hears is translated to Vietnamese right away ---- */
+
+/** Whisper's verbose_json `language` is a name ("english"); map the common ones to a short code. */
+const WHISPER_LANG: Record<string, string> = {
+  english: 'en', vietnamese: 'vi', spanish: 'es', french: 'fr', japanese: 'ja', korean: 'ko', chinese: 'zh', thai: 'th', german: 'de', italian: 'it',
+  portuguese: 'pt', russian: 'ru', indonesian: 'id', malay: 'ms', hindi: 'hi', arabic: 'ar', turkish: 'tr', dutch: 'nl', tagalog: 'tl', cantonese: 'yue',
+}
+export function langCode(v: unknown): string {
+  if (typeof v !== 'string' || !v.trim()) return 'und'
+  const t = v.trim().toLowerCase()
+  return WHISPER_LANG[t] ?? (t.length <= 3 ? t : t.slice(0, 12))
+}
+
+/** Phrases Whisper is known to invent on silence/music; dropped when the chunk is short. */
+const HALLUCINATIONS = [/^thank(s| you)( so much)?( for watching)?[.!]*$/i, /^(please )?subscribe[.!]*$/i, /^you$/i, /^\.+$/, /^bye[.!]*$/i, /^ご視聴ありがとうございました/, /^字幕/, /^Hãy subscribe/i]
+
+/**
+ * Cleans one Whisper answer: empty when the model itself says it is probably not speech
+ * (avg no_speech_prob > 0.6) or the text is a known silence hallucination.
+ */
+export function cleanHeard(j: { text?: unknown; language?: unknown; segments?: { no_speech_prob?: number }[] }): { text: string; lang: string } {
+  const text = typeof j.text === 'string' ? j.text.trim() : ''
+  const lang = langCode(j.language)
+  const segs = Array.isArray(j.segments) ? j.segments.filter((s) => typeof s?.no_speech_prob === 'number') : []
+  const silence = segs.length > 0 && segs.reduce((a, s) => a + (s.no_speech_prob as number), 0) / segs.length > 0.6
+  if (!text || silence || HALLUCINATIONS.some((re) => re.test(text))) return { text: '', lang }
+  return { text: text.slice(0, 600), lang }
+}
+
+/** Prompt to translate one live caption into Vietnamese, from any language. */
+export function buildLiveViPrompt(text: string, lang: string): string {
+  return [
+    `Translate this speech transcript${lang && lang !== 'und' ? ` (language: ${lang})` : ''} into natural Vietnamese.`,
+    'Keep the meaning and tone (jokes stay jokes). Do not add anything. Answer with ONLY the Vietnamese translation, no quotes, no notes.',
+    '',
+    text,
+  ].join('\n')
+}
+
+/** Strips quotes/labels some models wrap around a plain translation. */
+export function cleanLiveVi(raw: string | null | undefined): string {
+  if (!raw) return ''
+  return raw
+    .replace(/```[a-z]*/gi, '')
+    .replace(/^\s*(vietnamese|tiếng việt|bản dịch)\s*:\s*/i, '')
+    .trim()
+    .replace(/^["“'](.*)["”']$/s, '$1')
+    .trim()
+    .slice(0, 800)
+}
+
+/** Picks the file name Whisper needs to recognise the container. */
+export function audioFileName(mime: string): string {
+  if (mime.includes('mp4')) return 'chunk.mp4'
+  if (mime.includes('ogg')) return 'chunk.ogg'
+  return 'chunk.webm'
 }

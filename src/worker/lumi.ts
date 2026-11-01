@@ -12,7 +12,7 @@ import { callHelper, keyFor, PROVIDERS, type BrainEnv } from '../lib/brainServer
 const GEMINI_VISION = ['gemini-2.5-flash', 'gemini-2.5-flash-lite', 'gemini-flash-latest']
 const GROQ_VISION = ['meta-llama/llama-4-scout-17b-16e-instruct', 'meta-llama/llama-4-maverick-17b-128e-instruct']
 import { sameOrigin, withSavedKeys, type KeyStore } from '../lib/brainKeys'
-import { buildGroupPrompt, buildSayPrompt, cleanSayText, MENU_PROMPT, parseImageDataUrl, parseMenuResponse, cleanTripSave, fallbackGroup, mergeTrips, parseGroupResponse, parseSayResponse, parseTrips, TRIPS_KEY, type LumiLine, type LumiMode, type SayDir } from '../lib/lumiTranslate'
+import { audioFileName, buildGroupPrompt, buildLiveViPrompt, buildSayPrompt, cleanHeard, cleanLiveVi, cleanSayText, MENU_PROMPT, parseImageDataUrl, parseMenuResponse, cleanTripSave, fallbackGroup, mergeTrips, parseGroupResponse, parseSayResponse, parseTrips, TRIPS_KEY, type LumiLine, type LumiMode, type SayDir } from '../lib/lumiTranslate'
 import { isLumiLang, LANG_EN } from '../lib/lumiPhrases'
 import { parseRates } from '../lib/lumiMoney'
 
@@ -30,8 +30,9 @@ export async function lumiRoute(req: Request, pathname: string, env: BrainEnv, s
     const audio = form?.get('audio')
     if (!audio || typeof audio === 'string') return json({ error: 'Thiếu âm thanh' }, 400)
     if (audio.size > MAX_AUDIO_BYTES) return json({ error: 'Đoạn ghi âm quá dài' }, 413)
+    if (audio.size < 2000) return json({ text: '', lang: 'und', vi: '' })
     const out = new FormData()
-    out.append('file', audio, 'chunk.webm')
+    out.append('file', audio, audioFileName(audio.type || 'audio/webm'))
     out.append('model', 'whisper-large-v3-turbo')
     out.append('response_format', 'verbose_json')
     const r = await fetch('https://api.groq.com/openai/v1/audio/transcriptions', {
@@ -40,10 +41,27 @@ export async function lumiRoute(req: Request, pathname: string, env: BrainEnv, s
       body: out,
       signal: AbortSignal.timeout(20000),
     }).catch(() => null)
-    if (!r?.ok) return json({ error: `Groq Whisper lỗi (${r?.status ?? 'network'})` }, 502)
-    const j = (await r.json()) as { text?: string; language?: string }
-    const text = (j.text ?? '').trim()
-    return json({ text, lang: j.language ?? 'und' })
+    if (!r?.ok) {
+      const detail = r ? (await r.text().catch(() => '')).slice(0, 160) : ''
+      return json({ error: `Groq Whisper lỗi (${r?.status ?? 'mạng'})${r?.status === 429 ? ': hết lượt miễn phí, chờ 1 phút' : r?.status === 401 ? ': key Groq sai' : ''}`, detail }, 502)
+    }
+    const heard = cleanHeard((await r.json().catch(() => ({}))) as Parameters<typeof cleanHeard>[0])
+    if (!heard.text) return json({ text: '', lang: heard.lang, vi: '' })
+    if (heard.lang === 'vi') return json({ ...heard, vi: heard.text })
+    // translate right away so the page can show a live Vietnamese caption
+    const sys = 'You translate short speech transcripts into natural Vietnamese. Output only the translation.'
+    const user = buildLiveViPrompt(heard.text, heard.lang)
+    for (const p of PROVIDERS) {
+      const key = p.key(e)
+      if (!key) continue
+      try {
+        const vi = cleanLiveVi(await callHelper(p, key, e, sys, user, fetch, undefined, 400))
+        if (vi) return json({ ...heard, vi, by: p.name })
+      } catch {
+        // next helper
+      }
+    }
+    return json({ ...heard, vi: '', viError: 'Các AI miễn phí đều hết lượt, đang hiện bản gốc.' })
   }
 
   if (pathname === '/api/lumi/group') {

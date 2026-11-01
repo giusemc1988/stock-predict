@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import type { Bi } from '../lib/hubText'
 import { useLang } from '../lib/i18n'
-import type { LumiConversation, LumiLine, LumiMode } from '../lib/lumiTranslate'
+import { audioFileName, type LumiConversation, type LumiLine, type LumiMode } from '../lib/lumiTranslate'
 import { useHubTheme } from '../lib/themes'
 import { AgentShell } from './AgentShell'
 import { useAiRules } from '../lib/aiRules'
@@ -29,6 +29,13 @@ const T = {
   savedTrips: { en: 'Saved trips', vi: 'Chuyến đã lưu' },
   privacy: { en: 'Audio is never stored. No one is identified. Recording strangers can be illegal in some places — "Talk to me" is the safe mode.', vi: 'Không lưu âm thanh. Không nhận diện ai. Ở một số nơi, ghi âm người lạ có thể phạm luật — "Nói với em" là chế độ an toàn.' },
   close: { en: 'Close', vi: 'Đóng' },
+  liveTitle: { en: 'Live translation', vi: 'Dịch trực tiếp' },
+  liveWait: { en: 'First caption appears about 6-8 seconds after someone speaks.', vi: 'Câu dịch đầu tiên hiện sau khoảng 6-8 giây khi có người nói.' },
+  hearingNow: { en: 'Translating…', vi: 'Đang dịch…' },
+  hearFail: { en: 'Could not recognise speech', vi: 'Không nhận được giọng nói' },
+  netFail: { en: 'Network problem, retrying with the next chunk…', vi: 'Lỗi mạng, sẽ thử lại ở đoạn sau…' },
+  noVi: { en: '(not translated yet)', vi: '(chưa dịch được)' },
+  clear: { en: 'Clear', vi: 'Xóa' },
   tabListen: { en: '👂 Listen', vi: '👂 Nghe' },
   tabTalk: { en: '💬 Two-way', vi: '💬 Hai chiều' },
   tabPhrases: { en: '📖 Phrases', vi: '📖 Câu nói sẵn' },
@@ -47,8 +54,13 @@ function recorderMime(): string | null {
   return null
 }
 
-const CHUNK_MS = 20_000
+/**
+ * Each chunk is a separate, complete recording (stop + restart), because MediaRecorder's timeslice
+ * chunks after the first have no container header and Whisper rejects them. 6 s keeps captions live.
+ */
+const CHUNK_MS = 6_000
 const GROUP_EVERY_MS = 45_000
+const MAX_LIVE = 40
 
 export function LumiPage({ onBack, glass = true }: { onBack: () => void; glass?: boolean }) {
   const lang = useLang()
@@ -70,57 +82,101 @@ export function LumiPage({ onBack, glass = true }: { onBack: () => void; glass?:
   const [running, setRunning] = useState(false)
   const [level, setLevel] = useState(0)
   const [busy, setBusy] = useState(false)
+  const [hearing, setHearing] = useState(0)
   const [err, setErr] = useState<string | null>(null)
+  const [warn, setWarn] = useState<string | null>(null)
+  const [live, setLive] = useState<LumiLine[]>([])
   const [conversations, setConversations] = useState<LumiConversation[]>([])
   const [openId, setOpenId] = useState<string | null>(null)
   const [saveMsg, setSaveMsg] = useState<string | null>(null)
 
   const streamRef = useRef<MediaStream | null>(null)
   const recorderRef = useRef<MediaRecorder | null>(null)
+  const ctxRef = useRef<AudioContext | null>(null)
+  const runningRef = useRef(false)
   const linesRef = useRef<LumiLine[]>([])
+  const modeRef = useRef<LumiMode>('talk')
+  const busyRef = useRef(false)
   const groupTimer = useRef<number | null>(null)
   const levelTimer = useRef<number | null>(null)
+  const chunkTimer = useRef<number | null>(null)
 
   const stop = useCallback(() => {
-    recorderRef.current?.stop()
+    runningRef.current = false
+    if (chunkTimer.current) window.clearTimeout(chunkTimer.current)
+    if (recorderRef.current?.state === 'recording') recorderRef.current.stop()
     recorderRef.current = null
     streamRef.current?.getTracks().forEach((t) => t.stop())
     streamRef.current = null
+    void ctxRef.current?.close().catch(() => {})
+    ctxRef.current = null
     if (groupTimer.current) window.clearInterval(groupTimer.current)
     if (levelTimer.current) window.clearInterval(levelTimer.current)
     setRunning(false)
     setLevel(0)
   }, [])
 
-  const transcribeChunk = useCallback(async (blob: Blob) => {
+  const transcribeChunk = useCallback(async (blob: Blob, mime: string) => {
     const form = new FormData()
-    form.append('audio', blob, 'chunk.webm')
+    form.append('audio', blob, audioFileName(mime))
+    setHearing((n) => n + 1)
     try {
       const r = await fetch('/api/lumi/hear', { method: 'POST', body: form })
-      const j = (await r.json()) as { text?: string; lang?: string; error?: string }
-      if (!r.ok || !j.text) return
-      linesRef.current = [...linesRef.current, { text: j.text, lang: j.lang ?? 'und', at: Date.now() }].slice(-60)
+      const j = (await r.json().catch(() => ({}))) as { text?: string; lang?: string; vi?: string; viError?: string; error?: string }
+      if (!r.ok) {
+        setErr(j.error || `${L('hearFail')} (${r.status})`)
+        // a missing/wrong key will not fix itself: stop instead of failing every 6 s
+        if (r.status === 409 || r.status === 401 || r.status === 403) stop()
+        return
+      }
+      setErr(null)
+      setWarn(j.viError ?? null)
+      if (!j.text) return
+      const line: LumiLine = { text: j.text, lang: j.lang ?? 'und', at: Date.now(), vi: j.vi ?? '' }
+      linesRef.current = [...linesRef.current, line].slice(-60)
+      setLive((l) => [line, ...l].slice(0, MAX_LIVE))
     } catch {
-      // one chunk lost to a network blip is fine, the next one carries on
+      setErr(L('netFail'))
+    } finally {
+      setHearing((n) => n - 1)
     }
-  }, [])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [stop, lang])
 
   const runGrouping = useCallback(async () => {
-    if (!linesRef.current.length || busy) return
+    if (!linesRef.current.length || busyRef.current) return
+    busyRef.current = true
     setBusy(true)
     try {
-      const r = await fetch('/api/lumi/group', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ lines: linesRef.current, mode }) })
+      const r = await fetch('/api/lumi/group', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ lines: linesRef.current, mode: modeRef.current }) })
       const j = (await r.json()) as { conversations?: LumiConversation[] }
       if (j.conversations) setConversations(j.conversations)
     } catch {
       // keep showing the last grouping; try again next tick
     } finally {
+      busyRef.current = false
       setBusy(false)
     }
-  }, [mode, busy])
+  }, [])
+
+  /** Records one complete chunk, sends it, and starts the next one while this one is translated. */
+  const recordChunk = useCallback((stream: MediaStream, mime: string) => {
+    if (!runningRef.current) return
+    const rec = new MediaRecorder(stream, { mimeType: mime })
+    const parts: Blob[] = []
+    rec.ondataavailable = (e) => { if (e.data.size > 0) parts.push(e.data) }
+    rec.onstop = () => {
+      if (parts.length) void transcribeChunk(new Blob(parts, { type: mime }), mime)
+      recordChunk(stream, mime)
+    }
+    rec.start()
+    recorderRef.current = rec
+    chunkTimer.current = window.setTimeout(() => { if (rec.state === 'recording') rec.stop() }, CHUNK_MS)
+  }, [transcribeChunk])
 
   const start = useCallback(async () => {
     setErr(null)
+    setWarn(null)
     setSaveMsg(null)
     const mime = recorderMime()
     if (!mime) {
@@ -129,14 +185,17 @@ export function LumiPage({ onBack, glass = true }: { onBack: () => void; glass?:
     }
     let stream: MediaStream
     try {
-      stream = await navigator.mediaDevices.getUserMedia({ audio: true })
+      // no echo cancellation / noise suppression: those cut out speakers playing a video or a nearby voice
+      stream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: true } })
     } catch {
       setErr(L('needMic'))
       return
     }
     streamRef.current = stream
+    modeRef.current = mode
 
     const ctx = new (window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext)()
+    ctxRef.current = ctx
     const src = ctx.createMediaStreamSource(stream)
     const analyser = ctx.createAnalyser()
     analyser.fftSize = 256
@@ -147,15 +206,12 @@ export function LumiPage({ onBack, glass = true }: { onBack: () => void; glass?:
       setLevel(data.reduce((a, b) => a + b, 0) / data.length / 255)
     }, 150)
 
-    const rec = new MediaRecorder(stream, { mimeType: mime })
-    rec.ondataavailable = (e) => {
-      if (e.data.size > 0) void transcribeChunk(e.data)
-    }
-    rec.start(CHUNK_MS)
-    recorderRef.current = rec
+    runningRef.current = true
+    recordChunk(stream, mime)
     groupTimer.current = window.setInterval(() => void runGrouping(), GROUP_EVERY_MS)
     setRunning(true)
-  }, [transcribeChunk, runGrouping, lang])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [recordChunk, runGrouping, lang, mode])
 
   useEffect(() => () => stop(), [stop])
 
@@ -212,7 +268,8 @@ export function LumiPage({ onBack, glass = true }: { onBack: () => void; glass?:
         ) : (
           <button className="btn volt-flash-btn" onClick={stop}>{L('stop')}</button>
         )}
-        {err && <p className="small" role="alert">{err}</p>}
+        {err && <p className="small lumi-err" role="alert">⚠ {err}</p>}
+        {warn && <p className="small muted">{warn}</p>}
 
         {running && (
           <div className="lumi-listen">
@@ -223,6 +280,24 @@ export function LumiPage({ onBack, glass = true }: { onBack: () => void; glass?:
         )}
         {busy && <p className="small muted">{L('translating')}</p>}
       </section>
+
+      {(running || live.length > 0) && (
+        <section className="bf-card lumi-live" aria-live="polite">
+          <header>
+            <h3>{L('liveTitle')}</h3>
+            {hearing > 0 && <span className="small muted">{L('hearingNow')}</span>}
+            {!running && live.length > 0 && <button className="btn" onClick={() => setLive([])}>{L('clear')}</button>}
+          </header>
+          {!live.length && <p className="small muted">{L('liveWait')}</p>}
+          {live.map((l) => (
+            <div key={l.at} className="lumi-cap">
+              <p className="lumi-cap-vi">{l.vi || <span className="muted">{L('noVi')}</span>}</p>
+              <p className="small muted"><b>[{l.lang}]</b> {l.text}</p>
+              {tools && <MoneyChips found={findMoney(l.text)} rates={rates} />}
+            </div>
+          ))}
+        </section>
+      )}
 
       {conversations.length > 0 && (
         <section className="bf-card">
