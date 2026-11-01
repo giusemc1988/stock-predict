@@ -33,6 +33,16 @@ npm run build
 ```
 Say plainly what you could not test (for example, real ESP32 boards or a real phone).
 
+## Mistakes already made (do not repeat)
+- **Merge conflict markers committed to main (3 times: 17/10 twice, 24/10).** Before every commit, run `git grep -nE '^(<{7}|={7}|>{7})( |$)'`. It must print nothing.
+- **Deploy broke on main** for three reasons:
+  - `package-lock.json` was out of sync (22/10). After any dependency change, run `npm ci` once to check.
+  - A field name was wrong but only failed in the Worker build (30/10). Run `npm run build`, not only the tests.
+  - The wrangler 4 command syntax was wrong (01/11).
+- **Daily KV backup saved nothing for days (fixed in #209), and its first artifact exposed keys.** A job that "succeeds" can still be empty: check its output. Never write KV values or env to logs or artifacts.
+- **Backtest results that ignore drift.** In a rising market, any long trade looks good. Judge a strategy by its excess over a random-entry control, with the same symbols, hold and exits, at 1x and 2x costs (see `src/lib/replayDaily.ts`). A raw positive return is not an edge.
+- **Long handoff notes left only in chat are lost to the next session.** Put state in `atlas/HANDOFF.md` (Atlas) or a doc in the repo.
+
 ## Talking to Chanh
 Vietnamese (he is "anh", you are "em"). Keep it short and simple, one step at a time. For PC commands, use Windows PowerShell syntax.
 
