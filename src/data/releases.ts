@@ -2,7 +2,7 @@
  * Version and "What's new". Bump APP_VERSION and add an entry to the top of RELEASES
  * with each update. The banner shows once per version, then stays dismissed.
  */
-export const APP_VERSION = '1.79.0'
+export const APP_VERSION = '1.79.1'
 
 export interface Release {
   version: string
@@ -13,6 +13,16 @@ export interface Release {
 }
 
 export const RELEASES: Release[] = [
+  {
+    version: '1.79.1',
+    date: '2026-11-01',
+    changes: [
+      'Fixed: the Nexus page\'s "Pocket scout" card floated off to the side, disconnected from the rest of the page, when the home agent is not set up yet (the state most phones see first). Fixes a layout bug reported from a real phone.',
+    ],
+    changesVi: [
+      'Sửa lỗi: khung "Thiết bị bỏ túi" ở trang Nexus bị trôi lệch sang một bên, tách khỏi các khung khác, khi chưa cài chương trình trên máy nhà (trạng thái đa số điện thoại thấy đầu tiên). Sửa lỗi giao diện anh báo từ điện thoại thật.',
+    ],
+  },
   {
     version: '1.79.0',
     date: '2026-11-01',
