@@ -201,7 +201,7 @@ export function evalStrategies(examFrom: string, atlas: { retPct: number; opened
   const srs = books.map((b) => stats(b).sharpe)
   const mu = srs.reduce((a, b) => a + b, 0) / srs.length
   const v = srs.reduce((a, b) => a + (b - mu) ** 2, 0) / Math.max(1, srs.length - 1)
-  return all.map((r, k) => {
+  return all.map((r) => {
     const [b, e] = split(r.trades)
     const book = stats(b)
     const exam = stats(e)
