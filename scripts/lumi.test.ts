@@ -169,3 +169,22 @@ import { SCAMS } from '../src/lib/lumiPhrases'
   for (const l of LUMI_LANGS) assert.ok(SCAMS[l.code].length >= 2)
 }
 console.log('lumi batch 2: ok')
+
+// ---- live captions ----
+import { audioFileName, buildLiveViPrompt, cleanHeard, cleanLiveVi, langCode } from '../src/lib/lumiTranslate'
+assert.equal(langCode('english'), 'en')
+assert.equal(langCode('Japanese'), 'ja')
+assert.equal(langCode('en'), 'en')
+assert.equal(langCode(undefined), 'und')
+assert.deepEqual(cleanHeard({ text: ' Bro, can I ask you something? ', language: 'english', segments: [{ no_speech_prob: 0.02 }] }), { text: 'Bro, can I ask you something?', lang: 'en' })
+assert.equal(cleanHeard({ text: 'Thank you.', language: 'english', segments: [{ no_speech_prob: 0.1 }] }).text, '', 'silence hallucination dropped')
+assert.equal(cleanHeard({ text: 'hello there', language: 'english', segments: [{ no_speech_prob: 0.9 }, { no_speech_prob: 0.8 }] }).text, '', 'mostly no-speech dropped')
+assert.equal(cleanHeard({ text: 'hello there', language: 'english' }).text, 'hello there', 'no segments: keep')
+assert.ok(/language: en/.test(buildLiveViPrompt('hi', 'en')))
+assert.ok(/ONLY the Vietnamese translation/.test(buildLiveViPrompt('hi', 'und')))
+assert.equal(cleanLiveVi('"Anh bạn, cho tôi hỏi một chuyện?"'), 'Anh bạn, cho tôi hỏi một chuyện?')
+assert.equal(cleanLiveVi('Vietnamese: Xin chào'), 'Xin chào')
+assert.equal(cleanLiveVi(null), '')
+assert.equal(audioFileName('audio/webm;codecs=opus'), 'chunk.webm')
+assert.equal(audioFileName('audio/mp4'), 'chunk.mp4')
+console.log('lumi live captions: ok')

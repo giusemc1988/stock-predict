@@ -2,7 +2,7 @@
  * Version and "What's new". Bump APP_VERSION and add an entry to the top of RELEASES
  * with each update. The banner shows once per version, then stays dismissed.
  */
-export const APP_VERSION = '1.86.0'
+export const APP_VERSION = '1.87.0'
 
 export interface Release {
   version: string
@@ -13,6 +13,16 @@ export interface Release {
 }
 
 export const RELEASES: Release[] = [
+  {
+    version: '1.87.0',
+    date: '2026-11-01',
+    changes: [
+      'Fixed: Lumi listened but showed nothing. Only the first recording piece was a readable audio file, so speech recognition failed on every piece after it, and errors were hidden. Now each 6-second piece is a complete file, and a "Live translation" list shows every sentence translated into Vietnamese as it is heard, from any language, with the original underneath. Problems (no Groq key, out of free quota, network) are shown on screen.',
+    ],
+    changesVi: [
+      'Sửa lỗi: Lumi đang nghe mà không hiện gì. Chỉ đoạn ghi âm đầu tiên là file đọc được, các đoạn sau nhận giọng nói đều lỗi mà không báo. Giờ mỗi đoạn 6 giây là một file hoàn chỉnh, và khung "Dịch trực tiếp" hiện từng câu dịch sang tiếng Việt ngay khi nghe, từ bất kỳ thứ tiếng nào, kèm câu gốc bên dưới. Lỗi (thiếu key Groq, hết lượt miễn phí, mất mạng) hiện lên màn hình.',
+    ],
+  },
   {
     version: '1.86.0',
     date: '2026-11-01',

@@ -69,6 +69,45 @@ assert.equal((await lumiRoute(req('/api/lumi/menu'), '/api/lumi/menu', {}))?.sta
 // /api/lumi/rates: GET only
 assert.equal((await lumiRoute(req('/api/lumi/rates', { method: 'POST' }), '/api/lumi/rates', {}))?.status, 405)
 
+// /api/lumi/hear full path with a stubbed network: Whisper text -> live Vietnamese caption
+{
+  const realFetch = globalThis.fetch
+  const calls: string[] = []
+  globalThis.fetch = (async (input: RequestInfo | URL) => {
+    const url = String(input instanceof Request ? input.url : input)
+    calls.push(url)
+    if (url.includes('/audio/transcriptions')) return Response.json({ text: 'Bro, can I ask you something?', language: 'english', segments: [{ no_speech_prob: 0.01 }] })
+    if (url.includes('/models')) return Response.json({ data: [{ id: 'llama-3.3-70b-versatile' }] })
+    if (url.includes('/chat/completions')) return Response.json({ choices: [{ message: { content: '"Anh bạn, cho tôi hỏi một chuyện nhé?"' } }] })
+    return new Response('nope', { status: 404 })
+  }) as typeof fetch
+  try {
+    const form = () => { const f = new FormData(); f.append('audio', new Blob([new Uint8Array(5000)], { type: 'audio/webm' }), 'chunk.webm'); return f }
+    const env = { GROQ_API_KEY: 'gsk_test' }
+    for (let i = 0; i < 2; i++) {
+      const r = await lumiRoute(req('/api/lumi/hear', { method: 'POST', headers: { origin: 'https://x' }, body: form() }), '/api/lumi/hear', env)
+      const j = (await r!.json()) as { text: string; lang: string; vi: string }
+      assert.equal(r!.status, 200)
+      assert.equal(j.text, 'Bro, can I ask you something?')
+      assert.equal(j.lang, 'en')
+      assert.equal(j.vi, 'Anh bạn, cho tôi hỏi một chuyện nhé?')
+    }
+    // a tiny chunk (silence) is skipped without calling Whisper
+    const before = calls.length
+    const tiny = new FormData(); tiny.append('audio', new Blob([new Uint8Array(100)], { type: 'audio/webm' }), 'chunk.webm')
+    const r = await lumiRoute(req('/api/lumi/hear', { method: 'POST', headers: { origin: 'https://x' }, body: tiny }), '/api/lumi/hear', env)
+    assert.deepEqual(await r!.json(), { text: '', lang: 'und', vi: '' })
+    assert.equal(calls.length, before)
+    // Whisper failure is reported, not swallowed
+    globalThis.fetch = (async () => new Response('rate limited', { status: 429 })) as unknown as typeof fetch
+    const bad = await lumiRoute(req('/api/lumi/hear', { method: 'POST', headers: { origin: 'https://x' }, body: form() }), '/api/lumi/hear', env)
+    assert.equal(bad!.status, 502)
+    assert.ok(/429/.test(((await bad!.json()) as { error: string }).error))
+  } finally {
+    globalThis.fetch = realFetch
+  }
+}
+
 // an unrelated path is not handled here
 assert.equal(await lumiRoute(req('/api/other'), '/api/other', {}), null)
 
