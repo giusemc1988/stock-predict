@@ -2,7 +2,7 @@
  * Version and "What's new". Bump APP_VERSION and add an entry to the top of RELEASES
  * with each update. The banner shows once per version, then stays dismissed.
  */
-export const APP_VERSION = '1.89.0'
+export const APP_VERSION = '1.90.0'
 
 export interface Release {
   version: string
@@ -14,13 +14,23 @@ export interface Release {
 
 export const RELEASES: Release[] = [
   {
-    version: '1.89.0',
+    version: '1.90.0',
     date: '2026-11-01',
     changes: [
       'Fixed: Chrome said "This app cannot be installed". The app\'s install file sat behind the login gate and Chrome could not read it, so it showed a plain "W" icon. The app is now installable as "Neo Hub" with its own icon (including a round-safe icon for Android). Tap the Chrome menu, then Install app.',
     ],
     changesVi: [
       'Sửa lỗi: Chrome báo "Không thể cài đặt ứng dụng". Tệp cài đặt của app nằm sau cổng đăng nhập nên Chrome không đọc được, nên chỉ hiện biểu tượng chữ "W". Giờ app cài được với tên "Neo Hub" và biểu tượng riêng (có cả biểu tượng bo tròn cho Android). Mở menu Chrome, chọn Cài đặt ứng dụng.',
+    ],
+  },
+  {
+    version: '1.89.0',
+    date: '2026-11-01',
+    changes: [
+      'Lumi live translation is now much faster. Words appear on screen while the person is still talking, a draft Vietnamese line follows them, and the final Vietnamese shows about 1 second after each sentence (was 6-10 seconds). Each line shows how long it took. Recording now cuts at the speaker\'s natural pause instead of every 6 seconds, translation uses the previous sentences as context, and a fast free translation model is tried first. New: pick the language they speak (or Auto), a "They are talking about" line, and in Talk mode suggested replies you can tap to have read out. If the browser has no instant captions, Lumi falls back to the previous mode.',
+    ],
+    changesVi: [
+      'Lumi dịch trực tiếp nhanh hơn nhiều. Chữ hiện ngay khi người ta còn đang nói, kèm bản dịch nháp chạy theo, bản tiếng Việt chính thức hiện khoảng 1 giây sau mỗi câu (trước đây 6-10 giây). Mỗi câu hiện thời gian dịch. Ghi âm giờ cắt đúng chỗ người nói ngừng thay vì cứ 6 giây, dịch có dựa vào mấy câu trước cho đúng ý, và dùng model dịch nhanh miễn phí trước. Mới: chọn tiếng họ nói (hoặc Tự nhận), dòng "Đang nói về", và ở chế độ "Nói với em" có gợi ý câu trả lời, chạm là máy đọc lên. Trình duyệt nào không có chữ tức thì thì Lumi tự dùng chế độ cũ.',
     ],
   },
   {

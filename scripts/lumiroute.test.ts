@@ -108,6 +108,21 @@ assert.equal((await lumiRoute(req('/api/lumi/rates', { method: 'POST' }), '/api/
   }
 }
 
+// /api/lumi/fast + /api/lumi/gist: method, bad input, no keys -> 503; Workers AI binding used when present
+{
+  const post = (path: string, body: unknown) => req(path, { method: 'POST', headers: { origin: 'https://x', 'content-type': 'application/json' }, body: JSON.stringify(body) })
+  assert.equal((await lumiRoute(req('/api/lumi/fast'), '/api/lumi/fast', {}))?.status, 405)
+  assert.equal((await lumiRoute(post('/api/lumi/fast', { text: '' }), '/api/lumi/fast', {}))?.status, 400)
+  assert.equal((await lumiRoute(post('/api/lumi/fast', { text: 'hello', lang: 'en' }), '/api/lumi/fast', {}))?.status, 503)
+  const AI = { run: async (_m: string, input: Record<string, unknown>) => ({ translated_text: `vi:${String(input.text)}` }) }
+  const fast = await lumiRoute(post('/api/lumi/fast', { text: 'hello', lang: 'en', draft: true }), '/api/lumi/fast', { AI } as never)
+  assert.equal(fast?.status, 200)
+  assert.equal(((await fast!.json()) as { vi: string }).vi, 'vi:hello')
+  assert.equal((await lumiRoute(req('/api/lumi/gist'), '/api/lumi/gist', {}))?.status, 405)
+  assert.equal((await lumiRoute(post('/api/lumi/gist', { lines: [] }), '/api/lumi/gist', {}))?.status, 400)
+  assert.equal((await lumiRoute(post('/api/lumi/gist', { lines: [{ text: 'hi', lang: 'en' }] }), '/api/lumi/gist', {}))?.status, 503)
+}
+
 // an unrelated path is not handled here
 assert.equal(await lumiRoute(req('/api/other'), '/api/other', {}), null)
 
