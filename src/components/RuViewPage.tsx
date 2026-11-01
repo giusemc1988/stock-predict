@@ -4,6 +4,7 @@ import { BOARDS, boardFromChip, boardOf, CSI_PORT, flashCommand, mergeNodes, nex
 import { configLine, helloLine, makeNonce, NodeLink, parseConfigReply, parseHello, serialApi, type Hello } from '../lib/ruviewSerial'
 import { useRuviewT, type RuviewKey } from '../lib/ruviewText'
 import { AgentShell } from './AgentShell'
+import { RoomWatch } from './RoomWatch'
 
 type Offline = { offline: true; why: string; snapshot: { at: number; data: unknown } | null }
 type Down = { down: true; why: string }
@@ -222,7 +223,7 @@ function AddNode({ reg, me, webFlash, onSaved, onClose }: { reg: RegistryNode[];
 }
 
 /** RuView sensing (github.com/ruvnet/ruview) on the home PC, read through the home agent. */
-export function RuViewPage({ onBack, webFlash = true, startAdding = false, glass = true }: { onBack: () => void; webFlash?: boolean; startAdding?: boolean; glass?: boolean }) {
+export function RuViewPage({ onBack, webFlash = true, roomWatch = true, onNexus, startAdding = false, glass = true }: { onBack: () => void; webFlash?: boolean; roomWatch?: boolean; onNexus?: () => void; startAdding?: boolean; glass?: boolean }) {
   const t = useRuviewT()
   const [off, setOff] = useState<Offline | null>(null)
   const [status, setStatus] = useState<Status | null>(null)
@@ -365,6 +366,8 @@ export function RuViewPage({ onBack, webFlash = true, startAdding = false, glass
         </section>
       )}
       {note && <p className="net-note" role="status">{t('error', { msg: note })}</p>}
+
+      {roomWatch && <RoomWatch onNexus={onNexus} />}
 
       <div className="net-grid">
         {status?.up && (
