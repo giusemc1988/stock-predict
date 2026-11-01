@@ -7,6 +7,8 @@
 import { useEffect, useRef, useState } from 'react'
 import { feedScoutLine, SCOUT_BAUD, SCOUT_PING_LINE, SCOUT_PING_MS, splitLines } from '../lib/nexusSerial'
 import { findingsFor, parseScoutChunk, radarLayout, riskOf, weakNetworks, type Finding, type ScoutScan } from '../lib/nexusScout'
+import { S3KitBar } from './S3KitBar'
+import { detectFirmware, type KitFirmware } from '../lib/s3Kit'
 import { useNetT } from '../lib/netText'
 
 // Must match the UUIDs firmware/nexus-scout/src/main.cpp advertises.
@@ -36,7 +38,7 @@ function emptyScan(): ScoutScan {
   return { wifi: [], ble: [], at: 0 }
 }
 
-export function NexusScoutPanel({ knownNets = [] }: { knownNets?: { ssid: string; bssids: string[] }[] }) {
+export function NexusScoutPanel({ knownNets = [], onEcho }: { knownNets?: { ssid: string; bssids: string[] }[]; onEcho?: () => void }) {
   const t = useNetT()
   const [state, setState] = useState<'idle' | 'connecting' | 'connected' | 'error'>('idle')
   const [scan, setScan] = useState<ScoutScan>(emptyScan())
@@ -45,6 +47,7 @@ export function NexusScoutPanel({ knownNets = [] }: { knownNets?: { ssid: string
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const deviceRef = useRef<Awaited<ReturnType<Bt['requestDevice']>> | null>(null)
   const usbRef = useRef<{ stop(): Promise<void> } | null>(null)
+  const [fw, setFw] = useState<KitFirmware>('unknown')
   const [via, setVia] = useState<'ble' | 'usb'>('ble')
 
   const supported = typeof navigator !== 'undefined' && 'bluetooth' in navigator
@@ -77,6 +80,7 @@ export function NexusScoutPanel({ knownNets = [] }: { knownNets?: { ssid: string
         },
       }
       setVia('usb')
+      setFw('unknown')
       setState('connected')
       void (async () => {
         let buf = ''
@@ -91,7 +95,9 @@ export function NexusScoutPanel({ knownNets = [] }: { knownNets?: { ssid: string
             for (const line of lines) {
               const fed = feedScoutLine(line, acc)
               acc = fed.scan
-              if (!fed.banner) setScan(acc)
+              if (detectFirmware(line) === 'ruview') setFw('ruview')
+              else if (fed.banner) setFw('nexus-scout')
+              else setScan(acc)
               if (fed.complete) acc = emptyScan()
             }
           }
@@ -129,6 +135,8 @@ export function NexusScoutPanel({ knownNets = [] }: { knownNets?: { ssid: string
         setScan(acc)
         if (text.includes('"end"')) acc = emptyScan()
       })
+      setFw('nexus-scout') // only nexus-scout exposes this GATT service
+      setVia('ble')
       setState('connected')
     } catch (e) {
       setState('error')
@@ -204,6 +212,7 @@ export function NexusScoutPanel({ knownNets = [] }: { knownNets?: { ssid: string
   return (
     <section className="bf-card net-scout">
       <header><h3>{t('scoutTitle')}</h3></header>
+      <S3KitBar mode="nexus" firmware={fw} connected={state === 'connected'} onSwitch={onEcho} />
       <p className="small muted">{t('scoutNote')}</p>
       {!supported && !usbSupported && <p className="small muted">{t('scoutNoSupport')}</p>}
       {state !== 'connected' && (
