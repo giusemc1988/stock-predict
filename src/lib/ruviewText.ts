@@ -147,6 +147,13 @@ export const RUVIEW_TEXT = {
   rwLog: { en: 'Recent changes', vi: 'Thay đổi gần đây' },
   rwTip: { en: 'Travelling: turn on your phone hotspot, then give the board that name and password.', vi: 'Khi đi xa: bật điểm phát Wi-Fi của điện thoại rồi nhập tên và mật khẩu đó cho board.' },
   rwErr: { en: 'Could not open the board: {msg}', vi: 'Không mở được board: {msg}' },
+  kitEcho: { en: 'Echo · room watch', vi: 'Echo · canh phòng' },
+  kitNexus: { en: 'Nexus · pocket scout', vi: 'Nexus · quét bỏ túi' },
+  kitFwRuview: { en: 'Board runs: RuView', vi: 'Board đang chạy: RuView' },
+  kitFwNexus: { en: 'Board runs: Nexus scout', vi: 'Board đang chạy: Nexus scout' },
+  kitFwNone: { en: 'No board connected', vi: 'Chưa nối board' },
+  kitSwitch: { en: 'Switch to {mode}', vi: 'Chuyển sang {mode}' },
+  kitReflash: { en: 'The board runs the other firmware. Reflash it for this mode (same S3 board, USB flasher).', vi: 'Board đang chạy firmware của chế độ kia. Flash lại cho chế độ này (cùng board S3, flash qua USB).' },
   error: { en: 'Something went wrong: {msg}', vi: 'Có lỗi: {msg}' },
 } satisfies Record<string, Bi>
 

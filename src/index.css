@@ -1827,3 +1827,5 @@ body:has(.jfab) .toasts, body:has(.jfab) .jarvis-alert { bottom: 84px; }
 .jfab-bar { height: 3px; overflow: hidden; background: rgba(79, 209, 255, 0.15); }
 .jfab-bar i { display: block; height: 100%; width: 35%; background: var(--gold, #f0b90b); animation: jfab-bar 1.1s ease-in-out infinite; }
 @keyframes jfab-bar { from { transform: translateX(-100%); } to { transform: translateX(300%); } }
+.s3kit { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; margin-bottom: 8px; }
+.s3kit .net-note { flex-basis: 100%; margin: 0; }

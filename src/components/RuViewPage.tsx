@@ -223,7 +223,7 @@ function AddNode({ reg, me, webFlash, onSaved, onClose }: { reg: RegistryNode[];
 }
 
 /** RuView sensing (github.com/ruvnet/ruview) on the home PC, read through the home agent. */
-export function RuViewPage({ onBack, webFlash = true, roomWatch = true, startAdding = false, glass = true }: { onBack: () => void; webFlash?: boolean; roomWatch?: boolean; startAdding?: boolean; glass?: boolean }) {
+export function RuViewPage({ onBack, webFlash = true, roomWatch = true, onNexus, startAdding = false, glass = true }: { onBack: () => void; webFlash?: boolean; roomWatch?: boolean; onNexus?: () => void; startAdding?: boolean; glass?: boolean }) {
   const t = useRuviewT()
   const [off, setOff] = useState<Offline | null>(null)
   const [status, setStatus] = useState<Status | null>(null)
@@ -367,7 +367,7 @@ export function RuViewPage({ onBack, webFlash = true, roomWatch = true, startAdd
       )}
       {note && <p className="net-note" role="status">{t('error', { msg: note })}</p>}
 
-      {roomWatch && <RoomWatch />}
+      {roomWatch && <RoomWatch onNexus={onNexus} />}
 
       <div className="net-grid">
         {status?.up && (

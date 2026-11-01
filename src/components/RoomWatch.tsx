@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { NodeLink, serialApi } from '../lib/ruviewSerial'
+import { S3KitBar } from './S3KitBar'
 import { useRuviewT } from '../lib/ruviewText'
 import { detectFirmware, parseVitalsLine, roomChange, roomState, type KitFirmware, type RoomVitals } from '../lib/s3Kit'
 
@@ -8,7 +9,7 @@ const keyOf = { empty: 'rwEmpty', still: 'rwStill', moving: 'rwMoving' } as cons
 const logKey = { enter: 'rwEnter', leave: 'rwLeave', fall: 'rwFall' } as const
 
 /** Echo "room watch": one ESP32-S3 on USB, read through Web Serial. The board does the maths; this only shows its result line. */
-export function RoomWatch() {
+export function RoomWatch({ onNexus }: { onNexus?: () => void }) {
   const t = useRuviewT()
   const link = useRef<NodeLink | null>(null)
   const last = useRef<RoomVitals | null>(null)
@@ -67,6 +68,7 @@ export function RoomWatch() {
   return (
     <section className="bf-card rv-watch">
       <header><h3>{t('rwTitle')}</h3>{on && fw === 'ruview' && <em className="flag">{t('rwFwRuview')}</em>}</header>
+      <S3KitBar mode="echo" firmware={fw} connected={on} onSwitch={onNexus} />
       {!on && <p className="muted">{t('rwWhy')}</p>}
       {!serialApi() && <p className="muted">{t('noSerial')}</p>}
       {err && <p className="net-note" role="status">{t('rwErr', { msg: err })}</p>}
