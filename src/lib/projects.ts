@@ -30,7 +30,7 @@ export const PROJECTS: Project[] = [
   { id: 'nexus', name: 'Nexus', what: { en: 'Wi-Fi & Bluetooth', vi: 'Wi-Fi & Bluetooth' }, hue: '#8fb8ff', opens: 'net', tools: ['wifi', 'speed', 'android'] },
   { id: 'nova', name: 'Nova', what: { en: 'Bilingual Video Studio', vi: 'Studio video song ngữ' }, hue: '#d9a3ff', opens: 'studio', tools: ['video'] },
   { id: 'viraltech', name: 'Viraltech', what: { en: 'Social channels', vi: 'Kênh mạng xã hội' }, hue: '#ff7ab6', opens: 'viraltech', tools: ['viraltech', 'explainers'] },
-  { id: 'lumi', name: 'Lumi', what: { en: 'Travel translator', vi: 'Tai phiên dịch du lịch' }, hue: '#ffb36b', opens: 'lumi', tools: ['media', 'outside'] },
+  { id: 'lumi', name: 'Lumi', what: { en: 'Travel translator', vi: 'Tai phiên dịch du lịch' }, hue: '#ffb36b', opens: 'lumi', tools: [] },
   { id: 'forge', name: 'Max', what: { en: 'Build & app builder', vi: 'Xây dựng & tạo app' }, hue: '#f2c46d', opens: 'max', tools: ['prs', 'repo', 'dev', 'apps'] },
 ]
 
