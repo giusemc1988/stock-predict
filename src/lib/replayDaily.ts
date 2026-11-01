@@ -38,6 +38,8 @@ export interface DailySignal {
   /** Stop and target distances below / above the entry price (null = none). */
   stopDist: number | null
   targetDist: number | null
+  /** The stop in ATR(14) multiples (the random-entry control re-applies it on its own days). */
+  stopAtr?: number
   /** Leave when the close is above the 5-day SMA (filled at the next open). */
   sma5Exit?: boolean
 }
@@ -46,6 +48,10 @@ export interface DailyTrade {
   symbol: string
   openedAt: number
   retPct: number
+  /** Fill prices (before costs), so a trade can be re-priced at other cost levels. */
+  entry?: number
+  exit?: number
+  limit?: boolean
   exitReason: 'stop' | 'target' | 'time' | 'rule'
   /** First bar index where a new entry open is allowed (no overlapping trades per symbol). */
   freeFrom: number
@@ -73,6 +79,9 @@ export function sma(bars: Candle[], n: number): number[] {
   return out
 }
 
+const sma5Cache = new WeakMap<Candle[], number[]>()
+const sma5 = (bars: Candle[]) => sma5Cache.get(bars) ?? (sma5Cache.set(bars, sma(bars, 5)), sma5Cache.get(bars)!)
+
 /** Play one signal forward on `bars`. Returns null when there is no next bar to enter on. */
 export function simulateDaily(bars: Candle[], sig: Pick<DailySignal, 'i' | 'hold' | 'stopDist' | 'targetDist' | 'sma5Exit'>, costs: Costs | null, symbol = ''): DailyTrade | null {
   const e = sig.i + 1
@@ -81,11 +90,14 @@ export function simulateDaily(bars: Candle[], sig: Pick<DailySignal, 'i' | 'hold
   const stop = sig.stopDist != null ? entry - sig.stopDist : null
   const target = sig.targetDist != null ? entry + sig.targetDist : null
   const last = Math.min(e + sig.hold - 1, bars.length - 1)
-  const s5 = sig.sma5Exit ? sma(bars, 5) : []
+  const s5 = sig.sma5Exit ? sma5(bars) : []
   const done = (price: number, reason: DailyTrade['exitReason'], freeFrom: number, limit = false): DailyTrade => ({
     symbol,
     openedAt: bars[e].time * 1000,
     retPct: netRetPct(entry, price, costs, limit),
+    entry,
+    exit: price,
+    limit,
     exitReason: reason,
     freeFrom,
   })
@@ -143,7 +155,7 @@ export function d2High52(u: Series[]): DailySignal[] {
       let hi = 0
       for (let k = i - 251; k <= i; k++) hi = Math.max(hi, s.bars[k].close)
       const c = s.bars[i].close
-      if (c >= hi * 0.98 && c > m200[i]) out.push({ sym, i, hold: 10, stopDist: 2 * a[i], targetDist: null })
+      if (c >= hi * 0.98 && c > m200[i]) out.push({ sym, i, hold: 10, stopDist: 2 * a[i], stopAtr: 2, targetDist: null })
     }
   })
   return out
@@ -167,7 +179,7 @@ export function d4GapDrift(u: Series[]): DailySignal[] {
       const b = s.bars[i]
       let v = 0
       for (let k = i - 20; k < i; k++) v += s.bars[k].volume
-      if (b.open >= s.bars[i - 1].close * 1.04 && v > 0 && b.volume >= 2 * (v / 20)) out.push({ sym, i, hold: 20, stopDist: 2 * a[i], targetDist: null })
+      if (b.open >= s.bars[i - 1].close * 1.04 && v > 0 && b.volume >= 2 * (v / 20)) out.push({ sym, i, hold: 20, stopDist: 2 * a[i], stopAtr: 2, targetDist: null })
     }
   })
   return out
@@ -194,13 +206,110 @@ export interface DailyResult {
   examAvgByCost: Record<'x0' | 'x1' | 'x2', number>
   /** Average return per trade by entry year (regime breakdown), at 1x costs. */
   byYear: Record<string, { n: number; avgRet: number }>
+  /** Random-entry control: mean over the draws of the average return per trade (same symbols, counts, exits, costs). */
+  control: { book: number; examX1: number; examX2: number }
+  /** Strategy minus control: the edge over drift. */
+  excess: { book: number; examX1: number; examX2: number }
+  /** Share of control draws whose exam average is at least the strategy's (at 1x and 2x costs). */
+  p: { x1: number; x2: number }
   dsr: number
   passed: boolean
 }
 
-/** Judge each strategy on the exam (the newest third): average > 0 at 1x AND 2x costs, at least 100 trades and a
- *  Deflated Sharpe >= 0.95 counting every strategy tried here. `runs[k][m]` = trades of strategy k at cost multiplier m. */
-export function evalDaily(examFrom: string, strategies: Pick<DailyStrategy, 'id' | 'en' | 'vi'>[], runs: Record<number, DailyTrade[]>[]): DailyResult[] {
+/** Mulberry32: a small seeded random generator, so a control run is reproducible. */
+export function seededRng(seed: number): () => number {
+  let a = seed >>> 0
+  return () => {
+    a = (a + 0x6d2b79f5) >>> 0
+    let t = a
+    t = Math.imul(t ^ (t >>> 15), t | 1)
+    t ^= t + Math.imul(t ^ (t >>> 7), t | 61)
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296
+  }
+}
+
+export interface ControlDraws {
+  book1: number[]
+  exam1: number[]
+  exam2: number[]
+  /** Trades in each draw (equals the strategy's own count when the days are available). */
+  count: number[]
+}
+
+/** Random-entry control for one strategy: the SAME symbols, the same number of trades per symbol, year and
+ *  book/exam half, the same exit rule (hold, stop in ATR, SMA exit) and costs, but entered on random days where
+ *  the symbol had data and no trade of its own was open. Returns each draw's average return per trade. */
+export function controlDaily(u: Series[], sigs: DailySignal[], actual: DailyTrade[], examFrom: string, costs: Costs | null, draws = 200, seed = 1): ControlDraws {
+  const out: ControlDraws = { book1: [], exam1: [], exam2: [], count: [] }
+  if (!sigs.length) return out
+  const tpl = sigs[0]
+  const warm = sigs.reduce((m, s) => Math.min(m, s.i), Infinity)
+  const keyOf = (ms: number) => `${new Date(ms).getUTCFullYear()}|${dayKey(ms) >= examFrom ? 1 : 0}`
+  const idx = new Map(u.map((s, k) => [s.symbol, k]))
+  const counts = new Map<number, Map<string, number>>()
+  for (const t of actual) {
+    const sym = idx.get(t.symbol)!
+    if (!counts.has(sym)) counts.set(sym, new Map())
+    const m = counts.get(sym)!
+    const k = keyOf(t.openedAt)
+    m.set(k, (m.get(k) ?? 0) + 1)
+  }
+  const prep = [...counts.keys()].map((sym) => {
+    const bars = u[sym].bars
+    const a = atr(bars, 14)
+    const cands = new Map<string, number[]>()
+    for (let i = Math.max(warm, 14); i + tpl.hold < bars.length; i++) { // the full holding period must fit in the data
+      const k = keyOf(bars[i + 1].time * 1000)
+      if (!cands.has(k)) cands.set(k, [])
+      cands.get(k)!.push(i)
+    }
+    return { sym, bars, a, cands, want: counts.get(sym)! }
+  })
+  const c1 = scaleCosts(costs, 1)
+  const c2 = scaleCosts(costs, 2)
+  for (let d = 0; d < draws; d++) {
+    const rnd = seededRng(seed * 100_003 + d)
+    const sum = { b1: 0, bn: 0, e1: 0, e2: 0, en: 0 }
+    for (const p of prep) {
+      const taken: { e: number; free: number }[] = []
+      for (const [k, n] of p.want) {
+        const pool = [...(p.cands.get(k) ?? [])]
+        for (let x = pool.length - 1; x > 0; x--) {
+          const y = Math.floor(rnd() * (x + 1))
+          ;[pool[x], pool[y]] = [pool[y], pool[x]]
+        }
+        let got = 0
+        for (const i of pool) {
+          if (got >= n) break
+          const t = simulateDaily(p.bars, { ...tpl, i, stopDist: tpl.stopAtr != null ? tpl.stopAtr * p.a[i] : tpl.stopDist }, null)
+          if (!t || taken.some((o) => i + 1 < o.free && o.e < t.freeFrom)) continue
+          taken.push({ e: i + 1, free: t.freeFrom })
+          got++
+          if (k.endsWith('|1')) {
+            sum.e1 += netRetPct(t.entry!, t.exit!, c1, !!t.limit)
+            sum.e2 += netRetPct(t.entry!, t.exit!, c2, !!t.limit)
+            sum.en++
+          } else {
+            sum.b1 += netRetPct(t.entry!, t.exit!, c1, !!t.limit)
+            sum.bn++
+          }
+        }
+      }
+    }
+    out.count.push(sum.bn + sum.en)
+    out.book1.push(sum.bn ? sum.b1 / sum.bn : 0)
+    out.exam1.push(sum.en ? sum.e1 / sum.en : 0)
+    out.exam2.push(sum.en ? sum.e2 / sum.en : 0)
+  }
+  return out
+}
+
+const mean = (a: number[]) => a.reduce((x, y) => x + y, 0) / Math.max(1, a.length)
+
+/** Judge each strategy on the exam (the newest third) by its edge over drift: excess over the random-entry
+ *  control > 0 at 1x AND 2x costs with p <= 0.05 at both, at least 100 trades and a Deflated Sharpe >= 0.95
+ *  counting every strategy tried here. `runs[k][m]` = trades of strategy k at cost multiplier m. */
+export function evalDaily(examFrom: string, strategies: Pick<DailyStrategy, 'id' | 'en' | 'vi'>[], runs: Record<number, DailyTrade[]>[], controls: ControlDraws[]): DailyResult[] {
   const split = (rows: DailyTrade[]) => [rows.filter((t) => dayKey(t.openedAt) < examFrom), rows.filter((t) => dayKey(t.openedAt) >= examFrom)]
   const exams = runs.map((r) => split(r[1])[1])
   const srs = exams.map((e) => stats(e).sharpe)
@@ -217,8 +326,13 @@ export function evalDaily(examFrom: string, strategies: Pick<DailyStrategy, 'id'
       byYear[y] = { n: st.n, avgRet: st.avgRet }
     }
     const dsr = deflatedSharpe(e.map((t) => t.retPct), strategies.length, v)
-    const passed = examAvgByCost.x1 > 0 && examAvgByCost.x2 > 0 && exam.n >= 100 && dsr >= 0.95
-    return { id: s.id, en: s.en, vi: s.vi, book: stats(b), exam, examAvgByCost, byYear, dsr, passed }
+    const book = stats(b)
+    const cd = controls[k]
+    const control = { book: mean(cd.book1), examX1: mean(cd.exam1), examX2: mean(cd.exam2) }
+    const excess = { book: book.avgRet - control.book, examX1: examAvgByCost.x1 - control.examX1, examX2: examAvgByCost.x2 - control.examX2 }
+    const p = { x1: cd.exam1.filter((x) => x >= examAvgByCost.x1).length / Math.max(1, cd.exam1.length), x2: cd.exam2.filter((x) => x >= examAvgByCost.x2).length / Math.max(1, cd.exam2.length) }
+    const passed = excess.examX1 > 0 && excess.examX2 > 0 && p.x1 <= 0.05 && p.x2 <= 0.05 && exam.n >= 100 && dsr >= 0.95
+    return { id: s.id, en: s.en, vi: s.vi, book, exam, examAvgByCost, byYear, control, excess, p, dsr, passed }
   })
 }
 
