@@ -1406,6 +1406,13 @@ body:has(.jfab) .toasts, body:has(.jfab) .jarvis-alert { bottom: 84px; }
 .tag-ok { color: var(--up); background: var(--up-bg); border-color: transparent; }
 .tag-warn { color: #f5d77a; background: rgba(240, 185, 11, 0.1); border-color: rgba(240, 185, 11, 0.3); }
 .tag-bad { color: var(--down); background: rgba(246, 70, 93, 0.1); border-color: rgba(246, 70, 93, 0.3); }
+.volt-feed { display: grid; gap: 8px; margin-top: 8px; }
+.volt-feed-item { display: grid; gap: 4px; padding: 10px 12px; border-radius: 12px; border: 1px solid var(--line-2); background: rgba(255, 255, 255, 0.03); }
+.volt-feed-head { display: flex; justify-content: space-between; gap: 8px; align-items: baseline; }
+.volt-feed-head b { overflow-wrap: anywhere; }
+.volt-feed-item .btn { justify-self: start; }
+.volt-recent { display: flex; flex-wrap: wrap; gap: 6px; margin: 4px 0 8px; }
+.volt-only { display: flex; gap: 6px; align-items: center; margin: 6px 0; }
 .volt-flash-btn { width: 100%; margin-top: 8px; padding: 12px; font-size: 14px; }
 
 /* Lumi: ambient travel translator */

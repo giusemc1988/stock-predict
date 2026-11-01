@@ -19,7 +19,7 @@ Neo (formerly Jarvis) / Arc Analyst: a personal hub for Chanh. The Hub page (one
 7. **No destructive commands** (`git reset --hard`, `git push --force`, deleting folders) unless Chanh asks for that exact action.
 
 ## Every change
-- Bump the version in `package.json` and `src/data/releases.ts` (`APP_VERSION`), and add a What's new entry in both English and Vietnamese at the top of `RELEASES`.
+- Bump the version in `package.json` and `src/data/releases.ts` (`APP_VERSION`), and add a What's new entry in both English and Vietnamese at the top of `RELEASES`. If the change belongs to one agent (Volt, Nexus, Echo, Lumi, …), also bump that agent's own version in `src/data/agentVersions.ts`; it shows next to the agent's name. `npm run t -- versions` fails when `package.json`, `APP_VERSION` and the top release entry disagree.
 - Every new feature ships **on by default**, with an off switch in Settings > AI rules (`src/lib/aiRules.ts`: a field, its default and a `RULE_FIELDS` entry).
 - Every label goes in both languages.
 - Keep the calm "Arc" look. Animations must be smooth. No HUD or Iron Man styling.

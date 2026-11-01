@@ -3,7 +3,9 @@ import type { Bi } from '../lib/hubText'
 import { useLang } from '../lib/i18n'
 import { VOLT_PRESETS, canFlash, checkParts, describePart, guessOffset, partsFromManifest, type CheckResult, type FlashPart, type WebToolsManifest } from '../lib/voltFlash'
 import { backupFlash, connect, flashParts, probe, VoltError, type BoardProbe } from '../lib/voltFlashRun'
+import { pushRecent, type RecentFlash } from '../lib/voltNews'
 import { AgentShell } from './AgentShell'
+import { VoltNews } from './VoltNews'
 import { NovaProgress } from './NovaProgress'
 
 const T = {
@@ -111,6 +113,14 @@ export function VoltPage({ onBack, glass = true }: { onBack: () => void; glass?:
     }
   }, [repo, tag])
 
+  const [recent, setRecent] = useState<RecentFlash[]>(() => {
+    try {
+      const j = JSON.parse(localStorage.getItem('neo.volt.recent') ?? '[]') as RecentFlash[]
+      return Array.isArray(j) ? j.filter((r) => typeof r?.repo === 'string' && typeof r?.tag === 'string') : []
+    } catch {
+      return []
+    }
+  })
   const [autoFind, setAutoFind] = useState(false)
   useEffect(() => {
     if (autoFind && repo.trim()) {
@@ -201,10 +211,19 @@ export function VoltPage({ onBack, glass = true }: { onBack: () => void; glass?:
     try {
       await flashParts(c.loader, parts, { step: () => {}, progress: (pct) => setFlashBusy(pct), log: () => {} })
       setFlashDone(true)
+      if (repoInfo) {
+        const next = pushRecent(recent, { repo: repoInfo.repo, tag: repoInfo.tag, label: repoInfo.repo.split('/')[1] ?? repoInfo.repo, at: Date.now() })
+        setRecent(next)
+        try {
+          localStorage.setItem('neo.volt.recent', JSON.stringify(next))
+        } catch {
+          // storage full or blocked: the list just won't persist
+        }
+      }
     } finally {
       setFlashBusy(null)
     }
-  }, [parts, ready])
+  }, [parts, ready, repoInfo, recent])
 
   return (
     <AgentShell id="volt" glass={glass} onBack={onBack} backLabel={L('back')} title={L('title')} sub={L('sub')}>
@@ -224,6 +243,8 @@ export function VoltPage({ onBack, glass = true }: { onBack: () => void; glass?:
           </div>
         )}
       </section>
+
+      <VoltNews chipName={board?.chipName ?? null} recent={recent} onPick={(r, t) => { setRepo(r); setTag(t); setAutoFind(true) }} />
 
       <section className="bf-card">
         <header><h3>{L('s2')}</h3></header>

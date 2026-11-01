@@ -1,4 +1,5 @@
 import type { CSSProperties, ReactNode } from 'react'
+import { AGENT_VERSIONS } from '../data/agentVersions'
 import { PROJECTS, type ProjectId } from '../lib/projects'
 import { useHubTheme } from '../lib/themes'
 import { AgentFace } from './AgentFace'
@@ -45,6 +46,7 @@ export function AgentShell({
   const p = PROJECTS.find((x) => x.id === id)
   const hue = p?.hue ?? '#d9a3ff'
   const name = p?.name ?? id
+  const ver = AGENT_VERSIONS[id]
 
   if (!glass)
     return (
@@ -53,6 +55,7 @@ export function AgentShell({
           <div className="net-title">
             {onBack && <button className="btn net-back" onClick={onBack}>{backLabel}</button>}
             <span className="hub-hello">{title}</span>
+            {ver && <small className="ag-ver">v{ver}</small>}
           </div>
           <div className="net-status">
             {status}
@@ -82,7 +85,7 @@ export function AgentShell({
         <section className="ag-hero">
           <div className="ag-face" aria-hidden="true"><AgentFace id={id} hue={hue} /></div>
           <div className="ag-hero-t">
-            <h1 className="ag-brand"><ProjectLogo id={id} hue={hue} className="ag-logo" />{name}</h1>
+            <h1 className="ag-brand"><ProjectLogo id={id} hue={hue} className="ag-logo" />{name}{ver && <small className="ag-ver" title={`${name} v${ver}`}>v{ver}</small>}</h1>
             <p className="ag-tag">{sub}</p>
             {actions && <div className="ag-acts">{actions}</div>}
           </div>
