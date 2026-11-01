@@ -2,7 +2,7 @@
  * Version and "What's new". Bump APP_VERSION and add an entry to the top of RELEASES
  * with each update. The banner shows once per version, then stays dismissed.
  */
-export const APP_VERSION = '1.80.0'
+export const APP_VERSION = '1.83.0'
 
 export interface Release {
   version: string
@@ -13,6 +13,18 @@ export interface Release {
 }
 
 export const RELEASES: Release[] = [
+  {
+    version: '1.83.0',
+    date: '2026-11-01',
+    changes: [
+      'Lumi has a new look for its travel-translator job: earbud, phone and A/文 speech bubbles instead of the old camera and beret, and a speech-bubble logo.',
+      'Lumi travel tools, in tabs beside Listen: Two-way (each side taps and speaks one sentence; the phone shows the translation big and reads it aloud), Phrases (16 common travel sentences in 7 languages, works offline, tap to show big and speak), Money (amount to VND with free daily rates kept on the phone; prices heard in conversations get a VND chip), Words (keep any translation and quiz yourself), Etiquette (tipping and manners tips per country). Off switch in Settings > AI rules.',
+    ],
+    changesVi: [
+      'Lumi có diện mạo mới hợp với việc phiên dịch du lịch: tai nghe, điện thoại và bong bóng thoại A/文 thay cho máy ảnh và mũ beret, logo là hai bong bóng thoại.',
+      'Công cụ du lịch của Lumi, nằm ở các tab cạnh Nghe: Hai chiều (mỗi bên bấm và nói một câu, máy hiện bản dịch thật to và đọc lên), Câu nói sẵn (16 câu hay dùng khi du lịch, 7 thứ tiếng, dùng được khi mất mạng), Đổi tiền (ra VND theo tỷ giá miễn phí lưu sẵn trên máy, giá nghe được trong cuộc trò chuyện cũng hiện ra VND), Từ vựng (lưu câu đã dịch và ôn tập), Văn hóa (mẹo tip và phép lịch sự từng nước). Có nút tắt trong Cài đặt > Luật AI.',
+    ],
+  },
   {
     version: '1.80.0',
     date: '2026-11-01',

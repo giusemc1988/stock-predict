@@ -9,7 +9,9 @@
  */
 import { callHelper, keyFor, PROVIDERS, type BrainEnv } from '../lib/brainServer'
 import { sameOrigin, withSavedKeys, type KeyStore } from '../lib/brainKeys'
-import { buildGroupPrompt, cleanTripSave, fallbackGroup, mergeTrips, parseGroupResponse, parseTrips, TRIPS_KEY, type LumiLine, type LumiMode } from '../lib/lumiTranslate'
+import { buildGroupPrompt, buildSayPrompt, cleanSayText, cleanTripSave, fallbackGroup, mergeTrips, parseGroupResponse, parseSayResponse, parseTrips, TRIPS_KEY, type LumiLine, type LumiMode, type SayDir } from '../lib/lumiTranslate'
+import { isLumiLang, LANG_EN } from '../lib/lumiPhrases'
+import { parseRates } from '../lib/lumiMoney'
 
 const json = (data: unknown, status = 200) => new Response(JSON.stringify(data), { status, headers: { 'content-type': 'application/json', 'cache-control': 'no-store' } })
 const MAX_AUDIO_BYTES = 4 * 1024 * 1024
@@ -70,6 +72,38 @@ export async function lumiRoute(req: Request, pathname: string, env: BrainEnv, s
       }
     }
     return json({ conversations: fallbackGroup(lines), by: null })
+  }
+
+  if (pathname === '/api/lumi/say') {
+    if (req.method !== 'POST') return json({ error: 'POST only' }, 405)
+    if (!sameOrigin(req)) return json({ error: 'Not allowed' }, 403)
+    const b = (await req.json().catch(() => null)) as { text?: unknown; dir?: unknown; lang?: unknown } | null
+    const text = cleanSayText(b?.text)
+    const dir: SayDir = b?.dir === 'x2vi' ? 'x2vi' : 'vi2x'
+    if (!text || !isLumiLang(b?.lang)) return json({ error: 'Thiếu câu cần dịch hoặc ngôn ngữ' }, 400)
+    const e = await withSavedKeys(env, settings)
+    const system = 'You are a precise translator for a traveler. Translate faithfully, politely, naturally. Answer with JSON only.'
+    const user = buildSayPrompt(text, dir, LANG_EN[b.lang])
+    for (const p of PROVIDERS) {
+      const key = p.key(e)
+      if (!key) continue
+      try {
+        const out = await callHelper(p, key, e, system, user, fetch, undefined, 300)
+        const parsed = out ? parseSayResponse(out) : null
+        if (parsed) return json({ ...parsed, by: p.name })
+      } catch {
+        // try the next helper
+      }
+    }
+    return json({ error: 'Các AI miễn phí đều hết lượt, thử lại sau ít phút.' }, 503)
+  }
+
+  if (pathname === '/api/lumi/rates') {
+    if (req.method !== 'GET') return json({ error: 'GET only' }, 405)
+    const r = await fetch('https://open.er-api.com/v6/latest/USD', { signal: AbortSignal.timeout(8000) }).catch(() => null)
+    const rates = r?.ok ? parseRates(await r.json().catch(() => null)) : null
+    if (!rates) return json({ error: 'Không lấy được tỷ giá' }, 502)
+    return json(rates)
   }
 
   if (pathname === '/api/lumi/trips') {

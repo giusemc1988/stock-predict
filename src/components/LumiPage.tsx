@@ -4,6 +4,10 @@ import { useLang } from '../lib/i18n'
 import type { LumiConversation, LumiLine, LumiMode } from '../lib/lumiTranslate'
 import { useHubTheme } from '../lib/themes'
 import { AgentShell } from './AgentShell'
+import { useAiRules } from '../lib/aiRules'
+import { findMoney } from '../lib/lumiMoney'
+import { isLumiLang, type LumiLang } from '../lib/lumiPhrases'
+import { LangPicker, LumiCulture, LumiMoney, LumiPhrasebook, LumiTalk, LumiVocab, MoneyChips, useRates, useVocab } from './LumiTools'
 
 const T = {
   back: { en: '← Hub', vi: '← Hub' },
@@ -25,6 +29,13 @@ const T = {
   savedTrips: { en: 'Saved trips', vi: 'Chuyến đã lưu' },
   privacy: { en: 'Audio is never stored. No one is identified. Recording strangers can be illegal in some places — "Talk to me" is the safe mode.', vi: 'Không lưu âm thanh. Không nhận diện ai. Ở một số nơi, ghi âm người lạ có thể phạm luật — "Nói với em" là chế độ an toàn.' },
   close: { en: 'Close', vi: 'Đóng' },
+  tabListen: { en: '👂 Listen', vi: '👂 Nghe' },
+  tabTalk: { en: '💬 Two-way', vi: '💬 Hai chiều' },
+  tabPhrases: { en: '📖 Phrases', vi: '📖 Câu nói sẵn' },
+  tabMoney: { en: '💱 Money', vi: '💱 Đổi tiền' },
+  tabWords: { en: '⭐ Words', vi: '⭐ Từ vựng' },
+  tabTips: { en: '🧭 Etiquette', vi: '🧭 Văn hóa' },
+  langOf: { en: 'Their language', vi: 'Tiếng của họ' },
 } satisfies Record<string, Bi>
 
 /** Browsers that support MediaRecorder + audio/webm; Safari/iOS need a different mime and are out of scope for v1. */
@@ -41,6 +52,17 @@ export function LumiPage({ onBack, glass = true }: { onBack: () => void; glass?:
   const lang = useLang()
   const L = (k: keyof typeof T) => T[k][lang]
   useHubTheme()
+  const rules = useAiRules()
+  const tools = rules.lumiTools !== false
+  type Tab = 'listen' | 'talk' | 'phrases' | 'money' | 'words' | 'tips'
+  const [tab, setTab] = useState<Tab>('listen')
+  const [target, setTargetRaw] = useState<LumiLang>(() => {
+    const v = typeof localStorage === 'undefined' ? null : localStorage.getItem('lumi:lang')
+    return isLumiLang(v) ? v : 'en'
+  })
+  const setTarget = (l: LumiLang) => { setTargetRaw(l); try { localStorage.setItem('lumi:lang', l) } catch { /* ignore */ } }
+  const vocab = useVocab()
+  const rates = useRates()
 
   const [mode, setMode] = useState<LumiMode>('talk')
   const [running, setRunning] = useState(false)
@@ -153,6 +175,27 @@ export function LumiPage({ onBack, glass = true }: { onBack: () => void; glass?:
 
   return (
     <AgentShell id="lumi" glass={glass} onBack={onBack} backLabel={L('back')} title={L('title')} sub={L('sub')}>
+      {tools && (
+        <nav className="lumi-tabs lumi-main-tabs" aria-label="Lumi">
+          {(['listen', 'talk', 'phrases', 'money', 'words', 'tips'] as const).map((k) => (
+            <button key={k} className={tab === k ? 'on' : ''} onClick={() => setTab(k)}>
+              {L(`tab${k[0].toUpperCase()}${k.slice(1)}` as keyof typeof T)}
+            </button>
+          ))}
+        </nav>
+      )}
+      {tools && (tab === 'talk' || tab === 'phrases' || tab === 'tips') && (
+        <section className="bf-card lumi-lang">
+          <span className="small muted">{L('langOf')}</span>
+          <LangPicker value={target} onChange={setTarget} />
+        </section>
+      )}
+      {tools && tab === 'talk' && <LumiTalk lang={lang} target={target} vocab={vocab} />}
+      {tools && tab === 'phrases' && <LumiPhrasebook lang={lang} target={target} vocab={vocab} />}
+      {tools && tab === 'money' && <LumiMoney lang={lang} rates={rates} />}
+      {tools && tab === 'words' && <LumiVocab lang={lang} vocab={vocab} />}
+      {tools && tab === 'tips' && <LumiCulture lang={lang} target={target} />}
+      {(!tools || tab === 'listen') && (<>
       <section className="bf-card">
         <div className="seg">
           <button className={mode === 'talk' ? 'on' : ''} onClick={() => setMode('talk')} disabled={running}>{L('modeTalk')}</button>
@@ -184,6 +227,7 @@ export function LumiPage({ onBack, glass = true }: { onBack: () => void; glass?:
               <button key={c.id} className="lumi-conv" onClick={() => setOpenId(c.id)}>
                 <b>[{c.lang}]</b>
                 <p>{c.summaryVi || c.lines.map((l) => l.text).join(' / ')}</p>
+                {tools && <MoneyChips found={c.lines.flatMap((l) => findMoney(l.text))} rates={rates} />}
                 <small>{c.lines.length} {L('lines')} · {L('tapForDetail')}</small>
               </button>
             ))}
@@ -203,6 +247,7 @@ export function LumiPage({ onBack, glass = true }: { onBack: () => void; glass?:
           </div>
         </div>
       )}
+      </>)}
 
       <p className="small muted lumi-privacy">🔒 {L('privacy')}</p>
     </AgentShell>
