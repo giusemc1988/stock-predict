@@ -20,6 +20,20 @@ interface GithubRelease {
   assets: GithubAsset[]
 }
 
+/** Fallback listing: file names from the public release page's download links (size unknown, reported as 0). */
+async function assetsFromReleasePage(owner: string, repo: string, tag: string): Promise<{ name: string; size: number }[]> {
+  const r = await fetch(`https://github.com/${owner}/${repo}/releases/expanded_assets/${encodeURIComponent(tag)}`, { headers: UA, signal: AbortSignal.timeout(10000) }).catch(() => null)
+  if (!r?.ok) return []
+  const html = await r.text()
+  const names = new Set<string>()
+  const re = /\/releases\/download\/[^"/]+\/([^"?]+)"/g
+  for (const m of html.matchAll(re)) {
+    const name = decodeURIComponent(m[1])
+    if (/\.(bin|json|zip|txt)$/i.test(name)) names.add(name)
+  }
+  return [...names].map((name) => ({ name, size: 0 }))
+}
+
 export async function voltRoute(req: Request, pathname: string): Promise<Response | null> {
   if (pathname === '/api/volt/release') {
     if (req.method !== 'GET') return json({ error: 'GET only' }, 405)
@@ -29,13 +43,20 @@ export async function voltRoute(req: Request, pathname: string): Promise<Respons
     const tag = url.searchParams.get('tag')
     const api = `https://api.github.com/repos/${repo.owner}/${repo.repo}/releases/${tag && tag !== 'latest' ? `tags/${encodeURIComponent(tag)}` : 'latest'}`
     const r = await fetch(api, { headers: { ...UA, accept: 'application/vnd.github+json' }, signal: AbortSignal.timeout(10000) }).catch(() => null)
-    if (!r?.ok) return json({ error: `GitHub trả lỗi ${r?.status ?? 'network'}. Repo có bản release công khai không?` }, 502)
-    const rel = (await r.json()) as GithubRelease
-    const assets = (rel.assets ?? [])
-      .filter((a) => /\.(bin|json|zip|txt)$/i.test(a.name))
-      .map((a) => ({ name: a.name, size: a.size }))
-    if (!assets.length) return json({ error: 'Bản release này không có file .bin/.json để nạp.' }, 404)
-    return json({ repo: `${repo.owner}/${repo.repo}`, tag: rel.tag_name, assets })
+    let tagName = tag && tag !== 'latest' ? tag : ''
+    let assets: { name: string; size: number }[] = []
+    if (r?.ok) {
+      const rel = (await r.json()) as GithubRelease
+      tagName = rel.tag_name
+      assets = (rel.assets ?? []).filter((a) => /\.(bin|json|zip|txt)$/i.test(a.name)).map((a) => ({ name: a.name, size: a.size }))
+    } else if ((r?.status === 403 || r?.status === 429) && tagName) {
+      // Unauthenticated api.github.com calls from shared Worker IPs get rate-limited (403); the public release page has no such limit.
+      assets = await assetsFromReleasePage(repo.owner, repo.repo, tagName)
+    } else {
+      return json({ error: `GitHub trả lỗi ${r?.status ?? 'network'}. Repo có bản release công khai không?` }, 502)
+    }
+    if (!assets.length) return json({ error: r?.ok ? 'Bản release này không có file .bin/.json để nạp.' : `GitHub trả lỗi ${r?.status}, và không đọc được trang release.` }, r?.ok ? 404 : 502)
+    return json({ repo: `${repo.owner}/${repo.repo}`, tag: tagName, assets })
   }
   if (pathname === '/api/volt/asset') {
     if (req.method !== 'GET') return json({ error: 'GET only' }, 405)
