@@ -7,6 +7,8 @@
 import { useEffect, useRef, useState } from 'react'
 import { feedScoutLine, SCOUT_BAUD, SCOUT_PING_LINE, SCOUT_PING_MS, splitLines } from '../lib/nexusSerial'
 import { findingsFor, parseScoutChunk, radarLayout, riskOf, weakNetworks, type Finding, type ScoutScan } from '../lib/nexusScout'
+import { huntCommand, huntStart, huntStep, roomReport, type Hit, type HuntState, type RoomReport } from '../lib/nexusHunt'
+import { NexusRoomCheck } from './NexusRoomCheck'
 import { S3KitBar } from './S3KitBar'
 import { detectFirmware, type KitFirmware } from '../lib/s3Kit'
 import { useNetT } from '../lib/netText'
@@ -38,7 +40,10 @@ function emptyScan(): ScoutScan {
   return { wifi: [], ble: [], at: 0 }
 }
 
-export function NexusScoutPanel({ knownNets = [], onEcho }: { knownNets?: { ssid: string; bssids: string[] }[]; onEcho?: () => void }) {
+/** A room check merges this many finished scan cycles (about 10 s each) so a device that answers only once is still seen. */
+const CHECK_SCANS = 3
+
+export function NexusScoutPanel({ knownNets = [], onEcho, onEchoFlash }: { knownNets?: { ssid: string; bssids: string[] }[]; onEcho?: () => void; onEchoFlash?: () => void }) {
   const t = useNetT()
   const [state, setState] = useState<'idle' | 'connecting' | 'connected' | 'error'>('idle')
   const [scan, setScan] = useState<ScoutScan>(emptyScan())
@@ -49,9 +54,54 @@ export function NexusScoutPanel({ knownNets = [], onEcho }: { knownNets?: { ssid
   const usbRef = useRef<{ stop(): Promise<void> } | null>(null)
   const [fw, setFw] = useState<KitFirmware>('unknown')
   const [via, setVia] = useState<'ble' | 'usb'>('ble')
+  const [running, setRunning] = useState(false)
+  const [report, setReport] = useState<RoomReport | null>(null)
+  const [hunting, setHunting] = useState<{ target: Hit; state: HuntState } | null>(null)
+  const sendRef = useRef<((line: string) => void) | null>(null)
+  const checkRef = useRef<{ on: boolean; scans: ScoutScan[]; timer: number }>({ on: false, scans: [], timer: 0 })
 
   const supported = typeof navigator !== 'undefined' && 'bluetooth' in navigator
   const usbSupported = typeof navigator !== 'undefined' && 'serial' in navigator
+
+  const finishCheck = () => {
+    const c = checkRef.current
+    window.clearTimeout(c.timer)
+    if (!c.on) return
+    c.on = false
+    setRunning(false)
+    if (c.scans.length) setReport(roomReport(c.scans))
+  }
+
+  /** A full scan cycle just ended: show it (never a half-finished one, which made BLE read 0) and feed the room check. */
+  const onScanDone = (done: ScoutScan) => {
+    setScan(done)
+    const c = checkRef.current
+    if (!c.on) return
+    c.scans.push(done)
+    if (c.scans.length >= CHECK_SCANS) finishCheck()
+  }
+
+  const startCheck = () => {
+    const c = checkRef.current
+    window.clearTimeout(c.timer)
+    c.on = true
+    c.scans = []
+    c.timer = window.setTimeout(finishCheck, 70000)
+    setReport(null)
+    setRunning(true)
+  }
+
+  const startFind = (h: Hit) => {
+    const cmd = huntCommand(h.source === 'wifi' ? { kind: 'wifi', bssid: h.id, channel: h.channel ?? 1 } : { kind: 'ble', id: h.id })
+    if (!cmd || !sendRef.current) return
+    sendRef.current(cmd)
+    setHunting({ target: h, state: huntStart() })
+  }
+
+  const stopFind = () => {
+    sendRef.current?.('hunt off\n')
+    setHunting(null)
+  }
 
   /** USB path: Web Serial, line-delimited JSON; a "ping" every 10s keeps the firmware streaming. */
   const connectUsb = async () => {
@@ -65,13 +115,16 @@ export function NexusScoutPanel({ knownNets = [], onEcho }: { knownNets?: { ssid
       if (!port.readable || !port.writable) throw new Error('port')
       const writer = port.writable.getWriter()
       const reader = port.readable.getReader()
-      const ping = () => void writer.write(new TextEncoder().encode(SCOUT_PING_LINE)).catch(() => {})
+      const send = (line: string) => void writer.write(new TextEncoder().encode(line)).catch(() => {})
+      const ping = () => send(SCOUT_PING_LINE)
+      sendRef.current = send
       ping()
       const timer = window.setInterval(ping, SCOUT_PING_MS)
       let stopped = false
       usbRef.current = {
         async stop() {
           stopped = true
+          sendRef.current = null
           window.clearInterval(timer)
           await reader.cancel().catch(() => {})
           reader.releaseLock()
@@ -97,8 +150,13 @@ export function NexusScoutPanel({ knownNets = [], onEcho }: { knownNets?: { ssid
               acc = fed.scan
               if (detectFirmware(line) === 'ruview') setFw('ruview')
               else if (fed.banner) setFw('nexus-scout')
-              else setScan(acc)
-              if (fed.complete) acc = emptyScan()
+              else if (fed.hunt !== undefined) {
+                const reading = fed.hunt
+                setHunting((h) => (h ? { ...h, state: huntStep(h.state, reading) } : h))
+              } else if (fed.complete) {
+                onScanDone(acc)
+                acc = emptyScan()
+              }
             }
           }
         } catch {
@@ -106,6 +164,7 @@ export function NexusScoutPanel({ knownNets = [], onEcho }: { knownNets?: { ssid
         }
         if (!stopped) {
           usbRef.current = null
+          resetCheck()
           setState('idle')
         }
       })()
@@ -123,7 +182,10 @@ export function NexusScoutPanel({ knownNets = [], onEcho }: { knownNets?: { ssid
     try {
       const device = await bt.requestDevice({ filters: [{ namePrefix: 'NexusScout' }], optionalServices: [SERVICE_UUID] })
       deviceRef.current = device
-      device.addEventListener('gattserverdisconnected', () => setState('idle'))
+      device.addEventListener('gattserverdisconnected', () => {
+        resetCheck()
+        setState('idle')
+      })
       const server = await device.gatt?.connect()
       const service = await server?.getPrimaryService(SERVICE_UUID)
       const char = await service?.getCharacteristic(CHAR_UUID)
@@ -132,8 +194,10 @@ export function NexusScoutPanel({ knownNets = [], onEcho }: { knownNets?: { ssid
       char?.addEventListener('characteristicvaluechanged', (e) => {
         const text = new TextDecoder().decode(e.target.value)
         acc = parseScoutChunk(text, acc)
-        setScan(acc)
-        if (text.includes('"end"')) acc = emptyScan()
+        if (text.includes('"end"')) {
+          onScanDone(acc)
+          acc = emptyScan()
+        }
       })
       setFw('nexus-scout') // only nexus-scout exposes this GATT service
       setVia('ble')
@@ -144,7 +208,16 @@ export function NexusScoutPanel({ knownNets = [], onEcho }: { knownNets?: { ssid
     }
   }
 
+  const resetCheck = () => {
+    window.clearTimeout(checkRef.current.timer)
+    checkRef.current = { on: false, scans: [], timer: 0 }
+    sendRef.current = null
+    setRunning(false)
+    setHunting(null)
+  }
+
   const disconnect = () => {
+    resetCheck()
     deviceRef.current?.gatt?.disconnect()
     void usbRef.current?.stop()
     usbRef.current = null
@@ -152,6 +225,7 @@ export function NexusScoutPanel({ knownNets = [], onEcho }: { knownNets?: { ssid
   }
 
   useEffect(() => () => {
+    window.clearTimeout(checkRef.current.timer)
     deviceRef.current?.gatt?.disconnect()
     void usbRef.current?.stop()
   }, [])
@@ -214,6 +288,15 @@ export function NexusScoutPanel({ knownNets = [], onEcho }: { knownNets?: { ssid
       <header><h3>{t('scoutTitle')}</h3></header>
       <S3KitBar mode="nexus" firmware={fw} connected={state === 'connected'} onSwitch={onEcho} />
       <p className="small muted">{t('scoutNote')}</p>
+      <details className="scout-guide" open>
+        <summary>{t('scoutGuideTitle')}</summary>
+        <ol className="small">
+          <li>{t('scoutGuide1')}</li>
+          <li>{t('scoutGuide2')}</li>
+          <li>{t('scoutGuide3')}</li>
+          <li>{t('scoutGuide4')}</li>
+        </ol>
+      </details>
       {!supported && !usbSupported && <p className="small muted">{t('scoutNoSupport')}</p>}
       {state !== 'connected' && (
         <div className="scout-connect">
@@ -228,6 +311,17 @@ export function NexusScoutPanel({ knownNets = [], onEcho }: { knownNets?: { ssid
       {state === 'connected' && <button className="btn" onClick={disconnect}>{t('scoutDisconnect')}{via === 'usb' ? ' (USB)' : ''}</button>}
       {err && <p className="small muted">{err}</p>}
       {state !== 'connected' && <p className="small muted">{t('scoutNeedFirmware')}</p>}
+
+      <NexusRoomCheck
+        connected={state === 'connected'}
+        usb={via === 'usb'}
+        running={running}
+        report={report}
+        hunting={hunting}
+        onCheck={startCheck}
+        onFind={startFind}
+        onStopFind={stopFind}
+      />
 
       {state === 'connected' && (
         <>
@@ -255,6 +349,12 @@ export function NexusScoutPanel({ knownNets = [], onEcho }: { knownNets?: { ssid
             {findings.map((f, i) => <p key={i} className="small">{findingText(f)}</p>)}
           </div>
         </>
+      )}
+      {onEchoFlash && (
+        <div className="scout-echo">
+          <button className="btn" onClick={onEchoFlash}>{t('scoutToEcho')}</button>
+          <p className="small muted">{t('scoutToEchoNote')}</p>
+        </div>
       )}
     </section>
   )

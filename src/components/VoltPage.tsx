@@ -4,6 +4,7 @@ import { useLang } from '../lib/i18n'
 import { VOLT_PRESETS, canFlash, checkParts, describePart, guessOffset, partsFromManifest, type CheckResult, type FlashPart, type WebToolsManifest } from '../lib/voltFlash'
 import { backupFlash, connect, flashParts, probe, VoltError, type BoardProbe } from '../lib/voltFlashRun'
 import { pushRecent, type RecentFlash } from '../lib/voltNews'
+import { HowTo } from './HowTo'
 import { AgentShell } from './AgentShell'
 import { VoltNews } from './VoltNews'
 import { NovaProgress } from './NovaProgress'
@@ -12,6 +13,15 @@ const T = {
   back: { en: '← Hub', vi: '← Hub' },
   title: { en: 'Volt · ESP32 Lab', vi: 'Volt · Phòng ESP32' },
   sub: { en: 'Flash any ESP32 board from a GitHub repo link or a dropped .bin file — Volt checks the file matches the chip before it writes anything.', vi: 'Nạp firmware cho board ESP32 bất kỳ từ link repo GitHub hoặc file .bin thả vào — Volt kiểm tra file khớp chip trước khi ghi bất cứ gì.' },
+  h1: { en: 'The board\'s details once it is plugged in (chip, flash size, MAC).', vi: 'Thông tin bo sau khi cắm vào (chip, dung lượng flash, MAC).' },
+  h1do: { en: 'Plug the board in with a data USB cable (the port marked USB on S3 boards), then pick it from the list that pops up.', vi: 'Cắm bo bằng cáp USB có truyền dữ liệu (với bo S3 là cổng ghi chữ USB), rồi chọn bo trong danh sách hiện ra.' },
+  h1tap: { en: '"Connect over USB".', vi: '"Kết nối qua USB".' },
+  h2: { en: 'Where the firmware comes from: quick-pick buttons, a GitHub link, or your own .bin files.', vi: 'Nơi lấy firmware: nút chọn nhanh, link GitHub, hoặc file .bin của anh.' },
+  h2do: { en: 'Pick what you want on the board (Nexus Scout for the pocket scanner, RuView for Echo). Volt then lists the files to load.', vi: 'Chọn thứ muốn nạp vào bo (Nexus Scout cho máy quét bỏ túi, RuView cho Echo). Volt sẽ liệt kê các file sẽ nạp.' },
+  h2tap: { en: 'A quick-pick button, then "Find firmware in this repo".', vi: 'Một nút chọn nhanh, rồi "Tìm firmware trong repo này".' },
+  h3: { en: 'A safety check (does the file fit this chip?) and the Flash button.', vi: 'Bước kiểm tra an toàn (file có hợp chip này không?) và nút Nạp.' },
+  h3do: { en: 'Read the green/red checks. Only flash when they are green. Flashing replaces what is on the board; back it up first if you want to keep it.', vi: 'Đọc các dòng kiểm tra xanh/đỏ. Chỉ nạp khi đều xanh. Nạp sẽ ghi đè thứ đang có trong bo; muốn giữ thì sao lưu trước.' },
+  h3tap: { en: '"Flash the board" (optionally "Back up" first).', vi: '"Nạp vào board" (có thể bấm "Sao lưu" trước).' },
   s1: { en: 'STEP 1 · CONNECT', vi: 'BƯỚC 1 · KẾT NỐI' },
   connect: { en: 'Connect over USB', vi: 'Kết nối qua USB' },
   connecting: { en: 'Connecting…', vi: 'Đang kết nối…' },
@@ -229,6 +239,7 @@ export function VoltPage({ onBack, glass = true }: { onBack: () => void; glass?:
     <AgentShell id="volt" glass={glass} onBack={onBack} backLabel={L('back')} title={L('title')} sub={L('sub')}>
       <section className="bf-card">
         <header><h3>{L('s1')}</h3></header>
+        <HowTo what={L('h1')} doIt={L('h1do')} tap={L('h1tap')} />
         {!board ? (
           <>
             <button className="btn primary" disabled={connecting} onClick={() => void doConnect()}>{connecting ? L('connecting') : L('connect')}</button>
@@ -248,6 +259,7 @@ export function VoltPage({ onBack, glass = true }: { onBack: () => void; glass?:
 
       <section className="bf-card">
         <header><h3>{L('s2')}</h3></header>
+        <HowTo what={L('h2')} doIt={L('h2do')} tap={L('h2tap')} />
         <div className="ag-acts" role="group" aria-label={L('presetsLabel')}>
           {VOLT_PRESETS.map((p) => (
             <button key={p.id} className="btn" onClick={() => { setRepo(p.repo); setTag(p.tag); setAutoFind(true) }}>{lang === 'vi' ? p.vi : p.en}</button>
@@ -296,6 +308,7 @@ export function VoltPage({ onBack, glass = true }: { onBack: () => void; glass?:
 
       <section className="bf-card">
         <header><h3>{L('s3')}</h3></header>
+        <HowTo what={L('h3')} doIt={L('h3do')} tap={L('h3tap')} />
         {!parts.length ? (
           <p className="muted small">{L('noFiles')}</p>
         ) : (

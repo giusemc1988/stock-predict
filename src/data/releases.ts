@@ -2,7 +2,7 @@
  * Version and "What's new". Bump APP_VERSION and add an entry to the top of RELEASES
  * with each update. The banner shows once per version, then stays dismissed.
  */
-export const APP_VERSION = '1.88.0'
+export const APP_VERSION = '1.89.0'
 
 export interface Release {
   version: string
@@ -14,13 +14,23 @@ export interface Release {
 
 export const RELEASES: Release[] = [
   {
-    version: '1.88.0',
+    version: '1.89.0',
     date: '2026-11-01',
     changes: [
       'Lumi live translation is now much faster. Words appear on screen while the person is still talking, a draft Vietnamese line follows them, and the final Vietnamese shows about 1 second after each sentence (was 6-10 seconds). Each line shows how long it took. Recording now cuts at the speaker\'s natural pause instead of every 6 seconds, translation uses the previous sentences as context, and a fast free translation model is tried first. New: pick the language they speak (or Auto), a "They are talking about" line, and in Talk mode suggested replies you can tap to have read out. If the browser has no instant captions, Lumi falls back to the previous mode.',
     ],
     changesVi: [
       'Lumi dịch trực tiếp nhanh hơn nhiều. Chữ hiện ngay khi người ta còn đang nói, kèm bản dịch nháp chạy theo, bản tiếng Việt chính thức hiện khoảng 1 giây sau mỗi câu (trước đây 6-10 giây). Mỗi câu hiện thời gian dịch. Ghi âm giờ cắt đúng chỗ người nói ngừng thay vì cứ 6 giây, dịch có dựa vào mấy câu trước cho đúng ý, và dùng model dịch nhanh miễn phí trước. Mới: chọn tiếng họ nói (hoặc Tự nhận), dòng "Đang nói về", và ở chế độ "Nói với em" có gợi ý câu trả lời, chạm là máy đọc lên. Trình duyệt nào không có chữ tức thì thì Lumi tự dùng chế độ cũ.',
+    ],
+  },
+  {
+    version: '1.88.0',
+    date: '2026-11-01',
+    changes: [
+      'Nexus pocket scout now does the things it promised, all listening only. One big "Check this room" button listens for about 30 seconds and gives a plain verdict (Nothing obvious / Worth a look / Suspicious) with a "Details" list of possible hidden cameras (camera-style network names and makers) and Bluetooth trackers (AirTag, Tile, SmartTag). A hot / cold finder walks you to a flagged device by signal strength. Fixed: Bluetooth devices always showed 0 because half-finished scans were displayed. New "Switch to Echo" button opens the RuView flashing steps in one tap. Every card (Pocket scout, Volt steps and What\'s new) now has a short "what is here / what to do / what to tap" guide. Re-flash the board from Volt (Nexus Scout) to get the new firmware 1.1.0.',
+    ],
+    changesVi: [
+      'Nexus (thiết bị bỏ túi) giờ làm đúng những gì đã hứa, tất cả chỉ lắng nghe. Một nút to "Kiểm tra phòng này" nghe khoảng 30 giây rồi đưa ra kết luận đơn giản (Chưa thấy gì đáng ngờ / Cần xem lại / Đáng ngờ), kèm danh sách "Chi tiết" về camera ẩn có thể có (tên mạng và hãng kiểu camera) và thiết bị theo dõi Bluetooth (AirTag, Tile, SmartTag). Có thêm dò nóng/lạnh để tìm đúng thiết bị bị báo theo độ mạnh tín hiệu. Sửa lỗi: số thiết bị Bluetooth luôn bằng 0 vì app hiện lần quét chưa xong. Nút "Chuyển sang Echo" mở sẵn các bước nạp RuView chỉ với một chạm. Mọi thẻ (Thiết bị bỏ túi, các bước của Volt và Mới cập nhật) đều có khung hướng dẫn ngắn "có gì / làm gì / bấm gì". Cần nạp lại bo từ Volt (Nexus Scout) để có firmware 1.1.0 mới.',
     ],
   },
   {

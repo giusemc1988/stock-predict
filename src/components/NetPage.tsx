@@ -68,7 +68,7 @@ function ChannelChart({ nets, own }: { nets: WifiNetwork[]; own: string | null }
 }
 
 /** Wi-Fi & Bluetooth tools for Chanh's own network, fed by the home agent (agent/jarvis-agent.ts). */
-export function NetPage({ onBack, onEcho, phoneScan = true, glass = true }: { onBack: () => void; onEcho?: () => void; phoneScan?: boolean; glass?: boolean }) {
+export function NetPage({ onBack, onEcho, onEchoFlash, phoneScan = true, glass = true }: { onBack: () => void; onEcho?: () => void; onEchoFlash?: () => void; phoneScan?: boolean; glass?: boolean }) {
   const t = useNetT()
   const aiRules = useAiRules()
   const [devs, setDevs] = useState<DevicesData | null>(null)
@@ -362,7 +362,7 @@ export function NetPage({ onBack, onEcho, phoneScan = true, glass = true }: { on
         </section>
 
         {aiRules.nexusScout && (
-          <NexusScoutPanel onEcho={onEcho} knownNets={wifi?.ssid ? [{ ssid: wifi.ssid, bssids: nets.filter((n) => n.ssid === wifi.ssid).map((n) => n.bssid) }] : []} />
+          <NexusScoutPanel onEcho={onEcho} onEchoFlash={onEchoFlash} knownNets={wifi?.ssid ? [{ ssid: wifi.ssid, bssids: nets.filter((n) => n.ssid === wifi.ssid).map((n) => n.bssid) }] : []} />
         )}
 
         <section className="bf-card net-tools">

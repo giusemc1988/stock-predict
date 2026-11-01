@@ -18,7 +18,10 @@
  * every ~10s). On boot, and in reply to each ping, it prints the marker line
  *   NEXUS-SCOUT v<version> board=<esp32-s3|esp32> ready
  * which the hub uses to recognise this firmware (vs RuView). Serial is receive-only apart from
- * "ping"; no other command is accepted.
+ * "ping" and the hot/cold finder ("hunt wifi <mac> <ch>" / "hunt ble <mac>" / "hunt off", which makes the
+ * board only listen for that one device and print {"t":"hunt","rssi":-60} about once a second). No other
+ * command is accepted. BLE items also carry optional "co" (manufacturer company id), "ty" (first payload
+ * byte) and "su" (16-bit service uuid) so the app can spot AirTag / Tile / SmartTag trackers.
  *
  * If no phone connects within NO_CLIENT_TIMEOUT_MS of boot, it falls back to its own
  * "NexusScout-xxxx" access point with a tiny read-only status page (no scan control from there --
@@ -56,6 +59,13 @@ uint32_t gBootMs = 0;
 uint32_t gLastPing = 0;
 bool gEverPinged = false;
 String gSerialBuf;
+// Hot/cold finder: when set, the board only listens for this one device (no full scans) and reports its signal.
+enum HuntMode { HUNT_OFF, HUNT_WIFI, HUNT_BLE };
+HuntMode gHunt = HUNT_OFF;
+String gHuntMac;       // lowercase aa:bb:cc:dd:ee:ff
+int gHuntChannel = 1;
+uint32_t gLastHunt = 0;
+static const uint32_t HUNT_INTERVAL_MS = 1000;
 
 static bool serialActive() { return gEverPinged && millis() - gLastPing < SERIAL_ACTIVE_MS; }
 
@@ -63,7 +73,21 @@ static void printBanner() {
   Serial.println("NEXUS-SCOUT v" NEXUS_SCOUT_VERSION " board=" NEXUS_SCOUT_BOARD " ready");
 }
 
-/** Reads host lines; the only command is "ping" (keeps USB streaming on, re-prints the banner). */
+static bool validMac(const String &m) {
+  if (m.length() != 17) return false;
+  for (int i = 0; i < 17; i++) {
+    char c = m[i];
+    if (i % 3 == 2) { if (c != ':') return false; }
+    else if (!isxdigit((unsigned char)c)) return false;
+  }
+  return true;
+}
+
+/**
+ * Reads host lines. Commands: "ping" (keeps USB streaming on, re-prints the banner) and the hot/cold
+ * finder: "hunt wifi <mac> <channel>", "hunt ble <mac>", "hunt off". The finder only LISTENS for one
+ * device and reports its signal strength; it never transmits.
+ */
 static void pollSerial() {
   while (Serial.available()) {
     char c = (char)Serial.read();
@@ -72,9 +96,26 @@ static void pollSerial() {
         gLastPing = millis();
         gEverPinged = true;
         printBanner();
+      } else if (gSerialBuf == "hunt off") {
+        gHunt = HUNT_OFF;
+      } else if (gSerialBuf.startsWith("hunt wifi ") && gSerialBuf.length() >= 29) {
+        String mac = gSerialBuf.substring(10, 27);
+        int ch = gSerialBuf.substring(28).toInt();
+        mac.toLowerCase();
+        if (validMac(mac) && ch >= 1 && ch <= 14) {
+          gHuntMac = mac; gHuntChannel = ch; gHunt = HUNT_WIFI;
+          gLastPing = millis(); gEverPinged = true;
+        }
+      } else if (gSerialBuf.startsWith("hunt ble ") && gSerialBuf.length() == 26) {
+        String mac = gSerialBuf.substring(9);
+        mac.toLowerCase();
+        if (validMac(mac)) {
+          gHuntMac = mac; gHunt = HUNT_BLE;
+          gLastPing = millis(); gEverPinged = true;
+        }
       }
       gSerialBuf = "";
-    } else if (gSerialBuf.length() < 32) {
+    } else if (gSerialBuf.length() < 64) {
       gSerialBuf += c;
     }
   }
@@ -151,10 +192,56 @@ static void scanBle() {
       it["name"] = d.haveName() ? d.getName() : "";
       it["rssi"] = d.getRSSI();
       it["kind"] = d.haveManufacturerData() ? "ibeacon" : "other";
+      // Hints for the tracker detector (Apple Find My / Tile / SmartTag announce themselves in their ads).
+      if (d.haveManufacturerData()) {
+        auto md = d.getManufacturerData();
+        if (md.length() >= 2) {
+          it["co"] = (uint8_t)md[0] | ((uint8_t)md[1] << 8); // company id, little endian
+          if (md.length() >= 3) it["ty"] = (uint8_t)md[2];   // first payload byte (0x12 = Apple Find My)
+        }
+      }
+      if (d.haveServiceUUID()) {
+        BLEUUID u = d.getServiceUUID();
+        String us = String(u.toString().c_str());               // "0000feed-0000-1000-8000-00805f9b34fb" or short form
+        us.toLowerCase();
+        if (us.length() == 36) us = us.substring(4, 8);
+        if (us.length() <= 8) it["su"] = us;
+      }
     }
     notifyJson(doc);
   }
   scan->clearResults();
+}
+
+/** One finder reading: listen briefly for the chosen device and report its RSSI (or none). Passive only. */
+static void runHuntStep() {
+  int rssi = 0;
+  bool seen = false;
+  if (gHunt == HUNT_WIFI) {
+    int n = WiFi.scanNetworks(false, false, true, 120, gHuntChannel);
+    for (int i = 0; i < n; i++) {
+      String b = WiFi.BSSIDstr(i);
+      b.toLowerCase();
+      if (b == gHuntMac) { rssi = WiFi.RSSI(i); seen = true; break; }
+    }
+    WiFi.scanDelete();
+  } else {
+    BLEScan *scan = BLEDevice::getScan();
+    scan->setActiveScan(false);
+    BLEScanResults *results = scan->start(1, false);
+    int n = results->getCount();
+    for (int i = 0; i < n; i++) {
+      BLEAdvertisedDevice d = results->getDevice(i);
+      String a = d.getAddress().toString().c_str();
+      a.toLowerCase();
+      if (a == gHuntMac) { rssi = d.getRSSI(); seen = true; break; }
+    }
+    scan->clearResults();
+  }
+  JsonDocument doc;
+  doc["t"] = "hunt";
+  if (seen) doc["rssi"] = rssi; else doc["rssi"] = nullptr;
+  notifyJson(doc);
 }
 
 static void runScanCycle() {
@@ -211,7 +298,12 @@ void loop() {
   if (gApFallback) {
     gHttp.handleClient();
   }
-  if ((gClientConnected || serialActive()) && millis() - gLastScan > SCAN_INTERVAL_MS) {
+  if (gHunt != HUNT_OFF && serialActive()) {
+    if (millis() - gLastHunt > HUNT_INTERVAL_MS) {
+      gLastHunt = millis();
+      runHuntStep();
+    }
+  } else if ((gClientConnected || serialActive()) && millis() - gLastScan > SCAN_INTERVAL_MS) {
     gLastScan = millis();
     runScanCycle();
   }
