@@ -408,6 +408,10 @@ button.hg-kb:hover, button.hg-kb:focus-visible { background: rgba(255, 255, 255,
 .agf-volt .agf-eyes { animation-duration: 2.4s; }
 .agf-nexus .agf-head { animation-duration: 4.5s; }
 .agf-lumi .agf-eyes { animation-duration: 6.4s; }
+.agf-bub { transform-box: fill-box; transform-origin: 50% 100%; animation: agf-bub 3.2s ease-in-out infinite; }
+.agf-bub2 { animation-delay: 1.6s; }
+.agf-talkbar { animation: agf-pulse 1.6s ease-out infinite; transform-box: fill-box; transform-origin: 0 50%; }
+@keyframes agf-bub { 0%, 100% { opacity: 0.35; transform: scale(0.9); } 20%, 60% { opacity: 1; transform: scale(1); } }
 @keyframes agf-bob { 50% { transform: translateY(-2px); } }
 @keyframes agf-tilt { 0%, 100% { transform: rotate(0); } 30% { transform: rotate(-5deg); } 62% { transform: rotate(3deg); } }
 @keyframes agf-look { 0%, 26% { transform: translate(0, 0); } 36%, 50% { transform: translate(-2.5px, -1.5px); } 60%, 76% { transform: translate(2.5px, 0); } 86%, 100% { transform: translate(0, 0); } }
