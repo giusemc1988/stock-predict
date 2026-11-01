@@ -13,6 +13,13 @@
  *   {"t":"ble","items":[{"id":"aa:bb:..","name":"...", "rssi":-70,"kind":"other"}, ...]}
  *   {"t":"end","at":<millis since boot>}
  *
+ * Same chunks are also written to USB serial (115200), one JSON object per line, whenever the host
+ * has sent a "ping" line within the last SERIAL_ACTIVE_MS (the Neo Hub's s3Kit/Nexus page does this
+ * every ~10s). On boot, and in reply to each ping, it prints the marker line
+ *   NEXUS-SCOUT v<version> board=<esp32-s3|esp32> ready
+ * which the hub uses to recognise this firmware (vs RuView). Serial is receive-only apart from
+ * "ping"; no other command is accepted.
+ *
  * If no phone connects within NO_CLIENT_TIMEOUT_MS of boot, it falls back to its own
  * "NexusScout-xxxx" access point with a tiny read-only status page (no scan control from there --
  * Web Bluetooth from the Nexus page is the only way to drive a scan).
@@ -37,6 +44,7 @@
 
 static const uint32_t SCAN_INTERVAL_MS = 10000;   // one Wi-Fi + BLE scan cycle every 10s
 static const uint32_t NO_CLIENT_TIMEOUT_MS = 60000; // fall back to AP mode after 60s with no BLE client
+static const uint32_t SERIAL_ACTIVE_MS = 30000;   // host must ping within this window to keep USB streaming
 static const uint8_t MAX_ITEMS_PER_CHUNK = 4;      // keep each BLE notification small
 
 BLECharacteristic *gChar = nullptr;
@@ -45,6 +53,32 @@ bool gApFallback = false;
 WebServer gHttp(80);
 uint32_t gLastScan = 0;
 uint32_t gBootMs = 0;
+uint32_t gLastPing = 0;
+bool gEverPinged = false;
+String gSerialBuf;
+
+static bool serialActive() { return gEverPinged && millis() - gLastPing < SERIAL_ACTIVE_MS; }
+
+static void printBanner() {
+  Serial.println("NEXUS-SCOUT v" NEXUS_SCOUT_VERSION " board=" NEXUS_SCOUT_BOARD " ready");
+}
+
+/** Reads host lines; the only command is "ping" (keeps USB streaming on, re-prints the banner). */
+static void pollSerial() {
+  while (Serial.available()) {
+    char c = (char)Serial.read();
+    if (c == '\n' || c == '\r') {
+      if (gSerialBuf == "ping") {
+        gLastPing = millis();
+        gEverPinged = true;
+        printBanner();
+      }
+      gSerialBuf = "";
+    } else if (gSerialBuf.length() < 32) {
+      gSerialBuf += c;
+    }
+  }
+}
 
 class ServerCallbacks : public BLEServerCallbacks {
   void onConnect(BLEServer *server) override {
@@ -59,9 +93,10 @@ class ServerCallbacks : public BLEServerCallbacks {
 };
 
 static void notifyJson(const JsonDocument &doc) {
-  if (!gChar || !gClientConnected) return;
   String out;
   serializeJson(doc, out);
+  if (serialActive()) Serial.println(out);
+  if (!gChar || !gClientConnected) return;
   gChar->setValue(out.c_str());
   gChar->notify();
   delay(20); // give the BLE stack time between notifications on slower phones
@@ -123,7 +158,7 @@ static void scanBle() {
 }
 
 static void runScanCycle() {
-  if (!gClientConnected) return;
+  if (!gClientConnected && !serialActive()) return;
   scanWifi();
   scanBle();
   JsonDocument end;
@@ -150,6 +185,7 @@ void setup() {
   gBootMs = millis();
   pinMode(LED_BUILTIN, OUTPUT);
   Serial.begin(115200);
+  printBanner();
 
   BLEDevice::init("NexusScout");
   BLEServer *server = BLEDevice::createServer();
@@ -168,13 +204,14 @@ void setup() {
 }
 
 void loop() {
-  if (!gApFallback && !gClientConnected && millis() - gBootMs > NO_CLIENT_TIMEOUT_MS) {
+  pollSerial();
+  if (!gApFallback && !gClientConnected && !serialActive() && millis() - gBootMs > NO_CLIENT_TIMEOUT_MS) {
     startApFallback();
   }
   if (gApFallback) {
     gHttp.handleClient();
   }
-  if (gClientConnected && millis() - gLastScan > SCAN_INTERVAL_MS) {
+  if ((gClientConnected || serialActive()) && millis() - gLastScan > SCAN_INTERVAL_MS) {
     gLastScan = millis();
     runScanCycle();
   }

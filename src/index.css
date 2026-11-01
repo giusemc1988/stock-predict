@@ -1294,6 +1294,7 @@ body:has(.jfab) .toasts, body:has(.jfab) .jarvis-alert { bottom: 84px; }
 .net-devices { grid-area: dev; } .net-analyzer { grid-area: ana; } .net-ble { grid-area: ble; } .net-scout { grid-area: scout; } .net-tools { grid-area: tools; }
 .net-scout { display: grid; gap: 8px; }
 .net-scout .btn { justify-self: start; padding: 7px 14px; border-radius: 999px; border: 1px solid var(--line-2); }
+.scout-connect { display: flex; flex-wrap: wrap; gap: 8px; }
 .scout-tabs { display: flex; gap: 6px; }
 .scout-tabs button { padding: 4px 12px; border-radius: 999px; border: 1px solid var(--line-2); font-size: 12px; color: var(--muted); }
 .scout-tabs button.on { color: var(--robot); border-color: var(--robot); background: rgba(79, 209, 255, 0.1); }

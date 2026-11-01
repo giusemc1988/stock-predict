@@ -35,10 +35,21 @@ jobs:
       - name: Build ${{ matrix.env }}
         working-directory: firmware/nexus-scout
         run: pio run -e ${{ matrix.env }}
+      - name: Merge into one flashable image (bootloader + partitions + app at 0x0)
+        working-directory: firmware/nexus-scout
+        run: |
+          B=.pio/build/${{ matrix.env }}
+          FW=$(ls -d ~/.platformio/packages/framework-arduinoespressif32*/ | head -1)
+          if [ "${{ matrix.env }}" = "esp32-s3" ]; then CHIP=esp32s3; BOOT=0x0; SIZE=16MB; else CHIP=esp32; BOOT=0x1000; SIZE=4MB; fi
+          python -m esptool --chip $CHIP merge_bin -o $B/merged.bin --flash_mode dio --flash_size $SIZE \
+            $BOOT $B/bootloader.bin 0x8000 $B/partitions.bin 0xe000 ${FW}tools/partitions/boot_app0.bin 0x10000 $B/firmware.bin
+          ls -l $B/merged.bin
       - uses: actions/upload-artifact@v4
         with:
           name: nexus-scout-${{ matrix.env }}
-          path: firmware/nexus-scout/.pio/build/${{ matrix.env }}/firmware.bin
+          path: |
+            firmware/nexus-scout/.pio/build/${{ matrix.env }}/firmware.bin
+            firmware/nexus-scout/.pio/build/${{ matrix.env }}/merged.bin
           if-no-files-found: error
 
   release:
@@ -53,8 +64,11 @@ jobs:
       - name: Rename and checksum
         run: |
           mkdir -p out
-          cp artifacts/nexus-scout-esp32-s3/firmware.bin out/nexus-scout-esp32-s3.bin
-          cp artifacts/nexus-scout-esp32dev/firmware.bin out/nexus-scout-esp32.bin
+          # Merged images (bootloader+partitions+app) so a blank or RuView-flashed board boots. S3 flashes at 0x0.
+          cp artifacts/nexus-scout-esp32-s3/merged.bin out/nexus-scout-esp32-s3.bin
+          cp artifacts/nexus-scout-esp32dev/merged.bin out/nexus-scout-esp32.bin
+          # Volt auto-selects the manifest: it targets Chanh's ESP32-S3 kit. The plain-ESP32 image is a manual download.
+          printf '{"name":"nexus-scout","builds":[{"chipFamily":"ESP32-S3","parts":[{"path":"nexus-scout-esp32-s3.bin","offset":0}]}]}\n' > out/manifest.json
           cd out && sha256sum *.bin > SHA256SUMS
       - name: Publish nexus-scout-latest release
         env:

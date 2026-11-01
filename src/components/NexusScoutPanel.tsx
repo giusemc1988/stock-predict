@@ -5,6 +5,7 @@
  * fallback, and lists findings computed by src/lib/nexusScout.ts.
  */
 import { useEffect, useRef, useState } from 'react'
+import { feedScoutLine, SCOUT_BAUD, SCOUT_PING_LINE, SCOUT_PING_MS, splitLines } from '../lib/nexusSerial'
 import { findingsFor, parseScoutChunk, radarLayout, riskOf, weakNetworks, type Finding, type ScoutScan } from '../lib/nexusScout'
 import { useNetT } from '../lib/netText'
 
@@ -23,6 +24,14 @@ type BtChar = {
   addEventListener(ev: 'characteristicvaluechanged', fn: (e: { target: { value: DataView } }) => void): void
 }
 
+type SerialPortLike = {
+  open(o: { baudRate: number }): Promise<void>
+  close(): Promise<void>
+  readable: ReadableStream<Uint8Array> | null
+  writable: WritableStream<Uint8Array> | null
+}
+type SerialApi = { requestPort(): Promise<SerialPortLike> }
+
 function emptyScan(): ScoutScan {
   return { wifi: [], ble: [], at: 0 }
 }
@@ -35,8 +44,70 @@ export function NexusScoutPanel({ knownNets = [] }: { knownNets?: { ssid: string
   const [view, setView] = useState<'radar' | 'list'>('radar')
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const deviceRef = useRef<Awaited<ReturnType<Bt['requestDevice']>> | null>(null)
+  const usbRef = useRef<{ stop(): Promise<void> } | null>(null)
+  const [via, setVia] = useState<'ble' | 'usb'>('ble')
 
   const supported = typeof navigator !== 'undefined' && 'bluetooth' in navigator
+  const usbSupported = typeof navigator !== 'undefined' && 'serial' in navigator
+
+  /** USB path: Web Serial, line-delimited JSON; a "ping" every 10s keeps the firmware streaming. */
+  const connectUsb = async () => {
+    const serial = (navigator as Navigator & { serial?: SerialApi }).serial
+    if (!serial) return
+    setState('connecting')
+    setErr(null)
+    try {
+      const port = await serial.requestPort()
+      await port.open({ baudRate: SCOUT_BAUD })
+      if (!port.readable || !port.writable) throw new Error('port')
+      const writer = port.writable.getWriter()
+      const reader = port.readable.getReader()
+      const ping = () => void writer.write(new TextEncoder().encode(SCOUT_PING_LINE)).catch(() => {})
+      ping()
+      const timer = window.setInterval(ping, SCOUT_PING_MS)
+      let stopped = false
+      usbRef.current = {
+        async stop() {
+          stopped = true
+          window.clearInterval(timer)
+          await reader.cancel().catch(() => {})
+          reader.releaseLock()
+          writer.releaseLock()
+          await port.close().catch(() => {})
+        },
+      }
+      setVia('usb')
+      setState('connected')
+      void (async () => {
+        let buf = ''
+        let acc = emptyScan()
+        const dec = new TextDecoder()
+        try {
+          while (!stopped) {
+            const { value, done } = await reader.read()
+            if (done) break
+            const { lines, rest } = splitLines(buf + dec.decode(value, { stream: true }))
+            buf = rest
+            for (const line of lines) {
+              const fed = feedScoutLine(line, acc)
+              acc = fed.scan
+              if (!fed.banner) setScan(acc)
+              if (fed.complete) acc = emptyScan()
+            }
+          }
+        } catch {
+          // port unplugged mid-read
+        }
+        if (!stopped) {
+          usbRef.current = null
+          setState('idle')
+        }
+      })()
+    } catch (e) {
+      setState('error')
+      setErr(e instanceof Error ? e.message : String(e))
+    }
+  }
 
   const connect = async () => {
     const bt = (navigator as Navigator & { bluetooth?: Bt }).bluetooth
@@ -67,10 +138,15 @@ export function NexusScoutPanel({ knownNets = [] }: { knownNets?: { ssid: string
 
   const disconnect = () => {
     deviceRef.current?.gatt?.disconnect()
+    void usbRef.current?.stop()
+    usbRef.current = null
     setState('idle')
   }
 
-  useEffect(() => () => deviceRef.current?.gatt?.disconnect(), [])
+  useEffect(() => () => {
+    deviceRef.current?.gatt?.disconnect()
+    void usbRef.current?.stop()
+  }, [])
 
   const findings: Finding[] = findingsFor(scan, knownNets)
   const weak = new Set(weakNetworks(scan.wifi).map((w) => w.wifi.bssid))
@@ -129,11 +205,18 @@ export function NexusScoutPanel({ knownNets = [] }: { knownNets?: { ssid: string
     <section className="bf-card net-scout">
       <header><h3>{t('scoutTitle')}</h3></header>
       <p className="small muted">{t('scoutNote')}</p>
-      {!supported && <p className="small muted">{t('scoutNoSupport')}</p>}
-      {supported && state !== 'connected' && (
-        <button className="btn" disabled={state === 'connecting'} onClick={() => void connect()}>{state === 'connecting' ? t('scoutConnecting') : t('scoutConnect')}</button>
+      {!supported && !usbSupported && <p className="small muted">{t('scoutNoSupport')}</p>}
+      {state !== 'connected' && (
+        <div className="scout-connect">
+          {usbSupported && (
+            <button className="btn" disabled={state === 'connecting'} onClick={() => void connectUsb()}>{state === 'connecting' ? t('scoutConnecting') : t('scoutConnectUsb')}</button>
+          )}
+          {supported && (
+            <button className="btn" disabled={state === 'connecting'} onClick={() => void connect()}>{state === 'connecting' ? t('scoutConnecting') : t('scoutConnect')}</button>
+          )}
+        </div>
       )}
-      {state === 'connected' && <button className="btn" onClick={disconnect}>{t('scoutDisconnect')}</button>}
+      {state === 'connected' && <button className="btn" onClick={disconnect}>{t('scoutDisconnect')}{via === 'usb' ? ' (USB)' : ''}</button>}
       {err && <p className="small muted">{err}</p>}
       {state !== 'connected' && <p className="small muted">{t('scoutNeedFirmware')}</p>}
 

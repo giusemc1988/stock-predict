@@ -98,6 +98,7 @@ export const NET_TEXT = {
   scoutTitle: { en: 'Pocket scout (ESP32)', vi: 'Thiết bị bỏ túi (ESP32)' },
   scoutNote: { en: 'Watch only — it never transmits deauth, spam or any attack frame.', vi: 'Chỉ quan sát — không bao giờ gửi deauth, spam hay bất kỳ khung tấn công nào.' },
   scoutConnect: { en: 'Connect to Nexus Scout', vi: 'Kết nối Nexus Scout' },
+  scoutConnectUsb: { en: 'Connect via USB', vi: 'Kết nối qua USB' },
   scoutConnecting: { en: 'Connecting…', vi: 'Đang kết nối…' },
   scoutDisconnect: { en: 'Disconnect', vi: 'Ngắt kết nối' },
   scoutNoSupport: { en: 'This browser cannot do Bluetooth (use Chrome/Edge).', vi: 'Trình duyệt này không hỗ trợ Bluetooth (dùng Chrome/Edge).' },
