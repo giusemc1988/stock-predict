@@ -36,6 +36,8 @@ import { GodsEyePage } from './components/GodsEyePage'
 import { VideoStudioPage } from './components/VideoStudioPage'
 import { ViralTechPage } from './components/ViralTechPage'
 import { MaxPage } from './components/MaxPage'
+import { VoltPage } from './components/VoltPage'
+import { LumiPage } from './components/LumiPage'
 import { useHubTheme } from './lib/themes'
 import './components/AtlasSkin.css'
 import { AutoLearnPanel } from './components/AutoLearnPanel'
@@ -127,7 +129,7 @@ export default function App() {
   const hubOn = aiRules.jarvisHub
   // where a project page's back button goes: the Neo Hub, or Atlas's first page when the Hub is off
   const homePage: Page = hubOn ? 'home' : briefOn ? 'brief' : 'trade'
-  const shownPage: Page = page === 'home' && !hubOn ? (briefOn ? 'brief' : 'trade') : (page === 'brief' && !briefOn) || (page === 'net' && !aiRules.netTools) || (page === 'ruview' && !aiRules.ruviewOn) || (page === 'godseye' && !aiRules.godsEyeOn) || (page === 'studio' && !aiRules.videoStudioOn) ? 'trade' : page
+  const shownPage: Page = page === 'home' && !hubOn ? (briefOn ? 'brief' : 'trade') : (page === 'brief' && !briefOn) || (page === 'net' && !aiRules.netTools) || (page === 'ruview' && !aiRules.ruviewOn) || (page === 'godseye' && !aiRules.godsEyeOn) || (page === 'studio' && !aiRules.videoStudioOn) || (page === 'volt' && !aiRules.voltFlasher) || (page === 'lumi' && !aiRules.lumiTranslator) ? 'trade' : page
   // every page change goes through the browser history, so swipe-back / Back returns to the Hub (lib/pageHistory.ts)
   const pageRef = useRef(page)
   pageRef.current = page
@@ -597,7 +599,7 @@ export default function App() {
   }
 
   // what every agent in the floating chat knows about the hub
-  const hubOnPages = { net: aiRules.netTools, ruview: aiRules.ruviewOn, godseye: aiRules.godsEyeOn, studio: aiRules.videoStudioOn }
+  const hubOnPages = { net: aiRules.netTools, ruview: aiRules.ruviewOn, godseye: aiRules.godsEyeOn, studio: aiRules.videoStudioOn, volt: aiRules.voltFlasher, lumi: aiRules.lumiTranslator }
   const equityNow = practiceEquity(practice.state)
   const postsNow = postCounts(VIRALTECH.posts)
   const hubFacts: HubFacts = {
@@ -624,7 +626,7 @@ export default function App() {
 
   return (
     <div
-      className={`app page-${shownPage === 'ruview' || shownPage === 'godseye' || shownPage === 'studio' || shownPage === 'viraltech' || shownPage === 'max' ? `net page-${shownPage}` : shownPage}${atlasSkin ? ' atlas-skin' : ''}${aiRules.agentGlass ? ' neo-skin' : ''}`}
+      className={`app page-${shownPage === 'ruview' || shownPage === 'godseye' || shownPage === 'studio' || shownPage === 'viraltech' || shownPage === 'max' || shownPage === 'volt' || shownPage === 'lumi' ? `net page-${shownPage}` : shownPage}${atlasSkin ? ' atlas-skin' : ''}${aiRules.agentGlass ? ' neo-skin' : ''}`}
       data-skin={aiRules.agentGlass ? hubTheme : undefined}
       style={
         aiRules.resizePanels
@@ -685,7 +687,7 @@ export default function App() {
         equity={broker.account.equity}
         dayPL={broker.account.dayPL}
       />}
-      {shownPage !== 'home' && shownPage !== 'brief' && shownPage !== 'net' && shownPage !== 'ruview' && shownPage !== 'godseye' && shownPage !== 'studio' && shownPage !== 'viraltech' && shownPage !== 'max' && <PanelGuard name="Watchlist"><Watchlist
+      {shownPage !== 'home' && shownPage !== 'brief' && shownPage !== 'net' && shownPage !== 'ruview' && shownPage !== 'godseye' && shownPage !== 'studio' && shownPage !== 'viraltech' && shownPage !== 'max' && shownPage !== 'volt' && shownPage !== 'lumi' && <PanelGuard name="Watchlist"><Watchlist
         sortRequest={sortRequest}
         aiActive={aiRules.practiceMode && aiRules.practiceWatchlist ? aiActive : null}
         instruments={universe}
@@ -713,7 +715,7 @@ export default function App() {
               scanning={aiRules.practiceMode && (aiRules.practiceAutoPick || practice.serverMode)}
               learn={autoLearn.state}
               killSwitch={prefs.killSwitch}
-              on={{ net: aiRules.netTools, ruview: aiRules.ruviewOn, godseye: aiRules.godsEyeOn, studio: aiRules.videoStudioOn }}
+              on={{ net: aiRules.netTools, ruview: aiRules.ruviewOn, godseye: aiRules.godsEyeOn, studio: aiRules.videoStudioOn, volt: aiRules.voltFlasher, lumi: aiRules.lumiTranslator }}
               webFlash={aiRules.webFlash}
               onOpen={(pg) => {
                 setRuviewFlash(pg === 'ruview-flash')
@@ -732,7 +734,7 @@ export default function App() {
               scanning={aiRules.practiceMode && (aiRules.practiceAutoPick || practice.serverMode)}
               learn={autoLearn.state}
               killSwitch={prefs.killSwitch}
-              on={{ net: aiRules.netTools, ruview: aiRules.ruviewOn, godseye: aiRules.godsEyeOn, studio: aiRules.videoStudioOn }}
+              on={{ net: aiRules.netTools, ruview: aiRules.ruviewOn, godseye: aiRules.godsEyeOn, studio: aiRules.videoStudioOn, volt: aiRules.voltFlasher, lumi: aiRules.lumiTranslator }}
               webFlash={aiRules.webFlash}
               onOpen={(pg) => {
                 setRuviewFlash(pg === 'ruview-flash')
@@ -796,6 +798,14 @@ export default function App() {
       ) : shownPage === 'max' ? (
         <PanelGuard name="Max">
           <MaxPage onBack={() => setPage(homePage)} glass={aiRules.agentGlass} />
+        </PanelGuard>
+      ) : shownPage === 'volt' ? (
+        <PanelGuard name="Volt">
+          <VoltPage onBack={() => setPage(homePage)} glass={aiRules.agentGlass} />
+        </PanelGuard>
+      ) : shownPage === 'lumi' ? (
+        <PanelGuard name="Lumi">
+          <LumiPage onBack={() => setPage(homePage)} glass={aiRules.agentGlass} />
         </PanelGuard>
       ) : shownPage === 'trade' ? (
         <>

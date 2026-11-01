@@ -5,7 +5,7 @@
 import type { Bi } from './hubText'
 import { GODS_EYE_URL } from './godsEye'
 
-export type HubPage = 'trade' | 'portfolio' | 'net' | 'ruview' | 'ruview-flash' | 'godseye' | 'studio' | 'viraltech' | 'max'
+export type HubPage = 'trade' | 'portfolio' | 'net' | 'ruview' | 'ruview-flash' | 'godseye' | 'studio' | 'viraltech' | 'max' | 'volt' | 'lumi'
 export type ToolAction = { kind: 'page'; page: HubPage } | { kind: 'url'; url: string } | { kind: 'scroll'; id: string } | { kind: 'soon' }
 
 export interface ToolNode {
@@ -41,7 +41,7 @@ export const TOOLS: ToolNode[] = [
   { id: 'kronos', cluster: 'trading', label: { en: 'Kronos shadow test', vi: 'Kronos thi thử' }, note: { en: 'AI candle forecasts graded daily, never traded', vi: 'Dự đoán nến bằng AI, chấm điểm mỗi ngày, không giao dịch' }, action: { kind: 'url', url: `${REPO}/blob/main/docs/kronos-shadow.md` } },
   { id: 'godseye', cluster: 'world', label: { en: "Iris · God's Eye", vi: "Iris · God's Eye" }, note: { en: 'Live 3D globe: flights, military, satellites, quakes', vi: 'Địa cầu 3D trực tiếp: máy bay, quân sự, vệ tinh, động đất' }, action: { kind: 'page', page: 'godseye' } },
   { id: 'godseye-full', cluster: 'world', label: { en: 'Globe full screen', vi: 'Địa cầu toàn màn hình' }, note: { en: 'The argus Worker on your Cloudflare', vi: 'Worker argus trên Cloudflare của anh' }, action: { kind: 'url', url: GODS_EYE_URL } },
-  { id: 'flash', cluster: 'esp32', label: { en: 'Flash a board', vi: 'Nạp firmware' }, note: { en: 'ESP32-S3 / C6 from Chrome over USB', vi: 'ESP32-S3 / C6 qua USB trên Chrome' }, action: { kind: 'page', page: 'ruview-flash' } },
+  { id: 'flash', cluster: 'esp32', label: { en: 'Flash a board', vi: 'Nạp firmware' }, note: { en: 'Any ESP32 from Chrome over USB, from a repo link or a .bin file', vi: 'Mọi ESP32 qua USB trên Chrome, từ link repo hay file .bin' }, action: { kind: 'page', page: 'volt' } },
   { id: 'ruview', cluster: 'esp32', label: { en: 'RuView live', vi: 'RuView trực tiếp' }, note: { en: 'Rooms, nodes, presence', vi: 'Phòng, node, có người' }, action: { kind: 'page', page: 'ruview' } },
   { id: 'firmware', cluster: 'esp32', label: { en: 'Firmware releases', vi: 'Các bản firmware' }, note: { en: 'RuView on GitHub', vi: 'RuView trên GitHub' }, action: { kind: 'url', url: 'https://github.com/ruvnet/ruview/releases' } },
   { id: 'espconnect', cluster: 'esp32', label: { en: 'ESPConnect', vi: 'ESPConnect' }, note: { en: 'Inspect, back up and flash any ESP32 in Chrome over USB', vi: 'Xem, sao lưu và nạp mọi ESP32 trên Chrome qua USB' }, action: { kind: 'url', url: 'https://thelastoutpostworkshop.github.io/ESPConnect/' } },

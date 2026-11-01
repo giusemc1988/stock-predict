@@ -40,6 +40,30 @@ const OUI: Record<string, string> = {
   '00:15:5d': 'Microsoft', '28:18:78': 'Microsoft', '7c:1e:52': 'Microsoft',
   '8c:79:f5': 'Samsung', 'f4:7b:09': 'Samsung', 'cc:6e:a4': 'Samsung',
   'fc:65:de': 'Amazon', '44:65:0d': 'Amazon',
+  '00:1e:58': 'D-Link', '14:d6:4d': 'D-Link', '00:11:32': 'Synology',
+  '00:1c:fa': 'Netgear', 'a0:40:a0': 'Netgear', 'e0:46:9a': 'Netgear',
+  '3c:37:86': 'Ubiquiti', '24:5a:4c': 'Ubiquiti', '74:83:c2': 'Ubiquiti', 'fc:ec:da': 'Ubiquiti',
+  '00:17:88': 'Philips Hue', '00:0d:6f': 'EZURIO (BLE modules)',
+  '70:ee:50': 'Netatmo', 'd0:52:a8': 'LG', 'a0:b4:37': 'Sonos',
+  '00:04:20': 'Hewlett Packard', '00:1f:29': 'Hewlett Packard', '3c:d9:2b': 'Hewlett Packard',
+  '00:00:48': 'Epson', '00:26:ab': 'Canon', '00:1b:a9': 'Canon',
+}
+
+/** Rough "what kind of device is this" guess from its OUI vendor name and (if known) open ports. Returns null rather than a guess when nothing fits. */
+export function deviceTypeOf(vendor: string | null, openPorts: number[] = []): string | null {
+  if (vendor && /ubiquiti|netgear|d-link|tp-link/i.test(vendor)) return 'router'
+  if (vendor && /apple/i.test(vendor)) return openPorts.includes(548) || openPorts.includes(5000) ? 'computer' : 'phone'
+  if (vendor && /samsung|google/i.test(vendor)) return 'phone'
+  if (vendor && /sonos/i.test(vendor)) return 'speaker'
+  if (vendor && /philips hue/i.test(vendor)) return 'light'
+  if (vendor && /canon|epson/i.test(vendor)) return 'printer'
+  if (vendor && /raspberry pi|espressif/i.test(vendor)) return 'microcontroller'
+  if (vendor && /(hewlett packard|microsoft)/i.test(vendor)) return 'computer'
+  if (openPorts.includes(554) || openPorts.includes(8554)) return 'camera'
+  if (openPorts.includes(9100) || openPorts.includes(631)) return 'printer'
+  if (openPorts.includes(8008) || openPorts.includes(8009) || openPorts.includes(7000)) return 'tv'
+  if (openPorts.includes(80) || openPorts.includes(443) || openPorts.includes(53)) return 'router'
+  return null
 }
 
 export function vendorOf(mac: string): string | null {

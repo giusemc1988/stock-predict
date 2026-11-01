@@ -2,7 +2,7 @@
  * Version and "What's new". Bump APP_VERSION and add an entry to the top of RELEASES
  * with each update. The banner shows once per version, then stays dismissed.
  */
-export const APP_VERSION = '1.77.9'
+export const APP_VERSION = '1.79.0'
 
 export interface Release {
   version: string
@@ -13,6 +13,32 @@ export interface Release {
 }
 
 export const RELEASES: Release[] = [
+  {
+    version: '1.79.0',
+    date: '2026-11-01',
+    changes: [
+      'Nexus: new "Pocket scout" panel. Power a nexus-scout ESP32 from a battery pack, connect to it over Bluetooth from the Nexus page, and see a radar of the Wi-Fi and BLE around it — watch only, it never sends deauth or any attack frame. Flags crowded channels, open/WEP/WPS networks, a possible evil-twin copy of your own Wi-Fi name, and a Bluetooth device that keeps following you.',
+      'Nexus "Devices on your network" now shows a rough device type (router, phone, printer, camera, …) next to the maker name.',
+      'New open-source firmware/nexus-scout/, built in CI for ESP32-S3 and plain ESP32, flashable straight from this repo with Volt.',
+    ],
+    changesVi: [
+      'Nexus: thêm khung "Thiết bị bỏ túi". Cấp nguồn cho ESP32 chạy nexus-scout bằng pin dự phòng, kết nối Bluetooth từ trang Nexus, xem radar Wi-Fi và BLE xung quanh — chỉ quan sát, không bao giờ gửi deauth hay khung tấn công nào. Báo kênh đông, mạng open/WEP/WPS, khả năng có mạng giả mạo tên Wi-Fi của anh, và thiết bị Bluetooth cứ bám theo.',
+      'Mục "Thiết bị trong mạng" của Nexus giờ hiện thêm loại thiết bị ước lượng (router, điện thoại, máy in, camera, …) bên cạnh tên hãng.',
+      'Firmware mã nguồn mở mới firmware/nexus-scout/, build tự động trên CI cho ESP32-S3 và ESP32 thường, nạp thẳng từ repo này bằng Volt.',
+    ],
+  },
+  {
+    version: '1.78.0',
+    date: '2026-11-01',
+    changes: [
+      'Volt: paste any GitHub repo or release link, connect an ESP32-S3/C6/C3/S2/original board over USB, and Volt checks the firmware against the connected chip (chip match, flash size, offsets, no overlap) before it ever flashes, so it cannot burn a mismatched image.',
+      'New: Lumi, an ambient travel translator. Turn it on in a café abroad; it listens, auto-detects language, groups what it hears into separate conversations, and gives a rolling Vietnamese summary. Audio is never stored. Two modes: "Nói với em" (one person, safer) and "Nghe xung quanh" (everyone nearby, your call on local recording laws). Off switches for both in Settings > AI rules.',
+    ],
+    changesVi: [
+      'Volt: dán link repo hay bản phát hành GitHub bất kỳ, cắm board ESP32-S3/C6/C3/S2/gốc qua USB, Volt sẽ so firmware với chip đang cắm (đúng chip, đủ dung lượng, đúng offset, không chồng lấn) trước khi flash, nên không thể làm hỏng board vì nạp nhầm file.',
+      'Mới: Lumi, tai phiên dịch du lịch xung quanh. Mở lên khi ngồi quán cà phê ở nước ngoài; Lumi nghe, tự nhận ngôn ngữ, gom thành từng cuộc nói chuyện riêng, và tóm tắt tiếng Việt gần như theo thời gian thực. Không lưu âm thanh. Hai chế độ: "Nói với em" (một người, an toàn hơn) và "Nghe xung quanh" (nghe cả xung quanh, tự chịu trách nhiệm theo luật ghi âm nơi bạn đến). Có nút tắt riêng cho cả hai trong Cài đặt > Luật AI.',
+    ],
+  },
   {
     version: '1.77.9',
     date: '2026-10-31',

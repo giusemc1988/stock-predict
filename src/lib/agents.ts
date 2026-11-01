@@ -11,7 +11,7 @@ import { fold, type HubPage } from './toolHub'
 export const HUB_AGENT = 'Neo'
 
 /** The pages the app shows; 'home' is the Hub. Same list as TopBar's Page. */
-export type AppPage = 'home' | 'brief' | 'trade' | 'portfolio' | 'net' | 'ruview' | 'godseye' | 'studio' | 'viraltech' | 'max'
+export type AppPage = 'home' | 'brief' | 'trade' | 'portfolio' | 'net' | 'ruview' | 'godseye' | 'studio' | 'viraltech' | 'max' | 'volt' | 'lumi'
 
 /** What each agent knows a project by, besides its name: old names and plain words, accents removed. */
 const ALIASES: Record<ProjectId, string[]> = {
@@ -22,7 +22,7 @@ const ALIASES: Record<ProjectId, string[]> = {
   nexus: ['wifi', 'wi fi', 'bluetooth'],
   nova: ['video studio', 'studio video', 'lam video'],
   viraltech: ['virraltech', 'mang xa hoi', 'social'],
-  lumi: ['media lab'],
+  lumi: ['media lab', 'travel translator', 'phien dich', 'du lich'],
   forge: ['forge', 'app builder', 'tao app'],
 }
 
@@ -43,7 +43,11 @@ export function agentProject(page: AppPage): Project | null {
                 ? 'viraltech'
                 : page === 'max'
                   ? 'forge'
-                  : null
+                  : page === 'volt'
+                    ? 'volt'
+                    : page === 'lumi'
+                      ? 'lumi'
+                      : null
   return PROJECTS.find((p) => p.id === id) ?? null
 }
 
@@ -132,7 +136,7 @@ function detail(p: Project, f: HubFacts): Bi | null {
         vi: `${f.channels.linked}/${f.channels.total} kênh đã nối; ${f.posts.scheduled} bài hẹn giờ, ${f.posts.published} đã đăng, ${f.posts.draft} bản nháp.`,
       }
     case 'lumi':
-      return { en: 'The Media Lab is not built yet.', vi: 'Media Lab chưa làm xong.' }
+      return { en: 'Turn it on and it listens, detects the language, and gives a rolling Vietnamese summary. Audio is never kept.', vi: 'Bật lên là nghe, tự nhận ra thứ tiếng, và tóm tắt tiếng Việt liên tục. Không lưu âm thanh.' }
     case 'forge':
       return { en: `The app is on v${f.version} after ${f.updates} updates. Say "fix ..." or "make an app that ..." and I file it for Claude, who opens a pull request for you.`, vi: `App đang ở v${f.version} sau ${f.updates} lần cập nhật. Nói "sửa lỗi ..." hay "tạo app ..." là em ghi việc cho Claude, Claude mở PR để anh duyệt.` }
   }

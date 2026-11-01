@@ -241,11 +241,12 @@ export function useHubModel(p: HubProps) {
       case 'lumi':
         return {
           ...base,
-          state: 'soon',
-          ring: { v: rc.total ? rc.ready / rc.total : null, label: `${rc.ready}/${rc.total}`, cap: 'partsOk' },
+          state: !on ? 'off' : 'ready',
+          ring: { v: on ? 1 : 0, label: on ? '1/1' : '0/1', cap: 'partsOk' },
           facts: [
+            { label: 'modes', value: '2' },
             { label: 'mediaLab', value: L('soon') },
-            { label: 'outside', value: L('ready') },
+            { label: 'outside', value: on ? L('ready') : L('offShort') },
           ],
         }
       case 'forge':

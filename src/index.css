@@ -1290,8 +1290,20 @@ body:has(.jfab) .toasts, body:has(.jfab) .jarvis-alert { bottom: 84px; }
 .net-sum .btn.prime { padding: 8px 16px; border-radius: 999px; background: var(--robot); color: #04111c; font-weight: 600; }
 .net-sum .btn.prime:disabled { opacity: 0.6; }
 .net-note { margin: 0; padding: 8px 12px; border-radius: 10px; background: rgba(79, 209, 255, 0.08); border: 1px solid rgba(79, 209, 255, 0.3); font-size: 13px; }
-.net-grid { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr); grid-template-areas: "dev ana" "dev ble" "tools tools"; gap: 12px; align-items: start; }
-.net-devices { grid-area: dev; } .net-analyzer { grid-area: ana; } .net-ble { grid-area: ble; } .net-tools { grid-area: tools; }
+.net-grid { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr); grid-template-areas: "dev ana" "dev ble" "scout scout" "tools tools"; gap: 12px; align-items: start; }
+.net-devices { grid-area: dev; } .net-analyzer { grid-area: ana; } .net-ble { grid-area: ble; } .net-scout { grid-area: scout; } .net-tools { grid-area: tools; }
+.net-scout { display: grid; gap: 8px; }
+.net-scout .btn { justify-self: start; padding: 7px 14px; border-radius: 999px; border: 1px solid var(--line-2); }
+.scout-tabs { display: flex; gap: 6px; }
+.scout-tabs button { padding: 4px 12px; border-radius: 999px; border: 1px solid var(--line-2); font-size: 12px; color: var(--muted); }
+.scout-tabs button.on { color: var(--robot); border-color: var(--robot); background: rgba(79, 209, 255, 0.1); }
+.scout-radar { display: block; margin: 0 auto; border-radius: 50%; background: radial-gradient(circle, rgba(79,209,255,0.06), transparent 70%); }
+.scout-list { display: grid; gap: 4px; max-height: 200px; overflow-y: auto; }
+.scout-row { display: flex; justify-content: space-between; gap: 8px; padding: 5px 8px; border-radius: 8px; background: var(--panel-2); font-size: 12.5px; }
+.scout-row.risk-risk { box-shadow: inset 3px 0 0 #ff5b5b; }
+.scout-row.risk-caution { box-shadow: inset 3px 0 0 var(--gold); }
+.scout-findings { display: grid; gap: 4px; }
+.scout-findings p { margin: 0; }
 .net-row { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(70px, 0.6fr) auto auto; gap: 10px; align-items: center; padding: 8px 10px; border-radius: 10px; background: var(--panel-2); }
 .net-row.alert { box-shadow: inset 3px 0 0 var(--gold); }
 .net-row.off { opacity: 0.6; margin-top: 4px; }
@@ -1321,10 +1333,10 @@ body:has(.jfab) .toasts, body:has(.jfab) .jarvis-alert { bottom: 84px; }
 .net-tg button:hover:not(:disabled) { border-color: var(--robot); }
 .net-tg b { font-size: 13px; font-weight: 600; }
 .net-tg small { color: var(--muted); font-size: 11.5px; }
-@media (max-width: 1100px) { .net-grid { grid-template-columns: 1fr 1fr; grid-template-areas: "dev dev" "ana ble" "tools tools"; } .net-tg { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+@media (max-width: 1100px) { .net-grid { grid-template-columns: 1fr 1fr; grid-template-areas: "dev dev" "ana ble" "scout scout" "tools tools"; } .net-tg { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
 @media (max-width: 900px) { .page-net .net-page { grid-area: center; overflow: visible; } .page-net .right { display: none; } }
 @media (max-width: 699px) {
-  .net-grid { grid-template-columns: minmax(0, 1fr); grid-template-areas: "dev" "ana" "ble" "tools"; }
+  .net-grid { grid-template-columns: minmax(0, 1fr); grid-template-areas: "dev" "ana" "ble" "scout" "tools"; }
   .net-kpi { flex: 1 1 40%; min-width: 0; }
   .net-wifi-name { width: 100%; }
   .net-sum .btn.prime { width: 100%; }
@@ -1383,6 +1395,31 @@ body:has(.jfab) .toasts, body:has(.jfab) .jarvis-alert { bottom: 84px; }
 .net-demo { margin: 0; display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; padding: 8px 12px; border-radius: 10px; background: rgba(240, 185, 11, 0.08); border: 1px solid rgba(240, 185, 11, 0.3); color: #f5d77a; }
 .net-demo span { flex: 1 1 240px; }
 .net-demo .btn, .net-setup .bf-acts .btn:not(.prime) { padding: 5px 12px; border-radius: 999px; border: 1px solid var(--line-2); font-size: 12px; color: var(--text); }
+
+/* Volt: safe firmware flashing (repo link / dropped .bin, pre-flash checks) */
+.volt-drop { margin-top: 8px; padding: 18px; border-radius: 12px; border: 1px dashed var(--line-2); text-align: center; color: var(--muted); cursor: pointer; font-size: 13px; transition: border-color 0.2s, background 0.2s; }
+.volt-drop:hover { border-color: var(--robot); background: rgba(79, 209, 255, 0.06); }
+.volt-assets { display: grid; gap: 6px; margin-top: 8px; }
+.volt-tags { display: flex; flex-wrap: wrap; gap: 6px; margin: 6px 0; }
+.tag { display: inline-flex; align-items: center; gap: 4px; padding: 5px 10px; border-radius: 999px; font-size: 11.5px; border: 1px solid var(--line-2); }
+.tag-ok { color: var(--up); background: var(--up-bg); border-color: transparent; }
+.tag-warn { color: #f5d77a; background: rgba(240, 185, 11, 0.1); border-color: rgba(240, 185, 11, 0.3); }
+.tag-bad { color: var(--down); background: rgba(246, 70, 93, 0.1); border-color: rgba(246, 70, 93, 0.3); }
+.volt-flash-btn { width: 100%; margin-top: 8px; padding: 12px; font-size: 14px; }
+
+/* Lumi: ambient travel translator */
+.lumi-listen { display: flex; align-items: center; gap: 8px; margin-top: 8px; color: var(--up); }
+.lumi-dot { width: 9px; height: 9px; border-radius: 50%; background: var(--up); box-shadow: 0 0 8px var(--up); flex: none; }
+.lumi-meter { flex: 1; height: 6px; border-radius: 4px; background: var(--panel-2); overflow: hidden; }
+.lumi-meter i { display: block; height: 100%; background: var(--up); transition: width 0.15s linear; }
+.lumi-conv-grid { grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); }
+.lumi-conv { display: grid; gap: 4px; padding: 10px 12px; border-radius: 10px; background: var(--panel-2); border: 1px solid var(--line); text-align: left; cursor: pointer; color: var(--text); }
+.lumi-conv:hover { border-color: var(--robot); }
+.lumi-conv p { margin: 0; font-size: 13px; }
+.lumi-conv small { color: var(--muted); font-size: 11px; }
+.lumi-modal { position: fixed; inset: 0; z-index: 50; display: grid; place-items: center; padding: 16px; background: rgba(0, 0, 0, 0.55); }
+.lumi-modal .bf-card { max-width: 420px; max-height: 70vh; overflow: auto; width: 100%; }
+.lumi-privacy { margin-top: 10px; padding: 10px 12px; border-radius: 10px; background: rgba(240, 185, 11, 0.06); border: 1px dashed var(--line-2); }
 .net-app { display: block; text-decoration: none; color: var(--text); }
 
 /* Tool Hub (Jarvis OS): graph + list, calm and reduced-motion safe */

@@ -14,7 +14,7 @@ Neo (formerly Jarvis) / Arc Analyst: a personal hub for Chanh. The Hub page (one
 2. **Never push to `main`.** Work on a branch. Chanh reviews and merges every pull request himself.
 3. **Never deploy by hand.** No `wrangler deploy` from a PC. The site deploys only through GitHub Actions after a merge to main.
 4. **No secrets in code, commits or logs.** API keys live in Cloudflare KV or the dashboard.
-5. **Network tools are for Chanh's own networks and devices only.** No cracking, deauth, sniffing other people, jamming or spoofing. Ping and port checks go to private IPs only.
+5. **Network tools are for Chanh's own networks and devices only.** No cracking, deauth, sniffing other people, jamming or spoofing. Ping and port checks go to private IPs only. The `nexus-scout` firmware (`firmware/nexus-scout/`) must stay passive-only: it may scan and report Wi-Fi/BLE it sees nearby, never transmit deauth, beacon spam, evil-portal, injection or any other frame meant to affect someone else's device or network.
 6. **RuView is used only in Chanh's own places,** and people there must know about it.
 7. **No destructive commands** (`git reset --hard`, `git push --force`, deleting folders) unless Chanh asks for that exact action.
 

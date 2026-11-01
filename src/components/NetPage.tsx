@@ -3,9 +3,11 @@ import { hhmm } from '../lib/brief'
 import { DEMO_DEVICES, DEMO_WIFI } from '../lib/demoData'
 import { browserSpeedTest } from '../lib/speedTest'
 import { inPhoneApp, LanTools, loadNets, mergePhoneScan, netKey, patchKnown, saveNets, type PhoneWifi } from '../lib/phoneLan'
-import { channelTip, isPrivateIPv4, type WifiNetwork } from '../lib/netParse'
+import { channelTip, deviceTypeOf, isPrivateIPv4, type WifiNetwork } from '../lib/netParse'
 import { useNetT, type NetKey } from '../lib/netText'
+import { useAiRules } from '../lib/aiRules'
 import { AgentShell } from './AgentShell'
+import { NexusScoutPanel } from './NexusScoutPanel'
 
 interface Device {
   ip: string
@@ -68,6 +70,7 @@ function ChannelChart({ nets, own }: { nets: WifiNetwork[]; own: string | null }
 /** Wi-Fi & Bluetooth tools for Chanh's own network, fed by the home agent (agent/jarvis-agent.ts). */
 export function NetPage({ onBack, phoneScan = true, glass = true }: { onBack: () => void; phoneScan?: boolean; glass?: boolean }) {
   const t = useNetT()
+  const aiRules = useAiRules()
   const [devs, setDevs] = useState<DevicesData | null>(null)
   const [wifi, setWifi] = useState<WifiData | null>(null)
   const [off, setOff] = useState<Offline | null>(null)
@@ -298,7 +301,7 @@ export function NetPage({ onBack, phoneScan = true, glass = true }: { onBack: ()
                   <b>{d.name ?? (me ? (phone ? 'Phone' : 'PC') : t('unknownDevice'))}</b>
                   <small className="mono">{d.ip}{d.mac.startsWith('ip:') ? '' : ` · ${d.mac}`}</small>
                 </div>
-                <span className="small muted">{d.vendor ?? t('unknownMaker')}</span>
+                <span className="small muted">{d.vendor ?? t('unknownMaker')}{deviceTypeOf(d.vendor) ? ` · ${t(`kind_${deviceTypeOf(d.vendor)}` as NetKey)}` : ''}</span>
                 <span className="net-flags">
                   {d.isNew && <em className="flag new">{t('flagNew')}</em>}
                   {me && <em className="flag me">{t('flagMe')}</em>}
@@ -357,6 +360,10 @@ export function NetPage({ onBack, phoneScan = true, glass = true }: { onBack: ()
           {ble && <p className="small">{ble}</p>}
           <p className="small muted">{t('bleNote')}</p>
         </section>
+
+        {aiRules.nexusScout && (
+          <NexusScoutPanel knownNets={wifi?.ssid ? [{ ssid: wifi.ssid, bssids: nets.filter((n) => n.ssid === wifi.ssid).map((n) => n.bssid) }] : []} />
+        )}
 
         <section className="bf-card net-tools">
           <header><h3>{t('tools')}</h3></header>
