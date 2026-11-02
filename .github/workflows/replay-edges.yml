@@ -1,0 +1,40 @@
+name: Atlas edge sweep
+
+# Manual only (Chanh: no scheduled jobs). Round 4: FOMC, turn of month, OPEX, VIX/VIX3M switch, HYG switch,
+# pairs, SEC insider clusters (only when the repo variable SEC_USER_AGENT is set), Cboe PUT/BXM and daily overnight
+# winners, each against a random-entry or random-timing control, plus risk-parity edge portfolios.
+# Free data (Yahoo, Cboe, SEC). Commits public/replay-edges.json. Paper only; never touches live trading.
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: replay-edges
+  cancel-in-progress: false
+
+jobs:
+  replay:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run replay:edges
+        env:
+          SEC_USER_AGENT: ${{ vars.SEC_USER_AGENT }}
+          NODE_OPTIONS: --max-old-space-size=6144
+      - name: Commit result
+        run: |
+          git config user.email "replay@stock-predict"
+          git config user.name "Atlas Replay Lab"
+          git add public/replay-edges.json
+          git diff --cached --quiet && exit 0
+          git commit -m "Atlas edge sweep $(date -u +%Y-%m-%dT%H:%MZ)"
+          for i in 1 2 3; do git pull --rebase origin main && git push origin HEAD:main && exit 0; sleep 5; done
+          exit 1

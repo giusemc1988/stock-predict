@@ -2,7 +2,7 @@
  * Version and "What's new". Bump APP_VERSION and add an entry to the top of RELEASES
  * with each update. The banner shows once per version, then stays dismissed.
  */
-export const APP_VERSION = '1.96.1'
+export const APP_VERSION = '1.96.2'
 
 export interface Release {
   version: string
@@ -13,6 +13,16 @@ export interface Release {
 }
 
 export const RELEASES: Release[] = [
+  {
+    version: '1.96.2',
+    date: '2026-11-02',
+    changes: [
+      'Atlas edge sweep, round 4: nine published ideas on free data since 2007. FOMC pre-announcement drift, turn of the month, options-expiration week, a VIX/VIX3M term-structure switch, an HYG credit switch, eight sector pairs, SEC insider buying clusters (when an SEC contact is configured), the Cboe PUT and BXM option-selling indexes, and daily overnight winners. Each is compared with a random-entry control (or, for switches, the same signal shifted in time), at per-symbol costs 1x and 2x, with a Deflated Sharpe that counts all 398 variants tried in every round. Risk-parity portfolios of the survivors and of all sleeves are reported too. Manual workflow. Paper only, no change to live trading.',
+    ],
+    changesVi: [
+      'Rà rộng lợi thế của Atlas, vòng 4: chín ý tưởng đã công bố trên dữ liệu miễn phí từ 2007. Giá tăng trước khi Fed công bố, đầu tháng, tuần đáo hạn quyền chọn, công tắc theo cấu trúc kỳ hạn VIX/VIX3M, công tắc theo trái phiếu HYG, tám cặp cổ phiếu cùng ngành, lãnh đạo mua cổ phiếu theo SEC (khi có liên hệ SEC), chỉ số bán quyền chọn PUT và BXM của Cboe, và mua cổ phiếu thắng giữ qua đêm. Mỗi cái được so với nhóm vào lệnh ngẫu nhiên (với công tắc là cùng tín hiệu dịch thời gian), phí theo từng mã ở 1x và 2x, với Deflated Sharpe tính cả 398 biến thể đã thử ở mọi vòng. Có thêm danh mục chia vốn theo rủi ro của các ý tưởng sống sót và của tất cả. Workflow chạy tay. Chỉ giao dịch giả lập, không đổi giao dịch thật.',
+    ],
+  },
   {
     version: '1.96.1',
     date: '2026-11-02',
