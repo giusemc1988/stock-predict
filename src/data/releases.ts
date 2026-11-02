@@ -2,7 +2,7 @@
  * Version and "What's new". Bump APP_VERSION and add an entry to the top of RELEASES
  * with each update. The banner shows once per version, then stays dismissed.
  */
-export const APP_VERSION = '1.98.1'
+export const APP_VERSION = '1.98.2'
 
 export interface Release {
   version: string
@@ -13,6 +13,16 @@ export interface Release {
 }
 
 export const RELEASES: Release[] = [
+  {
+    version: '1.98.2',
+    date: '2026-11-02',
+    changes: [
+      'Atlas sizing: when the last 100 closed trades show no edge (Kelly fraction at or below 0, at least 30 trades), new trades are sized at half instead of full. Before, a losing run kept full size. Size returns to normal as soon as the last 100 trades show an edge again. The Kelly status in atlas-status and Telegram now shows the real multiplier (size x0.50). Stops, targets, signals and the volatility halving are unchanged.',
+    ],
+    changesVi: [
+      'Atlas chỉnh cỡ lệnh: khi 100 lệnh đã đóng gần nhất không có lợi thế (hệ số Kelly từ 0 trở xuống, tối thiểu 30 lệnh), lệnh mới vào bằng một nửa cỡ thay vì cỡ đầy đủ. Trước đây chuỗi thua vẫn giữ cỡ đầy đủ. Cỡ trở lại bình thường ngay khi 100 lệnh gần nhất có lợi thế. Trạng thái Kelly trong atlas-status và Telegram giờ hiện hệ số thật (size x0.50). Cắt lỗ, chốt lời, tín hiệu và việc giảm nửa khi biến động cao giữ nguyên.',
+    ],
+  },
   {
     version: '1.98.1',
     date: '2026-11-02',

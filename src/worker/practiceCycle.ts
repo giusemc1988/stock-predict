@@ -11,6 +11,7 @@ import { DEFAULT_AI_RULES } from '../lib/aiRules'
 import { SKILLS, skillTag } from '../lib/skills'
 import { parseState } from '../lib/autoLearn'
 import { shadowReport } from '../lib/shadowFilters'
+import { kellyMultiplier } from '../lib/kelly'
 import { kronosPct5, type KronosForecast } from '../lib/kronosView'
 import { leadsReport, parseLeads } from '../lib/shadowLeads'
 import type { JournalEntry } from '../lib/journal'
@@ -191,35 +192,6 @@ function drawdownBrakeMultiplier(state: PracticeState, now: number): number {
   return 1                                 // Normal size
 }
 
-/**
- * Calculate Kelly sizing multiplier from closed trades.
- * Kelly formula: f* = (p*b - q) / b where p=winrate, q=lossrate, b=avg_win/avg_loss
- * Returns conservative 0.25x Kelly multiplier (1.0 if insufficient data or edge < 0)
- */
-function kellyMultiplier(trades: { pnl: number; entry: number; exit: number }[]): number {
-  if (trades.length < 10) return 1 // Need minimum sample size
-
-  const wins = trades.filter((t) => t.pnl > 0)
-  const losses = trades.filter((t) => t.pnl <= 0)
-
-  if (wins.length === 0 || losses.length === 0) return 1 // No edge if all wins or all losses
-
-  const p = wins.length / trades.length // Win rate
-  const q = 1 - p // Loss rate
-
-  const avgWin = wins.reduce((sum, t) => sum + t.pnl, 0) / wins.length
-  const avgLoss = Math.abs(losses.reduce((sum, t) => sum + t.pnl, 0) / losses.length)
-
-  if (avgLoss === 0) return 1 // No losses recorded
-
-  const b = avgWin / avgLoss // Payoff ratio
-  const f = (p * b - q) / b // Kelly fraction
-
-  // Return 1.0 if edge is negative or Kelly is negative; otherwise use 0.25x Kelly
-  if (f <= 0 || p < 0.5) return 1
-  return Math.min(0.25 * f, 0.25) // Conservative: cap at 0.25x and never exceed 0.25x Kelly
-}
-
 const PRACTICE_START = 10_000
 /** Summary goes out on the first run at least this long after the stock session ends (15:55 ET), so every day trade is closed. */
 const SUMMARY_DELAY_MS = 10 * 60_000
@@ -313,7 +285,7 @@ export async function practiceCycle(env: WorkerEnv): Promise<{ state: PracticeSt
   // Drawdown brakes: reduce position size based on daily loss
   const brakeMult = drawdownBrakeMultiplier(prev, now)
 
-  // Kelly sizing: conservative 0.25x Kelly multiplier from closed trades
+  // Kelly sizing (src/lib/kelly.ts): half size while the last 100 trades show no edge
   const kellyMult = kellyMultiplier(prev.trades)
 
   const r = await scanCycle({
@@ -406,7 +378,7 @@ export async function practiceCycle(env: WorkerEnv): Promise<{ state: PracticeSt
 
   const learningStatus = pauseLearning ? `PAUSED (WR ${(wr! * 100).toFixed(0)}% < 40%)` : wr != null ? `active (WR ${(wr * 100).toFixed(0)}%)` : 'n/a'
   const brakeStatus = brakeMult === 1 ? 'normal' : brakeMult === 0.5 ? 'HALF (-3%)' : brakeMult === 0.25 ? 'QUARTER (-6%)' : 'STOPPED (-15%)'
-  const kellyStatus = kellyMult < 1 ? `${(kellyMult * 100).toFixed(1)}% Kelly` : 'Kelly n/a'
+  const kellyStatus = kellyMult < 1 ? `size x${kellyMult.toFixed(2)} (Kelly)` : 'Kelly n/a'
   const msg = `scanned ${r.candidates.length} markets (${r.failed.length} failed); best: ${top.join(', ') || 'none'}; open ${next.open.length}, closed ${next.trades.length}, realized ${next.realized.toFixed(2)}; learning ${learningStatus}; brakes ${brakeStatus}; sizing ${kellyStatus}`
   const tg = telegramErrors.length ? `; Telegram failed ${telegramErrors.length}x (${[...new Set(telegramErrors)].join(', ')})` : ''
   return { state: next, message: msg + tg, alerts }
