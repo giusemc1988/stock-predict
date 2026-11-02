@@ -1,0 +1,40 @@
+name: Atlas intraday lab
+
+# Manual only (Chanh: no scheduled jobs). Round 3 day-trading experiments (opening-range breakout, intraday
+# momentum, overnight vs intraday) on Yahoo 5m/60m bars; uses Alpaca IEX 5m bars since 2018 when the repo secrets
+# ALPACA_API_KEY_ID and ALPACA_API_SECRET_KEY are set. Commits public/replay-intraday.json. Paper only.
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: replay-intraday
+  cancel-in-progress: false
+
+jobs:
+  replay:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run replay:intraday
+        env:
+          ALPACA_API_KEY_ID: ${{ secrets.ALPACA_API_KEY_ID }}
+          ALPACA_API_SECRET_KEY: ${{ secrets.ALPACA_API_SECRET_KEY }}
+          NODE_OPTIONS: --max-old-space-size=6144
+      - name: Commit result
+        run: |
+          git config user.email "replay@stock-predict"
+          git config user.name "Atlas Replay Lab"
+          git add public/replay-intraday.json
+          git diff --cached --quiet && exit 0
+          git commit -m "Atlas intraday lab $(date -u +%Y-%m-%dT%H:%MZ)"
+          for i in 1 2 3; do git pull --rebase origin main && git push origin HEAD:main && exit 0; sleep 5; done
+          exit 1

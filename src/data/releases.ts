@@ -2,7 +2,7 @@
  * Version and "What's new". Bump APP_VERSION and add an entry to the top of RELEASES
  * with each update. The banner shows once per version, then stays dismissed.
  */
-export const APP_VERSION = '1.95.0'
+export const APP_VERSION = '1.95.2'
 
 export interface Release {
   version: string
@@ -13,6 +13,26 @@ export interface Release {
 }
 
 export const RELEASES: Release[] = [
+  {
+    version: '1.95.2',
+    date: '2026-11-01',
+    changes: [
+      'Atlas lab round 3, day trading: three published ideas tested on free 5-minute and 60-minute bars with per-symbol costs (spread by liquidity tier, 1 bp slippage, no fee) and limit entries. I1 opening-range breakout on stocks in play, I2 first-half-hour to last-half-hour momentum on SPY/QQQ, I3 overnight vs intraday returns and holding strong winners overnight. Each is compared with 200 random-entry draws, at the old flat costs and 2x, with a Deflated Sharpe over all 28 variants tried so far. Manual workflow; uses Alpaca data if its keys are set. Paper only, no change to live trading.',
+    ],
+    changesVi: [
+      'Phòng lab Atlas vòng 3, day trading: ba ý tưởng đã công bố được thử trên nến 5 phút và 60 phút miễn phí với chi phí theo từng mã (spread theo nhóm thanh khoản, trượt giá 1 bp, không phí) và lệnh giới hạn. I1 phá vỡ vùng mở cửa với cổ phiếu nóng, I2 động lượng nửa giờ đầu sang nửa giờ cuối trên SPY/QQQ, I3 lợi nhuận qua đêm so với trong ngày và giữ cổ phiếu thắng qua đêm. Mỗi cái so với 200 lần vào lệnh ngẫu nhiên, ở chi phí phẳng cũ và gấp đôi, với Deflated Sharpe trên cả 28 biến thể đã thử. Workflow chạy tay; dùng dữ liệu Alpaca nếu có khóa. Chỉ giao dịch giả lập, không đổi giao dịch thật.',
+    ],
+  },
+  {
+    version: '1.95.1',
+    date: '2026-11-01',
+    changes: [
+      'Atlas daily replay lab, round 2: five follow-ups on the one idea that beat its random-entry control (short-term reversal). E1 trades it only when the VIX is high (above its 1-year median, or 25+). E2 hedges each trade with SPY over the same dates. E3 tests ETF time-series momentum on 23 ETFs against SPY and 60/40. E4 sizes trades by SPY volatility. E5 tests adding to winning or losing positions. All use next-open fills, 1x and 2x costs, the same book/exam split, and a luck check that counts all 14 variants tried. Results in the new round2 section of replay-daily.json.',
+    ],
+    changesVi: [
+      'Phòng lab replay theo ngày của Atlas, vòng 2: năm thử nghiệm tiếp theo cho ý tưởng duy nhất thắng nhóm đối chứng ngẫu nhiên (đảo chiều ngắn hạn). E1 chỉ vào lệnh khi VIX cao (trên trung vị 1 năm, hoặc từ 25). E2 phòng hộ mỗi lệnh bằng SPY trong cùng khoảng ngày. E3 thử động lượng chuỗi thời gian trên 23 ETF so với SPY và 60/40. E4 chỉnh cỡ lệnh theo biến động của SPY. E5 thử mua thêm khi lệnh đang lãi hoặc đang lỗ. Tất cả vào lệnh ở giá mở cửa kế tiếp, phí 1x và 2x, cùng cách chia book/exam, và bài kiểm tra "đúng do may" tính cả 14 biến thể đã thử. Kết quả nằm ở phần round2 của replay-daily.json.',
+    ],
+  },
   {
     version: '1.95.0',
     date: '2026-11-01',
