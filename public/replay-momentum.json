@@ -1,6 +1,6 @@
 {
- "generated": "2026-11-02T08:10:04.740Z",
- "seconds": 39,
+ "generated": "2026-11-02T11:59:15.223Z",
+ "seconds": 43,
  "examFrom": "2020-08-03",
  "months": 225,
  "examMonths": 75,
@@ -18,14 +18,15 @@
    "newsRound4": 14,
    "edgesRound4": 10,
    "ensembles": 2,
-   "momentumRound5": 4
+   "momentumRound5": 4,
+   "shortRound6": 4
   },
-  "total": 402,
+  "total": 66,
   "round5": 4
  },
  "pass": {
-  "en": "PASS = on the exam (newest 1/3 of months) the monthly average beats the 200-draw random-pick control at 1x AND 2x costs with p <= 0.05 at both, the BOOK average also beats its control, the exam Sharpe is above SPY's buy-and-hold over the same months, and a Deflated Sharpe >= 0.95 on the monthly exam returns counting all 402 trials of every round. A STOCK idea must also have its ETF twin pass (the stock list is survivor-biased). Fixed in advance; nothing is tuned on the exam.",
-  "vi": "QUA = ở bài thi (1/3 tháng mới nhất) trung bình tháng thắng nhóm đối chứng chọn mã ngẫu nhiên (200 lần) ở phí 1x VÀ 2x với p <= 0,05 ở cả hai, trung bình BOOK cũng thắng đối chứng, Sharpe bài thi cao hơn SPY mua-giữ cùng các tháng, và Deflated Sharpe >= 0,95 trên lợi nhuận tháng của bài thi tính cả 402 lần thử của mọi vòng. Ý tưởng trên CỔ PHIẾU còn phải có bản ETF song sinh cùng đạt (danh sách cổ phiếu bị thiên lệch người sống sót). Cố định từ trước; không chỉnh gì trên bài thi."
+  "en": "PASS = on the exam (newest 1/3 of months) the monthly average beats the 200-draw random-pick control at 1x AND 2x costs with p <= 0.05 at both, the BOOK average also beats its control, the exam Sharpe is above SPY's buy-and-hold over the same months, and a Deflated Sharpe >= 0.95 on the monthly exam returns counting all 66 ideas judged on the recent years. A STOCK idea must also have its ETF twin pass (the stock list is survivor-biased). Fixed in advance; nothing is tuned on the exam.",
+  "vi": "QUA = ở bài thi (1/3 tháng mới nhất) trung bình tháng thắng nhóm đối chứng chọn mã ngẫu nhiên (200 lần) ở phí 1x VÀ 2x với p <= 0,05 ở cả hai, trung bình BOOK cũng thắng đối chứng, Sharpe bài thi cao hơn SPY mua-giữ cùng các tháng, và Deflated Sharpe >= 0,95 trên lợi nhuận tháng của bài thi tính cả 66 ý tưởng đã thi trên những năm gần đây. Ý tưởng trên CỔ PHIẾU còn phải có bản ETF song sinh cùng đạt (danh sách cổ phiếu bị thiên lệch người sống sót). Cố định từ trước; không chỉnh gì trên bài thi."
  },
  "results": [
   {
@@ -37,48 +38,48 @@
    "invested": 1,
    "book": {
     "n": 150,
-    "cagr": 27.977211657075785,
-    "vol": 23.296429341469146,
-    "sharpe": 1.1850110104729878,
-    "maxDD": -47.367419093340345,
-    "worstYear": -21.990168329551373
+    "cagr": 27.977214345675083,
+    "vol": 23.29642979299366,
+    "sharpe": 1.1850110867569439,
+    "maxDD": -47.367412687594665,
+    "worstYear": -21.990172292638597
    },
    "exam": {
     "n": 75,
-    "cagr": 63.93602903047962,
-    "vol": 45.5016342359184,
-    "sharpe": 1.3162433963176328,
-    "maxDD": -39.71919710331796,
-    "worstYear": -7.236262428096185
+    "cagr": 63.93603263433762,
+    "vol": 45.50163367494019,
+    "sharpe": 1.3162434555781144,
+    "maxDD": -39.71920213591705,
+    "worstYear": -7.236276176962297
    },
    "exam2x": {
     "n": 75,
-    "cagr": 63.36927155984793,
-    "vol": 45.50675788374768,
-    "sharpe": 1.3082632031110286,
-    "maxDD": -39.8856901794583,
-    "worstYear": -7.5914720025999305
+    "cagr": 63.36927514119919,
+    "vol": 45.50675732378263,
+    "sharpe": 1.3082632620843608,
+    "maxDD": -39.885695202388796,
+    "worstYear": -7.591485726180636
    },
    "spyExam": {
     "n": 75,
-    "cagr": 15.831706566708714,
-    "vol": 14.789856917285368,
-    "sharpe": 1.0725511368211647,
-    "maxDD": -23.312894695931373,
-    "worstYear": -17.991645873737593
+    "cagr": 15.831702821578887,
+    "vol": 14.789847449442185,
+    "sharpe": 1.0725515135492216,
+    "maxDD": -23.312929021058835,
+    "worstYear": -17.99165442049514
    },
    "control": {
-    "examMean": 0.01968007628731204,
-    "bookMean": 0.013482385714302965,
+    "examMean": 0.019680076802766764,
+    "bookMean": 0.013482386025466357,
     "p": 0.004975124378109453
    },
    "control2x": {
-    "examMean": 0.018758826588975725,
-    "bookMean": 0.01259606626382723,
+    "examMean": 0.018758827104377665,
+    "bookMean": 0.01259606657516384,
     "p": 0.004975124378109453
    },
-   "dsr": 0.9868976777398206,
-   "passed": true
+   "dsr": 0.8353468931428892,
+   "passed": false
   },
   {
    "id": "M2-stocks-trend",
@@ -89,47 +90,47 @@
    "invested": 0.7822222222222223,
    "book": {
     "n": 150,
-    "cagr": 25.86942854961327,
-    "vol": 17.943944671546962,
-    "sharpe": 1.3815330021626813,
-    "maxDD": -30.019065615405495,
-    "worstYear": -24.664997344681517
+    "cagr": 25.86942825838161,
+    "vol": 17.943948103093167,
+    "sharpe": 1.3815327612989654,
+    "maxDD": -30.01906486490965,
+    "worstYear": -24.665002263213974
    },
    "exam": {
     "n": 75,
-    "cagr": 41.28380990888143,
-    "vol": 41.81974757915288,
-    "sharpe": 1.0297709956021681,
-    "maxDD": -43.40111532967571,
-    "worstYear": -29.002241973376496
+    "cagr": 41.28381714321656,
+    "vol": 41.819746592556314,
+    "sharpe": 1.029771134748953,
+    "maxDD": -43.401112519059545,
+    "worstYear": -29.002241956064733
    },
    "exam2x": {
     "n": 75,
-    "cagr": 40.76495531426432,
-    "vol": 41.82348848423952,
-    "sharpe": 1.020711140319068,
-    "maxDD": -43.68158356443498,
-    "worstYear": -29.236827102338392
+    "cagr": 40.76496252064592,
+    "vol": 41.82348749696113,
+    "sharpe": 1.020711279182093,
+    "maxDD": -43.68158076786218,
+    "worstYear": -29.236827088861304
    },
    "spyExam": {
     "n": 75,
-    "cagr": 15.831706566708714,
-    "vol": 14.789856917285368,
-    "sharpe": 1.0725511368211647,
-    "maxDD": -23.312894695931373,
-    "worstYear": -17.991645873737593
+    "cagr": 15.831702821578887,
+    "vol": 14.789847449442185,
+    "sharpe": 1.0725515135492216,
+    "maxDD": -23.312929021058835,
+    "worstYear": -17.99165442049514
    },
    "control": {
-    "examMean": 0.013813787262176308,
-    "bookMean": 0.010193421448485625,
+    "examMean": 0.013813786997640111,
+    "bookMean": 0.010193421123793156,
     "p": 0.004975124378109453
    },
    "control2x": {
-    "examMean": 0.01304441113966232,
-    "bookMean": 0.009512432421768855,
+    "examMean": 0.013044410875113665,
+    "bookMean": 0.009512432097036156,
     "p": 0.004975124378109453
    },
-   "dsr": 0.9293963993281031,
+   "dsr": 0.58313119855164,
    "passed": false
   },
   {
@@ -141,47 +142,47 @@
    "invested": 1,
    "book": {
     "n": 150,
-    "cagr": 4.063020151801466,
-    "vol": 16.736985358091356,
-    "sharpe": 0.32440455606062973,
-    "maxDD": -38.08979446715101,
-    "worstYear": -24.564618008092975
+    "cagr": 4.063034134401455,
+    "vol": 16.736984575858852,
+    "sharpe": 0.3244053645810042,
+    "maxDD": -38.089766163182084,
+    "worstYear": -24.56456697411059
    },
    "exam": {
     "n": 75,
-    "cagr": 20.530558684857468,
-    "vol": 17.619022549195993,
-    "sharpe": 1.1547203625193014,
-    "maxDD": -17.40303026462613,
-    "worstYear": 2.5300840658746493
+    "cagr": 20.5305551825945,
+    "vol": 17.61902213584715,
+    "sharpe": 1.1547202178170417,
+    "maxDD": -17.403039769626826,
+    "worstYear": 2.5300518636998337
    },
    "exam2x": {
     "n": 75,
-    "cagr": 20.027301890392568,
-    "vol": 17.62738762152317,
-    "sharpe": 1.1301787304475126,
-    "maxDD": -17.89511491412418,
-    "worstYear": 1.899768605289176
+    "cagr": 20.027298405338435,
+    "vol": 17.627387229484242,
+    "sharpe": 1.1301785842545098,
+    "maxDD": -17.895124381917437,
+    "worstYear": 1.8997365819994005
    },
    "spyExam": {
     "n": 75,
-    "cagr": 15.831706566708714,
-    "vol": 14.789856917285368,
-    "sharpe": 1.0725511368211647,
-    "maxDD": -23.312894695931373,
-    "worstYear": -17.991645873737593
+    "cagr": 15.831702821578887,
+    "vol": 14.789847449442185,
+    "sharpe": 1.0725515135492216,
+    "maxDD": -23.312929021058835,
+    "worstYear": -17.99165442049514
    },
    "control": {
-    "examMean": 0.009222115865361171,
-    "bookMean": 0.004560687023215879,
+    "examMean": 0.009222115710552497,
+    "bookMean": 0.0045606873460492525,
     "p": 0.004975124378109453
    },
    "control2x": {
-    "examMean": 0.00798245368998969,
-    "bookMean": 0.0033840490355133367,
+    "examMean": 0.007982453535255212,
+    "bookMean": 0.0033840493585613886,
     "p": 0.004975124378109453
    },
-   "dsr": 0.9391069474089662,
+   "dsr": 0.6804436827653161,
    "passed": false
   },
   {
@@ -193,47 +194,47 @@
    "invested": 0.7822222222222223,
    "book": {
     "n": 150,
-    "cagr": 5.208780033857141,
-    "vol": 12.223717995373336,
-    "sharpe": 0.47808553697432066,
-    "maxDD": -22.78773903853987,
-    "worstYear": -18.008350380384673
+    "cagr": 5.208790973643218,
+    "vol": 12.223713242957686,
+    "sharpe": 0.4780865267068253,
+    "maxDD": -22.78771013860731,
+    "worstYear": -18.008326780238182
    },
    "exam": {
     "n": 75,
-    "cagr": 14.473042247861034,
-    "vol": 15.752381035119853,
-    "sharpe": 0.9404026263500752,
-    "maxDD": -17.7931182722997,
-    "worstYear": -7.968854315233909
+    "cagr": 14.473044359581678,
+    "vol": 15.752381129132662,
+    "sharpe": 0.940402740027486,
+    "maxDD": -17.793119263553393,
+    "worstYear": -7.968879420386854
    },
    "exam2x": {
     "n": 75,
-    "cagr": 13.936180076990112,
-    "vol": 15.763001436833694,
-    "sharpe": 0.9097499736853084,
-    "maxDD": -18.01849433288578,
-    "worstYear": -8.603134062373519
+    "cagr": 13.936182181725343,
+    "vol": 15.763001542036584,
+    "sharpe": 0.909750087034682,
+    "maxDD": -18.018495322005958,
+    "worstYear": -8.603159013548689
    },
    "spyExam": {
     "n": 75,
-    "cagr": 15.831706566708714,
-    "vol": 14.789856917285368,
-    "sharpe": 1.0725511368211647,
-    "maxDD": -23.312894695931373,
-    "worstYear": -17.991645873737593
+    "cagr": 15.831702821578887,
+    "vol": 14.789847449442185,
+    "sharpe": 1.0725515135492216,
+    "maxDD": -23.312929021058835,
+    "worstYear": -17.99165442049514
    },
    "control": {
-    "examMean": 0.005992502923294308,
-    "bookMean": 0.003443458170793947,
+    "examMean": 0.005992502618603044,
+    "bookMean": 0.0034434595055570353,
     "p": 0.009950248756218905
    },
    "control2x": {
-    "examMean": 0.004955130026404192,
-    "bookMean": 0.0025358280841452224,
+    "examMean": 0.004955129721743309,
+    "bookMean": 0.002535829418870762,
     "p": 0.004975124378109453
    },
-   "dsr": 0.8586775734363701,
+   "dsr": 0.48874415364424306,
    "passed": false
   }
  ],
@@ -247,47 +248,47 @@
    "invested": 1,
    "book": {
     "n": 150,
-    "cagr": 25.382135118800786,
-    "vol": 21.393293052797873,
-    "sharpe": 1.1747105971561724,
-    "maxDD": -47.367419093340345,
-    "worstYear": -21.89402224943745
+    "cagr": 25.382132632120435,
+    "vol": 21.393293249263618,
+    "sharpe": 1.1747104969139996,
+    "maxDD": -47.367412687594665,
+    "worstYear": -21.894014782853986
    },
    "exam": {
     "n": 75,
-    "cagr": 28.803353502474003,
-    "vol": 30.893190604435798,
-    "sharpe": 0.973473104212202,
-    "maxDD": -21.200694103904492,
-    "worstYear": -0.11090399809341456
+    "cagr": 28.80335642302303,
+    "vol": 30.893190482438904,
+    "sharpe": 0.973473180163716,
+    "maxDD": -21.200701662147136,
+    "worstYear": -0.1109097857774799
    },
    "exam2x": {
     "n": 75,
-    "cagr": 28.381502986083905,
-    "vol": 30.89917985667483,
-    "sharpe": 0.9625254110940491,
-    "maxDD": -21.44203360673529,
-    "worstYear": -0.4441573982328584
+    "cagr": 28.38150589239996,
+    "vol": 30.899179734439013,
+    "sharpe": 0.9625254868453403,
+    "maxDD": -21.442041142388003,
+    "worstYear": -0.4441631929149037
    },
    "spyExam": {
     "n": 75,
-    "cagr": 15.831706566708714,
-    "vol": 14.789856917285368,
-    "sharpe": 1.0725511368211647,
-    "maxDD": -23.312894695931373,
-    "worstYear": -17.991645873737593
+    "cagr": 15.831702821578887,
+    "vol": 14.789847449442185,
+    "sharpe": 1.0725515135492216,
+    "maxDD": -23.312929021058835,
+    "worstYear": -17.99165442049514
    },
    "control": {
-    "examMean": 0.01745860094910738,
-    "bookMean": 0.0122458033356861,
+    "examMean": 0.017458601169853018,
+    "bookMean": 0.012245803609633659,
     "p": 0.01990049751243781
    },
    "control2x": {
-    "examMean": 0.01659832341648951,
-    "bookMean": 0.011399726584477894,
+    "examMean": 0.016598323637211466,
+    "bookMean": 0.011399726858419737,
     "p": 0.009950248756218905
    },
-   "dsr": 0.8986616908278027,
+   "dsr": 0.5220876884028853,
    "passed": false
   }
  },
@@ -314,14 +315,14 @@
   }
  ],
  "verdict": {
-  "en": "Nothing passed with all 402 trials counted.",
-  "vi": "Không ý tưởng nào đạt khi tính cả 402 lần thử.",
+  "en": "Nothing passed with all 66 trials counted.",
+  "vi": "Không ý tưởng nào đạt khi tính cả 66 lần thử.",
   "lines": [
-   "M1-stocks: Sharpe 1.32 (SPY 1.07), CAGR 63.94%, maxDD -39.72%, p(1x)=0.00 p(2x)=0.00, DSR 0.99, PASS",
-   "M2-stocks-trend: Sharpe 1.03 (SPY 1.07), CAGR 41.28%, maxDD -43.40%, p(1x)=0.00 p(2x)=0.00, DSR 0.93, fail",
-   "M3-etfs: Sharpe 1.15 (SPY 1.07), CAGR 20.53%, maxDD -17.40%, p(1x)=0.00 p(2x)=0.00, DSR 0.94, fail",
-   "M4-etfs-trend: Sharpe 0.94 (SPY 1.07), CAGR 14.47%, maxDD -17.79%, p(1x)=0.01 p(2x)=0.00, DSR 0.86, fail",
-   "M1-stocks-exHighVol: Sharpe 0.97 (SPY 1.07), CAGR 28.80%, maxDD -21.20%, p(1x)=0.02 p(2x)=0.01, DSR 0.90, fail"
+   "M1-stocks: Sharpe 1.32 (SPY 1.07), CAGR 63.94%, maxDD -39.72%, p(1x)=0.00 p(2x)=0.00, DSR 0.84, fail",
+   "M2-stocks-trend: Sharpe 1.03 (SPY 1.07), CAGR 41.28%, maxDD -43.40%, p(1x)=0.00 p(2x)=0.00, DSR 0.58, fail",
+   "M3-etfs: Sharpe 1.15 (SPY 1.07), CAGR 20.53%, maxDD -17.40%, p(1x)=0.00 p(2x)=0.00, DSR 0.68, fail",
+   "M4-etfs-trend: Sharpe 0.94 (SPY 1.07), CAGR 14.47%, maxDD -17.79%, p(1x)=0.01 p(2x)=0.00, DSR 0.49, fail",
+   "M1-stocks-exHighVol: Sharpe 0.97 (SPY 1.07), CAGR 28.80%, maxDD -21.20%, p(1x)=0.02 p(2x)=0.01, DSR 0.52, fail"
   ]
  }
 }

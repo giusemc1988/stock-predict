@@ -189,9 +189,9 @@ export interface MomentumEval {
 }
 
 export const PASS_MOMENTUM_EN = (trials: number) =>
-  `PASS = on the exam (newest 1/3 of months) the monthly average beats the 200-draw random-pick control at 1x AND 2x costs with p <= 0.05 at both, the BOOK average also beats its control, the exam Sharpe is above SPY's buy-and-hold over the same months, and a Deflated Sharpe >= 0.95 on the monthly exam returns counting all ${trials} trials of every round. A STOCK idea must also have its ETF twin pass (the stock list is survivor-biased). Fixed in advance; nothing is tuned on the exam.`
+  `PASS = on the exam (newest 1/3 of months) the monthly average beats the 200-draw random-pick control at 1x AND 2x costs with p <= 0.05 at both, the BOOK average also beats its control, the exam Sharpe is above SPY's buy-and-hold over the same months, and a Deflated Sharpe >= 0.95 on the monthly exam returns counting all ${trials} ideas judged on the recent years. A STOCK idea must also have its ETF twin pass (the stock list is survivor-biased). Fixed in advance; nothing is tuned on the exam.`
 export const PASS_MOMENTUM_VI = (trials: number) =>
-  `QUA = ở bài thi (1/3 tháng mới nhất) trung bình tháng thắng nhóm đối chứng chọn mã ngẫu nhiên (200 lần) ở phí 1x VÀ 2x với p <= 0,05 ở cả hai, trung bình BOOK cũng thắng đối chứng, Sharpe bài thi cao hơn SPY mua-giữ cùng các tháng, và Deflated Sharpe >= 0,95 trên lợi nhuận tháng của bài thi tính cả ${trials} lần thử của mọi vòng. Ý tưởng trên CỔ PHIẾU còn phải có bản ETF song sinh cùng đạt (danh sách cổ phiếu bị thiên lệch người sống sót). Cố định từ trước; không chỉnh gì trên bài thi.`
+  `QUA = ở bài thi (1/3 tháng mới nhất) trung bình tháng thắng nhóm đối chứng chọn mã ngẫu nhiên (200 lần) ở phí 1x VÀ 2x với p <= 0,05 ở cả hai, trung bình BOOK cũng thắng đối chứng, Sharpe bài thi cao hơn SPY mua-giữ cùng các tháng, và Deflated Sharpe >= 0,95 trên lợi nhuận tháng của bài thi tính cả ${trials} ý tưởng đã thi trên những năm gần đây. Ý tưởng trên CỔ PHIẾU còn phải có bản ETF song sinh cùng đạt (danh sách cổ phiếu bị thiên lệch người sống sót). Cố định từ trước; không chỉnh gì trên bài thi.`
 
 export interface EvalInput {
   id: string
@@ -205,7 +205,6 @@ export interface EvalInput {
   spyMonthly: number[]
   examIdx: number
   trials: number
-  trialVar: number
 }
 
 export function evalMomentum(o: EvalInput): MomentumEval {
@@ -214,7 +213,7 @@ export function evalMomentum(o: EvalInput): MomentumEval {
   const exam1 = r1.slice(o.examIdx)
   const c1 = randomControl(o.px, o.plan, o.side1, mean(exam1), o.examIdx)
   const c2 = randomControl(o.px, o.plan, o.side2, mean(r2.slice(o.examIdx)), o.examIdx)
-  const dsr = deflatedSharpe(exam1, o.trials, o.trialVar)
+  const dsr = deflatedSharpe(exam1, o.trials)
   const spyExam = perf(o.spyMonthly.slice(o.examIdx), o.years.slice(o.examIdx), 12)
   const exam = perf(exam1, o.years.slice(o.examIdx), 12)
   const passed = exam.sharpe > spyExam.sharpe && c1.p <= 0.05 && c2.p <= 0.05 && mean(r1.slice(0, o.examIdx)) > c1.bookMean && dsr >= 0.95

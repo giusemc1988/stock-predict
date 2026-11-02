@@ -22,7 +22,7 @@ export interface FactoryReport {
   seconds: number
   run: number
   mode?: 'full' | 'signals'
-  trials: { labs: number; thisRun: number; factoryTotal: number; total: number }
+  trials: { labs: number; thisRun: number; factoryTotal: number; total: number; holdout?: number; vaultTotal?: number }
   funnel: { tried: number; discovery: number; validation: number; vault: number }
   pass: Bi
   top: (Bi & { key: string; stage: string; family: string })[]

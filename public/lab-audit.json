@@ -1,0 +1,311 @@
+{
+ "generated": "2026-11-02T11:57:11.300Z",
+ "seconds": 248,
+ "symbols": 97,
+ "factoryTrials": 1206,
+ "factoryTrialVar": 0.004946715428686791,
+ "newTrials": 71,
+ "planted": [
+  {
+   "deltaPct": 0,
+   "runs": 5,
+   "passControl": 0,
+   "passBefore": 0,
+   "passNow": 0,
+   "detail": [
+    {
+     "n": 870,
+     "days": 589,
+     "excess1": -0.09,
+     "p1": 0.7,
+     "p2": 0.7,
+     "exHighVol": -0.036,
+     "dsrBefore": 0,
+     "dsrNow": 0.135
+    },
+    {
+     "n": 863,
+     "days": 589,
+     "excess1": -0.098,
+     "p1": 0.7,
+     "p2": 0.7,
+     "exHighVol": -0.032,
+     "dsrBefore": 0,
+     "dsrNow": 0.177
+    },
+    {
+     "n": 901,
+     "days": 584,
+     "excess1": -0.07,
+     "p1": 0.62,
+     "p2": 0.62,
+     "exHighVol": -0.059,
+     "dsrBefore": 0,
+     "dsrNow": 0.103
+    },
+    {
+     "n": 840,
+     "days": 561,
+     "excess1": -0.116,
+     "p1": 0.75,
+     "p2": 0.75,
+     "exHighVol": -0.093,
+     "dsrBefore": 0,
+     "dsrNow": 0.058
+    },
+    {
+     "n": 901,
+     "days": 585,
+     "excess1": -0.233,
+     "p1": 0.85,
+     "p2": 0.85,
+     "exHighVol": -0.3,
+     "dsrBefore": 0,
+     "dsrNow": 0.039
+    }
+   ]
+  },
+  {
+   "deltaPct": 0.25,
+   "runs": 5,
+   "passControl": 0,
+   "passBefore": 0,
+   "passNow": 0,
+   "detail": [
+    {
+     "n": 870,
+     "days": 589,
+     "excess1": 0.148,
+     "p1": 0.26,
+     "p2": 0.26,
+     "exHighVol": 0.202,
+     "dsrBefore": 0.001,
+     "dsrNow": 0.503
+    },
+    {
+     "n": 863,
+     "days": 589,
+     "excess1": 0.139,
+     "p1": 0.19,
+     "p2": 0.19,
+     "exHighVol": 0.206,
+     "dsrBefore": 0.002,
+     "dsrNow": 0.656
+    },
+    {
+     "n": 901,
+     "days": 584,
+     "excess1": 0.168,
+     "p1": 0.17,
+     "p2": 0.17,
+     "exHighVol": 0.179,
+     "dsrBefore": 0,
+     "dsrNow": 0.449
+    },
+    {
+     "n": 840,
+     "days": 561,
+     "excess1": 0.121,
+     "p1": 0.27,
+     "p2": 0.27,
+     "exHighVol": 0.144,
+     "dsrBefore": 0,
+     "dsrNow": 0.324
+    },
+    {
+     "n": 901,
+     "days": 585,
+     "excess1": 0.004,
+     "p1": 0.52,
+     "p2": 0.52,
+     "exHighVol": -0.062,
+     "dsrBefore": 0,
+     "dsrNow": 0.274
+    }
+   ]
+  },
+  {
+   "deltaPct": 0.5,
+   "runs": 5,
+   "passControl": 4,
+   "passBefore": 0,
+   "passNow": 1,
+   "detail": [
+    {
+     "n": 870,
+     "days": 589,
+     "excess1": 0.386,
+     "p1": 0.01,
+     "p2": 0.01,
+     "exHighVol": 0.44,
+     "dsrBefore": 0.018,
+     "dsrNow": 0.864
+    },
+    {
+     "n": 863,
+     "days": 589,
+     "excess1": 0.377,
+     "p1": 0.03,
+     "p2": 0.03,
+     "exHighVol": 0.443,
+     "dsrBefore": 0.053,
+     "dsrNow": 0.959
+    },
+    {
+     "n": 901,
+     "days": 584,
+     "excess1": 0.406,
+     "p1": 0.05,
+     "p2": 0.05,
+     "exHighVol": 0.416,
+     "dsrBefore": 0.004,
+     "dsrNow": 0.862
+    },
+    {
+     "n": 840,
+     "days": 561,
+     "excess1": 0.358,
+     "p1": 0.03,
+     "p2": 0.03,
+     "exHighVol": 0.381,
+     "dsrBefore": 0.007,
+     "dsrNow": 0.741
+    },
+    {
+     "n": 901,
+     "days": 585,
+     "excess1": 0.241,
+     "p1": 0.13,
+     "p2": 0.13,
+     "exHighVol": 0.175,
+     "dsrBefore": 0.003,
+     "dsrNow": 0.721
+    }
+   ]
+  },
+  {
+   "deltaPct": 1,
+   "runs": 5,
+   "passControl": 5,
+   "passBefore": 0,
+   "passNow": 5,
+   "detail": [
+    {
+     "n": 870,
+     "days": 589,
+     "excess1": 0.861,
+     "p1": 0,
+     "p2": 0,
+     "exHighVol": 0.915,
+     "dsrBefore": 0.523,
+     "dsrNow": 0.999
+    },
+    {
+     "n": 863,
+     "days": 589,
+     "excess1": 0.852,
+     "p1": 0,
+     "p2": 0,
+     "exHighVol": 0.919,
+     "dsrBefore": 0.848,
+     "dsrNow": 1
+    },
+    {
+     "n": 901,
+     "days": 584,
+     "excess1": 0.882,
+     "p1": 0,
+     "p2": 0,
+     "exHighVol": 0.892,
+     "dsrBefore": 0.427,
+     "dsrNow": 1
+    },
+    {
+     "n": 840,
+     "days": 561,
+     "excess1": 0.832,
+     "p1": 0,
+     "p2": 0,
+     "exHighVol": 0.856,
+     "dsrBefore": 0.403,
+     "dsrNow": 0.997
+    },
+    {
+     "n": 901,
+     "days": 585,
+     "excess1": 0.716,
+     "p1": 0,
+     "p2": 0,
+     "exHighVol": 0.649,
+     "dsrBefore": 0.355,
+     "dsrNow": 0.998
+    }
+   ]
+  },
+  {
+   "deltaPct": 2,
+   "runs": 5,
+   "passControl": 5,
+   "passBefore": 5,
+   "passNow": 5,
+   "detail": [
+    {
+     "n": 870,
+     "days": 589,
+     "excess1": 1.811,
+     "p1": 0,
+     "p2": 0,
+     "exHighVol": 1.866,
+     "dsrBefore": 1,
+     "dsrNow": 1
+    },
+    {
+     "n": 863,
+     "days": 589,
+     "excess1": 1.802,
+     "p1": 0,
+     "p2": 0,
+     "exHighVol": 1.869,
+     "dsrBefore": 1,
+     "dsrNow": 1
+    },
+    {
+     "n": 901,
+     "days": 584,
+     "excess1": 1.834,
+     "p1": 0,
+     "p2": 0,
+     "exHighVol": 1.843,
+     "dsrBefore": 1,
+     "dsrNow": 1
+    },
+    {
+     "n": 840,
+     "days": 561,
+     "excess1": 1.78,
+     "p1": 0,
+     "p2": 0,
+     "exHighVol": 1.804,
+     "dsrBefore": 1,
+     "dsrNow": 1
+    },
+    {
+     "n": 901,
+     "days": 585,
+     "excess1": 1.666,
+     "p1": 0,
+     "p2": 0,
+     "exHighVol": 1.599,
+     "dsrBefore": 1,
+     "dsrNow": 1
+    }
+   ]
+  }
+ ],
+ "spyBuyHold": {
+  "annualSharpe": 1.369,
+  "dsrBefore": 0,
+  "dsrNow": 0.605,
+  "dsrNowAllTrials": 0.259
+ }
+}

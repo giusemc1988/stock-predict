@@ -391,7 +391,7 @@ export interface VaultResult {
 const mean = (a: number[]) => a.reduce((x, y) => x + y, 0) / Math.max(1, a.length)
 
 /** The final, one-shot exam on the vault years with the full lab rule. `trials` = every trial of every round + the factory's total. */
-export function vaultExam(u: Universe, r: Rule, cuts: Cuts, from: string, trials: number, trialVar: number, highVol: Set<string>, draws = 200): VaultResult {
+export function vaultExam(u: Universe, r: Rule, cuts: Cuts, from: string, trials: number, highVol: Set<string>, draws = 200): VaultResult {
   const sigs = ruleSignals(u, r, cuts, from, '9999')
   const c1 = (s: string) => u.costs[sym(u).get(s)!]
   const c2 = (s: string) => scaleCosts(c1(s), 2)
@@ -414,7 +414,7 @@ export function vaultExam(u: Universe, r: Rule, cuts: Cuts, from: string, trials
   const byDay = new Map<number, number[]>()
   for (const t of t1) byDay.set(t.openedAt, [...(byDay.get(t.openedAt) ?? []), t.retPct])
   const dayRets = [...byDay.values()].map(mean)
-  const dsr = deflatedSharpe(dayRets, trials, trialVar)
+  const dsr = deflatedSharpe(dayRets, trials)
   const excess1 = avg1 - control1
   const excess2 = avg2 - control2
   const passed = t1.length >= MIN_VAULT_TRADES && dayRets.length >= MIN_VAULT_DAYS && excess1 > 0 && excess2 > 0 && p1 <= 0.05 && p2 <= 0.05 && exHighVol > 0 && dsr >= 0.95
@@ -422,17 +422,9 @@ export function vaultExam(u: Universe, r: Rule, cuts: Cuts, from: string, trials
 }
 
 export const PASS_EN = (trials: number) =>
-  `PASS = in the vault years (never seen by the search or the validation step): at least ${MIN_VAULT_TRADES} trades on at least ${MIN_VAULT_DAYS} different days, average per trade above a 200-draw random-entry control (same symbols, counts, exits, costs) at 1x AND 2x costs with p <= 0.05 at both, still above its control without the 14 high-volatility names, and a Deflated Sharpe >= 0.95 (one return per entry day, since same-day trades move together) counting ${trials} trials (every round of the labs plus every rule the factory has ever tried). Fixed in advance.`
+  `PASS = in the vault years (never seen by the search or the validation step): at least ${MIN_VAULT_TRADES} trades on at least ${MIN_VAULT_DAYS} different days, average per trade above a 200-draw random-entry control (same symbols, counts, exits, costs) at 1x AND 2x costs with p <= 0.05 at both, still above its control without the 14 high-volatility names, and a Deflated Sharpe >= 0.95 (one return per entry day, since same-day trades move together) counting ${trials} trials (every lab idea judged on the recent years plus every rule that ever reached the vault; the luck spread is that of a zero-edge Sharpe over the same number of days). Fixed in advance.`
 export const PASS_VI = (trials: number) =>
-  `ĐẠT = trong "két khóa" (những năm mà vòng tìm kiếm và vòng kiểm tra chưa từng thấy): từ ${MIN_VAULT_TRADES} lệnh trên ít nhất ${MIN_VAULT_DAYS} ngày khác nhau, trung bình mỗi lệnh cao hơn nhóm mua ngẫu nhiên 200 lần (cùng mã, cùng số lệnh, cùng cách thoát, cùng phí) ở phí 1x VÀ 2x với p <= 0,05 ở cả hai, vẫn thắng khi bỏ 14 mã biến động mạnh, và Deflated Sharpe >= 0,95 (mỗi ngày vào lệnh tính một con số, vì lệnh cùng ngày đi cùng nhau) khi tính ${trials} lần thử (mọi vòng lab cộng mọi luật xưởng từng thử). Cố định từ trước.`
-
-/** Variance of the per-trade Sharpe across the rules that had enough trades: the spread the DSR deflates by. */
-export function trialSharpeVar(all: Iterable<Scored>): number {
-  const s = [...all].filter((x) => x.fit.n >= MIN_DISCOVERY_TRADES).map((x) => x.fit.sharpe)
-  if (s.length < 2) return 0
-  const m = mean(s)
-  return s.reduce((a, b) => a + (b - m) ** 2, 0) / (s.length - 1)
-}
+  `ĐẠT = trong "két khóa" (những năm mà vòng tìm kiếm và vòng kiểm tra chưa từng thấy): từ ${MIN_VAULT_TRADES} lệnh trên ít nhất ${MIN_VAULT_DAYS} ngày khác nhau, trung bình mỗi lệnh cao hơn nhóm mua ngẫu nhiên 200 lần (cùng mã, cùng số lệnh, cùng cách thoát, cùng phí) ở phí 1x VÀ 2x với p <= 0,05 ở cả hai, vẫn thắng khi bỏ 14 mã biến động mạnh, và Deflated Sharpe >= 0,95 (mỗi ngày vào lệnh tính một con số, vì lệnh cùng ngày đi cùng nhau) khi tính ${trials} lần thử (mọi ý tưởng lab từng thi trên những năm gần đây cộng mọi luật từng vào két). Cố định từ trước.`
 
 // ---- signals: the factory's rules on the latest close, graded later with real prices ----
 
