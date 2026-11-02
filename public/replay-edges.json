@@ -1,6 +1,6 @@
 {
- "updated": "2026-11-02T08:04:26.361Z",
- "seconds": 206,
+ "updated": "2026-11-02T12:03:33.780Z",
+ "seconds": 208,
  "markets": 98,
  "failed": [],
  "split": {
@@ -16,21 +16,24 @@
    "intradayRound3": 14,
    "newsRound4": 14,
    "edgesRound4": 10,
-   "ensembles": 2
+   "ensembles": 2,
+   "momentumRound5": 4,
+   "shortRound6": 4
   },
-  "total": 398,
+  "total": 406,
+  "holdout": 66,
   "round4Edges": 10,
   "labConvention": 38
  },
  "costs": "Per-symbol tiers (half-spread by median daily dollar volume: >$5B 0.5 bps, $1-5B 1.5, $0.2-1B 4, below 10; slippage 1 bp per fill; fee 0), at 1x and 2x.",
  "passRule": {
   "trades": {
-   "en": "PASS (trade-based ideas) = at least 30 exam trades, exam average per trade above 0 at 1x AND 2x costs, exam excess over the 200-draw seeded random-date control above 0 at 1x and 2x with p <= 0.05 at both, the BOOK excess also above 0, and a Deflated Sharpe >= 0.95 of its daily return stream counting all 398 trials of every round (340 filter rules and 4 strategies of the 15m lab, 14 daily, 14 intraday, 14 news, 10 here, 2 portfolios). Fixed in advance; nothing is tuned on the exam.",
-   "vi": "QUA (ý tưởng theo lệnh) = từ 30 lệnh thi, trung bình mỗi lệnh bài thi > 0 ở phí 1x VÀ 2x, phần vượt trội bài thi so với 200 lần chọn ngày ngẫu nhiên (có seed) > 0 ở 1x và 2x với p <= 0,05 ở cả hai, phần vượt trội của BOOK cũng > 0, và Deflated Sharpe >= 0,95 của chuỗi lợi nhuận ngày tính cả 398 lần thử của mọi vòng (340 luật lọc và 4 chiến lược của lab 15 phút, 14 nến ngày, 14 trong ngày, 14 tin tức, 10 ở đây, 2 danh mục). Cố định từ trước; không chỉnh gì trên bài thi."
+   "en": "PASS (trade-based ideas) = at least 30 exam trades, exam average per trade above 0 at 1x AND 2x costs, exam excess over the 200-draw seeded random-date control above 0 at 1x and 2x with p <= 0.05 at both, the BOOK excess also above 0, and a Deflated Sharpe >= 0.95 of its daily return stream counting all 66 ideas judged on the recent years (every round except the 340 filter rules of the 15m lab, which used other data). Fixed in advance; nothing is tuned on the exam.",
+   "vi": "QUA (ý tưởng theo lệnh) = từ 30 lệnh thi, trung bình mỗi lệnh bài thi > 0 ở phí 1x VÀ 2x, phần vượt trội bài thi so với 200 lần chọn ngày ngẫu nhiên (có seed) > 0 ở 1x và 2x với p <= 0,05 ở cả hai, phần vượt trội của BOOK cũng > 0, và Deflated Sharpe >= 0,95 của chuỗi lợi nhuận ngày tính cả 66 ý tưởng đã thi trên những năm gần đây (mọi vòng, trừ 340 luật lọc của lab 15 phút vốn dùng dữ liệu khác). Cố định từ trước; không chỉnh gì trên bài thi."
   },
   "switches": {
-   "en": "PASS (switches and portfolios, judged against SPY buy-and-hold over the same days) = exam Sharpe above SPY's at 1x AND 2x costs, exam max drawdown shallower than SPY's at both, the BOOK agrees (Sharpe above SPY's and max drawdown shallower at 1x), the exam Sharpe beats a random-timing control (the same signal shifted in time by 200 seeded random offsets, so the same share of days invested and the same number of switches) with p <= 0.05, and a Deflated Sharpe >= 0.95 on the exam daily returns counting all 398 trials of every round. Fixed in advance.",
-   "vi": "QUA (chuyển trạng thái và danh mục, so với SPY mua-giữ cùng khoảng ngày) = Sharpe bài thi cao hơn SPY ở phí 1x VÀ 2x, sụt giảm tối đa bài thi nông hơn SPY ở cả hai, BOOK đồng ý (Sharpe cao hơn SPY và sụt giảm nông hơn ở 1x), Sharpe bài thi thắng nhóm đối chứng chọn thời điểm ngẫu nhiên (cùng tín hiệu dịch thời gian theo 200 độ lệch ngẫu nhiên có seed, nên cùng tỉ lệ ngày cầm hàng và cùng số lần chuyển) với p <= 0,05, và Deflated Sharpe >= 0,95 trên lợi nhuận ngày của bài thi tính cả 398 lần thử của mọi vòng. Cố định từ trước."
+   "en": "PASS (switches and portfolios, judged against SPY buy-and-hold over the same days) = exam Sharpe above SPY's at 1x AND 2x costs, exam max drawdown shallower than SPY's at both, the BOOK agrees (Sharpe above SPY's and max drawdown shallower at 1x), the exam Sharpe beats a random-timing control (the same signal shifted in time by 200 seeded random offsets, so the same share of days invested and the same number of switches) with p <= 0.05, and a Deflated Sharpe >= 0.95 on the exam daily returns counting all 66 ideas judged on the recent years. Fixed in advance.",
+   "vi": "QUA (chuyển trạng thái và danh mục, so với SPY mua-giữ cùng khoảng ngày) = Sharpe bài thi cao hơn SPY ở phí 1x VÀ 2x, sụt giảm tối đa bài thi nông hơn SPY ở cả hai, BOOK đồng ý (Sharpe cao hơn SPY và sụt giảm nông hơn ở 1x), Sharpe bài thi thắng nhóm đối chứng chọn thời điểm ngẫu nhiên (cùng tín hiệu dịch thời gian theo 200 độ lệch ngẫu nhiên có seed, nên cùng tỉ lệ ngày cầm hàng và cùng số lần chuyển) với p <= 0,05, và Deflated Sharpe >= 0,95 trên lợi nhuận ngày của bài thi tính cả 66 ý tưởng đã thi trên những năm gần đây. Cố định từ trước."
   }
  },
  "trades": [
@@ -40,27 +43,27 @@
    "vi": "Mua SPY từ lúc đóng cửa hôm trước đến lúc đóng cửa ngày Fed công bố lãi suất (họp định kỳ)",
    "book": {
     "n": 105,
-    "avg": 0.3094205645251831,
-    "ctrl": 0.0041686120787839814,
-    "excess": 0.3052519524463991
+    "avg": 0.30941959576876155,
+    "ctrl": 0.0041684782494618424,
+    "excess": 0.30525111751929973
    },
    "exam": {
     "n": 53,
     "winRate": 0.4716981132075472,
-    "tstat": 0.4659032140526011,
-    "avg1x": 0.08326015748561193,
-    "avg2x": 0.05323968115891118,
-    "ctrl1x": 0.060061157370482114,
-    "ctrl2x": 0.030047639700328154,
-    "excess1x": 0.023199000115129813,
-    "excess2x": 0.023192041458583026,
+    "tstat": 0.4658981072195692,
+    "avg1x": 0.08325932259453642,
+    "avg2x": 0.053238846518263466,
+    "ctrl1x": 0.06006111631404435,
+    "ctrl2x": 0.030047598656205064,
+    "excess1x": 0.023198206280492066,
+    "excess2x": 0.023191247862058402,
     "p1x": 0.435,
     "p2x": 0.435
    },
-   "dsr": 0.0006255440042671756,
-   "dsrTrades": 0.09989941106876676,
+   "dsr": 0.02770523771191985,
+   "dsrTrades": 0.02929838607598312,
    "passed": false,
-   "dsrLab": 0.013277108766867884
+   "dsrLab": 0.04423402772276075
   },
   {
    "id": "E-TOM",
@@ -68,27 +71,27 @@
    "vi": "Đầu tháng: mua SPY từ lúc đóng cửa ngày giao dịch áp chót của tháng đến lúc đóng cửa ngày giao dịch thứ 3 của tháng sau",
    "book": {
     "n": 158,
-    "avg": 0.1660826319535435,
-    "ctrl": 0.11487358722394955,
-    "excess": 0.05120904472959395
+    "avg": 0.166078664728094,
+    "ctrl": 0.11487337261181862,
+    "excess": 0.051205292116275364
    },
    "exam": {
     "n": 79,
     "winRate": 0.569620253164557,
-    "tstat": 1.2563712875706272,
-    "avg1x": 0.27781122090539495,
-    "avg2x": 0.2477323880105244,
-    "ctrl1x": 0.3137549329216181,
-    "ctrl2x": 0.28366531852988264,
-    "excess1x": -0.03594371201622315,
-    "excess2x": -0.035932930519358225,
+    "tstat": 1.25636436733816,
+    "avg1x": 0.2778095952752554,
+    "avg2x": 0.24773076286800025,
+    "ctrl1x": 0.3137549963386404,
+    "ctrl2x": 0.2836653819278823,
+    "excess1x": -0.03594540106338501,
+    "excess2x": -0.03593461905988207,
     "p1x": 0.555,
     "p2x": 0.555
    },
-   "dsr": 0.006128242676560203,
-   "dsrTrades": 0.19102372264916156,
+   "dsr": 0.11130712450720243,
+   "dsrTrades": 0.13669392673051928,
    "passed": false,
-   "dsrLab": 0.06477124118661376
+   "dsrLab": 0.15582882730596997
   },
   {
    "id": "E-OPEX",
@@ -96,27 +99,27 @@
    "vi": "Mua SPY trong tuần đáo hạn quyền chọn (đóng cửa thứ Sáu trước đến đóng cửa ngày đáo hạn); chỉ tính nếu book dương",
    "book": {
     "n": 159,
-    "avg": 0.13452230432269507,
-    "ctrl": 0.1456831043860997,
-    "excess": -0.011160800063404613
+    "avg": 0.13452550056297863,
+    "ctrl": 0.14568298464898047,
+    "excess": -0.01115748408600184
    },
    "exam": {
     "n": 79,
     "winRate": 0.4430379746835443,
-    "tstat": -0.3104244434812122,
-    "avg1x": -0.07649209586177787,
-    "avg2x": -0.10646465369809409,
-    "ctrl1x": 0.3854652344234681,
-    "ctrl2x": 0.3553541101667934,
-    "excess1x": -0.46195733028524594,
-    "excess2x": -0.4618187638648875,
+    "tstat": -0.3104303555749506,
+    "avg1x": -0.07649350796372364,
+    "avg2x": -0.10646606537647374,
+    "ctrl1x": 0.38546540836936133,
+    "ctrl2x": 0.3553542840605107,
+    "excess1x": -0.46195891633308495,
+    "excess2x": -0.4618203494369844,
     "p1x": 0.965,
     "p2x": 0.965
    },
-   "dsr": 0.000011297464533654988,
-   "dsrTrades": 0.007355210521768352,
+   "dsr": 0.001746223598041441,
+   "dsrTrades": 0.0038586785798148115,
    "passed": false,
-   "dsrLab": 0.0006312904267179453,
+   "dsrLab": 0.0033877088094137475,
    "note": "other weeks: book avg 0.107%, exam avg 0.508%"
   },
   {
@@ -125,27 +128,27 @@
    "vi": "Giao dịch cặp: 8 cặp cổ phiếu cùng ngành, tỉ lệ phòng hộ ước lượng trên book, z-score 60 ngày của chênh lệch log giá, vào khi |z| > 2, ra khi |z| < 0,5 hoặc sau 20 ngày",
    "book": {
     "n": 586,
-    "avg": 0.20188210147577815,
-    "ctrl": -0.08190211140685207,
-    "excess": 0.2837842128826302
+    "avg": 0.2018829152693827,
+    "ctrl": -0.08190225884455409,
+    "excess": 0.2837851741139368
    },
    "exam": {
     "n": 291,
     "winRate": 0.6116838487972509,
-    "tstat": 1.686281902392592,
-    "avg1x": 0.2769702148895961,
-    "avg2x": 0.1821996064715968,
-    "ctrl1x": -0.10252777667723423,
-    "ctrl2x": -0.19692787600078634,
-    "excess1x": 0.37949799156683034,
-    "excess2x": 0.37912748247238315,
+    "tstat": 1.6862757766009828,
+    "avg1x": 0.2769692341293137,
+    "avg2x": 0.18219862585152646,
+    "ctrl1x": -0.10252784388709621,
+    "ctrl2x": -0.19692794318571674,
+    "excess1x": 0.37949707801640986,
+    "excess2x": 0.3791265690372432,
     "p1x": 0.015,
     "p2x": 0.015
    },
-   "dsr": 0.01863676841314721,
-   "dsrTrades": 0.008765173468197607,
+   "dsr": 0.22282784512902787,
+   "dsrTrades": 0.25012358377979743,
    "passed": false,
-   "dsrLab": 0.1429740343405983,
+   "dsrLab": 0.29144833329362385,
    "note": "KO/PEP beta 0.91; XOM/CVX beta 0.47; HD/LOW beta 1.26; V/MA beta 0.94; JPM/BAC beta 0.53; GS/MS beta 0.66; UPS/FDX beta 0.79; WMT/TGT beta 0.89"
   },
   {
@@ -154,27 +157,27 @@
    "vi": "Mua lúc đóng cửa ngày tăng 3%+ với khối lượng gấp đôi trung bình 20 ngày, bán lúc mở cửa hôm sau",
    "book": {
     "n": 2362,
-    "avg": 0.25427656333211185,
-    "ctrl": -0.005629469027098695,
-    "excess": 0.25990603235921056
+    "avg": 0.2542771353937625,
+    "ctrl": -0.005629458055837333,
+    "excess": 0.2599065934495998
    },
    "exam": {
     "n": 1853,
     "winRate": 0.47598488936859146,
-    "tstat": 3.7816306538519324,
-    "avg1x": 0.37367118472094873,
-    "avg2x": 0.2598095747943717,
-    "ctrl1x": -0.0046495465437975505,
-    "ctrl2x": -0.11788945513293862,
-    "excess1x": 0.3783207312647463,
-    "excess2x": 0.37769902992731036,
+    "tstat": 3.7816287252610437,
+    "avg1x": 0.37367099474763965,
+    "avg2x": 0.25980938492714994,
+    "ctrl1x": -0.004649536216966168,
+    "ctrl2x": -0.11788944481409869,
+    "excess1x": 0.37832053096460583,
+    "excess2x": 0.37769882974124863,
     "p1x": 0,
     "p2x": 0
    },
-   "dsr": 0.4635902402343194,
-   "dsrTrades": 2.922107000813412e-13,
+   "dsr": 0.8942327108850053,
+   "dsrTrades": 0.9354863697269388,
    "passed": false,
-   "dsrLab": 0.8264457537681107
+   "dsrLab": 0.9287057146786408
   },
   {
    "id": "E-INSIDER",
@@ -182,27 +185,27 @@
    "vi": "Lãnh đạo mua cổ phiếu (Form 4, mã P): từ 2 giám đốc/thành viên HĐQT khác nhau mua trong 30 ngày thì mua ở giá mở cửa sau ngày nộp, giữ 60 phiên",
    "book": {
     "n": 158,
-    "avg": 4.635133306789921,
-    "ctrl": -0.5190537754308475,
-    "excess": 5.154187082220769
+    "avg": 4.635135918957472,
+    "ctrl": -0.5190539431563602,
+    "excess": 5.1541898621138325
    },
    "exam": {
     "n": 63,
     "winRate": 0.5714285714285714,
-    "tstat": 1.656723312427684,
-    "avg1x": 6.028609786916619,
-    "avg2x": 5.9095531828656,
-    "ctrl1x": 2.6810930873884073,
-    "ctrl2x": 2.569937914307047,
-    "excess1x": 3.347516699528212,
-    "excess2x": 3.339615268558553,
+    "tstat": 1.6567236838725485,
+    "avg1x": 6.028611009644004,
+    "avg2x": 5.9095544043853785,
+    "ctrl1x": 2.681092863828169,
+    "ctrl2x": 2.5699376909432607,
+    "excess1x": 3.3475181458158354,
+    "excess2x": 3.3396167134421177,
     "p1x": 0.07,
     "p2x": 0.07
    },
-   "dsr": 0.02571953247847375,
-   "dsrTrades": 0.375100171226687,
+   "dsr": 0.2754219005528085,
+   "dsrTrades": 0.1936041378071554,
    "passed": false,
-   "dsrLab": 0.18191921117035748,
+   "dsrLab": 0.352742326359233,
    "note": "81 quarters read, 2 failed; 402 cluster signals, 221 trades"
   }
  ],
@@ -216,64 +219,64 @@
    "spy": {
     "book": {
      "n": 3325,
-     "cagr": 6.221097371636053,
-     "vol": 20.233503138345387,
-     "sharpe": 0.3997103146400238,
-     "maxDD": -55.189431453151784,
-     "worstYear": -36.79499925419768
+     "cagr": 6.221099740601943,
+     "vol": 20.2335084077497,
+     "sharpe": 0.3997103732527578,
+     "maxDD": -55.18945725755721,
+     "worstYear": -36.79501782176883
     },
     "exam": {
      "n": 1663,
-     "cagr": 20.672033519686607,
-     "vol": 18.011969111809158,
-     "sharpe": 1.1332920726481455,
-     "maxDD": -24.496382047506906,
-     "worstYear": -18.17536206396211
+     "cagr": 20.672030967907794,
+     "vol": 18.011972482319553,
+     "sharpe": 1.1332917776696254,
+     "maxDD": -24.496373436807062,
+     "worstYear": -18.175372022668533
     }
    },
    "x1": {
     "book": {
      "n": 3325,
-     "cagr": 7.833777974609357,
-     "vol": 13.326582891404525,
-     "sharpe": 0.6327838648518338,
-     "maxDD": -34.70563219086205,
-     "worstYear": -18.922077835458108
+     "cagr": 7.833840486730659,
+     "vol": 13.326577213829689,
+     "sharpe": 0.6327884245823849,
+     "maxDD": -34.70540120763127,
+     "worstYear": -18.921938785220338
     },
     "exam": {
      "n": 1663,
-     "cagr": 13.466668123596603,
-     "vol": 15.300616022505931,
-     "sharpe": 0.9025804813235219,
-     "maxDD": -29.678246390372585,
-     "worstYear": -25.282745702298882
+     "cagr": 13.466657769566437,
+     "vol": 15.300619783034367,
+     "sharpe": 0.9025797012455329,
+     "maxDD": -29.67820102436699,
+     "worstYear": -25.28273490388392
     }
    },
    "x2": {
     "book": {
      "n": 3325,
-     "cagr": 7.545201098254761,
-     "vol": 13.324609822789716,
-     "sharpe": 0.6127422865684937,
-     "maxDD": -35.37780019853507,
-     "worstYear": -19.38276077994764
+     "cagr": 7.5452634524133755,
+     "vol": 13.324604083420788,
+     "sharpe": 0.6127468412762498,
+     "maxDD": -35.377571545728806,
+     "worstYear": -19.38262249784154
     },
     "exam": {
      "n": 1663,
-     "cagr": 13.304438680873698,
-     "vol": 15.300183026198772,
-     "sharpe": 0.8932467221375382,
-     "maxDD": -29.846440115644633,
-     "worstYear": -25.483716622403275
+     "cagr": 13.30442834077472,
+     "vol": 15.300186792057739,
+     "sharpe": 0.89324594402035,
+     "maxDD": -29.84639485228896,
+     "worstYear": -25.483705848824457
     }
    },
-   "dsr": 0.08851605206073176,
+   "dsr": 0.47559322652274594,
    "shift": {
     "p": 0.8955223880597015,
-    "mean": 1.0518792728454172
+    "mean": 1.051879099337929
    },
    "passed": false,
-   "dsrLab": 0.36003414037785453
+   "dsrLab": 0.5585255768798216
   },
   {
    "id": "E-HYG",
@@ -284,64 +287,64 @@
    "spy": {
     "book": {
      "n": 3238,
-     "cagr": 5.8078980623297305,
-     "vol": 20.416791274717028,
-     "sharpe": 0.378848835069042,
-     "maxDD": -55.18943145315177,
-     "worstYear": -36.79499925419768
+     "cagr": 5.807896244459743,
+     "vol": 20.416797429428417,
+     "sharpe": 0.3788486980821903,
+     "maxDD": -55.189457257557265,
+     "worstYear": -36.79501782176883
     },
     "exam": {
      "n": 1663,
-     "cagr": 20.672033519686607,
-     "vol": 18.011969111809158,
-     "sharpe": 1.1332920726481455,
-     "maxDD": -24.496382047506906,
-     "worstYear": -18.17536206396211
+     "cagr": 20.672030967907794,
+     "vol": 18.011972482319553,
+     "sharpe": 1.1332917776696254,
+     "maxDD": -24.496373436807062,
+     "worstYear": -18.175372022668533
     }
    },
    "x1": {
     "book": {
      "n": 3238,
-     "cagr": 6.871363429697119,
-     "vol": 11.116199128513983,
-     "sharpe": 0.6536326102206382,
-     "maxDD": -27.83868142359345,
-     "worstYear": -12.089473803329165
+     "cagr": 6.871364858144924,
+     "vol": 11.116193329810569,
+     "sharpe": 0.6536330126180779,
+     "maxDD": -27.838623581077403,
+     "worstYear": -12.089323001110463
     },
     "exam": {
      "n": 1663,
-     "cagr": 12.217550461756165,
-     "vol": 11.797293062135623,
-     "sharpe": 1.036324629563363,
-     "maxDD": -15.491140259472836,
-     "worstYear": -3.0463800473775837
+     "cagr": 12.21749471561755,
+     "vol": 11.797300785057354,
+     "sharpe": 1.0363198146062174,
+     "maxDD": -15.49116484871046,
+     "worstYear": -3.0463984983310377
     }
    },
    "x2": {
     "book": {
      "n": 3238,
-     "cagr": 6.564516876545334,
-     "vol": 11.119914872909673,
-     "sharpe": 0.6275887056640043,
-     "maxDD": -28.013088537799813,
-     "worstYear": -12.407437819530887
+     "cagr": 6.564518297966893,
+     "vol": 11.119909101747455,
+     "sharpe": 0.6275890927914776,
+     "maxDD": -28.013030845743515,
+     "worstYear": -12.407287571879422
     },
     "exam": {
      "n": 1663,
-     "cagr": 11.833086592719177,
-     "vol": 11.798263094590528,
-     "sharpe": 1.0071484401052666,
-     "maxDD": -15.757297716587948,
-     "worstYear": -3.3801118921439666
+     "cagr": 11.833031036841568,
+     "vol": 11.798270816330907,
+     "sharpe": 1.0071436447430164,
+     "maxDD": -15.757322219282655,
+     "worstYear": -3.3801302694366875
     }
    },
-   "dsr": 0.15554969649032835,
+   "dsr": 0.6093102542034066,
    "shift": {
     "p": 0.19900497512437812,
-    "mean": 0.8694686674214012
+    "mean": 0.8694683226166119
    },
    "passed": false,
-   "dsrLab": 0.49201578994504513
+   "dsrLab": 0.6866044729854552
   },
   {
    "id": "E-PUT",
@@ -352,19 +355,19 @@
    "spy": {
     "book": {
      "n": 3325,
-     "cagr": 6.221097371636053,
-     "vol": 20.233503138345387,
-     "sharpe": 0.3997103146400238,
-     "maxDD": -55.189431453151784,
-     "worstYear": -36.79499925419768
+     "cagr": 6.221099740601943,
+     "vol": 20.2335084077497,
+     "sharpe": 0.3997103732527578,
+     "maxDD": -55.18945725755721,
+     "worstYear": -36.79501782176883
     },
     "exam": {
      "n": 1663,
-     "cagr": 20.672033519686607,
-     "vol": 18.011969111809158,
-     "sharpe": 1.1332920726481455,
-     "maxDD": -24.496382047506906,
-     "worstYear": -18.17536206396211
+     "cagr": 20.672030967907794,
+     "vol": 18.011972482319553,
+     "sharpe": 1.1332917776696254,
+     "maxDD": -24.496373436807062,
+     "worstYear": -18.175372022668533
     }
    },
    "x1": {
@@ -403,9 +406,9 @@
      "worstYear": -8.46469671646275
     }
    },
-   "dsr": 0.36087282619537814,
+   "dsr": 0.8290375049690122,
    "passed": false,
-   "dsrLab": 0.7418698344621837,
+   "dsrLab": 0.8773192331566728,
    "note": "index level, not a traded fund; 2x costs = 2x the ETF fee"
   },
   {
@@ -417,19 +420,19 @@
    "spy": {
     "book": {
      "n": 3325,
-     "cagr": 6.221097371636053,
-     "vol": 20.233503138345387,
-     "sharpe": 0.3997103146400238,
-     "maxDD": -55.189431453151784,
-     "worstYear": -36.79499925419768
+     "cagr": 6.221099740601943,
+     "vol": 20.2335084077497,
+     "sharpe": 0.3997103732527578,
+     "maxDD": -55.18945725755721,
+     "worstYear": -36.79501782176883
     },
     "exam": {
      "n": 1663,
-     "cagr": 20.672033519686607,
-     "vol": 18.011969111809158,
-     "sharpe": 1.1332920726481455,
-     "maxDD": -24.496382047506906,
-     "worstYear": -18.17536206396211
+     "cagr": 20.672030967907794,
+     "vol": 18.011972482319553,
+     "sharpe": 1.1332917776696254,
+     "maxDD": -24.496373436807062,
+     "worstYear": -18.175372022668533
     }
    },
    "x1": {
@@ -468,9 +471,9 @@
      "worstYear": -12.419050345565807
     }
    },
-   "dsr": 0.1888744848058913,
+   "dsr": 0.6662278405685467,
    "passed": false,
-   "dsrLab": 0.5505702976081677,
+   "dsrLab": 0.7394541719347151,
    "note": "index level, not a traded fund; 2x costs = 2x the ETF fee"
   }
  ],
@@ -484,58 +487,58 @@
    "spy": {
     "book": {
      "n": 3326,
-     "cagr": 6.219169934174507,
-     "vol": 20.230462206233536,
-     "sharpe": 0.39965020135277307,
-     "maxDD": -55.189431453151784,
-     "worstYear": -36.79499925419768
+     "cagr": 6.219172302385156,
+     "vol": 20.23046747484645,
+     "sharpe": 0.39965025995668124,
+     "maxDD": -55.18945725755721,
+     "worstYear": -36.79501782176883
     },
     "exam": {
      "n": 1663,
-     "cagr": 20.672033519686607,
-     "vol": 18.011969111809158,
-     "sharpe": 1.1332920726481455,
-     "maxDD": -24.496382047506906,
-     "worstYear": -18.17536206396211
+     "cagr": 20.672030967907794,
+     "vol": 18.011972482319553,
+     "sharpe": 1.1332917776696254,
+     "maxDD": -24.496373436807062,
+     "worstYear": -18.175372022668533
     }
    },
    "x1": {
     "book": {
      "n": 3326,
-     "cagr": 2.806739205026121,
-     "vol": 4.205179124005797,
-     "sharpe": 0.6793294117770122,
-     "maxDD": -8.301731994878114,
-     "worstYear": -6.641303982099334
+     "cagr": 2.806743492785335,
+     "vol": 4.20517756717917,
+     "sharpe": 0.6793306396528278,
+     "maxDD": -8.3017367580565,
+     "worstYear": -6.641313197552745
     },
     "exam": {
      "n": 1663,
-     "cagr": 5.553718160720655,
-     "vol": 4.00785707248,
-     "sharpe": 1.3687638809977425,
-     "maxDD": -5.300248245005146,
-     "worstYear": -4.074668495283107
+     "cagr": 5.553706627867494,
+     "vol": 4.007856960941523,
+     "sharpe": 1.3687611912275075,
+     "maxDD": -5.300245202159093,
+     "worstYear": -4.074679599841414
     }
    },
    "x2": {
     "book": {
      "n": 3326,
-     "cagr": 2.215527987794519,
-     "vol": 4.203508642248174,
-     "sharpe": 0.5423679937563657,
-     "maxDD": -8.37033783868727,
-     "worstYear": -6.8115676574018185
+     "cagr": 2.2155323699982077,
+     "vol": 4.203507080292231,
+     "sharpe": 0.5423691997094648,
+     "maxDD": -8.370342567137312,
+     "worstYear": -6.811576781178575
     },
     "exam": {
      "n": 1663,
-     "cagr": 4.813026993867919,
-     "vol": 4.006286823603048,
-     "sharpe": 1.1934785115922142,
-     "maxDD": -5.610229293110869,
-     "worstYear": -4.73510973474175
+     "cagr": 4.813015747744842,
+     "vol": 4.006286711381758,
+     "sharpe": 1.1934758651817559,
+     "maxDD": -5.61022618758078,
+     "worstYear": -4.7351205934966885
     }
    },
-   "dsr": 0.4316873029227915,
+   "dsr": 0.870493978221226,
    "passed": false,
    "weights": {
     "E-FOMC": 0.182,
@@ -575,25 +578,25 @@
    "vi": "Qua đêm, bỏ 14 mã biến động mạnh",
    "book": {
     "n": 1862,
-    "avg": -0.0704801118145141,
-    "ctrl": -0.04220120175053015,
-    "excess": -0.02827891006398394
+    "avg": -0.07047938613802754,
+    "ctrl": -0.04220113255629847,
+    "excess": -0.02827825358172907
    },
    "exam": {
     "n": 1256,
     "winRate": 0.46337579617834396,
-    "tstat": 0.7956057887844167,
-    "avg1x": 0.0639239661184865,
-    "avg2x": -0.03315241079254836,
-    "ctrl1x": -0.026169031145571946,
-    "ctrl2x": -0.12314908882192521,
-    "excess1x": 0.09009299726405845,
-    "excess2x": 0.08999667802937686,
+    "tstat": 0.7956023048482919,
+    "avg1x": 0.06392368584735483,
+    "avg2x": -0.033152690907167034,
+    "ctrl1x": -0.026169052602146775,
+    "ctrl2x": -0.12314911024657889,
+    "excess1x": 0.09009273844950161,
+    "excess2x": 0.08999641933941185,
     "p1x": 0.005,
     "p2x": 0.005
    },
-   "dsr": 0.007412709196317535,
-   "dsrTrades": 2.3314683517128287e-15,
+   "dsr": 0.12987842602381883,
+   "dsrTrades": 0.055422087053883684,
    "passed": false
   }
  },
@@ -602,161 +605,161 @@
    "id": "E-FOMC",
    "exam": {
     "n": 1663,
-    "cagr": 0.6037898669923658,
-    "vol": 3.6616097980539752,
-    "sharpe": 0.18268508194675243,
-    "maxDD": -9.51640155458251,
-    "worstYear": -4.445807760899967
+    "cagr": 0.6037829943730921,
+    "vol": 3.661613055189286,
+    "sharpe": 0.1826830876681579,
+    "maxDD": -9.516379834536547,
+    "worstYear": -4.445808412038943
    },
    "exam2x": {
     "n": 1663,
-    "cagr": 0.36181368255221447,
-    "vol": 3.6572542640334706,
-    "sharpe": 0.11702315217271221,
-    "maxDD": -10.410650604075078,
-    "worstYear": -4.64760175602148
+    "cagr": 0.3618068243668615,
+    "vol": 3.657257578344924,
+    "sharpe": 0.11702121216779662,
+    "maxDD": -10.410629092435354,
+    "worstYear": -4.647602406017737
    },
-   "dsrLab": 0.013277108766867884
+   "dsrLab": 0.04423402772276075
   },
   {
    "id": "E-TOM",
    "exam": {
     "n": 1663,
-    "cagr": 3.141485854211057,
-    "vol": 7.636902992174653,
-    "sharpe": 0.44335626647604026,
-    "maxDD": -10.044270930255328,
-    "worstYear": -5.02625622638636
+    "cagr": 3.1414659852975646,
+    "vol": 7.636899147380373,
+    "sharpe": 0.4433539272615493,
+    "maxDD": -10.044280595194444,
+    "worstYear": -5.0262501144142995
    },
    "exam2x": {
     "n": 1663,
-    "cagr": 2.771491419897054,
-    "vol": 7.6399602820173715,
-    "sharpe": 0.3961715233213254,
-    "maxDD": -10.273887616570143,
-    "worstYear": -5.367848777409378
+    "cagr": 2.771471612588794,
+    "vol": 7.63995655911609,
+    "sharpe": 0.3961691549765347,
+    "maxDD": -10.273897251199294,
+    "worstYear": -5.367842691449143
    },
-   "dsrLab": 0.06477124118661376
+   "dsrLab": 0.15582882730596997
   },
   {
    "id": "E-OPEX",
    "exam": {
     "n": 1663,
-    "cagr": -1.8518393359297614,
-    "vol": 7.734863905354245,
-    "sharpe": -0.20284407678011002,
-    "maxDD": -25.031130261805945,
-    "worstYear": -16.551601873538402
+    "cagr": -1.8518576809443577,
+    "vol": 7.734874009190805,
+    "sharpe": -0.20284612463622925,
+    "maxDD": -25.031268119151594,
+    "worstYear": -16.551615962805432
    },
    "exam2x": {
     "n": 1663,
-    "cagr": -2.2059616170721608,
-    "vol": 7.73469683859892,
-    "sharpe": -0.24957389588670378,
-    "maxDD": -25.659656081668423,
-    "worstYear": -16.85238846936411
+    "cagr": -2.2059798915874174,
+    "vol": 7.734706882118067,
+    "sharpe": -0.2495758846902231,
+    "maxDD": -25.65979278255326,
+    "worstYear": -16.852402497159613
    },
-   "dsrLab": 0.0006312904267179453
+   "dsrLab": 0.0033877088094137475
   },
   {
    "id": "E-PAIRS",
    "exam": {
     "n": 1663,
-    "cagr": 1.5959700020369727,
-    "vol": 2.555016881437173,
-    "sharpe": 0.6324883884181396,
-    "maxDD": -5.996020915032297,
-    "worstYear": -1.9138874399762917
+    "cagr": 1.5959642328629897,
+    "vol": 2.5550162322877807,
+    "sharpe": 0.6324863200259472,
+    "maxDD": -5.996032782215044,
+    "worstYear": -1.9138999341896779
    },
    "exam2x": {
     "n": 1663,
-    "cagr": 1.054094620508228,
-    "vol": 2.5555427431067934,
-    "sharpe": 0.42308642612022757,
-    "maxDD": -7.091922084534275,
-    "worstYear": -2.516884244034323
+    "cagr": 1.0540888843300067,
+    "vol": 2.5555420827529214,
+    "sharpe": 0.42308430760981636,
+    "maxDD": -7.091942799863649,
+    "worstYear": -2.5168966601047726
    },
-   "dsrLab": 0.1429740343405983
+   "dsrLab": 0.29144833329362385
   },
   {
    "id": "E-OVERNIGHT",
    "exam": {
     "n": 1663,
-    "cagr": 11.948886935827808,
-    "vol": 8.300595256110224,
-    "sharpe": 1.4014252524202422,
-    "maxDD": -14.683953458709597,
-    "worstYear": -7.753510079120907
+    "cagr": 11.948879608651808,
+    "vol": 8.30059512639288,
+    "sharpe": 1.4014244844731665,
+    "maxDD": -14.683963265969934,
+    "worstYear": -7.753525476063949
    },
    "exam2x": {
     "n": 1663,
-    "cagr": 8.509185079745919,
-    "vol": 8.270305256681228,
-    "sharpe": 1.0287950762649927,
-    "maxDD": -19.610687218609602,
-    "worstYear": -10.08129467717711
+    "cagr": 8.509177977893723,
+    "vol": 8.27030516468362,
+    "sharpe": 1.0287942954570946,
+    "maxDD": -19.610696463506827,
+    "worstYear": -10.081309675079664
    },
-   "dsrLab": 0.8264457537681107
+   "dsrLab": 0.9287057146786408
   },
   {
    "id": "E-INSIDER",
    "exam": {
     "n": 1663,
-    "cagr": 8.75150461572698,
-    "vol": 13.179827991882329,
-    "sharpe": 0.7019272696808233,
-    "maxDD": -25.07836073815949,
-    "worstYear": -15.82502138464661
+    "cagr": 8.751506745025296,
+    "vol": 13.17983151126662,
+    "sharpe": 0.7019272642201436,
+    "maxDD": -25.078363638578082,
+    "worstYear": -15.82502470305741
    },
    "exam2x": {
     "n": 1663,
-    "cagr": 8.629576325270595,
-    "vol": 13.179488091807443,
-    "sharpe": 0.6934282619367129,
-    "maxDD": -25.137422377049525,
-    "worstYear": -15.95009389101456
+    "cagr": 8.62957845176544,
+    "vol": 13.179491610139996,
+    "sharpe": 0.6934282587593132,
+    "maxDD": -25.137425274007953,
+    "worstYear": -15.950097201722468
    },
-   "dsrLab": 0.18191921117035748
+   "dsrLab": 0.352742326359233
   },
   {
    "id": "E-VIXTS",
    "exam": {
     "n": 1663,
-    "cagr": 13.466668123596603,
-    "vol": 15.300616022505931,
-    "sharpe": 0.9025804813235219,
-    "maxDD": -29.678246390372585,
-    "worstYear": -25.282745702298882
+    "cagr": 13.466657769566437,
+    "vol": 15.300619783034367,
+    "sharpe": 0.9025797012455329,
+    "maxDD": -29.67820102436699,
+    "worstYear": -25.28273490388392
    },
    "exam2x": {
     "n": 1663,
-    "cagr": 13.304438680873698,
-    "vol": 15.300183026198772,
-    "sharpe": 0.8932467221375382,
-    "maxDD": -29.846440115644633,
-    "worstYear": -25.483716622403275
+    "cagr": 13.30442834077472,
+    "vol": 15.300186792057739,
+    "sharpe": 0.89324594402035,
+    "maxDD": -29.84639485228896,
+    "worstYear": -25.483705848824457
    },
-   "dsrLab": 0.36003414037785453
+   "dsrLab": 0.5585255768798216
   },
   {
    "id": "E-HYG",
    "exam": {
     "n": 1663,
-    "cagr": 12.217550461756165,
-    "vol": 11.797293062135623,
-    "sharpe": 1.036324629563363,
-    "maxDD": -15.491140259472836,
-    "worstYear": -3.0463800473775837
+    "cagr": 12.21749471561755,
+    "vol": 11.797300785057354,
+    "sharpe": 1.0363198146062174,
+    "maxDD": -15.49116484871046,
+    "worstYear": -3.0463984983310377
    },
    "exam2x": {
     "n": 1663,
-    "cagr": 11.833086592719177,
-    "vol": 11.798263094590528,
-    "sharpe": 1.0071484401052666,
-    "maxDD": -15.757297716587948,
-    "worstYear": -3.3801118921439666
+    "cagr": 11.833031036841568,
+    "vol": 11.798270816330907,
+    "sharpe": 1.0071436447430164,
+    "maxDD": -15.757322219282655,
+    "worstYear": -3.3801302694366875
    },
-   "dsrLab": 0.49201578994504513
+   "dsrLab": 0.6866044729854552
   },
   {
    "id": "E-PUT",
@@ -776,7 +779,7 @@
     "maxDD": -16.338999908660934,
     "worstYear": -8.46469671646275
    },
-   "dsrLab": 0.7418698344621837
+   "dsrLab": 0.8773192331566728
   },
   {
    "id": "E-BXM",
@@ -796,27 +799,27 @@
     "maxDD": -18.66745248374224,
     "worstYear": -12.419050345565807
    },
-   "dsrLab": 0.5505702976081677
+   "dsrLab": 0.7394541719347151
   },
   {
    "id": "L1-D1-VIXA",
    "exam": {
     "n": 1663,
-    "cagr": 8.633717425975895,
-    "vol": 9.357894656938372,
-    "sharpe": 0.9316423521022908,
-    "maxDD": -16.35063730829016,
-    "worstYear": -9.082286377014626
+    "cagr": 8.633716667676383,
+    "vol": 9.35789507170306,
+    "sharpe": 0.9316422402689631,
+    "maxDD": -16.350638626116055,
+    "worstYear": -9.082284070621627
    },
    "exam2x": {
     "n": 1663,
-    "cagr": 7.549504636113791,
-    "vol": 9.351435399557538,
-    "sharpe": 0.8249316109758511,
-    "maxDD": -16.98030912954305,
-    "worstYear": -10.378163264364272
+    "cagr": 7.549503888715914,
+    "vol": 9.35143581525105,
+    "sharpe": 0.8249315040571755,
+    "maxDD": -16.980310429889112,
+    "worstYear": -10.378160980646378
    },
-   "dsrLab": 0.3832846030591868
+   "dsrLab": 0.5909860763575938
   }
  ],
  "examCorrelation": {
@@ -969,8 +972,8 @@
  ],
  "insider": "81 quarters read, 2 failed; 402 cluster signals, 221 trades",
  "summary": {
-  "en": "Nothing passed with all 398 trials counted.",
-  "vi": "Không ý tưởng nào đạt khi tính cả 398 lần thử."
+  "en": "Nothing passed with 66 trials counted.",
+  "vi": "Không ý tưởng nào đạt khi tính cả 66 lần thử."
  },
  "caveats": [
   "Survivorship: today's liquid names applied back to 2007 (pairs, overnight, L1).",

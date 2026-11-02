@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict'
-import { deflatedSharpe, mineRules, normCdf, normInv, stats, type ReplayTrade } from '../src/lib/replayLab'
+import { deflatedSharpe, mineRules, normCdf, normInv, nullSharpeVar, stats, type ReplayTrade } from '../src/lib/replayLab'
 
 assert.ok(Math.abs(normCdf(0) - 0.5) < 1e-6 && Math.abs(normCdf(1.96) - 0.975) < 1e-3)
 assert.ok(Math.abs(normInv(0.975) - 1.96) < 1e-3 && Math.abs(normInv(0.5)) < 1e-9)
@@ -8,9 +8,19 @@ let x = 42
 const rnd = () => ((x = (x * 48271) % 2147483647) / 2147483647)
 // pure noise with many rules tried is not "real"; a strong steady edge is
 const noise = Array.from({ length: 200 }, () => (rnd() - 0.5) * 2)
-assert.ok(deflatedSharpe(noise, 300, 0.01) < 0.95)
+assert.ok(deflatedSharpe(noise, 300) < 0.95)
 const edge = Array.from({ length: 200 }, () => 0.5 + (rnd() - 0.5))
-assert.ok(deflatedSharpe(edge, 300, 0.01) > 0.95)
+assert.ok(deflatedSharpe(edge, 300) > 0.95)
+
+// lab audit 2026-11-02: the luck spread is a zero-edge Sharpe over the same number of returns, so the verdict
+// depends only on the idea itself and the trial count. A steady small daily edge (t-stat about 5) passes 66
+// trials; the same mean with ten times the noise (t about 0.5) does not; more trials never make it easier.
+const steady = Array.from({ length: 900 }, () => 0.05 + (rnd() - 0.5) * 0.9)
+assert.ok(deflatedSharpe(steady, 66) > 0.95, 'a t-stat ~5 edge passes 66 trials')
+const noisy = steady.map((x) => (x - 0.05) * 10 + 0.05)
+assert.ok(deflatedSharpe(noisy, 66) < 0.95, 'the same mean in 10x the noise fails')
+assert.ok(deflatedSharpe(steady, 2000) <= deflatedSharpe(steady, 66), 'more trials, higher bar')
+assert.equal(nullSharpeVar(100), 0.01)
 
 // plant a real rule (high volume wins) in otherwise losing trades, over 60 days
 const day0 = Date.UTC(2026, 7, 3, 15, 0)

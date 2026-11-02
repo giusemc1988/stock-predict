@@ -14,7 +14,7 @@ import { dirname } from 'node:path'
 import type { Candle } from '../src/types'
 import type { Costs } from '../src/lib/costs'
 import { symbolCosts } from '../src/lib/replayIntraday'
-import { ALL_ROUNDS_TRIALS, PASS_TRADES_EN, PASS_TRADES_VI, TRIAL_LEDGER, evalTrades, poolControl, sharpeVar, type EdgeEval, type Group } from '../src/lib/replayEdges'
+import { ALL_ROUNDS_TRIALS, HOLDOUT_TRIALS, PASS_TRADES_EN, PASS_TRADES_VI, TRIAL_LEDGER, evalTrades, poolControl, type EdgeEval, type Group } from '../src/lib/replayEdges'
 import { deflatedSharpe, stats } from '../src/lib/replayLab'
 import { HIGH_VOL, STOCKS } from '../src/lib/replayUniverse'
 import { monthEndIdx, mom121 } from '../src/lib/replayMomentum'
@@ -174,15 +174,12 @@ function runAll(syms: Sym[], spyDays: string[], spyOpen: number[], spyClose: num
   ]
 
   const streams = raw.map((r) => tradeStream(spyDays, examStart, r.trades.filter((t) => t.entryDay >= examFrom).map((t) => ({ entryDay: t.entryDay, exitDay: t.exitDay, eKind: t.fill.eKind, retPct: t.r1 }))))
-  const dsh = streams.map((s) => { const m = mean(s); const sd = Math.sqrt(mean(s.map((x) => (x - m) ** 2))); return sd > 0 ? m / sd : 0 })
-  const dayVar = sharpeVar(dsh)
-  const tradeVar = sharpeVar(raw.map((r) => stats(r.trades.filter((t) => t.entryDay >= examFrom).map((t) => ({ retPct: t.r1 }))).sharpe))
 
   return raw.map((r, k) => {
     const book = r.trades.filter((t) => t.entryDay < examFrom)
     const exam = r.trades.filter((t) => t.entryDay >= examFrom)
     const control = poolControl(r.groups)
-    const ev: EdgeEval = evalTrades(IDEAS[k].id, IDEAS[k].en, IDEAS[k].vi, { book1: book.map((t) => t.r1), exam1: exam.map((t) => t.r1), exam2: exam.map((t) => t.r2) }, control, ALL_ROUNDS_TRIALS, tradeVar, deflatedSharpe(streams[k], ALL_ROUNDS_TRIALS, dayVar))
+    const ev: EdgeEval = evalTrades(IDEAS[k].id, IDEAS[k].en, IDEAS[k].vi, { book1: book.map((t) => t.r1), exam1: exam.map((t) => t.r1), exam2: exam.map((t) => t.r2) }, control, HOLDOUT_TRIALS, deflatedSharpe(streams[k], HOLDOUT_TRIALS))
     // info only: the same shorts hedged with a long SPY over the same days (the market move removed)
     const hedged = exam.map((t) => {
       const [a, b] = [spyPx(t.entryDay, t.fill.eKind), spyPx(t.exitDay, t.fill.xKind)]
@@ -249,13 +246,13 @@ async function main() {
     examFrom,
     universe: { stocks: all.length, failed, hardToBorrow: all.filter((s) => s.hard).map((s) => s.name) },
     assumptions: { borrowEasyPerYear: 0.01, borrowHardPerYear: 0.08, stopsAreHard: true, kronos: 'not testable: no history of Kronos forecasts' },
-    trials: { ledger: TRIAL_LEDGER, total: ALL_ROUNDS_TRIALS, round6: SHORT_TRIALS },
+    trials: { ledger: TRIAL_LEDGER, total: ALL_ROUNDS_TRIALS, holdout: HOLDOUT_TRIALS, round6: SHORT_TRIALS },
     pass: { en: PASS_TRADES_EN, vi: PASS_TRADES_VI },
     results,
     robustness: { withoutHighVol: calm.map((r) => ({ ...r, id: `${r.id}-exHighVol` })) },
     verdict: {
-      en: won.length ? `Passed: ${won.join(', ')}.` : `Nothing passed with all ${ALL_ROUNDS_TRIALS} trials counted.`,
-      vi: won.length ? `Đạt: ${won.join(', ')}.` : `Không ý tưởng nào đạt khi tính cả ${ALL_ROUNDS_TRIALS} lần thử.`,
+      en: won.length ? `Passed: ${won.join(', ')}.` : `Nothing passed with ${HOLDOUT_TRIALS} trials counted.`,
+      vi: won.length ? `Đạt: ${won.join(', ')}.` : `Không ý tưởng nào đạt khi tính cả ${HOLDOUT_TRIALS} lần thử.`,
       lines: [...results, ...calm.map((r) => ({ ...r, id: `${r.id}-exHighVol` }))].map(line),
     },
   }

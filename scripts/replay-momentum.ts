@@ -16,11 +16,11 @@ import type { Candle } from '../src/types'
 import { scaleCosts } from '../src/lib/replayDaily'
 import { symbolCosts } from '../src/lib/replayIntraday'
 import { sideCost } from '../src/lib/replayRound2'
-import { ALL_ROUNDS_TRIALS, TRIAL_LEDGER } from '../src/lib/replayEdges'
+import { HOLDOUT_TRIALS, TRIAL_LEDGER } from '../src/lib/replayEdges'
 import { HIGH_VOL, STOCKS } from '../src/lib/replayUniverse'
 import {
   ETF_TOP_N, MOMENTUM_ETFS, MOMENTUM_TRIALS, PASS_MOMENTUM_EN, PASS_MOMENTUM_VI, STOCK_TOP_N, TREND_DAYS,
-  evalMomentum, fillPx, finalPass, monthEndIdx, momentumPlan, monthlyNet, sharpeM, type MomentumEval,
+  evalMomentum, fillPx, finalPass, monthEndIdx, momentumPlan, monthlyNet, type MomentumEval,
 } from '../src/lib/replayMomentum'
 
 const args = process.argv.slice(2)
@@ -122,15 +122,9 @@ async function main() {
     { id: 'M4-etfs-trend', u: 'etfs' as const, n: ETF_TOP_N, trend: true, en: `ETFs: same, in cash while SPY is below its ${TREND_DAYS}-day average`, vi: `ETF: như trên, giữ tiền mặt khi SPY dưới trung bình ${TREND_DAYS} ngày` },
   ]
   const plans = defs.map((d) => momentumPlan(U[d.u].close, U[d.u].open, spyClose, ends, d.n, d.trend))
-  const exam1 = (i: number) => monthlyNet(U[defs[i].u].px, plans[i].w, U[defs[i].u].side1).slice(examIdx)
-  const trialVar = (() => {
-    const s = defs.map((_, i) => sharpeM(exam1(i)))
-    const m = s.reduce((a, b) => a + b, 0) / s.length
-    return s.reduce((a, b) => a + (b - m) ** 2, 0) / Math.max(1, s.length - 1)
-  })()
-  const trials = ALL_ROUNDS_TRIALS
+  const trials = HOLDOUT_TRIALS
   const run = (i: number, id = defs[i].id, plan = plans[i]): MomentumEval =>
-    evalMomentum({ id, en: defs[i].en, vi: defs[i].vi, px: U[defs[i].u].px, plan, side1: U[defs[i].u].side1, side2: U[defs[i].u].side2, years: monthYears, spyMonthly, examIdx, trials, trialVar })
+    evalMomentum({ id, en: defs[i].en, vi: defs[i].vi, px: U[defs[i].u].px, plan, side1: U[defs[i].u].side1, side2: U[defs[i].u].side2, years: monthYears, spyMonthly, examIdx, trials })
   const results = defs.map((_, i) => run(i))
 
   // robustness (not a trial): stocks M1 without the 14 high-volatility names
