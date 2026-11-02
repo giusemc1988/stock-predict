@@ -2,7 +2,7 @@
  * Version and "What's new". Bump APP_VERSION and add an entry to the top of RELEASES
  * with each update. The banner shows once per version, then stays dismissed.
  */
-export const APP_VERSION = '2.0.6'
+export const APP_VERSION = '2.0.7'
 
 export interface Release {
   version: string
@@ -13,6 +13,16 @@ export interface Release {
 }
 
 export const RELEASES: Release[] = [
+  {
+    version: '2.0.7',
+    date: '2026-11-02',
+    changes: [
+      'Atlas trade size: the Kelly multiplier is now never below half size. After a lucky run in the last 100 trades it had shrunk to x0.05, so each trade was only about $5 to $10 and proved nothing. Stops, targets and signals are unchanged.',
+    ],
+    changesVi: [
+      'Cỡ lệnh Atlas: hệ số Kelly giờ không bao giờ thấp hơn một nửa cỡ. Sau chuỗi may mắn trong 100 lệnh gần nhất nó bị co còn x0.05 nên mỗi lệnh chỉ khoảng $5 đến $10, không chứng minh được gì. Cắt lỗ, chốt lời và tín hiệu giữ nguyên.',
+    ],
+  },
   {
     version: '2.0.6',
     date: '2026-11-02',
