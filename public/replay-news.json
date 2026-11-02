@@ -1,0 +1,546 @@
+{
+ "updated": "2026-11-02T04:17:12.587Z",
+ "seconds": 5837,
+ "markets": 97,
+ "failed": [],
+ "failedNews": [],
+ "news": {
+  "source": "Alpaca News API v1beta1 (timestamps and symbols only)",
+  "fetchedFrom": "2018-01",
+  "trustedFrom": "2018-01",
+  "articles": 461635,
+  "symbols": 94,
+  "meanPerSymbol": 4911
+ },
+ "split": {
+  "daily": {
+   "examFrom": "2023-11-17",
+   "days": 2220
+  },
+  "intraday": {
+   "examFrom": "2025-11-10",
+   "days": 722
+  }
+ },
+ "trials": {
+  "earlier": 28,
+  "round4": 14,
+  "total": 42
+ },
+ "costs": {
+  "assumption": "Per-symbol tiers from replayIntraday (half-spread by median daily dollar volume: >$5B 0.5 bps, $1-5B 1.5, $0.2-1B 4, below 10; slippage 1 bp per market fill; fee 0), at 1x and 2x. Daily-lead tiers use each name's full-history median daily dollar volume."
+ },
+ "passRule": {
+  "en": "PASS (per lead) = the bucket Chan's hypothesis favours (no news for N1 and for down movers, news for N2 and for up movers) passes the labs' rule on the exam (100+ trades, excess over the same-bucket random-entry control > 0 at 1x and 2x costs, p <= 0.05 at both, Deflated Sharpe >= 0.95 counting all 42 variants tried in rounds 1-4) AND excess(no news) minus excess(news) is in the predicted direction with a one-sided permutation p <= 0.05 at both 1x and 2x costs. Fixed in advance; nothing is tuned on the exam.",
+  "vi": "ĐẠT (mỗi hướng) = nhóm mà giả thuyết của Chan ưu tiên (không có tin cho N1 và cổ phiếu giảm mạnh, có tin cho N2 và cổ phiếu tăng mạnh) qua luật của các lab trên kỳ thi (từ 100 lệnh, vượt nhóm đối chứng vào lệnh ngẫu nhiên cùng nhóm tin > 0 ở phí 1x và 2x, p <= 0,05 ở cả hai, Deflated Sharpe >= 0,95 tính cả 42 biến thể đã thử ở vòng 1-4) VÀ chênh lệch phần vượt trội (không tin trừ có tin) đúng chiều dự đoán với p hoán vị một phía <= 0,05 ở cả phí 1x và 2x. Cố định trước; không chỉnh theo kỳ thi."
+ },
+ "leads": [
+  {
+   "id": "N1-D1",
+   "en": "D1 short-term reversal (bottom 10% by 5-day return, hold 5 days), split by news in [5 trading days before the signal close, signal close]",
+   "vi": "D1 đảo chiều ngắn hạn (10% giảm mạnh nhất 5 ngày, giữ 5 ngày), chia theo tin trong [5 phiên trước đến lúc đóng cửa ngày tín hiệu]",
+   "expect": "noNewsHigher",
+   "none": {
+    "nBook": 641,
+    "nExam": 83,
+    "winRate": 0.4457831325301205,
+    "avg": {
+     "x1": 0.8318347493297727,
+     "x2": 0.6775656904246817
+    },
+    "control": {
+     "x1": 1.0326151285355336,
+     "x2": 0.8782553867399624
+    },
+    "excess": {
+     "x1": -0.20078037920576086,
+     "x2": -0.20068969631528066
+    },
+    "p": {
+     "x1": 0.555,
+     "x2": 0.555
+    },
+    "dsr": 0.1639080785774688,
+    "passed": false
+   },
+   "news": {
+    "nBook": 4270,
+    "nExam": 2480,
+    "winRate": 0.5149193548387097,
+    "avg": {
+     "x1": 0.5963612662379959,
+     "x2": 0.48375057751091927
+    },
+    "control": {
+     "x1": 0.27104262349429326,
+     "x2": 0.15898638395037099
+    },
+    "excess": {
+     "x1": 0.32531864274370265,
+     "x2": 0.3247641935605483
+    },
+    "p": {
+     "x1": 0.01,
+     "x2": 0.01
+    },
+    "dsr": 3.8879401365043975e-9,
+    "passed": false
+   },
+   "diff": {
+    "x1": -0.42980975955370543,
+    "x2": -0.4292995064633767,
+    "p": {
+     "x1": 0.6724655068986203,
+     "x2": 0.6774645070985803
+    },
+    "pTwo": {
+     "x1": 0.6330733853229354,
+     "x2": 0.6380723855228955
+    },
+    "nNone": 83,
+    "nNews": 2480
+   },
+   "passed": false,
+   "summary": {
+    "en": "N1-D1: no news n=83 excess -0.201% (p=0.555), news n=2480 excess +0.325% (p=0.010); no-news minus news -0.430% at 1x, -0.429% at 2x, one-sided permutation p=0.672/0.677 (opposite to the prediction). No pass.",
+    "vi": "N1-D1: không tin n=83 vượt trội -0.201% (p=0.555), có tin n=2480 vượt trội +0.325% (p=0.010); không tin trừ có tin -0.430% ở 1x, -0.429% ở 2x, p hoán vị một phía=0.672/0.677 (ngược dự đoán). Chưa đạt."
+   }
+  },
+  {
+   "id": "N1-D1-VIXA",
+   "en": "D1 only when VIX >= its 252-day median, split by news",
+   "vi": "D1 chỉ khi VIX >= trung vị 252 ngày, chia theo tin",
+   "expect": "noNewsHigher",
+   "none": {
+    "nBook": 379,
+    "nExam": 40,
+    "winRate": 0.475,
+    "avg": {
+     "x1": 1.5514782514535832,
+     "x2": 1.3805989953032485
+    },
+    "control": {
+     "x1": 1.48781017620696,
+     "x2": 1.3171317022240685
+    },
+    "excess": {
+     "x1": 0.06366807524662321,
+     "x2": 0.06346729307917998
+    },
+    "p": {
+     "x1": 0.495,
+     "x2": 0.495
+    },
+    "dsr": 0.386051826811827,
+    "passed": false
+   },
+   "news": {
+    "nBook": 2280,
+    "nExam": 1408,
+    "winRate": 0.5291193181818182,
+    "avg": {
+     "x1": 0.8226418039593706,
+     "x2": 0.7076159113044134
+    },
+    "control": {
+     "x1": 0.37916759763398583,
+     "x2": 0.2648011146373915
+    },
+    "excess": {
+     "x1": 0.44347420632538476,
+     "x2": 0.4428147966670219
+    },
+    "p": {
+     "x1": 0.01,
+     "x2": 0.01
+    },
+    "dsr": 0.00044938454304982445,
+    "passed": false
+   },
+   "diff": {
+    "x1": -0.48640686726385396,
+    "x2": -0.485702746491651,
+    "p": {
+     "x1": 0.628874225154969,
+     "x2": 0.6334733053389322
+    },
+    "pTwo": {
+     "x1": 0.7144571085782844,
+     "x2": 0.7160567886422715
+    },
+    "nNone": 40,
+    "nNews": 1408
+   },
+   "passed": false,
+   "summary": {
+    "en": "N1-D1-VIXA: no news n=40 excess +0.064% (p=0.495), news n=1408 excess +0.443% (p=0.010); no-news minus news -0.486% at 1x, -0.486% at 2x, one-sided permutation p=0.629/0.633 (opposite to the prediction). No pass.",
+    "vi": "N1-D1-VIXA: không tin n=40 vượt trội +0.064% (p=0.495), có tin n=1408 vượt trội +0.443% (p=0.010); không tin trừ có tin -0.486% ở 1x, -0.486% ở 2x, p hoán vị một phía=0.629/0.633 (ngược dự đoán). Chưa đạt."
+   }
+  },
+  {
+   "id": "N1-D1-VIXB",
+   "en": "D1 only when VIX >= 25, split by news",
+   "vi": "D1 chỉ khi VIX >= 25, chia theo tin",
+   "expect": "noNewsHigher",
+   "none": {
+    "nBook": 136,
+    "nExam": 7,
+    "winRate": 0.42857142857142855,
+    "avg": {
+     "x1": 0.6064461773260189,
+     "x2": 0.4369493236835279
+    },
+    "control": {
+     "x1": -2.1093693845582684,
+     "x2": -2.2749150895543284
+    },
+    "excess": {
+     "x1": 2.715815561884287,
+     "x2": 2.711864413237856
+    },
+    "p": {
+     "x1": 0.05,
+     "x2": 0.05
+    },
+    "dsr": 0.3987232549367115,
+    "passed": false
+   },
+   "news": {
+    "nBook": 1108,
+    "nExam": 181,
+    "winRate": 0.6077348066298343,
+    "avg": {
+     "x1": 2.3851275468998283,
+     "x2": 2.267972697890233
+    },
+    "control": {
+     "x1": 1.2878530078725132,
+     "x2": 1.1722524632642135
+    },
+    "excess": {
+     "x1": 1.097274539027315,
+     "x2": 1.0957202346260195
+    },
+    "p": {
+     "x1": 0.02,
+     "x2": 0.02
+    },
+    "dsr": 0.9471820401598428,
+    "passed": false
+   },
+   "diff": {
+    "x1": 1.4627374903598231,
+    "x2": 1.4606035796544308,
+    "p": {
+     "x1": 0.25674865026994603,
+     "x2": 0.2561487702459508
+    },
+    "pTwo": {
+     "x1": 0.5394921015796841,
+     "x2": 0.5260947810437913
+    },
+    "nNone": 7,
+    "nNews": 181
+   },
+   "passed": false,
+   "summary": {
+    "en": "N1-D1-VIXB: no news n=7 excess +2.716% (p=0.050), news n=181 excess +1.097% (p=0.020); no-news minus news +1.463% at 1x, +1.461% at 2x, one-sided permutation p=0.257/0.256 (predicted direction). No pass.",
+    "vi": "N1-D1-VIXB: không tin n=7 vượt trội +2.716% (p=0.050), có tin n=181 vượt trội +1.097% (p=0.020); không tin trừ có tin +1.463% ở 1x, +1.461% ở 2x, p hoán vị một phía=0.257/0.256 (đúng chiều dự đoán). Chưa đạt."
+   }
+  },
+  {
+   "id": "N2-win-night-mkt",
+   "en": "Intraday winners (up 3%+ on 2x volume by 15:30 ET, 60m bars), market entry, held overnight to the next open, split by news since the prior close",
+   "vi": "Cổ phiếu thắng trong ngày (tăng 3%+ với khối lượng 2x lúc 15:30 NY, nến 60 phút), lệnh thị trường, giữ qua đêm đến lúc mở cửa hôm sau, chia theo tin từ lúc đóng cửa hôm trước",
+   "expect": "newsHigher",
+   "none": {
+    "nBook": 42,
+    "nExam": 25,
+    "winRate": 0.44,
+    "avg": {
+     "x1": -0.060884346518348086,
+     "x2": -0.16858524529922408
+    },
+    "control": {
+     "x1": 0.05653746179247591,
+     "x2": -0.05113884035679486
+    },
+    "excess": {
+     "x1": -0.117421808310824,
+     "x2": -0.11744640494242922
+    },
+    "p": {
+     "x1": 0.5373134328358209,
+     "x2": 0.5373134328358209
+    },
+    "dsr": 0.20643679136513382,
+    "passed": false
+   },
+   "news": {
+    "nBook": 581,
+    "nExam": 269,
+    "winRate": 0.4684014869888476,
+    "avg": {
+     "x1": 0.2848132821560826,
+     "x2": 0.20032156526901668
+    },
+    "control": {
+     "x1": -0.04438020429206191,
+     "x2": -0.1285989563108213
+    },
+    "excess": {
+     "x1": 0.3291934864481445,
+     "x2": 0.328920521579838
+    },
+    "p": {
+     "x1": 0.04975124378109453,
+     "x2": 0.04975124378109453
+    },
+    "dsr": 0.19791537182254892,
+    "passed": false
+   },
+   "diff": {
+    "x1": -0.48534002493247996,
+    "x2": -0.48509594959807506,
+    "p": {
+     "x1": 0.22355528894221155,
+     "x2": 0.22975404919016196
+    },
+    "pTwo": {
+     "x1": 0.4285142971405719,
+     "x2": 0.4401119776044791
+    },
+    "nNone": 25,
+    "nNews": 269
+   },
+   "passed": false,
+   "summary": {
+    "en": "N2-win-night-mkt: no news n=25 excess -0.117% (p=0.537), news n=269 excess +0.329% (p=0.050); no-news minus news -0.485% at 1x, -0.485% at 2x, one-sided permutation p=0.224/0.230 (predicted direction). No pass.",
+    "vi": "N2-win-night-mkt: không tin n=25 vượt trội -0.117% (p=0.537), có tin n=269 vượt trội +0.329% (p=0.050); không tin trừ có tin -0.485% ở 1x, -0.485% ở 2x, p hoán vị một phía=0.224/0.230 (đúng chiều dự đoán). Chưa đạt."
+   }
+  },
+  {
+   "id": "N2-win-night-lim",
+   "en": "Intraday winners (up 3%+ on 2x volume by 15:30 ET, 60m bars), limit entry, held overnight to the next open, split by news since the prior close",
+   "vi": "Cổ phiếu thắng trong ngày (tăng 3%+ với khối lượng 2x lúc 15:30 NY, nến 60 phút), lệnh giới hạn, giữ qua đêm đến lúc mở cửa hôm sau, chia theo tin từ lúc đóng cửa hôm trước",
+   "expect": "newsHigher",
+   "none": {
+    "nBook": 41,
+    "nExam": 25,
+    "winRate": 0.44,
+    "avg": {
+     "x1": -0.00020599180974102517,
+     "x2": -0.05415678379884696
+    },
+    "control": {
+     "x1": 0.07930115170754337,
+     "x2": 0.025384100195769824
+    },
+    "excess": {
+     "x1": -0.0795071435172844,
+     "x2": -0.07954088399461678
+    },
+    "p": {
+     "x1": 0.5472636815920398,
+     "x2": 0.5472636815920398
+    },
+    "dsr": 0.2450760377434552,
+    "passed": false
+   },
+   "news": {
+    "nBook": 571,
+    "nExam": 260,
+    "winRate": 0.47307692307692306,
+    "avg": {
+     "x1": 0.2907162763316495,
+     "x2": 0.24836804980412797
+    },
+    "control": {
+     "x1": -0.03176676637651482,
+     "x2": -0.07395527423996534
+    },
+    "excess": {
+     "x1": 0.3224830427081643,
+     "x2": 0.3223233240440933
+    },
+    "p": {
+     "x1": 0.024875621890547265,
+     "x2": 0.024875621890547265
+    },
+    "dsr": 0.21307840258013278,
+    "passed": false
+   },
+   "diff": {
+    "x1": -0.44468660643301355,
+    "x2": -0.44458260887904505,
+    "p": {
+     "x1": 0.23535292941411717,
+     "x2": 0.2445510897820436
+    },
+    "pTwo": {
+     "x1": 0.46330733853229356,
+     "x2": 0.4657068586282743
+    },
+    "nNone": 25,
+    "nNews": 260
+   },
+   "passed": false,
+   "summary": {
+    "en": "N2-win-night-lim: no news n=25 excess -0.080% (p=0.547), news n=260 excess +0.322% (p=0.025); no-news minus news -0.445% at 1x, -0.445% at 2x, one-sided permutation p=0.235/0.245 (predicted direction). No pass.",
+    "vi": "N2-win-night-lim: không tin n=25 vượt trội -0.080% (p=0.547), có tin n=260 vượt trội +0.322% (p=0.025); không tin trừ có tin -0.445% ở 1x, -0.445% ở 2x, p hoán vị một phía=0.235/0.245 (đúng chiều dự đoán). Chưa đạt."
+   }
+  },
+  {
+   "id": "N3-up",
+   "en": "Big up movers (1-day return >= +4%), long the next 5 days, split by news since the prior close",
+   "vi": "Cổ phiếu tăng mạnh (1 ngày >= +4%), mua giữ 5 ngày tiếp, chia theo tin từ lúc đóng cửa hôm trước",
+   "expect": "newsHigher",
+   "none": {
+    "nBook": 1754,
+    "nExam": 572,
+    "winRate": 0.5122377622377622,
+    "avg": {
+     "x1": 0.5275534211061971,
+     "x2": 0.38873518233783844
+    },
+    "control": {
+     "x1": 0.8887889204989345,
+     "x2": 0.7496905421783392
+    },
+    "excess": {
+     "x1": -0.36123549939273747,
+     "x2": -0.36095535984050076
+    },
+    "p": {
+     "x1": 0.88,
+     "x2": 0.88
+    },
+    "dsr": 0.0014250695689692061,
+    "passed": false
+   },
+   "news": {
+    "nBook": 3382,
+    "nExam": 2076,
+    "winRate": 0.5072254335260116,
+    "avg": {
+     "x1": 0.3752734886520694,
+     "x2": 0.2636775276689053
+    },
+    "control": {
+     "x1": 0.5910308072158112,
+     "x2": 0.4792191828415118
+    },
+    "excess": {
+     "x1": -0.21575731856374186,
+     "x2": -0.21554165517260654
+    },
+    "p": {
+     "x1": 0.925,
+     "x2": 0.925
+    },
+    "dsr": 5.029759941876932e-11,
+    "passed": false
+   },
+   "diff": {
+    "x1": -0.07039457622443443,
+    "x2": -0.07043868599513883,
+    "p": {
+     "x1": 0.4241151769646071,
+     "x2": 0.4387122575484903
+    },
+    "pTwo": {
+     "x1": 0.8622275544891022,
+     "x2": 0.8618276344731054
+    },
+    "nNone": 572,
+    "nNews": 2076
+   },
+   "passed": false,
+   "summary": {
+    "en": "N3-up: no news n=572 excess -0.361% (p=0.880), news n=2076 excess -0.216% (p=0.925); no-news minus news -0.070% at 1x, -0.070% at 2x, one-sided permutation p=0.424/0.439 (predicted direction). No pass.",
+    "vi": "N3-up: không tin n=572 vượt trội -0.361% (p=0.880), có tin n=2076 vượt trội -0.216% (p=0.925); không tin trừ có tin -0.070% ở 1x, -0.070% ở 2x, p hoán vị một phía=0.424/0.439 (đúng chiều dự đoán). Chưa đạt."
+   }
+  },
+  {
+   "id": "N3-down",
+   "en": "Big down movers (1-day return <= -4%), long the next 5 days, split by news since the prior close",
+   "vi": "Cổ phiếu giảm mạnh (1 ngày <= -4%), mua giữ 5 ngày tiếp, chia theo tin từ lúc đóng cửa hôm trước",
+   "expect": "noNewsHigher",
+   "none": {
+    "nBook": 1763,
+    "nExam": 561,
+    "winRate": 0.4741532976827095,
+    "avg": {
+     "x1": 0.004313508238348316,
+     "x2": -0.1423182710603926
+    },
+    "control": {
+     "x1": 0.4921057426412469,
+     "x2": 0.3446881859174655
+    },
+    "excess": {
+     "x1": -0.4877922344028986,
+     "x2": -0.48700645697785805
+    },
+    "p": {
+     "x1": 0.935,
+     "x2": 0.935
+    },
+    "dsr": 0.000006698021538020793,
+    "passed": false
+   },
+   "news": {
+    "nBook": 3050,
+    "nExam": 1854,
+    "winRate": 0.5183387270765911,
+    "avg": {
+     "x1": 0.9547550758242546,
+     "x2": 0.8423315283655751
+    },
+    "control": {
+     "x1": 0.39472174475595134,
+     "x2": 0.28304577034689143
+    },
+    "excess": {
+     "x1": 0.5600333310683032,
+     "x2": 0.5592857580186836
+    },
+    "p": {
+     "x1": 0,
+     "x2": 0
+    },
+    "dsr": 0.00013887729932554604,
+    "passed": false
+   },
+   "diff": {
+    "x1": -1.0107766656707378,
+    "x2": -1.0093041694466196,
+    "p": {
+     "x1": 0.9878024395120976,
+     "x2": 0.9902019596080783
+    },
+    "pTwo": {
+     "x1": 0.024795040991801638,
+     "x2": 0.020995800839832032
+    },
+    "nNone": 561,
+    "nNews": 1854
+   },
+   "passed": false,
+   "summary": {
+    "en": "N3-down: no news n=561 excess -0.488% (p=0.935), news n=1854 excess +0.560% (p=0.000); no-news minus news -1.011% at 1x, -1.009% at 2x, one-sided permutation p=0.988/0.990 (opposite to the prediction). No pass.",
+    "vi": "N3-down: không tin n=561 vượt trội -0.488% (p=0.935), có tin n=1854 vượt trội +0.560% (p=0.000); không tin trừ có tin -1.011% ở 1x, -1.009% ở 2x, p hoán vị một phía=0.988/0.990 (ngược dự đoán). Chưa đạt."
+   }
+  }
+ ],
+ "summary": {
+  "en": "No lead passed: the news / no-news split does not give a tradable edge on the exam.",
+  "vi": "Không hướng nào đạt: việc chia theo có tin / không tin không cho lợi thế giao dịch được trên kỳ thi."
+ },
+ "caveats": [
+  "Only news timestamps and symbols are used, never headline text. An item tagged with a symbol counts as news for it, including multi-symbol roundups and ETF-wide items, so \"no news\" is a lower bound on quiet names and the news bucket is broad.",
+  "News windows use 16:00 ET closes; on half days (13:00 close) late-afternoon items are counted as same-day. Alpaca does not document its earliest date, so signals before the measured archive start are dropped.",
+  "The 60m N2 data covers only the last 730 days (about 170 exam days): N2 is underpowered. Survivorship bias as in the other labs (today's liquid names applied back).",
+  "Per-trade excess for the difference test subtracts the mean of the same-bucket random-entry population for the trade's symbol and year (the 200 draws give the headline control and p)."
+ ]
+}
