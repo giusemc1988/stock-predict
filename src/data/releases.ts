@@ -2,7 +2,7 @@
  * Version and "What's new". Bump APP_VERSION and add an entry to the top of RELEASES
  * with each update. The banner shows once per version, then stays dismissed.
  */
-export const APP_VERSION = '2.0.5'
+export const APP_VERSION = '2.0.6'
 
 export interface Release {
   version: string
@@ -13,6 +13,16 @@ export interface Release {
 }
 
 export const RELEASES: Release[] = [
+  {
+    version: '2.0.6',
+    date: '2026-11-02',
+    changes: [
+      'Idea factory: Opus\'s live signals now come only from rules that hold 5 days or less, so the first grades for "Opus self-made" arrive in about a week instead of after 20 trading days. Rules with longer holds stay in the research table.',
+    ],
+    changesVi: [
+      'Xưởng ý tưởng: tín hiệu của Opus giờ chỉ lấy từ các luật giữ tối đa 5 ngày, nên "Opus tự nghĩ" có điểm đầu tiên sau khoảng một tuần thay vì phải chờ 20 phiên. Các luật giữ lâu hơn vẫn nằm trong bảng nghiên cứu.',
+    ],
+  },
   {
     version: '2.0.5',
     date: '2026-11-02',

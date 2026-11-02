@@ -84,6 +84,9 @@ interface Prev {
   [k: string]: unknown
 }
 
+/** Longest hold of a rule that sends live signals: graded within about a week. */
+export const SIGNAL_MAX_HOLD = 5
+
 /** Log today's signals of `rules`, grade every waiting one with the bars we have. */
 function signalLog(u: Universe, used: string[], rules: Rule[], cuts: Cuts, prevLog: FactorySignal[]) {
   const fresh = latestSignals(u, rules, cuts)
@@ -188,7 +191,11 @@ async function main() {
 
   // signals: the finalists' rules (or the best discovery families when none got through) on the latest close,
   // logged and graded with real prices on later runs, so the factory gets a live record next to Atlas's own
-  const sigRules = (finalists.length ? finalists.map((x) => x.s) : cand.filter((s, k, a) => a.findIndex((y) => familyOf(y.rule) === familyOf(s.rule)) === k).slice(0, 3)).map((s) => s.rule)
+  // live signals only from rules that hold at most SIGNAL_MAX_HOLD days, so Opus gets graded within about a week (Chanh 02/11);
+  // the longer-hold rules stay in the research table
+  const short = (s: Scored) => s.rule.hold <= SIGNAL_MAX_HOLD
+  const sigPool = [...finalists.map((x) => x.s).filter(short), ...best.filter((s) => s.fit.fitness > 0 && short(s))]
+  const sigRules = sigPool.filter((s, k, a) => a.findIndex((y) => familyOf(y.rule) === familyOf(s.rule)) === k).slice(0, 3).map((s) => s.rule)
   const { log, today } = signalLog(u, used, sigRules, cuts, prev.signals ?? [])
 
   const why = (r: Scored) => SEEDS.find((s) => s.id === r.rule.origin)?.why ?? null
