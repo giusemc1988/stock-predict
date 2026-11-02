@@ -5,6 +5,7 @@
  */
 import type { Analysis, AssetClass, Candle } from '../types'
 import { dayKey } from './practice'
+import type { QualityBlock } from './practiceQuality'
 
 export type PickSource = 'watchlist' | 'gainer' | 'active' | 'loser'
 
@@ -24,6 +25,12 @@ export interface PracticeCandidate {
   volVsAvg: number | null
   /** Average dollar volume per bar over the last 20 closed bars (penny-stock liquidity check). */
   dollarVol?: number | null
+  /** Average 15-minute bar range as a % of price (a flat chart is a low number). */
+  atrPct?: number | null
+  /** Market cap in dollars, when the movers list gave it. */
+  marketCap?: number | null
+  /** Why the entry quality gate rejects this BUY (src/lib/practiceQuality.ts); such a call is not ranked. */
+  blocked?: QualityBlock | null
   tradeScore: number | null
   /** 0..1, higher is better. Only BUY calls are ranked. */
   rank: number
@@ -66,11 +73,11 @@ export function rankScore(c: { tradeScore: number | null; volVsAvg: number | nul
 /** Sort BUY calls best first and number them; everything else follows unranked. */
 export function rankCandidates(list: Omit<PracticeCandidate, 'rank' | 'place'>[]): PracticeCandidate[] {
   const buys = list
-    .filter((c) => c.analysis?.verdict === 'BUY')
+    .filter((c) => c.analysis?.verdict === 'BUY' && !c.blocked)
     .map((c) => ({ ...c, rank: rankScore(c) }))
     .sort((a, b) => b.rank - a.rank)
     .map((c, i) => ({ ...c, place: i + 1 }))
-  const rest = list.filter((c) => c.analysis?.verdict !== 'BUY').map((c) => ({ ...c, rank: 0, place: null }))
+  const rest = list.filter((c) => c.analysis?.verdict !== 'BUY' || c.blocked).map((c) => ({ ...c, rank: 0, place: null }))
   return [...buys, ...rest]
 }
 
@@ -96,6 +103,7 @@ export function pickWhy(c: PracticeCandidate, of: number): { en: string; vi: str
   const parts: { en: string; vi: string }[] = [{ en: `#${c.place} of ${of} BUY calls`, vi: `hạng ${c.place}/${of} lệnh MUA` }]
   if (c.gainPct != null) parts.push({ en: `${c.gainPct >= 0 ? '+' : ''}${c.gainPct.toFixed(1)}% today`, vi: `${c.gainPct >= 0 ? '+' : ''}${c.gainPct.toFixed(1)}% hôm nay` })
   if (c.volVsAvg != null) parts.push({ en: `volume ${c.volVsAvg.toFixed(1)}x normal`, vi: `khối lượng ${c.volVsAvg.toFixed(1)}x bình thường` })
+  if (c.atrPct != null) parts.push({ en: `moves ${c.atrPct.toFixed(2)}% per bar`, vi: `chạy ${c.atrPct.toFixed(2)}% mỗi nến` })
   if (c.tradeScore != null) parts.push({ en: `Trade Score ${c.tradeScore}`, vi: `Điểm GD ${c.tradeScore}` })
   parts.push({ en: `from ${pickSourceLabel[c.source].en}`, vi: `từ ${pickSourceLabel[c.source].vi}` })
   return { en: parts.map((p) => p.en).join(', '), vi: parts.map((p) => p.vi).join(', ') }

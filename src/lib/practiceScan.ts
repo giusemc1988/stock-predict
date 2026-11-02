@@ -11,6 +11,7 @@ import { stampData } from './dataGuard'
 import { baseRate, decide, type JournalEntry } from './journal'
 import { onBarClose, onBars, onPrice, type EntryContext, type PickRow, type PracticeState } from './practice'
 import { dollarVolume, gainToday, pickWhy, rankCandidates, volumeVsAvg, type PickSource, type PracticeCandidate } from './practicePicks'
+import { atrPercent, qualityBlock } from './practiceQuality'
 import { runStrategy } from './strategy'
 import { shadowTag } from './shadowFilters'
 import { baseSymbol } from './kronosView'
@@ -25,6 +26,8 @@ export interface ScanMarket {
   symbol: string
   asset: AssetClass
   source: PickSource
+  /** Market cap in dollars from the movers list, when known. */
+  marketCap?: number | null
 }
 
 export interface ScanInput {
@@ -72,13 +75,14 @@ export const pickRows = (cs: PracticeCandidate[], max = 15): PickRow[] =>
 export interface Mover {
   symbol: string
   source: 'gainer' | 'active' | 'loser'
+  marketCap?: number | null
 }
 
 /** What one scan looks at: your watchlist, plus today's stock and crypto movers from live market-wide lists. */
 export function scanMarkets(watchlist: { symbol: string; assetClass: AssetClass }[], stockMovers: Mover[], cryptoMovers: Mover[]): ScanMarket[] {
   const out: ScanMarket[] = watchlist.map((i) => ({ symbol: i.symbol, asset: i.assetClass, source: 'watchlist' as const }))
   const add = (m: Mover, asset: AssetClass) => {
-    if (!out.some((x) => x.symbol === m.symbol)) out.push({ symbol: m.symbol, asset, source: m.source })
+    if (!out.some((x) => x.symbol === m.symbol)) out.push({ symbol: m.symbol, asset, source: m.source, marketCap: m.marketCap ?? null })
   }
   for (const m of stockMovers) add(m, 'stock')
   for (const m of cryptoMovers) add(m, 'crypto')
@@ -136,6 +140,9 @@ export async function scanCycle(input: ScanInput): Promise<ScanResult> {
         }
       }
       sentiments[m.symbol] = sentiment
+      const dollarVol = dollarVolume(bars)
+      const volVsAvg = volumeVsAvg(bars)
+      const atrPct = atrPercent(bars)
       raw.push({
         symbol: m.symbol,
         asset: m.asset,
@@ -145,8 +152,11 @@ export async function scanCycle(input: ScanInput): Promise<ScanResult> {
         price: last.close,
         barTime: last.time,
         gainPct: gainToday(all),
-        volVsAvg: volumeVsAvg(bars),
-        dollarVol: dollarVolume(bars),
+        volVsAvg,
+        dollarVol,
+        atrPct,
+        marketCap: m.marketCap ?? null,
+        blocked: qualityBlock({ asset: m.asset, price: last.close, dollarVol, volVsAvg, atrPct, marketCap: m.marketCap }),
         tradeScore: a?.tradeScore?.score ?? null,
       })
     } catch {
@@ -191,6 +201,7 @@ export async function scanCycle(input: ScanInput): Promise<ScanResult> {
         longOn: rules.practiceLongOn,
         longTrades: rules.practiceLongTrades,
         holdDays: rules.practiceHoldDays,
+        qualityBlock: x.blocked ?? null,
         pick: why && x.place != null ? { place: x.place, of: buys, source: x.source, gainPct: x.gainPct, volVsAvg: x.volVsAvg, en: why.en, vi: why.vi } : undefined,
         dayEnd: input.dayEnd,
         sizePct: rules.practiceSizePct,

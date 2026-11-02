@@ -559,6 +559,15 @@ export default function App() {
     const t = [...practice.state.open, ...practice.state.trades].find((x) => x.id === id)
     if (t) startTour(tradeTour(t, practice.state.trades))
   } : undefined
+  // a notification's Show me: the newest trade on that stock with its walk-through; with no trade on record, just open the stock and explain its chart
+  const openAlertStock = (symbol: string) => {
+    const t = [...practice.state.open, ...practice.state.trades].filter((x) => x.symbol === symbol).sort((a, b) => b.openedAt - a.openedAt)[0]
+    if (t && showTrade) return showTrade(t.id)
+    setTour(null)
+    setPrefs((p) => ({ ...p, symbol }))
+    setPage('trade')
+    setAskedStock(symbol)
+  }
   const showReplay = showMeOn && aiRules.jarvisReplay ? () => startTour(dayReplayTour(practice.state)) : undefined
   const askStock = aiRules.jarvisAnyStock
     ? (symbol: string) => {
@@ -639,7 +648,7 @@ export default function App() {
       }
     >
       <WhatsNew />
-      <TradeAlerts />
+      <TradeAlerts showLabel={lang === 'vi' ? 'Chỉ cho tôi' : 'Show me'} onShow={openAlertStock} />
       {aiRules.jarvisOn && aiRules.jarvisFab && (
         <PanelGuard name="Neo"><JarvisFab state={practice.state} rules={aiRules} journal={autoLearn.state.journal} learn={autoLearn.state} killSwitch={prefs.killSwitch} priceOf={practice.priceOf} known={chartUniverse} watchlist={universe.map((i) => i.symbol)} onAskStock={askStock} onShowTrade={showTrade} onReplay={showReplay} onAction={jarvisAct} symbol={inst.symbol} page={shownPage} hub={hubFacts} onOpen={openFromChat} /></PanelGuard>
       )}
@@ -648,16 +657,10 @@ export default function App() {
           alert={jAlert}
           motion={aiRules.jarvisMotion}
           showLabel={lang === 'vi' ? 'Chỉ cho tôi' : 'Show me'}
-          onShow={
-            showTrade
-              ? () => {
-                  const st = practice.state
-                  const t = [...st.open, ...st.trades].filter((x) => x.symbol === jAlert.symbol).sort((a, b) => b.openedAt - a.openedAt)[0]
-                  if (t) showTrade(t.id)
-                  closeAlert()
-                }
-              : undefined
-          }
+          onShow={() => {
+            openAlertStock(jAlert.symbol)
+            closeAlert()
+          }}
           onClose={closeAlert}
         />
       )}

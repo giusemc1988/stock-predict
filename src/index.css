@@ -1151,6 +1151,7 @@ body:has(.jfab) .toasts, body:has(.jfab) .jarvis-alert { bottom: 84px; }
 /* Trade alerts */
 .trade-alerts { position: fixed; top: 70px; right: 16px; display: grid; gap: 8px; max-width: 320px; z-index: 1000; }
 .alert-card { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 12px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3); animation: slideIn 0.3s ease-out; }
+.alert-card .ja-show { display: block; width: 100%; margin-top: 10px; padding: 9px 10px; }
 @keyframes slideIn { from { transform: translateX(340px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
 .alert-header { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; padding-bottom: 8px; border-bottom: 1px solid var(--line); }
 .alert-symbol { font-weight: 600; font-size: 14px; flex: 1; }

@@ -8,15 +8,15 @@ const at = Date.UTC(2026, 9, 16, 15, 30)
 const buy = buyText({ symbol: 'NVDA', qty: 10, entry: 180.5, stop: 175, target: 190, reason: 'hạng 1/4 lệnh MUA, +3.2% hôm nay, khối lượng 2.1x bình thường', at })
 assert.equal(
   buy,
-  ['🟢 MUA NVDA (trong ngày)', 'SL 10 @ $180.50', '🎯 Chốt lời $190.00 (+5.3%)', '🛑 Cắt lỗ $175.00 (−3.0%)', '💬 hạng 1/4 lệnh MUA, +3.2% hôm nay, khối lượng 2.1x bình thường', '🕐 22:30 VN'].join('\n'),
+  ['🟢 MUA NVDA (trong ngày)', 'Số lượng 10 cổ @ $180.50 (≈ $1,805.00)', '⚖️ Nếu cắt lỗ mất tối đa ≈ $55.00, nếu chốt lời được ≈ $95.00', '🎯 Chốt lời $190.00 (+5.3%)', '🛑 Cắt lỗ $175.00 (−3.0%)', '💬 hạng 1/4 lệnh MUA, +3.2% hôm nay, khối lượng 2.1x bình thường', '🕐 22:30 VN'].join('\n'),
 )
-assert.ok(buyText({ symbol: 'X', qty: 1, entry: 1, stop: 0.9, target: 1.2, reason: 'a'.repeat(300), at }).length < 220)
+assert.ok(buyText({ symbol: 'X', qty: 1, entry: 1, stop: 0.9, target: 1.2, reason: 'a'.repeat(300), at }).length < 300)
 
 const win = sellText({ symbol: 'NVDA', qty: 10, entry: 180.5, exit: 190, pnl: 95, retPct: 5.26, reason: 'target', at })
-assert.equal(win, ['✅ THẮNG NVDA +$95.00 (+5.26%)', '$180.50 → $190.00 · SL 10', '💬 chạm chốt lời', '🕐 22:30 VN'].join('\n'))
+assert.equal(win, ['✅ THẮNG NVDA +$95.00 (+5.26%)', '$180.50 → $190.00 · 10 cổ', '💬 chạm chốt lời', '🕐 22:30 VN'].join('\n'))
 
 const loss = sellText({ symbol: 'BTC/USDT', qty: 0.25, entry: 100, exit: 90, pnl: -2.5, retPct: -10, reason: 'stop', at })
-assert.ok(loss.startsWith('❌ THUA BTC/USDT −$2.50 (−10.00%)') && loss.includes('SL 0.25') && loss.includes('chạm cắt lỗ'))
+assert.ok(loss.startsWith('❌ THUA BTC/USDT −$2.50 (−10.00%)') && loss.includes('0.25 cổ') && loss.includes('chạm cắt lỗ'))
 
 const report: DailyReport = {
   day: '2026-10-22',

@@ -53,7 +53,7 @@ const EXIT_VI: Record<ExitCode, string> = {
   target: 'chạm chốt lời',
   stop: 'chạm cắt lỗ',
   signal: 'AI chuyển sang BÁN',
-  time: 'giá không chạy, đóng sớm',
+  time: 'hết 3 giờ giá vẫn không chạy, đóng sớm',
   close: 'đóng trước giờ đóng cửa',
   hold: 'hết thời gian giữ',
 }
@@ -69,7 +69,8 @@ const clip = (s: string, max = 90) => (s.length > max ? `${s.slice(0, max - 1)}�
 export const buyText = (b: BuyInfo) =>
   [
     `🟢 MUA ${b.symbol}${b.kind === 'long' ? ' (dài hạn)' : ' (trong ngày)'}`,
-    `SL ${qty(b.qty)} @ ${usd(b.entry)}`,
+    `Số lượng ${qty(b.qty)} cổ @ ${usd(b.entry)} (≈ ${usd(b.qty * b.entry)})`,
+    `⚖️ Nếu cắt lỗ mất tối đa ≈ ${usd(b.qty * (b.entry - b.stop))}, nếu chốt lời được ≈ ${usd(b.qty * (b.target - b.entry))}`,
     `🎯 Chốt lời ${usd(b.target)} (${pct(((b.target - b.entry) / b.entry) * 100)})`,
     `🛑 Cắt lỗ ${usd(b.stop)} (${pct(((b.stop - b.entry) / b.entry) * 100)})`,
     `💬 ${clip(b.reason)}`,
@@ -79,7 +80,7 @@ export const buyText = (b: BuyInfo) =>
 export const sellText = (s: SellInfo) =>
   [
     `${s.pnl > 0 ? '✅ THẮNG' : '❌ THUA'} ${s.symbol} ${signed(s.pnl)} (${pct(s.retPct, 2)})`,
-    `${usd(s.entry)} → ${usd(s.exit)} · SL ${qty(s.qty)}`,
+    `${usd(s.entry)} → ${usd(s.exit)} · ${qty(s.qty)} cổ`,
     `💬 ${exitVi(s.reason)}`,
     `🕐 ${vnTime(s.at)} VN`,
   ].join('\n')

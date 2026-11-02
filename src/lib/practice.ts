@@ -14,6 +14,17 @@ import { buildDailyReport, type DailyReport } from './dailyReport'
 import { provenRuleBroken } from './playbook'
 
 export const PRACTICE_START = 10_000
+/**
+ * Position size is set by risk, not by a fixed dollar amount (v2.0.8): every trade risks about RISK_PCT of the
+ * account if its stop is hit, so a $760 fund and a $10 stock lose a similar amount. Before this each trade
+ * bought a flat 2% of the account, and the loss depended on how far the stop happened to sit
+ * (SPY -0.47% lost $0.94, COMP -1.84% lost $3.66).
+ */
+export const RISK_PCT = 0.05
+/** Biggest position as a multiple of the old flat size (sizePct), so a very tight stop cannot make a huge position. */
+export const MAX_SIZE_MULT = 2.5
+/** A stop closer than this % to the price sits inside normal noise and the spread: no entry. */
+export const MIN_STOP_PCT = 0.4
 /** A day trade that has neither stopped out nor hit target is closed after this many bars. */
 export const MAX_BARS = 12
 /** Long-term trades get stops and targets this many times wider than the analyst's day plan. */
@@ -345,6 +356,11 @@ export interface EntryContext {
   playbookMargin?: number
   /** News sentiment at entry: -1 (bearish) to +1 (bullish), from recent headlines. Optional; null if not fetched. */
   newsSentiment?: number | null
+  /** The entry quality gate's reason to refuse this BUY (liquidity, flat chart, penny or tiny company); see practiceQuality.ts. */
+  qualityBlock?: { check: string; en: string; vi: string } | null
+  /** Account % risked per trade at the stop (default RISK_PCT) and the biggest position as a multiple of sizePct (default MAX_SIZE_MULT). */
+  riskPct?: number
+  maxSizeMult?: number
 }
 
 /** Called once per closed bar on the open chart: maybe enter, and age or signal-exit open trades. */
@@ -407,6 +423,8 @@ export function onBarClose(prev: PracticeState, ctx: EntryContext): PracticeStat
   // the kill switch and the hard limits apply whatever the other gates say; the AI can't change them
   if (ctx.killSwitch) return skip('Kill switch', 'kill switch is on', 'công tắc dừng khẩn cấp đang bật')
   pass('Kill switch')
+  if (ctx.qualityBlock) return skip(ctx.qualityBlock.check, ctx.qualityBlock.en, ctx.qualityBlock.vi)
+  pass('Quality')
   const penny = isPenny(ctx.asset, ctx.price)
   if (penny) {
     if (!ctx.pennyOn) return skip('Penny stock', `${fmt(ctx.price)} is under $${PENNY_PRICE} and penny stocks are off`, `${fmt(ctx.price)} dưới $${PENNY_PRICE} và cổ phiếu penny đang tắt`)
@@ -446,13 +464,18 @@ export function onBarClose(prev: PracticeState, ctx: EntryContext): PracticeStat
   const w = kind === 'long' ? LONG_WIDTH : 1
   const plan = { stop: ctx.price - (ctx.price - dayPlan.stop) * w, target: ctx.price + (dayPlan.target - ctx.price) * w }
   if (!(plan.stop > 0)) return skip('Exit plan', 'no valid stop and target', 'không có cắt lỗ và chốt lời hợp lệ')
+  const stopPct = ((ctx.price - plan.stop) / ctx.price) * 100
+  if (stopPct < MIN_STOP_PCT) return skip('Stop too tight', `stop is only ${stopPct.toFixed(2)}% away (need ${MIN_STOP_PCT}%): normal noise would hit it`, `cắt lỗ chỉ cách ${stopPct.toFixed(2)}% (cần ${MIN_STOP_PCT}%): dao động bình thường cũng chạm`)
   pass('Exit plan')
 
   // small, fixed practice size; halved in high volatility; reduced by drawdown brakes and Kelly sizing
   const volatilityMult = regime === 'high' ? 0.5 : 1
   const brakeMult = ctx.drawdownBrakeMultiplier ?? 1
   const kellyMult = ctx.kellyMultiplier ?? 1
-  const pct = (ctx.sizePct / 100) * volatilityMult * brakeMult * kellyMult * (penny ? PENNY_SIZE_MULT : 1)
+  // size so that hitting the stop loses riskPct of the account, never more than maxSizeMult x the flat size
+  const sizeMult = volatilityMult * brakeMult * kellyMult * (penny ? PENNY_SIZE_MULT : 1)
+  const capPct = (ctx.sizePct / 100) * (ctx.maxSizeMult ?? MAX_SIZE_MULT)
+  const pct = Math.min((ctx.riskPct ?? RISK_PCT) / 100 / (stopPct / 100), capPct) * sizeMult
   const costs = penny && ctx.costs ? { ...ctx.costs, spreadBps: ctx.costs.spreadBps * PENNY_COST_MULT, slippageBps: ctx.costs.slippageBps * PENNY_COST_MULT } : ctx.costs
   const qty = (eq * pct) / ctx.price
   if (!(qty > 0)) return s

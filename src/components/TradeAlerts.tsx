@@ -4,7 +4,7 @@ import { useAiRules } from '../lib/aiRules'
 import { useSwipeDismiss } from '../lib/swipeDismiss'
 
 /** Each card closes by itself after a few seconds, or swipe it left/right. */
-function AlertCard({ alert, onClose }: { alert: TradeAlert; onClose: () => void }) {
+function AlertCard({ alert, showLabel, onShow, onClose }: { alert: TradeAlert; showLabel?: string; onShow?: (symbol: string) => void; onClose: () => void }) {
   const swipe = useSwipeDismiss(onClose)
   const closeRef = useRef(onClose)
   closeRef.current = onClose
@@ -45,6 +45,17 @@ function AlertCard({ alert, onClose }: { alert: TradeAlert; onClose: () => void 
           </div>
         )}
       </div>
+      {onShow && (
+        <button
+          className="ja-show"
+          onClick={() => {
+            onShow(alert.symbol)
+            onClose()
+          }}
+        >
+          {showLabel ?? 'Show me'}
+        </button>
+      )}
     </div>
   )
 }
@@ -53,7 +64,8 @@ interface AlertNotification extends TradeAlert {
   dismissed?: boolean
 }
 
-export function TradeAlerts() {
+/** Server notices that a practice trade is about to open. "Show me" opens that stock and explains the trade. */
+export function TradeAlerts({ showLabel, onShow }: { showLabel?: string; onShow?: (symbol: string) => void }) {
   const rules = useAiRules()
   const [alerts, setAlerts] = useState<AlertNotification[]>([])
 
@@ -96,7 +108,7 @@ export function TradeAlerts() {
   return (
     <div className="trade-alerts">
       {displayAlerts.map((alert) => (
-        <AlertCard key={alert.id} alert={alert} onClose={() => dismissAlert(alert.id)} />
+        <AlertCard key={alert.id} alert={alert} showLabel={showLabel} onShow={onShow} onClose={() => dismissAlert(alert.id)} />
       ))}
     </div>
   )
