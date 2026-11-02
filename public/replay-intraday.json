@@ -1,20 +1,23 @@
 {
- "updated": "2026-11-02T01:55:13.551Z",
- "seconds": 80,
+ "updated": "2026-11-02T02:27:48.817Z",
+ "seconds": 1416,
  "markets": 97,
- "failed": [],
+ "failed": [
+  "CMCSA",
+  "IWM"
+ ],
  "source": {
-  "fiveMinute": "yahoo-60d",
+  "fiveMinute": "alpaca-iex",
   "sixtyMinute": "yahoo-730d"
  },
  "split": {
   "five": {
-   "examFrom": "2026-10-05",
-   "days": 60
+   "examFrom": "2024-09-24",
+   "days": 1561
   },
   "sixty": {
-   "examFrom": "2025-11-10",
-   "days": 722
+   "examFrom": "2025-11-07",
+   "days": 721
   }
  },
  "trials": {
@@ -29,7 +32,7 @@
    "spreadBps": 4,
    "slippageBps": 2
   },
-  "avgNewRoundTripBps": 8.4,
+  "avgNewRoundTripBps": 8.5,
   "perSymbol": {
    "SPY": {
     "halfSpreadBps": 0.5,
@@ -410,14 +413,6 @@
    "TMUS": {
     "halfSpreadBps": 4,
     "slippageBps": 1
-   },
-   "CMCSA": {
-    "halfSpreadBps": 4,
-    "slippageBps": 1
-   },
-   "IWM": {
-    "halfSpreadBps": 0.5,
-    "slippageBps": 1
    }
   }
  },
@@ -430,25 +425,25 @@
    "id": "I1A-bar",
    "en": "Opening-range breakout, stocks in play (first 5-min volume >= 2x), stop other side of the first bar, long and short, out at the close",
    "vi": "Phá vỡ vùng mở cửa, cổ phiếu nóng (khối lượng 5 phút đầu >= 2x), stop đầu bên kia của nến đầu, mua và bán khống, thoát lúc đóng cửa",
-   "signalsExam": 138,
+   "signalsExam": 4520,
    "book": {
-    "n": 172,
-    "avg": 0.17158307794264696
+    "n": 8964,
+    "avg": 0.053837938067761694
    },
    "exam": {
-    "n": 138,
-    "avgNew": -0.3720293161307241,
-    "avgOld": -0.38707952830432896,
-    "avg2x": -0.45702135441897046,
-    "winRate": 0.3695652173913043
+    "n": 4520,
+    "avgNew": 0.05421204503024755,
+    "avgOld": 0.04142278809661663,
+    "avg2x": -0.03305599688512795,
+    "winRate": 0.4174778761061947
    },
    "fillRate": null,
    "control": {
-    "meanNew": -0.03222800596653952,
-    "excessNew": -0.3398013101641846,
-    "pNew": 1,
-    "excess2x": -0.33984121694241515,
-    "p2x": 1
+    "meanNew": -0.08307388515993404,
+    "excessNew": 0.1372859301901816,
+    "pNew": 0.004975124378109453,
+    "excess2x": 0.13723289115413742,
+    "p2x": 0.004975124378109453
    },
    "dsr": 0,
    "pass": false
@@ -457,52 +452,52 @@
    "id": "I1A-atr",
    "en": "Opening-range breakout, stocks in play (first 5-min volume >= 2x), stop 10% of 14-day ATR, long and short, out at the close",
    "vi": "Phá vỡ vùng mở cửa, cổ phiếu nóng (khối lượng 5 phút đầu >= 2x), stop 10% ATR 14 ngày, mua và bán khống, thoát lúc đóng cửa",
-   "signalsExam": 138,
+   "signalsExam": 4520,
    "book": {
-    "n": 172,
-    "avg": -0.20420901475617328
+    "n": 8964,
+    "avg": -0.09407591425483998
    },
    "exam": {
-    "n": 138,
-    "avgNew": -0.29406693340767204,
-    "avgOld": -0.30914738828701366,
-    "avg2x": -0.3789574861329892,
-    "winRate": 0.050724637681159424
+    "n": 4520,
+    "avgNew": -0.11120590283539991,
+    "avgOld": -0.12399267627005917,
+    "avg2x": -0.1984319381132382,
+    "winRate": 0.1165929203539823
    },
    "fillRate": null,
    "control": {
-    "meanNew": -0.06099916741272832,
-    "excessNew": -0.23306776599494372,
+    "meanNew": -0.0730760395546451,
+    "excessNew": -0.03812986328075481,
     "pNew": 1,
-    "excess2x": -0.2330394475372006,
+    "excess2x": -0.03813869052408447,
     "p2x": 1
    },
-   "dsr": 6.825757736805826e-10,
+   "dsr": 0,
    "pass": false
   },
   {
    "id": "I1B-bar",
    "en": "Opening-range breakout, stocks in play (top 20 by relative volume), stop other side of the first bar, long and short, out at the close",
    "vi": "Phá vỡ vùng mở cửa, cổ phiếu nóng (top 20 khối lượng tương đối), stop đầu bên kia của nến đầu, mua và bán khống, thoát lúc đóng cửa",
-   "signalsExam": 332,
+   "signalsExam": 8798,
    "book": {
-    "n": 417,
-    "avg": -0.0006507081816423266
+    "n": 17645,
+    "avg": 0.019503673955479542
    },
    "exam": {
-    "n": 332,
-    "avgNew": -0.3666196355339945,
-    "avgOld": -0.3818042528706814,
-    "avg2x": -0.4515230669219281,
-    "winRate": 0.33433734939759036
+    "n": 8798,
+    "avgNew": 0.021342510836387295,
+    "avgOld": 0.005975301426349279,
+    "avg2x": -0.06330735970895282,
+    "winRate": 0.4111161627642646
    },
    "fillRate": null,
    "control": {
-    "meanNew": -0.056906504291568266,
-    "excessNew": -0.3097131312424263,
-    "pNew": 1,
-    "excess2x": -0.30977927784480197,
-    "p2x": 1
+    "meanNew": -0.07886230561872039,
+    "excessNew": 0.10020481645510768,
+    "pNew": 0.004975124378109453,
+    "excess2x": 0.10018300112225767,
+    "p2x": 0.004975124378109453
    },
    "dsr": 0,
    "pass": false
@@ -511,159 +506,159 @@
    "id": "I1B-atr",
    "en": "Opening-range breakout, stocks in play (top 20 by relative volume), stop 10% of 14-day ATR, long and short, out at the close",
    "vi": "Phá vỡ vùng mở cửa, cổ phiếu nóng (top 20 khối lượng tương đối), stop 10% ATR 14 ngày, mua và bán khống, thoát lúc đóng cửa",
-   "signalsExam": 332,
+   "signalsExam": 8798,
    "book": {
-    "n": 417,
-    "avg": -0.19244216060690475
+    "n": 17645,
+    "avg": -0.08599110631410795
    },
    "exam": {
-    "n": 332,
-    "avgNew": -0.30028614214574395,
-    "avgOld": -0.3154579458588174,
-    "avg2x": -0.3850964291026096,
-    "winRate": 0.05421686746987952
+    "n": 8798,
+    "avgNew": -0.11431958305889739,
+    "avgOld": -0.12968758183312865,
+    "avg2x": -0.1989579641226027,
+    "winRate": 0.13934985223914526
    },
    "fillRate": null,
    "control": {
-    "meanNew": -0.06448545272719625,
-    "excessNew": -0.2358006894185477,
+    "meanNew": -0.06897839826490804,
+    "excessNew": -0.04534118479398935,
     "pNew": 1,
-    "excess2x": -0.23579432285260848,
+    "excess2x": -0.04534951713281843,
     "p2x": 1
    },
-   "dsr": 2.9859448247293585e-13,
+   "dsr": 0,
    "pass": false
   },
   {
    "id": "I2-5m-mkt",
    "en": "SPY/QQQ first half-hour -> last half-hour (5m bars, market entry)",
    "vi": "SPY/QQQ nửa giờ đầu -> nửa giờ cuối (nến 5 phút, lệnh thị trường)",
-   "signalsExam": 40,
+   "signalsExam": 1034,
    "book": {
-    "n": 78,
-    "avg": -0.01454575185275413
+    "n": 2065,
+    "avg": -0.04627913035840829
    },
    "exam": {
-    "n": 40,
-    "avgNew": -0.08904820028782999,
-    "avgOld": -0.15906352290094583,
-    "avg2x": -0.11905585614691028,
-    "winRate": 0.175
+    "n": 1034,
+    "avgNew": -0.02828024294079939,
+    "avgOld": -0.0982795388813496,
+    "avg2x": -0.0582802990718677,
+    "winRate": 0.4274661508704062
    },
    "fillRate": null,
    "control": {
-    "meanNew": -0.03334404126584921,
-    "excessNew": -0.05570415902198078,
-    "pNew": 0.9751243781094527,
-    "excess2x": -0.05571240122441354,
-    "p2x": 0.9751243781094527
+    "meanNew": -0.030939061567091534,
+    "excessNew": 0.0026588186262921434,
+    "pNew": 0.4129353233830846,
+    "excess2x": 0.002658091069713861,
+    "p2x": 0.4129353233830846
    },
-   "dsr": 3.5224712036097117e-11,
+   "dsr": 0,
    "pass": false
   },
   {
    "id": "I2-60m-mkt",
    "en": "SPY/QQQ first hour -> last bar 15:30-16:00 (60m bars, 730d, market entry)",
    "vi": "SPY/QQQ giờ đầu -> nến cuối 15:30-16:00 (nến 60 phút, 730 ngày, lệnh thị trường)",
-   "signalsExam": 478,
+   "signalsExam": 472,
    "book": {
-    "n": 956,
-    "avg": -0.036023694386859095
+    "n": 954,
+    "avg": -0.035221631641788036
    },
    "exam": {
-    "n": 478,
-    "avgNew": -0.03407543797043408,
-    "avgOld": -0.10407275576145415,
-    "avg2x": -0.06407430714445117,
-    "winRate": 0.39748953974895396
+    "n": 472,
+    "avgNew": -0.033961333380396225,
+    "avgOld": -0.10395908183782977,
+    "avg2x": -0.06396042060503128,
+    "winRate": 0.4046610169491525
    },
    "fillRate": null,
    "control": {
-    "meanNew": -0.031105780293120354,
-    "excessNew": -0.0029696576773137265,
-    "pNew": 0.5870646766169154,
-    "excess2x": -0.002968809737281017,
-    "p2x": 0.5870646766169154
+    "meanNew": -0.029978101717335278,
+    "excessNew": -0.003983231663060947,
+    "pNew": 0.5621890547263682,
+    "excess2x": -0.003982609347258595,
+    "p2x": 0.5621890547263682
    },
-   "dsr": 0,
+   "dsr": 1.241495795056835e-11,
    "pass": false
   },
   {
    "id": "I2-5m-lim",
    "en": "SPY/QQQ first half-hour -> last half-hour (5m bars, limit entry)",
    "vi": "SPY/QQQ nửa giờ đầu -> nửa giờ cuối (nến 5 phút, lệnh giới hạn)",
-   "signalsExam": 40,
+   "signalsExam": 1034,
    "book": {
-    "n": 78,
-    "avg": 0.0016303580371536024
+    "n": 1997,
+    "avg": -0.03475751600553779
    },
    "exam": {
-    "n": 40,
-    "avgNew": -0.07110922187766873,
-    "avgOld": -0.1161173063681453,
-    "avg2x": -0.08611268569748562,
-    "winRate": 0.225
+    "n": 995,
+    "avgNew": -0.017469761843524896,
+    "avgOld": -0.06247035841457251,
+    "avg2x": -0.032470177704217416,
+    "winRate": 0.4442211055276382
    },
-   "fillRate": 1,
+   "fillRate": 0.9622823984526112,
    "control": {
-    "meanNew": -0.01802223980833257,
-    "excessNew": -0.05308698206933616,
-    "pNew": 0.9651741293532339,
-    "excess2x": -0.053090451477998256,
-    "p2x": 0.9651741293532339
+    "meanNew": -0.019741379153437866,
+    "excessNew": 0.0022716173099129704,
+    "pNew": 0.39800995024875624,
+    "excess2x": 0.00227148903755945,
+    "p2x": 0.39800995024875624
    },
-   "dsr": 1.8487046893334025e-9,
+   "dsr": 3.339550858072471e-13,
    "pass": false
   },
   {
    "id": "I2-60m-lim",
    "en": "SPY/QQQ first hour -> last bar 15:30-16:00 (60m bars, 730d, limit entry)",
    "vi": "SPY/QQQ giờ đầu -> nến cuối 15:30-16:00 (nến 60 phút, 730 ngày, lệnh giới hạn)",
-   "signalsExam": 478,
+   "signalsExam": 472,
    "book": {
-    "n": 947,
-    "avg": -0.021567796341655024
+    "n": 945,
+    "avg": -0.02076017418157781
    },
    "exam": {
-    "n": 474,
-    "avgNew": -0.019387436467408908,
-    "avgOld": -0.0643864132426037,
-    "avg2x": -0.03438707743327402,
-    "winRate": 0.4177215189873418
+    "n": 468,
+    "avgNew": -0.019153833120395695,
+    "avgOld": -0.06415303148986592,
+    "avg2x": -0.03415357007931922,
+    "winRate": 0.4230769230769231
    },
-   "fillRate": 0.9916317991631799,
+   "fillRate": 0.9915254237288136,
    "control": {
-    "meanNew": -0.014909371261519653,
-    "excessNew": -0.004478065205889255,
-    "pNew": 0.6119402985074627,
-    "excess2x": -0.004477670015721347,
-    "p2x": 0.6119402985074627
+    "meanNew": -0.015610166581951418,
+    "excessNew": -0.003543666538444278,
+    "pNew": 0.5771144278606966,
+    "excess2x": -0.003543262396705618,
+    "p2x": 0.5771144278606966
    },
-   "dsr": 0,
+   "dsr": 5.47700711450716e-8,
    "pass": false
   },
   {
    "id": "I3-intraday",
    "en": "Every stock, every day: buy the open, sell the close",
    "vi": "Mọi cổ phiếu, mọi ngày: mua lúc mở, bán lúc đóng",
-   "signalsExam": 23377,
+   "signalsExam": 22720,
    "book": {
-    "n": 46657,
-    "avg": -0.04822109173499979
+    "n": 45600,
+    "avg": -0.049072849195192746
    },
    "exam": {
-    "n": 23377,
-    "avgNew": -0.06551276783714223,
-    "avgOld": -0.08108145571405567,
-    "avg2x": -0.14983891643911998,
-    "winRate": 0.4733712623518843
+    "n": 22720,
+    "avgNew": -0.057559006273790465,
+    "avgOld": -0.07270523788496575,
+    "avg2x": -0.14231452592836666,
+    "winRate": 0.4743838028169014
    },
    "fillRate": null,
    "control": {
-    "meanNew": -0.09073148529779815,
-    "excessNew": 0.025218717460655918,
+    "meanNew": -0.0845704439409213,
+    "excessNew": 0.02701143766713083,
     "pNew": 0.009950248756218905,
-    "excess2x": 0.025196983852613763,
+    "excess2x": 0.026986518274089988,
     "p2x": 0.009950248756218905
    },
    "dsr": 0,
@@ -673,25 +668,25 @@
    "id": "I3-overnight",
    "en": "Every stock, every day: buy the close, sell the next open",
    "vi": "Mọi cổ phiếu, mọi ngày: mua lúc đóng, bán lúc mở hôm sau",
-   "signalsExam": 23377,
+   "signalsExam": 22720,
    "book": {
-    "n": 46463,
-    "avg": -0.01434809732439092
+    "n": 45410,
+    "avg": -0.016021086124726594
    },
    "exam": {
-    "n": 23086,
-    "avgNew": -0.02223973571842225,
-    "avgOld": -0.03780988668714064,
-    "avg2x": -0.10660334485575633,
-    "winRate": 0.4732305293251321
+    "n": 22344,
+    "avgNew": -0.022292659705577665,
+    "avgOld": -0.03743642302682846,
+    "avg2x": -0.10708235871747951,
+    "winRate": 0.47256534192624416
    },
    "fillRate": null,
    "control": {
-    "meanNew": -0.0316163716491994,
-    "excessNew": 0.009376635930777151,
-    "pNew": 0.2736318407960199,
-    "excess2x": 0.009367378486793115,
-    "p2x": 0.2736318407960199
+    "meanNew": -0.024456977918946184,
+    "excessNew": 0.002164318213368519,
+    "pNew": 0.4228855721393035,
+    "excess2x": 0.0021686991996075627,
+    "p2x": 0.4228855721393035
    },
    "dsr": 0,
    "pass": false
@@ -700,108 +695,108 @@
    "id": "I3-win-same-mkt",
    "en": "Winners proxy (up 3%+ on 2x volume by 15:30, 60m bars), market entry, sold at the close",
    "vi": "Ước lượng cổ phiếu thắng (tăng 3%+ với khối lượng 2x lúc 15:30, nến 60 phút), lệnh thị trường, bán lúc đóng",
-   "signalsExam": 298,
+   "signalsExam": 292,
    "book": {
-    "n": 630,
-    "avg": -0.12641220326976027
+    "n": 624,
+    "avg": -0.12701091994853447
    },
    "exam": {
-    "n": 298,
-    "avgNew": -0.08158705123067823,
-    "avgOld": -0.09540990102508368,
-    "avg2x": -0.1676434784037587,
-    "winRate": 0.43288590604026844
+    "n": 292,
+    "avgNew": -0.11537755380901958,
+    "avgOld": -0.12897077331884685,
+    "avg2x": -0.20163296074976148,
+    "winRate": 0.4178082191780822
    },
    "fillRate": null,
    "control": {
-    "meanNew": -0.08424346395811322,
-    "excessNew": 0.002656412727434984,
-    "pNew": 0.5024875621890548,
-    "excess2x": 0.002686134914377525,
-    "p2x": 0.5024875621890548
+    "meanNew": -0.07511593999988521,
+    "excessNew": -0.04026161380913437,
+    "pNew": 0.7014925373134329,
+    "excess2x": -0.040195265068090374,
+    "p2x": 0.7014925373134329
    },
-   "dsr": 0,
+   "dsr": 0.00008098741982198732,
    "pass": false
   },
   {
    "id": "I3-win-same-lim",
    "en": "Winners proxy (up 3%+ on 2x volume by 15:30, 60m bars), limit entry, sold at the close",
    "vi": "Ước lượng cổ phiếu thắng (tăng 3%+ với khối lượng 2x lúc 15:30, nến 60 phút), lệnh giới hạn, bán lúc đóng",
-   "signalsExam": 298,
+   "signalsExam": 292,
    "book": {
-    "n": 618,
-    "avg": -0.08755215044607977
+    "n": 613,
+    "avg": -0.08774728215257484
    },
    "exam": {
-    "n": 289,
-    "avgNew": -0.0746384460945717,
-    "avgOld": -0.0914635335201279,
-    "avg2x": -0.11779361829139783,
-    "winRate": 0.4429065743944637
+    "n": 284,
+    "avgNew": -0.09102871446935971,
+    "avgOld": -0.1077081521718372,
+    "avg2x": -0.13432141066718764,
+    "winRate": 0.43309859154929575
    },
-   "fillRate": 0.9697986577181208,
+   "fillRate": 0.9726027397260274,
    "control": {
-    "meanNew": -0.054114317263108794,
-    "excessNew": -0.0205241288314629,
-    "pNew": 0.6467661691542289,
-    "excess2x": -0.020548942637299603,
-    "p2x": 0.6417910447761194
+    "meanNew": -0.04861933025799588,
+    "excessNew": -0.04240938421136384,
+    "pNew": 0.7164179104477612,
+    "excess2x": -0.04242534995642368,
+    "p2x": 0.7164179104477612
    },
-   "dsr": 0,
+   "dsr": 0.00022066080913640818,
    "pass": false
   },
   {
    "id": "I3-win-night-mkt",
    "en": "Winners proxy (up 3%+ on 2x volume by 15:30, 60m bars), market entry, held to the next open",
    "vi": "Ước lượng cổ phiếu thắng (tăng 3%+ với khối lượng 2x lúc 15:30, nến 60 phút), lệnh thị trường, giữ đến lúc mở hôm sau",
-   "signalsExam": 298,
+   "signalsExam": 292,
    "book": {
-    "n": 629,
-    "avg": -0.12757113880307877
+    "n": 623,
+    "avg": -0.12687638545187463
    },
    "exam": {
-    "n": 294,
-    "avgNew": 0.25541722529601196,
-    "avgOld": 0.2417003253524699,
-    "avg2x": 0.1689519385200163,
-    "winRate": 0.46598639455782315
+    "n": 289,
+    "avgNew": 0.21274233378470433,
+    "avgOld": 0.19930189511251623,
+    "avg2x": 0.1260392402744377,
+    "winRate": 0.45674740484429066
    },
    "fillRate": null,
    "control": {
-    "meanNew": -0.009755318482032628,
-    "excessNew": 0.2651725437780446,
-    "pNew": 0.029850746268656716,
-    "excess2x": 0.26492599703782754,
-    "p2x": 0.029850746268656716
+    "meanNew": -0.0028006538634423274,
+    "excessNew": 0.21554298764814667,
+    "pNew": 0.1044776119402985,
+    "excess2x": 0.2153569925323821,
+    "p2x": 0.1044776119402985
    },
-   "dsr": 1.1102230246251565e-16,
+   "dsr": 0.055228189867582655,
    "pass": false
   },
   {
    "id": "I3-win-night-lim",
    "en": "Winners proxy (up 3%+ on 2x volume by 15:30, 60m bars), limit entry, held to the next open",
    "vi": "Ước lượng cổ phiếu thắng (tăng 3%+ với khối lượng 2x lúc 15:30, nến 60 phút), lệnh giới hạn, giữ đến lúc mở hôm sau",
-   "signalsExam": 298,
+   "signalsExam": 292,
    "book": {
-    "n": 617,
-    "avg": -0.1059346553813168
+    "n": 612,
+    "avg": -0.10341531599784236
    },
    "exam": {
-    "n": 285,
-    "avgNew": 0.2651967791262642,
-    "avgOld": 0.24841250550915908,
-    "avg2x": 0.22183078369860382,
-    "winRate": 0.47017543859649125
+    "n": 281,
+    "avgNew": 0.25041684470388564,
+    "avgOld": 0.23380272923203202,
+    "avg2x": 0.20688799908840844,
+    "winRate": 0.4626334519572954
    },
-   "fillRate": 0.9563758389261745,
+   "fillRate": 0.9623287671232876,
    "control": {
-    "meanNew": 0.03576645022172892,
-    "excessNew": 0.2294303289045353,
+    "meanNew": 0.024803667449499387,
+    "excessNew": 0.22561317725438626,
     "pNew": 0.08955223880597014,
-    "excess2x": 0.22927126255723135,
+    "excess2x": 0.22545031370377264,
     "p2x": 0.08955223880597014
    },
-   "dsr": 3.885780586188048e-16,
+   "dsr": 0.08638396272303211,
    "pass": false
   }
  ],
