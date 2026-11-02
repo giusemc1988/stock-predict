@@ -1,0 +1,908 @@
+{
+ "updated": "2026-11-02T02:54:08.354Z",
+ "seconds": 44,
+ "markets": 98,
+ "failed": [],
+ "split": {
+  "from": "2007-01-03",
+  "examFrom": "2020-03-20",
+  "days": 4989
+ },
+ "trials": {
+  "ledger": {
+   "replay15mRules": 340,
+   "replay15mStrategies": 4,
+   "dailyRounds12": 14,
+   "intradayRound3": 14,
+   "newsRound4": 14,
+   "edgesRound4": 10,
+   "ensembles": 2
+  },
+  "total": 398,
+  "round4Edges": 10,
+  "labConvention": 38
+ },
+ "costs": "Per-symbol tiers (half-spread by median daily dollar volume: >$5B 0.5 bps, $1-5B 1.5, $0.2-1B 4, below 10; slippage 1 bp per fill; fee 0), at 1x and 2x.",
+ "passRule": {
+  "trades": {
+   "en": "PASS (trade-based ideas) = at least 30 exam trades, exam average per trade above 0 at 1x AND 2x costs, exam excess over the 200-draw seeded random-date control above 0 at 1x and 2x with p <= 0.05 at both, the BOOK excess also above 0, and a Deflated Sharpe >= 0.95 of its daily return stream counting all 398 trials of every round (340 filter rules and 4 strategies of the 15m lab, 14 daily, 14 intraday, 14 news, 10 here, 2 portfolios). Fixed in advance; nothing is tuned on the exam.",
+   "vi": "QUA (ý tưởng theo lệnh) = từ 30 lệnh thi, trung bình mỗi lệnh bài thi > 0 ở phí 1x VÀ 2x, phần vượt trội bài thi so với 200 lần chọn ngày ngẫu nhiên (có seed) > 0 ở 1x và 2x với p <= 0,05 ở cả hai, phần vượt trội của BOOK cũng > 0, và Deflated Sharpe >= 0,95 của chuỗi lợi nhuận ngày tính cả 398 lần thử của mọi vòng (340 luật lọc và 4 chiến lược của lab 15 phút, 14 nến ngày, 14 trong ngày, 14 tin tức, 10 ở đây, 2 danh mục). Cố định từ trước; không chỉnh gì trên bài thi."
+  },
+  "switches": {
+   "en": "PASS (switches and portfolios, judged against SPY buy-and-hold over the same days) = exam Sharpe above SPY's at 1x AND 2x costs, exam max drawdown shallower than SPY's at both, the BOOK agrees (Sharpe above SPY's and max drawdown shallower at 1x), the exam Sharpe beats a random-timing control (the same signal shifted in time by 200 seeded random offsets, so the same share of days invested and the same number of switches) with p <= 0.05, and a Deflated Sharpe >= 0.95 on the exam daily returns counting all 398 trials of every round. Fixed in advance.",
+   "vi": "QUA (chuyển trạng thái và danh mục, so với SPY mua-giữ cùng khoảng ngày) = Sharpe bài thi cao hơn SPY ở phí 1x VÀ 2x, sụt giảm tối đa bài thi nông hơn SPY ở cả hai, BOOK đồng ý (Sharpe cao hơn SPY và sụt giảm nông hơn ở 1x), Sharpe bài thi thắng nhóm đối chứng chọn thời điểm ngẫu nhiên (cùng tín hiệu dịch thời gian theo 200 độ lệch ngẫu nhiên có seed, nên cùng tỉ lệ ngày cầm hàng và cùng số lần chuyển) với p <= 0,05, và Deflated Sharpe >= 0,95 trên lợi nhuận ngày của bài thi tính cả 398 lần thử của mọi vòng. Cố định từ trước."
+  }
+ },
+ "trades": [
+  {
+   "id": "E-FOMC",
+   "en": "Long SPY from the close before each scheduled FOMC announcement to the announcement-day close (Lucca & Moench 2015)",
+   "vi": "Mua SPY từ lúc đóng cửa hôm trước đến lúc đóng cửa ngày Fed công bố lãi suất (họp định kỳ)",
+   "book": {
+    "n": 105,
+    "avg": 0.30942232028526245,
+    "ctrl": 0.004168517225820056,
+    "excess": 0.3052538030594424
+   },
+   "exam": {
+    "n": 53,
+    "winRate": 0.4716981132075472,
+    "tstat": 0.46591423473699445,
+    "avg1x": 0.08326252464244985,
+    "avg2x": 0.05324204760570742,
+    "ctrl1x": 0.060061241417043734,
+    "ctrl2x": 0.030047723721678986,
+    "excess1x": 0.023201283225406114,
+    "excess2x": 0.023194323884028437,
+    "p1x": 0.435,
+    "p2x": 0.435
+   },
+   "dsr": 0.0003094425539111878,
+   "dsrTrades": 0.1711626544566709,
+   "passed": false,
+   "dsrLab": 0.009120340462157484
+  },
+  {
+   "id": "E-TOM",
+   "en": "Turn of the month: long SPY from the close of the 2nd-to-last trading day to the close of the 3rd trading day of the next month (McConnell & Xu 2008)",
+   "vi": "Đầu tháng: mua SPY từ lúc đóng cửa ngày giao dịch áp chót của tháng đến lúc đóng cửa ngày giao dịch thứ 3 của tháng sau",
+   "book": {
+    "n": 158,
+    "avg": 0.16608015949378843,
+    "ctrl": 0.11487353633352539,
+    "excess": 0.051206623160263046
+   },
+   "exam": {
+    "n": 79,
+    "winRate": 0.569620253164557,
+    "tstat": 1.256368813775876,
+    "avg1x": 0.2778106228421642,
+    "avg2x": 0.24773179012668606,
+    "ctrl1x": 0.3137550351143875,
+    "ctrl2x": 0.2836654206919983,
+    "excess1x": -0.035944412272223336,
+    "excess2x": -0.035933630565312236,
+    "p1x": 0.555,
+    "p2x": 0.555
+   },
+   "dsr": 0.0034984108276996384,
+   "dsrTrades": 0.3178529304499915,
+   "passed": false,
+   "dsrLab": 0.04888611902751516
+  },
+  {
+   "id": "E-OPEX",
+   "en": "Long SPY in options-expiration weeks (close of the Friday before to the expiration close); counts only if the book is positive",
+   "vi": "Mua SPY trong tuần đáo hạn quyền chọn (đóng cửa thứ Sáu trước đến đóng cửa ngày đáo hạn); chỉ tính nếu book dương",
+   "book": {
+    "n": 159,
+    "avg": 0.13452266244092498,
+    "ctrl": 0.1456830464695087,
+    "excess": -0.011160384028583714
+   },
+   "exam": {
+    "n": 79,
+    "winRate": 0.4430379746835443,
+    "tstat": -0.3104312547078764,
+    "avg1x": -0.07649371288871525,
+    "avg2x": -0.1064662702399959,
+    "ctrl1x": 0.3854654109220792,
+    "ctrl2x": 0.3553542866124627,
+    "excess1x": -0.46195912381079446,
+    "excess2x": -0.4618205568524586,
+    "p1x": 0.965,
+    "p2x": 0.965
+   },
+   "dsr": 0.000004611196571857601,
+   "dsrTrades": 0.02105172888136908,
+   "passed": false,
+   "dsrLab": 0.00037904438213243186,
+   "note": "other weeks: book avg 0.107%, exam avg 0.508%"
+  },
+  {
+   "id": "E-PAIRS",
+   "en": "Pairs: KO/PEP, XOM/CVX, HD/LOW, V/MA, JPM/BAC, GS/MS, UPS/FDX, WMT/TGT; book-period hedge ratio, 60-day z-score of the log spread, in at |z| > 2 (next open), out at |z| < 0.5 (next open) or day 20 (close); no borrow fee",
+   "vi": "Giao dịch cặp: 8 cặp cổ phiếu cùng ngành, tỉ lệ phòng hộ ước lượng trên book, z-score 60 ngày của chênh lệch log giá, vào khi |z| > 2, ra khi |z| < 0,5 hoặc sau 20 ngày",
+   "book": {
+    "n": 586,
+    "avg": 0.2018824528316828,
+    "ctrl": -0.08190229501316544,
+    "excess": 0.28378474784484825
+   },
+   "exam": {
+    "n": 291,
+    "winRate": 0.6116838487972509,
+    "tstat": 1.6862816312413542,
+    "avg1x": 0.27697022128271537,
+    "avg2x": 0.18219961319456554,
+    "ctrl1x": -0.10252773647201387,
+    "ctrl2x": -0.1969278358099806,
+    "excess1x": 0.3794979577547292,
+    "excess2x": 0.37912744900454615,
+    "p1x": 0.015,
+    "p2x": 0.015
+   },
+   "dsr": 0.011294413651995738,
+   "dsrTrades": 0.05373949498220609,
+   "passed": false,
+   "dsrLab": 0.11300491896213893,
+   "note": "KO/PEP beta 0.91; XOM/CVX beta 0.47; HD/LOW beta 1.26; V/MA beta 0.94; JPM/BAC beta 0.53; GS/MS beta 0.66; UPS/FDX beta 0.79; WMT/TGT beta 0.89"
+  },
+  {
+   "id": "E-OVERNIGHT",
+   "en": "Buy the close of a 3%+ up day on 2x its 20-day volume, sell the next open (daily-bar version of round 3)",
+   "vi": "Mua lúc đóng cửa ngày tăng 3%+ với khối lượng gấp đôi trung bình 20 ngày, bán lúc mở cửa hôm sau",
+   "book": {
+    "n": 2362,
+    "avg": 0.2542782604824179,
+    "ctrl": -0.005629440812878398,
+    "excess": 0.25990770129529633
+   },
+   "exam": {
+    "n": 1853,
+    "winRate": 0.47598488936859146,
+    "tstat": 3.7816299804158557,
+    "avg1x": 0.37367111459114893,
+    "avg2x": 0.2598095046311611,
+    "ctrl1x": -0.004649555845582811,
+    "ctrl2x": -0.11788946442168764,
+    "excess1x": 0.37832067043673173,
+    "excess2x": 0.3776989690528487,
+    "p1x": 0,
+    "p2x": 0
+   },
+   "dsr": 0.385124759283133,
+   "dsrTrades": 2.2386562531506726e-7,
+   "passed": false,
+   "dsrLab": 0.7864940266097679
+  }
+ ],
+ "switches": [
+  {
+   "id": "E-VIXTS",
+   "en": "Hold SPY when the VIX closes below the 3-month VIX (contango), else cash",
+   "vi": "Giữ SPY khi VIX thấp hơn VIX 3 tháng (cấu trúc kỳ hạn bình thường), ngược lại để tiền mặt",
+   "start": "2007-01-04",
+   "invested": 0.8897353648757017,
+   "spy": {
+    "book": {
+     "n": 3325,
+     "cagr": 6.22109606505703,
+     "vol": 20.233494924831206,
+     "sharpe": 0.3997103327334667,
+     "maxDD": -55.18945035895828,
+     "worstYear": -36.795018584466575
+    },
+    "exam": {
+     "n": 1663,
+     "cagr": 20.67203224379717,
+     "vol": 18.011977321176285,
+     "sharpe": 1.1332915826264354,
+     "maxDD": -24.49639566009052,
+     "worstYear": -18.175362063962318
+    }
+   },
+   "x1": {
+    "book": {
+     "n": 3325,
+     "cagr": 7.8337797473237325,
+     "vol": 13.326584223870025,
+     "sharpe": 0.6327839361281165,
+     "maxDD": -34.70550949297099,
+     "worstYear": -18.92204795300345
+    },
+    "exam": {
+     "n": 1663,
+     "cagr": 13.466659120375546,
+     "vol": 15.300623597432686,
+     "sharpe": 0.9025795908983447,
+     "maxDD": -29.67822391256716,
+     "worstYear": -25.282748432199153
+    }
+   },
+   "x2": {
+    "book": {
+     "n": 3325,
+     "cagr": 7.5452028680427885,
+     "vol": 13.324611142842427,
+     "sharpe": 0.6127423604303068,
+     "maxDD": -35.37767873464631,
+     "worstYear": -19.382731046492275
+    },
+    "exam": {
+     "n": 1663,
+     "cagr": 13.304429691341602,
+     "vol": 15.300190596814971,
+     "sharpe": 0.8932458365598415,
+     "maxDD": -29.846417688374604,
+     "worstYear": -25.48371934455108
+    }
+   },
+   "dsr": 0.06143685514713293,
+   "shift": {
+    "p": 0.8955223880597015,
+    "mean": 1.051878853014069
+   },
+   "passed": false,
+   "dsrLab": 0.30902825858226135
+  },
+  {
+   "id": "E-HYG",
+   "en": "Hold SPY when HYG's 20-day return is above 0 at the prior close, else cash",
+   "vi": "Giữ SPY khi trái phiếu lợi suất cao HYG tăng trong 20 ngày qua, ngược lại để tiền mặt",
+   "start": "2007-05-10",
+   "invested": 0.6378290144868394,
+   "spy": {
+    "book": {
+     "n": 3238,
+     "cagr": 5.807896263294143,
+     "vol": 20.41678446569844,
+     "sharpe": 0.37884880934767134,
+     "maxDD": -55.189450358958204,
+     "worstYear": -36.795018584466575
+    },
+    "exam": {
+     "n": 1663,
+     "cagr": 20.67203224379717,
+     "vol": 18.011977321176285,
+     "sharpe": 1.1332915826264354,
+     "maxDD": -24.49639566009052,
+     "worstYear": -18.175362063962318
+    }
+   },
+   "x1": {
+    "book": {
+     "n": 3238,
+     "cagr": 6.871342989922136,
+     "vol": 11.116199056035034,
+     "sharpe": 0.6536308923695126,
+     "maxDD": -27.83867136992385,
+     "worstYear": -12.089472283689817
+    },
+    "exam": {
+     "n": 1663,
+     "cagr": 12.217548821861168,
+     "vol": 11.797308311148914,
+     "sharpe": 1.0363233181564695,
+     "maxDD": -15.491172305901735,
+     "worstYear": -3.046340120939306
+    }
+   },
+   "x2": {
+    "book": {
+     "n": 3238,
+     "cagr": 6.564496495059724,
+     "vol": 11.119914801399919,
+     "sharpe": 0.6275869881624505,
+     "maxDD": -28.013078530562286,
+     "worstYear": -12.407436319371456
+    },
+    "exam": {
+     "n": 1663,
+     "cagr": 11.833084960362017,
+     "vol": 11.798278327007788,
+     "sharpe": 1.007147167932475,
+     "maxDD": -15.757329658246533,
+     "worstYear": -3.380072091529618
+    }
+   },
+   "dsr": 0.1138993575331873,
+   "shift": {
+    "p": 0.19900497512437812,
+    "mean": 0.8694683065633025
+   },
+   "passed": false,
+   "dsrLab": 0.4362666499421444
+  },
+  {
+   "id": "E-PUT",
+   "en": "Cboe PUT index (sell 1-month at-the-money SPX puts, cash secured), minus a 0.44%/yr ETF fee",
+   "vi": "Chỉ số PUT của Cboe (bán quyền chọn bán SPX 1 tháng, có tiền đảm bảo), trừ phí ETF 0,44%/năm",
+   "start": "2007-01-04",
+   "invested": 1,
+   "spy": {
+    "book": {
+     "n": 3325,
+     "cagr": 6.22109606505703,
+     "vol": 20.233494924831206,
+     "sharpe": 0.3997103327334667,
+     "maxDD": -55.18945035895828,
+     "worstYear": -36.795018584466575
+    },
+    "exam": {
+     "n": 1663,
+     "cagr": 20.67203224379717,
+     "vol": 18.011977321176285,
+     "sharpe": 1.1332915826264354,
+     "maxDD": -24.49639566009052,
+     "worstYear": -18.175362063962318
+    }
+   },
+   "x1": {
+    "book": {
+     "n": 3325,
+     "cagr": 3.185221321940568,
+     "vol": 15.068923749315157,
+     "sharpe": 0.28394522735760386,
+     "maxDD": -37.31609140049946,
+     "worstYear": -27.090254367584976
+    },
+    "exam": {
+     "n": 1663,
+     "cagr": 14.300887826838649,
+     "vol": 10.750047269568933,
+     "sharpe": 1.2973013429107778,
+     "maxDD": -16.173501349082564,
+     "worstYear": -8.062501085043328
+    }
+   },
+   "x2": {
+    "book": {
+     "n": 3325,
+     "cagr": 2.732235334820765,
+     "vol": 15.068923749315156,
+     "sharpe": 0.2547460617556241,
+     "maxDD": -37.537354275671134,
+     "worstYear": -27.412085401144225
+    },
+    "exam": {
+     "n": 1663,
+     "cagr": 13.799318460713872,
+     "vol": 10.750047269568933,
+     "sharpe": 1.256371290329029,
+     "maxDD": -16.338999908660934,
+     "worstYear": -8.46469671646275
+    }
+   },
+   "dsr": 0.29059214381095233,
+   "passed": false,
+   "dsrLab": 0.6939055080791674,
+   "note": "index level, not a traded fund; 2x costs = 2x the ETF fee"
+  },
+  {
+   "id": "E-BXM",
+   "en": "Cboe BXM index (buy SPX, sell 1-month at-the-money calls), minus a 0.60%/yr ETF fee",
+   "vi": "Chỉ số BXM của Cboe (mua SPX, bán quyền chọn mua 1 tháng), trừ phí ETF 0,60%/năm",
+   "start": "2007-01-04",
+   "invested": 1,
+   "spy": {
+    "book": {
+     "n": 3325,
+     "cagr": 6.22109606505703,
+     "vol": 20.233494924831206,
+     "sharpe": 0.3997103327334667,
+     "maxDD": -55.18945035895828,
+     "worstYear": -36.795018584466575
+    },
+    "exam": {
+     "n": 1663,
+     "cagr": 20.67203224379717,
+     "vol": 18.011977321176285,
+     "sharpe": 1.1332915826264354,
+     "maxDD": -24.49639566009052,
+     "worstYear": -18.175362063962318
+    }
+   },
+   "x1": {
+    "book": {
+     "n": 3325,
+     "cagr": 2.0394774291812023,
+     "vol": 15.504552282051348,
+     "sharpe": 0.2083519552690596,
+     "maxDD": -40.57254067072814,
+     "worstYear": -29.08381599052977
+    },
+    "exam": {
+     "n": 1663,
+     "cagr": 12.418938770209698,
+     "vol": 11.28778815998429,
+     "sharpe": 1.0935871757809228,
+     "maxDD": -18.440153175122298,
+     "worstYear": -11.893783492237741
+    }
+   },
+   "x2": {
+    "book": {
+     "n": 3325,
+     "cagr": 1.4290855818115844,
+     "vol": 15.504552282051348,
+     "sharpe": 0.1696536433742572,
+     "maxDD": -40.99773240555222,
+     "worstYear": -29.510384939880375
+    },
+    "exam": {
+     "n": 1663,
+     "cagr": 11.746731184136582,
+     "vol": 11.287788159984293,
+     "sharpe": 1.0404323865966876,
+     "maxDD": -18.66745248374224,
+     "worstYear": -12.419050345565807
+    }
+   },
+   "dsr": 0.1404411097106008,
+   "passed": false,
+   "dsrLab": 0.493768958768329,
+   "note": "index level, not a traded fund; 2x costs = 2x the ETF fee"
+  }
+ ],
+ "portfolios": [
+  {
+   "id": "P-ALL",
+   "en": "Risk-parity portfolio of every idea tried here plus lead L1 (information: most sleeves failed on their own)",
+   "vi": "Danh mục chia vốn theo rủi ro của mọi ý tưởng đã thử và hướng L1 (chỉ để tham khảo)",
+   "start": "2007-01-04",
+   "invested": 1,
+   "spy": {
+    "book": {
+     "n": 3325,
+     "cagr": 6.22109606505703,
+     "vol": 20.233494924831206,
+     "sharpe": 0.3997103327334667,
+     "maxDD": -55.18945035895828,
+     "worstYear": -36.795018584466575
+    },
+    "exam": {
+     "n": 1663,
+     "cagr": 20.67203224379717,
+     "vol": 18.011977321176285,
+     "sharpe": 1.1332915826264354,
+     "maxDD": -24.49639566009052,
+     "worstYear": -18.175362063962318
+    }
+   },
+   "x1": {
+    "book": {
+     "n": 3325,
+     "cagr": 2.830396433234328,
+     "vol": 3.953197822801381,
+     "sharpe": 0.7258455689300894,
+     "maxDD": -7.793965516665747,
+     "worstYear": -6.342687947903358
+    },
+    "exam": {
+     "n": 1663,
+     "cagr": 5.415784603815821,
+     "vol": 3.8512417316910788,
+     "sharpe": 1.3888719234120865,
+     "maxDD": -4.5571491573697775,
+     "worstYear": -3.6491818519789887
+    }
+   },
+   "x2": {
+    "book": {
+     "n": 3325,
+     "cagr": 2.2188346378469337,
+     "vol": 3.951496140123483,
+     "sharpe": 0.5751706331311457,
+     "maxDD": -7.864926391833316,
+     "worstYear": -6.518425928570504
+    },
+    "exam": {
+     "n": 1663,
+     "cagr": 4.653312843270951,
+     "vol": 3.849536114304207,
+     "sharpe": 1.2008592149342177,
+     "maxDD": -4.877986069503715,
+     "worstYear": -4.331415196113375
+    }
+   },
+   "dsr": 0.37664981478200504,
+   "passed": false,
+   "weights": {
+    "E-FOMC": 0.188,
+    "E-TOM": 0.083,
+    "E-OPEX": 0.066,
+    "E-PAIRS": 0.263,
+    "E-OVERNIGHT": 0.1,
+    "E-VIXTS": 0.051,
+    "E-HYG": 0.062,
+    "E-PUT": 0.045,
+    "E-BXM": 0.044,
+    "L1-D1-VIXA": 0.097
+   }
+  }
+ ],
+ "robustness": {
+  "overnightWithoutHighVol": {
+   "dropped": [
+    "MARA",
+    "RIOT",
+    "SMCI",
+    "COIN",
+    "PLTR",
+    "HOOD",
+    "SOFI",
+    "RIVN",
+    "LCID",
+    "NIO",
+    "PLUG",
+    "TSLA",
+    "ARM",
+    "MRNA"
+   ],
+   "id": "E-OVERNIGHT-exHV",
+   "en": "Overnight winners without the 14 high-volatility names",
+   "vi": "Qua đêm, bỏ 14 mã biến động mạnh",
+   "book": {
+    "n": 1862,
+    "avg": -0.07047795893104317,
+    "ctrl": -0.04220117142867906,
+    "excess": -0.028276787502364106
+   },
+   "exam": {
+    "n": 1256,
+    "winRate": 0.46337579617834396,
+    "tstat": 0.7956045293503777,
+    "avg1x": 0.06392386265469838,
+    "avg2x": -0.033152514305628426,
+    "ctrl1x": -0.026169103162835616,
+    "ctrl2x": -0.12314916076175812,
+    "excess1x": 0.090092965817534,
+    "excess2x": 0.0899966464561297,
+    "p1x": 0.005,
+    "p2x": 0.005
+   },
+   "dsr": 0.004236515908947858,
+   "dsrTrades": 3.0430385988822195e-10,
+   "passed": false
+  }
+ },
+ "sleeves": [
+  {
+   "id": "E-FOMC",
+   "exam": {
+    "n": 1663,
+    "cagr": 0.6038083423114182,
+    "vol": 3.661627635585971,
+    "sharpe": 0.18268938558645847,
+    "maxDD": -9.516308265475038,
+    "worstYear": -4.445816215477394
+   },
+   "exam2x": {
+    "n": 1663,
+    "cagr": 0.36183211876814614,
+    "vol": 3.657271971696168,
+    "sharpe": 0.1170277853448417,
+    "maxDD": -10.410558209533738,
+    "worstYear": -4.647610195277085
+   },
+   "dsrLab": 0.009120340462157484
+  },
+  {
+   "id": "E-TOM",
+   "exam": {
+    "n": 1663,
+    "cagr": 3.14147857469802,
+    "vol": 7.636914866186134,
+    "sharpe": 0.4433547713759847,
+    "maxDD": -10.0443302512492,
+    "worstYear": -5.026279375625986
+   },
+   "exam2x": {
+    "n": 1663,
+    "cagr": 2.7714841641773624,
+    "vol": 7.639972178402041,
+    "sharpe": 0.3961701009937271,
+    "maxDD": -10.273946781721598,
+    "worstYear": -5.367871832684323
+   },
+   "dsrLab": 0.04888611902751516
+  },
+  {
+   "id": "E-OPEX",
+   "exam": {
+    "n": 1663,
+    "cagr": -1.8518589371823935,
+    "vol": 7.734877221597829,
+    "sharpe": -0.2028461770655575,
+    "maxDD": -25.031240767070184,
+    "worstYear": -16.55159273425578
+   },
+   "exam2x": {
+    "n": 1663,
+    "cagr": -2.205981148776859,
+    "vol": 7.73471016549556,
+    "sharpe": -0.24957591542271143,
+    "maxDD": -25.659765667344548,
+    "worstYear": -16.852379352877144
+   },
+   "dsrLab": 0.00037904438213243186
+  },
+  {
+   "id": "E-PAIRS",
+   "exam": {
+    "n": 1663,
+    "cagr": 1.5959696475469354,
+    "vol": 2.5550187885328834,
+    "sharpe": 0.6324877988922125,
+    "maxDD": -5.9960419038730395,
+    "worstYear": -1.9139077148756067
+   },
+   "exam2x": {
+    "n": 1663,
+    "cagr": 1.0540942712974566,
+    "vol": 2.5555446358088614,
+    "sharpe": 0.4230859965406016,
+    "maxDD": -7.0919468701114985,
+    "worstYear": -2.51690439294755
+   },
+   "dsrLab": 0.11300491896213893
+  },
+  {
+   "id": "E-OVERNIGHT",
+   "exam": {
+    "n": 1663,
+    "cagr": 11.948885285144284,
+    "vol": 8.300595559191905,
+    "sharpe": 1.4014250266565564,
+    "maxDD": -14.683971714126775,
+    "worstYear": -7.7535161974358395
+   },
+   "exam2x": {
+    "n": 1663,
+    "cagr": 8.509183477340354,
+    "vol": 8.270305568796555,
+    "sharpe": 1.0287948620290406,
+    "maxDD": -19.6107044161273,
+    "worstYear": -10.081300631061795
+   },
+   "dsrLab": 0.7864940266097679
+  },
+  {
+   "id": "E-VIXTS",
+   "exam": {
+    "n": 1663,
+    "cagr": 13.466659120375546,
+    "vol": 15.300623597432686,
+    "sharpe": 0.9025795908983447,
+    "maxDD": -29.67822391256716,
+    "worstYear": -25.282748432199153
+   },
+   "exam2x": {
+    "n": 1663,
+    "cagr": 13.304429691341602,
+    "vol": 15.300190596814971,
+    "sharpe": 0.8932458365598415,
+    "maxDD": -29.846417688374604,
+    "worstYear": -25.48371934455108
+   },
+   "dsrLab": 0.30902825858226135
+  },
+  {
+   "id": "E-HYG",
+   "exam": {
+    "n": 1663,
+    "cagr": 12.217548821861168,
+    "vol": 11.797308311148914,
+    "sharpe": 1.0363233181564695,
+    "maxDD": -15.491172305901735,
+    "worstYear": -3.046340120939306
+   },
+   "exam2x": {
+    "n": 1663,
+    "cagr": 11.833084960362017,
+    "vol": 11.798278327007788,
+    "sharpe": 1.007147167932475,
+    "maxDD": -15.757329658246533,
+    "worstYear": -3.380072091529618
+   },
+   "dsrLab": 0.4362666499421444
+  },
+  {
+   "id": "E-PUT",
+   "exam": {
+    "n": 1663,
+    "cagr": 14.300887826838649,
+    "vol": 10.750047269568933,
+    "sharpe": 1.2973013429107778,
+    "maxDD": -16.173501349082564,
+    "worstYear": -8.062501085043328
+   },
+   "exam2x": {
+    "n": 1663,
+    "cagr": 13.799318460713872,
+    "vol": 10.750047269568933,
+    "sharpe": 1.256371290329029,
+    "maxDD": -16.338999908660934,
+    "worstYear": -8.46469671646275
+   },
+   "dsrLab": 0.6939055080791674
+  },
+  {
+   "id": "E-BXM",
+   "exam": {
+    "n": 1663,
+    "cagr": 12.418938770209698,
+    "vol": 11.28778815998429,
+    "sharpe": 1.0935871757809228,
+    "maxDD": -18.440153175122298,
+    "worstYear": -11.893783492237741
+   },
+   "exam2x": {
+    "n": 1663,
+    "cagr": 11.746731184136582,
+    "vol": 11.287788159984293,
+    "sharpe": 1.0404323865966876,
+    "maxDD": -18.66745248374224,
+    "worstYear": -12.419050345565807
+   },
+   "dsrLab": 0.493768958768329
+  },
+  {
+   "id": "L1-D1-VIXA",
+   "exam": {
+    "n": 1663,
+    "cagr": 8.633719575953357,
+    "vol": 9.357895514233414,
+    "sharpe": 0.9316424868048923,
+    "maxDD": -16.35064084833178,
+    "worstYear": -9.082284760599958
+   },
+   "exam2x": {
+    "n": 1663,
+    "cagr": 7.549506764199876,
+    "vol": 9.351436257990116,
+    "sharpe": 0.8249317554087388,
+    "maxDD": -16.980312643577477,
+    "worstYear": -10.378161669547136
+   },
+   "dsrLab": 0.32887465226528734
+  }
+ ],
+ "examCorrelation": {
+  "E-FOMC": {
+   "E-FOMC": 1,
+   "E-TOM": 0.13,
+   "E-OPEX": 0.14,
+   "E-PAIRS": 0,
+   "E-OVERNIGHT": 0.04,
+   "E-VIXTS": 0.23,
+   "E-HYG": 0.22,
+   "E-PUT": 0.17,
+   "E-BXM": 0.16,
+   "L1-D1-VIXA": 0.13
+  },
+  "E-TOM": {
+   "E-FOMC": 0.13,
+   "E-TOM": 1,
+   "E-OPEX": 0,
+   "E-PAIRS": 0.02,
+   "E-OVERNIGHT": 0.08,
+   "E-VIXTS": 0.41,
+   "E-HYG": 0.3,
+   "E-PUT": 0.36,
+   "E-BXM": 0.36,
+   "L1-D1-VIXA": 0.27
+  },
+  "E-OPEX": {
+   "E-FOMC": 0.14,
+   "E-TOM": 0,
+   "E-OPEX": 1,
+   "E-PAIRS": 0,
+   "E-OVERNIGHT": 0.08,
+   "E-VIXTS": 0.45,
+   "E-HYG": 0.31,
+   "E-PUT": 0.33,
+   "E-BXM": 0.37,
+   "L1-D1-VIXA": 0.26
+  },
+  "E-PAIRS": {
+   "E-FOMC": 0,
+   "E-TOM": 0.02,
+   "E-OPEX": 0,
+   "E-PAIRS": 1,
+   "E-OVERNIGHT": 0,
+   "E-VIXTS": -0.06,
+   "E-HYG": -0.07,
+   "E-PUT": 0.01,
+   "E-BXM": 0,
+   "L1-D1-VIXA": 0.09
+  },
+  "E-OVERNIGHT": {
+   "E-FOMC": 0.04,
+   "E-TOM": 0.08,
+   "E-OPEX": 0.08,
+   "E-PAIRS": 0,
+   "E-OVERNIGHT": 1,
+   "E-VIXTS": 0.2,
+   "E-HYG": 0.18,
+   "E-PUT": 0.15,
+   "E-BXM": 0.15,
+   "L1-D1-VIXA": 0.16
+  },
+  "E-VIXTS": {
+   "E-FOMC": 0.23,
+   "E-TOM": 0.41,
+   "E-OPEX": 0.45,
+   "E-PAIRS": -0.06,
+   "E-OVERNIGHT": 0.2,
+   "E-VIXTS": 1,
+   "E-HYG": 0.71,
+   "E-PUT": 0.66,
+   "E-BXM": 0.68,
+   "L1-D1-VIXA": 0.53
+  },
+  "E-HYG": {
+   "E-FOMC": 0.22,
+   "E-TOM": 0.3,
+   "E-OPEX": 0.31,
+   "E-PAIRS": -0.07,
+   "E-OVERNIGHT": 0.18,
+   "E-VIXTS": 0.71,
+   "E-HYG": 1,
+   "E-PUT": 0.42,
+   "E-BXM": 0.43,
+   "L1-D1-VIXA": 0.33
+  },
+  "E-PUT": {
+   "E-FOMC": 0.17,
+   "E-TOM": 0.36,
+   "E-OPEX": 0.33,
+   "E-PAIRS": 0.01,
+   "E-OVERNIGHT": 0.15,
+   "E-VIXTS": 0.66,
+   "E-HYG": 0.42,
+   "E-PUT": 1,
+   "E-BXM": 0.98,
+   "L1-D1-VIXA": 0.7
+  },
+  "E-BXM": {
+   "E-FOMC": 0.16,
+   "E-TOM": 0.36,
+   "E-OPEX": 0.37,
+   "E-PAIRS": 0,
+   "E-OVERNIGHT": 0.15,
+   "E-VIXTS": 0.68,
+   "E-HYG": 0.43,
+   "E-PUT": 0.98,
+   "E-BXM": 1,
+   "L1-D1-VIXA": 0.7
+  },
+  "L1-D1-VIXA": {
+   "E-FOMC": 0.13,
+   "E-TOM": 0.27,
+   "E-OPEX": 0.26,
+   "E-PAIRS": 0.09,
+   "E-OVERNIGHT": 0.16,
+   "E-VIXTS": 0.53,
+   "E-HYG": 0.33,
+   "E-PUT": 0.7,
+   "E-BXM": 0.7,
+   "L1-D1-VIXA": 1
+  }
+ },
+ "fomcSkipped": [
+  "2026-12-09"
+ ],
+ "insider": "skipped: SEC_USER_AGENT is not set (SEC asks every client to send a User-Agent with a contact)",
+ "summary": {
+  "en": "Nothing passed with all 398 trials counted.",
+  "vi": "Không ý tưởng nào đạt khi tính cả 398 lần thử."
+ },
+ "caveats": [
+  "Survivorship: today's liquid names applied back to 2007 (pairs, overnight, L1).",
+  "Shorts in pairs pay no borrow fee. PUT/BXM are index levels, not fund returns (fees approximated).",
+  "Switch and calendar ideas are long SPY part of the time: they are judged on Sharpe and drawdown against SPY over the same days, not on raw return.",
+  "L1 is included in the portfolios as a sleeve but was counted (and failed DSR) in round 2."
+ ]
+}
