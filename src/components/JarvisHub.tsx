@@ -78,6 +78,8 @@ const GX = {
   duelOpus: { en: '🧠 Opus self-made', vi: '🧠 Opus tự nghĩ' },
   duelWait: { en: 'first grades soon', vi: 'sắp có điểm đầu' },
   duelReal: { en: '{n} real trades', vi: '{n} lệnh thật' },
+  opusToday: { en: 'Opus picks from the {d} close, hold {h} days', vi: 'Opus chọn từ phiên {d}, giữ {h} ngày' },
+  bookToday: { en: "Atlas's BUY calls now", vi: 'Lệnh MUA của Atlas lúc này' },
   duelN: { en: '{n} graded', vi: '{n} đã chấm' },
   duelOpen: { en: 'Compare: book signals vs rules Atlas invented itself', vi: 'So sánh: tín hiệu sách vở và luật Atlas tự nghĩ' },
 } as const
@@ -333,6 +335,8 @@ export function JarvisHub(p: HubProps & { flipAuto: boolean; council: boolean })
     return () => ac.abort()
   }, [rules.ideaFactory])
   const aDuel = useMemo(() => duel(p.practice.trades, factory), [p.practice.trades, factory])
+  // the stocks the factory's rules picked on the last close, once each
+  const opusPicks = useMemo(() => (factory?.today.signals ?? []).filter((x, k, a) => a.findIndex((y) => y.symbol === x.symbol) === k), [factory])
 
   // the agents' votes on Atlas's top BUY call
   const top = p.picks[0]
@@ -578,7 +582,7 @@ export function JarvisHub(p: HubProps & { flipAuto: boolean; council: boolean })
                             <KronosChart key={kPick.symbol} f={kPick.f} recent={kronos?.recent?.[kPick.f.symbol]} vi={vi} label={cLabel} onAll={() => setKSel(null)} />
                           ) : kBars.length ? (
                             <>
-                              <div className={`hg-kbars${kOne ? ' one' : ''}`} role={p.council ? 'group' : 'img'} aria-label={kShown.map((b) => `${b.symbol} ${fmtPct(b.pct)}`).join(', ')}>
+                              <div className={`hg-kbars${kOne ? ' one' : ''}${kAll ? '' : ' top'}`} role={p.council ? 'group' : 'img'} aria-label={kShown.map((b) => `${b.symbol} ${fmtPct(b.pct)}`).join(', ')}>
                                 {kShown.map((b, j) => {
                                   // horizontal bar from the centre line: right = up, left = down; square-root scale so one big move doesn't flatten the rest
                                   const w = Math.max(4, Math.sqrt(Math.abs(b.pct) / kMax) * 100)
@@ -603,17 +607,20 @@ export function JarvisHub(p: HubProps & { flipAuto: boolean; council: boolean })
                                   )
                                 })}
                               </div>
-                              {kBars.length > K_TOP && (
-                                <button className="hg-kmore" tabIndex={on ? -1 : 0} onClick={() => setKAll((x) => !x)} aria-expanded={kAll}>
-                                  {kAll ? G('kLess') : G('kMore', { n: kBars.length })}
-                                </button>
-                              )}
-                              <p className="hg-kfoot">{G('kronosGraded', { n: graded })}</p>
+                              <div className="hg-kfootrow">
+                                {kBars.length > K_TOP && (
+                                  <button className="hg-kmore" tabIndex={on ? -1 : 0} onClick={() => setKAll((x) => !x)} aria-expanded={kAll}>
+                                    {kAll ? G('kLess') : G('kMore', { n: kBars.length })}
+                                  </button>
+                                )}
+                                <p className="hg-kfoot">{G('kronosGraded', { n: graded })}</p>
+                              </div>
                             </>
                           ) : (
                             <p className="hg-kfoot">{G('kronosNone')}</p>
                           )}
                         </div>
+                        <div className="hg-aside">
                         {rules.atlasSignals && (
                           <button className="hg-learn hg-inset" tabIndex={on ? -1 : 0} onClick={() => p.onAtlasBlock('atlas-signals')} aria-label={G('learnOpen')} title={G('learnOpen')}>
                             <Ring v={aLearn.pct / 100} label={`${aLearn.pct}%`} />
@@ -632,6 +639,15 @@ export function JarvisHub(p: HubProps & { flipAuto: boolean; council: boolean })
                               <b className="mono">{aDuel.book.winRate != null ? `${aDuel.book.winRate}%` : '—'}</b>
                               <em className="hg-dbar"><i style={{ width: `${aDuel.book.winRate ?? 0}%` }} /></em>
                               <small>{G('duelReal', { n: aDuel.book.n })}</small>
+                              {p.picks.length > 0 && (
+                                <span className="hg-opus-chips" title={G('bookToday')}>
+                                  {p.picks.slice(0, 3).map((x) => (
+                                    <b key={x.symbol} className={`mono ${tone(x.gainPct ?? 0)}`} title={`${x.gainPct != null ? fmtPct(x.gainPct) : ''}${x.tradeScore != null ? ` · TS ${Math.round(x.tradeScore)}` : ''}`}>
+                                      {x.symbol}
+                                    </b>
+                                  ))}
+                                </span>
+                              )}
                             </span>
                             <i aria-hidden="true">vs</i>
                             <span className={aDuel.winner === 'opus' ? 'lead' : ''}>
@@ -639,9 +655,18 @@ export function JarvisHub(p: HubProps & { flipAuto: boolean; council: boolean })
                               <b className="mono">{aDuel.opus.winRate != null ? `${aDuel.opus.winRate}%` : '—'}</b>
                               <em className="hg-dbar"><i style={{ width: `${aDuel.opus.winRate ?? 0}%` }} /></em>
                               <small>{aDuel.opus.graded ? G('duelN', { n: aDuel.opus.graded }) : G('duelWait')}</small>
+                              {opusPicks.length > 0 && (
+                                <span className="hg-opus-chips" title={G('opusToday', { d: `${factory!.today.day.slice(8, 10)}/${factory!.today.day.slice(5, 7)}`, h: opusPicks[0].hold })}>
+                                  {opusPicks.slice(0, 3).map((x) => (
+                                    <b key={x.symbol} className="mono">{x.symbol}</b>
+                                  ))}
+                                  {opusPicks.length > 3 && <em>+{opusPicks.length - 3}</em>}
+                                </span>
+                              )}
                             </span>
                           </button>
                         )}
+                        </div>
                         </div>
                         </div>
                         {top ? (
@@ -657,7 +682,7 @@ export function JarvisHub(p: HubProps & { flipAuto: boolean; council: boolean })
                         ) : (
                           <p className="hg-note">{L('noPicks')}</p>
                         )}
-                        {p.picks.length > 0 && (
+                        {p.picks.length > 0 && !rules.ideaFactory && (
                           <div className="hg-picks">
                             {p.picks.slice(0, 3).map((b) => (
                               <div key={b.symbol} className="hg-pick hg-inset">

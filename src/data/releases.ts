@@ -2,7 +2,7 @@
  * Version and "What's new". Bump APP_VERSION and add an entry to the top of RELEASES
  * with each update. The banner shows once per version, then stays dismissed.
  */
-export const APP_VERSION = '2.0.1'
+export const APP_VERSION = '2.0.2'
 
 export interface Release {
   version: string
@@ -13,6 +13,16 @@ export interface Release {
 }
 
 export const RELEASES: Release[] = [
+  {
+    version: '2.0.2',
+    date: '2026-11-02',
+    changes: [
+      'Atlas card on the Hub, tidier (Atlas 1.2.2): on a wide screen it is split in two. Kronos forecast bars sit on the left, with the 5 biggest moves (See all still shows every one). The right side shows the learning ring and 📚 Book vs 🧠 Opus self-made, with the stocks each side picks right now: Atlas\'s BUY calls (gain and Trade Score on hover) and the idea factory\'s picks. The agents row and the tool buttons stay on one line and scroll sideways, so the card is no longer cut off at the bottom. On a phone the same parts stack in one column.',
+    ],
+    changesVi: [
+      'Thẻ Atlas trên Hub gọn hơn (Atlas 1.2.2): trên màn hình rộng, thẻ chia đôi. Bên trái là thanh dự báo Kronos, hiện 5 mã biến động mạnh nhất ("Xem tất cả" vẫn hiện đủ). Bên phải là vòng học và ô 📚 Sách vở vs 🧠 Opus tự nghĩ, kèm các mã mỗi bên đang chọn: lệnh MUA của Atlas (rê chuột để xem % tăng và Trade Score) và mã của xưởng ý tưởng. Hàng agent và các nút công cụ nằm trên một dòng, kéo ngang được, nên thẻ không còn bị cắt mất phần dưới. Trên điện thoại, các phần xếp thành một cột.',
+    ],
+  },
   {
     version: '2.0.1',
     date: '2026-11-02',
