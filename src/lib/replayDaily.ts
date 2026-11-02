@@ -68,6 +68,10 @@ export interface DailyStrategy {
   run: (u: Series[]) => DailySignal[]
 }
 
+/** One cost set for everything, or a function of the symbol (the news lab prices each name by its liquidity). */
+export type CostsFor = Costs | null | ((symbol: string) => Costs | null)
+export const costsOf = (c: CostsFor, symbol: string): Costs | null => (typeof c === 'function' ? c(symbol) : c)
+
 export const scaleCosts = (c: Costs | null, m: number): Costs | null =>
   c && m > 0 ? { feeBps: c.feeBps * m, spreadBps: c.spreadBps * m, slippageBps: c.slippageBps * m } : null
 
@@ -120,12 +124,12 @@ export function simulateDaily(bars: Candle[], sig: Pick<DailySignal, 'i' | 'hold
 }
 
 /** Run signals through the simulator, one open trade per symbol at a time. */
-export function runDaily(u: Series[], sigs: DailySignal[], costs: Costs | null): DailyTrade[] {
+export function runDaily(u: Series[], sigs: DailySignal[], costs: CostsFor): DailyTrade[] {
   const free = new Map<number, number>()
   const out: DailyTrade[] = []
   for (const s of [...sigs].sort((a, b) => a.i - b.i || a.sym - b.sym)) {
     if (s.i + 1 < (free.get(s.sym) ?? 0)) continue
-    const t = simulateDaily(u[s.sym].bars, s, costs, u[s.sym].symbol)
+    const t = simulateDaily(u[s.sym].bars, s, costsOf(costs, u[s.sym].symbol), u[s.sym].symbol)
     if (!t) continue
     free.set(s.sym, t.freeFrom)
     out.push(t)
@@ -248,12 +252,14 @@ export interface ControlOpts {
   allow?: (day: string) => boolean
   /** Return to subtract from each drawn trade at the given costs (market-neutral control). */
   adj?: (t: DailyTrade, c: Costs | null) => number
+  /** Only signal bars (symbol index, bar index) this accepts may be drawn (a per-symbol bucket such as news / no news). */
+  allowAt?: (sym: number, i: number) => boolean
 }
 
 /** Random-entry control for one strategy: the SAME symbols, the same number of trades per symbol, year and
  *  book/exam half, the same exit rule (hold, stop in ATR, SMA exit) and costs, but entered on random days where
  *  the symbol had data and no trade of its own was open. Returns each draw's average return per trade. */
-export function controlDaily(u: Series[], sigs: DailySignal[], actual: DailyTrade[], examFrom: string, costs: Costs | null, draws = 200, seed = 1, opts: ControlOpts = {}): ControlDraws {
+export function controlDaily(u: Series[], sigs: DailySignal[], actual: DailyTrade[], examFrom: string, costs: CostsFor, draws = 200, seed = 1, opts: ControlOpts = {}): ControlDraws {
   const out: ControlDraws = { book1: [], exam1: [], exam2: [], count: [] }
   if (!sigs.length) return out
   const tpl = sigs[0]
@@ -274,14 +280,14 @@ export function controlDaily(u: Series[], sigs: DailySignal[], actual: DailyTrad
     const cands = new Map<string, number[]>()
     for (let i = Math.max(warm, 14); i + tpl.hold < bars.length; i++) { // the full holding period must fit in the data
       if (opts.allow && !opts.allow(dayKey(bars[i].time * 1000))) continue
+      if (opts.allowAt && !opts.allowAt(sym, i)) continue
       const k = keyOf(bars[i + 1].time * 1000)
       if (!cands.has(k)) cands.set(k, [])
       cands.get(k)!.push(i)
     }
-    return { sym, bars, a, cands, want: counts.get(sym)! }
+    const cs = costsOf(costs, u[sym].symbol)
+    return { sym, bars, a, cands, want: counts.get(sym)!, c1: scaleCosts(cs, 1), c2: scaleCosts(cs, 2) }
   })
-  const c1 = scaleCosts(costs, 1)
-  const c2 = scaleCosts(costs, 2)
   for (let d = 0; d < draws; d++) {
     const rnd = seededRng(seed * 100_003 + d)
     const sum = { b1: 0, bn: 0, e1: 0, e2: 0, en: 0 }
@@ -301,11 +307,11 @@ export function controlDaily(u: Series[], sigs: DailySignal[], actual: DailyTrad
           taken.push({ e: i + 1, free: t.freeFrom })
           got++
           if (k.endsWith('|1')) {
-            sum.e1 += netRetPct(t.entry!, t.exit!, c1, !!t.limit) - (opts.adj?.(t, c1) ?? 0)
-            sum.e2 += netRetPct(t.entry!, t.exit!, c2, !!t.limit) - (opts.adj?.(t, c2) ?? 0)
+            sum.e1 += netRetPct(t.entry!, t.exit!, p.c1, !!t.limit) - (opts.adj?.(t, p.c1) ?? 0)
+            sum.e2 += netRetPct(t.entry!, t.exit!, p.c2, !!t.limit) - (opts.adj?.(t, p.c2) ?? 0)
             sum.en++
           } else {
-            sum.b1 += netRetPct(t.entry!, t.exit!, c1, !!t.limit) - (opts.adj?.(t, c1) ?? 0)
+            sum.b1 += netRetPct(t.entry!, t.exit!, p.c1, !!t.limit) - (opts.adj?.(t, p.c1) ?? 0)
             sum.bn++
           }
         }

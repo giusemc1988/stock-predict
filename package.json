@@ -1,11 +1,12 @@
 {
   "name": "stock-predict",
   "private": true,
-  "version": "1.96.0",
+  "version": "1.96.1",
   "type": "module",
   "scripts": {
     "replay": "vite build --ssr scripts/replay-lab.ts --outDir .learn/replay --emptyOutDir --logLevel warn && node .learn/replay/replay-lab.js",
     "replay:intraday": "vite build --ssr scripts/replay-intraday.ts --outDir .learn/replay-intraday --emptyOutDir --logLevel warn && node .learn/replay-intraday/replay-intraday.js",
+    "replay:news": "vite build --ssr scripts/replay-news.ts --outDir .learn/replay-news --emptyOutDir --logLevel warn && node .learn/replay-news/replay-news.js",
     "replay:daily": "vite build --ssr scripts/replay-daily.ts --outDir .learn/replay-daily --emptyOutDir --logLevel warn && node .learn/replay-daily/replay-daily.js",
     "dev": "vite",
     "build": "tsc -b && vite build",
@@ -14,7 +15,7 @@
     "learn:build": "vite build --ssr scripts/learn-cycle.ts --outDir .learn --emptyOutDir --logLevel warn",
     "practice": "vite build --ssr scripts/practice-cycle.ts --outDir .practice --emptyOutDir --logLevel warn && node .practice/practice-cycle.js",
     "learn": "npm run learn:build && node .learn/learn-cycle.js",
-    "test": "node scripts/journal.test.ts && npm run t -- practice && npm run t -- practice-picks && npm run t -- brief && npm run t -- hub && npm run t -- agents && npm run t -- hubruns && npm run t -- hubtasks && npm run t -- kronosview && npm run t -- toolhub && npm run t -- studio && npm run t -- novajobs && npm run t -- novatrends && npm run t -- novapostkit && npm run t -- novamedia && npm run t -- i18n && npm run t -- netparse && npm run t -- ruview && npm run t -- s3kit && npm run t -- phone && npm run t -- webflash && npm run t -- voltflash && npm run t -- volt && npm run t -- voltnews && npm run t -- versions && npm run t -- lumi && npm run t -- lumiroute && npm run t -- lumilive && npm run t -- nexusscout && npm run t -- nexushunt && npm run t -- playbook && npm run t -- upgrade && npm run t -- telegram-text && npm run t -- shadow && npm run t -- shadowleads && npm run t -- replaylab && npm run t -- replaydaily && npm run t -- replayintraday && npm run t -- brainkeys && npm run t -- finnhubws && npm run learn:build && node .learn/learn-cycle.js --demo --cycles 3 --out .learn/demo.json",
+    "test": "node scripts/journal.test.ts && npm run t -- practice && npm run t -- practice-picks && npm run t -- brief && npm run t -- hub && npm run t -- agents && npm run t -- hubruns && npm run t -- hubtasks && npm run t -- kronosview && npm run t -- toolhub && npm run t -- studio && npm run t -- novajobs && npm run t -- novatrends && npm run t -- novapostkit && npm run t -- novamedia && npm run t -- i18n && npm run t -- netparse && npm run t -- ruview && npm run t -- s3kit && npm run t -- phone && npm run t -- webflash && npm run t -- voltflash && npm run t -- volt && npm run t -- voltnews && npm run t -- versions && npm run t -- lumi && npm run t -- lumiroute && npm run t -- lumilive && npm run t -- nexusscout && npm run t -- nexushunt && npm run t -- playbook && npm run t -- upgrade && npm run t -- telegram-text && npm run t -- shadow && npm run t -- shadowleads && npm run t -- replaylab && npm run t -- replaydaily && npm run t -- replayintraday && npm run t -- replaynews && npm run t -- brainkeys && npm run t -- finnhubws && npm run learn:build && node .learn/learn-cycle.js --demo --cycles 3 --out .learn/demo.json",
     "t": "f() { vite build --ssr scripts/$1.test.ts --outDir .learn/test --emptyOutDir --logLevel warn && node .learn/test/$1.test.js; }; f",
     "agent": "vite build --ssr agent/jarvis-agent.ts --outDir .agent --emptyOutDir --logLevel warn && node .agent/jarvis-agent.js",
     "ruview": "vite build --ssr agent/ruview-docker.ts --outDir .agent/ruview --emptyOutDir --logLevel warn && node .agent/ruview/ruview-docker.js"
