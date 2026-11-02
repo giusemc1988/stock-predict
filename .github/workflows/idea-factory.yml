@@ -1,0 +1,48 @@
+name: Atlas idea factory
+
+# Manual full run ("Chạy xưởng"), plus one SIGNALS-ONLY run after each US close: Chanh approved this daily run
+# on 2026-11-02 as an exception to "no scheduled jobs". The daily run invents nothing (no new trials): it only
+# logs today's signals from the saved rules and grades the old ones with real prices. Atlas invents its own rules (seeds + genetic search), tests them on
+# discovery 2008-2017, validation 2018-2022 and a locked vault 2023-now, and keeps only survivors. Each run
+# remembers the last run's best rules and adds its rules to the trial counter. Free Yahoo data.
+# Commits public/idea-factory.json. Paper only; never touches live trading.
+on:
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: 'full = invent and test new rules; signals = only today\'s signals and grading'
+        default: full
+  schedule:
+    - cron: '30 21 * * 1-5'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: idea-factory
+  cancel-in-progress: false
+
+jobs:
+  ideas:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run ideas
+        env:
+          IDEA_MODE: ${{ github.event_name == 'schedule' && 'signals' || inputs.mode }}
+          NODE_OPTIONS: --max-old-space-size=6144
+      - name: Commit result
+        run: |
+          git config user.email "replay@stock-predict"
+          git config user.name "Atlas Idea Factory"
+          git add public/idea-factory.json
+          git diff --cached --quiet && exit 0
+          git commit -m "Atlas idea factory $(date -u +%Y-%m-%dT%H:%MZ)"
+          for i in 1 2 3; do git pull --rebase origin main && git push origin HEAD:main && exit 0; sleep 5; done
+          exit 1

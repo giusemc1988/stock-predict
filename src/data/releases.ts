@@ -2,7 +2,7 @@
  * Version and "What's new". Bump APP_VERSION and add an entry to the top of RELEASES
  * with each update. The banner shows once per version, then stays dismissed.
  */
-export const APP_VERSION = '1.99.1'
+export const APP_VERSION = '2.0.0'
 
 export interface Release {
   version: string
@@ -13,6 +13,16 @@ export interface Release {
 }
 
 export const RELEASES: Release[] = [
+  {
+    version: '2.0.0',
+    date: '2026-11-02',
+    changes: [
+      'Atlas idea factory (Atlas 1.2): Atlas now invents its own trading rules instead of only textbook ones. Claude Opus wrote 30 seed ideas, each with a plain reason (exhausted sellers, quiet accumulation, strength while the market falls…). A genetic search then mixes and mutates them into hundreds of rules. Each rule learns on 2008-2017, must hold up on 2018-2022, and then faces a locked vault from 2023 that it never saw: it has to beat 200 random-entry draws at 1x and 2x costs, still work without the 14 wildest names, and pass a Deflated Sharpe that counts every idea ever tried (the trial counter is shown). The best rules are remembered for the next run. The factory\'s rules give their own signals from each close (buy at next open, sell after N days, stop). These signals are graded with real prices later, so the signal board and the Atlas card on the Hub show 📚 Book vs 🧠 Opus self-made win rates side by side. A signals-only update runs by itself after each US close and invents nothing new. "Run the factory" looks for new rules. Free (GitHub Actions + Yahoo), no Claude tokens, paper only, never trades. Off switch in Settings > AI rules.',
+    ],
+    changesVi: [
+      'Xưởng ý tưởng của Atlas (Atlas 1.2): Atlas giờ tự nghĩ luật giao dịch thay vì chỉ học sách. Claude Opus viết 30 ý tưởng gốc, mỗi ý có lý do dễ hiểu (người bán đã cạn, gom âm thầm, mạnh khi thị trường rơi…). Máy lai tạo và đột biến chúng thành hàng trăm luật. Mỗi luật học trên 2008-2017, phải vẫn đứng trên 2018-2022, rồi vào thi trong "két khóa" từ 2023 mà nó chưa từng thấy. Ở đó nó phải thắng 200 lần mua ngẫu nhiên ở phí 1x và 2x, vẫn ổn khi bỏ 14 mã biến động mạnh nhất, và qua Deflated Sharpe tính mọi ý tưởng từng thử (có hiện bộ đếm lượt thử). Các luật tốt nhất được nhớ cho lần chạy sau. Luật của xưởng tự ra tín hiệu từ mỗi phiên đóng cửa (mua giá mở cửa sau, bán sau N ngày, cắt lỗ). Tín hiệu được chấm bằng giá thật sau đó, nên bảng tín hiệu và thẻ Atlas trên Hub hiện % thắng 📚 Sách vở và 🧠 Opus tự nghĩ cạnh nhau. Bản cập nhật tín hiệu tự chạy sau mỗi phiên Mỹ đóng cửa và không nghĩ luật mới. Nút "Chạy xưởng" thì tìm luật mới. Miễn phí (GitHub Actions + Yahoo), không tốn token Claude, chỉ giấy, không bao giờ trade. Nút tắt ở Cài đặt > Quy tắc AI.',
+    ],
+  },
   {
     version: '1.99.1',
     date: '2026-11-02',

@@ -13,6 +13,7 @@ import { CountUp } from './CountUp'
 import { LangSwitch } from './HubPanels'
 import { KronosChart } from './KronosChart'
 import { atlasVerdict, learnProgress, REVIEW_DAY } from '../lib/atlasSignals'
+import { duel, type FactoryReport } from '../lib/ideaFactoryView'
 import type { LeadsReport } from '../lib/shadowLeads'
 import { currentForecasts, type CouncilId, type KronosForecast } from '../lib/kronosView'
 import { ProjectLogo } from './ProjectLogo'
@@ -73,6 +74,12 @@ const GX = {
   learnHead: { en: 'Graded on {d}', vi: 'Chấm điểm {d}' },
   learnSigs: { en: '{n} open signals', vi: '{n} tín hiệu đang mở' },
   learnOpen: { en: 'See signals and learning progress', vi: 'Xem tín hiệu và tiến độ học' },
+  duelBook: { en: '📚 Book', vi: '📚 Sách vở' },
+  duelOpus: { en: '🧠 Opus self-made', vi: '🧠 Opus tự nghĩ' },
+  duelWait: { en: 'first grades soon', vi: 'sắp có điểm đầu' },
+  duelReal: { en: '{n} real trades', vi: '{n} lệnh thật' },
+  duelN: { en: '{n} graded', vi: '{n} đã chấm' },
+  duelOpen: { en: 'Compare: book signals vs rules Atlas invented itself', vi: 'So sánh: tín hiệu sách vở và luật Atlas tự nghĩ' },
 } as const
 type GxKey = keyof typeof GX
 
@@ -294,6 +301,8 @@ export function JarvisHub(p: HubProps & { flipAuto: boolean; council: boolean })
   // compact by default: the K_TOP biggest forecast moves, the rest behind "see all"
   const [kAll, setKAll] = useState(false)
   const kShown = kAll ? kBars : [...kBars].sort((a, b) => Math.abs(b.pct) - Math.abs(a.pct)).slice(0, K_TOP)
+  // all forecasts on one side (e.g. all down): bars start at the left edge and use the full width, no empty half
+  const kOne = kShown.length > 0 && (kShown.every((b) => b.pct < 0) || kShown.every((b) => b.pct >= 0))
   const kPick = kBars.find((b) => b.symbol === kSel)
   const cLabel = (id: CouncilId) => (id === 'kronos' ? 'Kronos' : G(id))
   const graded = kronos?.score['5']?.graded ?? 0
@@ -312,6 +321,18 @@ export function JarvisHub(p: HubProps & { flipAuto: boolean; council: boolean })
   const aVerdict = useMemo(() => atlasVerdict(p.practice.trades), [p.practice.trades])
   const L2 = (b: { en: string; vi: string }) => (vi ? b.vi : b.en)
   const aLearn = useMemo(() => learnProgress(p.practice.trades, leads, Date.now()), [p.practice.trades, leads])
+  // idea factory duel: Atlas's real win rate vs the factory's graded signals (public/idea-factory.json, AI rule ideaFactory)
+  const [factory, setFactory] = useState<FactoryReport | null>(null)
+  useEffect(() => {
+    if (!rules.ideaFactory) return
+    const ac = new AbortController()
+    fetch('/idea-factory.json', { signal: ac.signal })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((j: FactoryReport | null) => setFactory(j))
+      .catch(() => {})
+    return () => ac.abort()
+  }, [rules.ideaFactory])
+  const aDuel = useMemo(() => duel(p.practice.trades, factory), [p.practice.trades, factory])
 
   // the agents' votes on Atlas's top BUY call
   const top = p.picks[0]
@@ -546,6 +567,8 @@ export function JarvisHub(p: HubProps & { flipAuto: boolean; council: boolean })
                     )}
                     {feat && (
                       <>
+                        <div className="hg-atlas-wrap">
+                        <div className="hg-atlas-grid">
                         <div className={`hg-kron hg-inset${p.council ? ' live' : ''}`}>
                           <div className="hg-khead">
                             <b>{G('kronos')}</b>
@@ -555,7 +578,7 @@ export function JarvisHub(p: HubProps & { flipAuto: boolean; council: boolean })
                             <KronosChart key={kPick.symbol} f={kPick.f} recent={kronos?.recent?.[kPick.f.symbol]} vi={vi} label={cLabel} onAll={() => setKSel(null)} />
                           ) : kBars.length ? (
                             <>
-                              <div className="hg-kbars" role={p.council ? 'group' : 'img'} aria-label={kShown.map((b) => `${b.symbol} ${fmtPct(b.pct)}`).join(', ')}>
+                              <div className={`hg-kbars${kOne ? ' one' : ''}`} role={p.council ? 'group' : 'img'} aria-label={kShown.map((b) => `${b.symbol} ${fmtPct(b.pct)}`).join(', ')}>
                                 {kShown.map((b, j) => {
                                   // horizontal bar from the centre line: right = up, left = down; square-root scale so one big move doesn't flatten the rest
                                   const w = Math.max(4, Math.sqrt(Math.abs(b.pct) / kMax) * 100)
@@ -563,7 +586,7 @@ export function JarvisHub(p: HubProps & { flipAuto: boolean; council: boolean })
                                     <>
                                       <b>{b.symbol}</b>
                                       <span className="hg-kv">
-                                        <i className={b.pct >= 0 ? 'up' : 'down'} style={{ '--w': `${w / 2}%` } as CSSProperties} />
+                                        <i className={b.pct >= 0 ? 'up' : 'down'} style={{ '--w': `${kOne ? w : w / 2}%` } as CSSProperties} />
                                       </span>
                                       <em className={tone(b.pct)}>{fmtPct(b.pct)}</em>
                                     </>
@@ -602,6 +625,25 @@ export function JarvisHub(p: HubProps & { flipAuto: boolean; council: boolean })
                             </span>
                           </button>
                         )}
+                        {rules.ideaFactory && (
+                          <button className="hg-duel hg-inset" tabIndex={on ? -1 : 0} onClick={() => p.onAtlasBlock('atlas-ideas')} aria-label={G('duelOpen')} title={G('duelOpen')}>
+                            <span className={aDuel.winner === 'book' ? 'lead' : ''}>
+                              <small>{G('duelBook')}</small>
+                              <b className="mono">{aDuel.book.winRate != null ? `${aDuel.book.winRate}%` : '—'}</b>
+                              <em className="hg-dbar"><i style={{ width: `${aDuel.book.winRate ?? 0}%` }} /></em>
+                              <small>{G('duelReal', { n: aDuel.book.n })}</small>
+                            </span>
+                            <i aria-hidden="true">vs</i>
+                            <span className={aDuel.winner === 'opus' ? 'lead' : ''}>
+                              <small>{G('duelOpus')}</small>
+                              <b className="mono">{aDuel.opus.winRate != null ? `${aDuel.opus.winRate}%` : '—'}</b>
+                              <em className="hg-dbar"><i style={{ width: `${aDuel.opus.winRate ?? 0}%` }} /></em>
+                              <small>{aDuel.opus.graded ? G('duelN', { n: aDuel.opus.graded }) : G('duelWait')}</small>
+                            </span>
+                          </button>
+                        )}
+                        </div>
+                        </div>
                         {top ? (
                           <div className="hg-council" aria-label={G('council', { s: top.symbol })}>
                             <span className="hg-council-h">{G('council', { s: top.symbol })}</span>

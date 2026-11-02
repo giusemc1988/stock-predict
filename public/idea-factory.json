@@ -1,0 +1,1332 @@
+{
+ "generated": "2026-11-02T09:13:16.309Z",
+ "seconds": 63,
+ "run": 1,
+ "periods": {
+  "discovery": [
+   "2008-01-02",
+   "2018-01-01"
+  ],
+  "validation": [
+   "2018-01-01",
+   "2023-01-01"
+  ],
+  "vault": [
+   "2023-01-01",
+   "2026-10-30"
+  ]
+ },
+ "universe": {
+  "symbols": 97,
+  "failed": []
+ },
+ "search": {
+  "generations": 12,
+  "seeds": 30,
+  "fromLastRun": 0
+ },
+ "trials": {
+  "labs": 406,
+  "thisRun": 800,
+  "factoryTotal": 800,
+  "total": 1206
+ },
+ "funnel": {
+  "tried": 800,
+  "discovery": 571,
+  "validation": 3,
+  "vault": 0
+ },
+ "pass": {
+  "en": "PASS = in the vault years (never seen by the search or the validation step): at least 100 trades on at least 30 different days, average per trade above a 200-draw random-entry control (same symbols, counts, exits, costs) at 1x AND 2x costs with p <= 0.05 at both, still above its control without the 14 high-volatility names, and a Deflated Sharpe >= 0.95 (one return per entry day, since same-day trades move together) counting 1206 trials (every round of the labs plus every rule the factory has ever tried). Fixed in advance.",
+  "vi": "ĐẠT = trong \"két khóa\" (những năm mà vòng tìm kiếm và vòng kiểm tra chưa từng thấy): từ 100 lệnh trên ít nhất 30 ngày khác nhau, trung bình mỗi lệnh cao hơn nhóm mua ngẫu nhiên 200 lần (cùng mã, cùng số lệnh, cùng cách thoát, cùng phí) ở phí 1x VÀ 2x với p <= 0,05 ở cả hai, vẫn thắng khi bỏ 14 mã biến động mạnh, và Deflated Sharpe >= 0,95 (mỗi ngày vào lệnh tính một con số, vì lệnh cùng ngày đi cùng nhau) khi tính 1206 lần thử (mọi vòng lab cộng mọi luật xưởng từng thử). Cố định từ trước."
+ },
+ "top": [
+  {
+   "key": "d200>6&r5<1&rsi2<4|h20|s0",
+   "family": "O28",
+   "exactSeed": false,
+   "en": "Buy at the next open when RSI(2) below 55 and distance to the 200-day average above +15% and 5-day change below -4.5%; hold 20 days.",
+   "vi": "Mua ở giá mở cửa hôm sau khi RSI(2) dưới 55 và khoảng cách tới MA200 trên +15% và giá 5 ngày dưới -4.5%; giữ 20 ngày.",
+   "why": {
+    "en": "Far above its long average and resting for two days: a breather, not the end.",
+    "vi": "Cao xa trên MA200 và nghỉ hai ngày: chỉ là lấy hơi, chưa phải kết thúc."
+   },
+   "stage": "vault",
+   "discovery": {
+    "n": 587,
+    "days": 383,
+    "excessPct": 2.223,
+    "t": 3.017,
+    "eras": 1
+   },
+   "validation": {
+    "n": 534,
+    "excessPct2x": 2.23,
+    "t": 1.759
+   },
+   "vault": {
+    "n": 548,
+    "days": 313,
+    "avg1": 2.318,
+    "winRate": 53,
+    "avg2": 2.208,
+    "control1": 5.071,
+    "control2": 4.958,
+    "excess1": -2.753,
+    "excess2": -2.75,
+    "p1": 1,
+    "p2": 1,
+    "exHighVol": -1.464,
+    "dsr": 0.047,
+    "passed": false
+   }
+  },
+  {
+   "key": "d200>6&r5<1|h20|s0",
+   "family": "O6",
+   "exactSeed": false,
+   "en": "Buy at the next open when 5-day change below -4.5% and distance to the 200-day average above +15%; hold 20 days.",
+   "vi": "Mua ở giá mở cửa hôm sau khi giá 5 ngày dưới -4.5% và khoảng cách tới MA200 trên +15%; giữ 20 ngày.",
+   "why": {
+    "en": "Down many days in a row while the market is healthy: the streak is tired.",
+    "vi": "Giảm nhiều ngày liên tiếp trong khi thị trường khỏe: chuỗi giảm đã mệt."
+   },
+   "stage": "vault",
+   "discovery": {
+    "n": 600,
+    "days": 392,
+    "excessPct": 2.182,
+    "t": 2.887,
+    "eras": 1
+   },
+   "validation": {
+    "n": 550,
+    "excessPct2x": 2.022,
+    "t": 1.651
+   },
+   "vault": {
+    "n": 562,
+    "days": 322,
+    "avg1": 2.201,
+    "winRate": 52,
+    "avg2": 2.091,
+    "control1": 5.021,
+    "control2": 4.907,
+    "excess1": -2.82,
+    "excess2": -2.817,
+    "p1": 1,
+    "p2": 1,
+    "exHighVol": -1.448,
+    "dsr": 0.044,
+    "passed": false
+   }
+  },
+  {
+   "key": "d200>6&r5<1&spy1<4|h20|s0",
+   "family": "O6",
+   "exactSeed": false,
+   "en": "Buy at the next open when 5-day change below -4.5% and distance to the 200-day average above +15% and SPY's change today below +0.06%; hold 20 days.",
+   "vi": "Mua ở giá mở cửa hôm sau khi giá 5 ngày dưới -4.5% và khoảng cách tới MA200 trên +15% và SPY hôm nay dưới +0.06%; giữ 20 ngày.",
+   "why": {
+    "en": "Down many days in a row while the market is healthy: the streak is tired.",
+    "vi": "Giảm nhiều ngày liên tiếp trong khi thị trường khỏe: chuỗi giảm đã mệt."
+   },
+   "stage": "vault",
+   "discovery": {
+    "n": 525,
+    "days": 309,
+    "excessPct": 2.979,
+    "t": 3.431,
+    "eras": 1
+   },
+   "validation": {
+    "n": 488,
+    "excessPct2x": 2.557,
+    "t": 1.571
+   },
+   "vault": {
+    "n": 486,
+    "days": 232,
+    "avg1": 2.431,
+    "winRate": 53,
+    "avg2": 2.321,
+    "control1": 5.284,
+    "control2": 5.171,
+    "excess1": -2.854,
+    "excess2": -2.85,
+    "p1": 1,
+    "p2": 1,
+    "exHighVol": -1.626,
+    "dsr": 0.066,
+    "passed": false
+   }
+  },
+  {
+   "key": "clv<4&d200>5&r5<2|h3|s0",
+   "family": "O8",
+   "exactSeed": false,
+   "en": "Buy at the next open when 5-day change below -2.4% and distance to the 200-day average above +11% and where it closed in the day range (0 = low, 1 = high) below 0.52; hold 3 days.",
+   "vi": "Mua ở giá mở cửa hôm sau khi giá 5 ngày dưới -2.4% và khoảng cách tới MA200 trên +11% và vị trí giá đóng cửa trong nến (0 = đáy, 1 = đỉnh) dưới 0.52; giữ 3 ngày.",
+   "why": {
+    "en": "Pulling back on almost no volume: nobody is really selling, it just drifts.",
+    "vi": "Giá lùi mà gần như không có khối lượng: không ai thật sự bán, chỉ trôi nhẹ."
+   },
+   "stage": "validation-failed",
+   "discovery": {
+    "n": 2858,
+    "days": 1103,
+    "excessPct": 0.424,
+    "t": 3.613,
+    "eras": 1
+   },
+   "validation": {
+    "n": 2145,
+    "excessPct2x": -0.081,
+    "t": -0.449
+   },
+   "vault": null
+  },
+  {
+   "key": "d200>5&r5<2&rsi2<3|h5|s0",
+   "family": "O8",
+   "exactSeed": false,
+   "en": "Buy at the next open when 5-day change below -2.4% and distance to the 200-day average above +11% and RSI(2) below 30; hold 5 days.",
+   "vi": "Mua ở giá mở cửa hôm sau khi giá 5 ngày dưới -2.4% và khoảng cách tới MA200 trên +11% và RSI(2) dưới 30; giữ 5 ngày.",
+   "why": {
+    "en": "Pulling back on almost no volume: nobody is really selling, it just drifts.",
+    "vi": "Giá lùi mà gần như không có khối lượng: không ai thật sự bán, chỉ trôi nhẹ."
+   },
+   "stage": "validation-weak",
+   "discovery": {
+    "n": 2244,
+    "days": 966,
+    "excessPct": 0.579,
+    "t": 3.347,
+    "eras": 1
+   },
+   "validation": {
+    "n": 1603,
+    "excessPct2x": 0.075,
+    "t": 0.258
+   },
+   "vault": null
+  },
+  {
+   "key": "d200>5&r5<2&rsi2<4|h3|s0",
+   "family": "O8",
+   "exactSeed": false,
+   "en": "Buy at the next open when 5-day change below -2.4% and distance to the 200-day average above +11% and RSI(2) below 55; hold 3 days.",
+   "vi": "Mua ở giá mở cửa hôm sau khi giá 5 ngày dưới -2.4% và khoảng cách tới MA200 trên +11% và RSI(2) dưới 55; giữ 3 ngày.",
+   "why": {
+    "en": "Pulling back on almost no volume: nobody is really selling, it just drifts.",
+    "vi": "Giá lùi mà gần như không có khối lượng: không ai thật sự bán, chỉ trôi nhẹ."
+   },
+   "stage": "validation-failed",
+   "discovery": {
+    "n": 3235,
+    "days": 1201,
+    "excessPct": 0.379,
+    "t": 3.255,
+    "eras": 1
+   },
+   "validation": {
+    "n": 2430,
+    "excessPct2x": -0.059,
+    "t": -0.338
+   },
+   "vault": null
+  },
+  {
+   "key": "d200>5&r5<2|h5|s0",
+   "family": "O8",
+   "exactSeed": false,
+   "en": "Buy at the next open when 5-day change below -2.4% and distance to the 200-day average above +11%; hold 5 days.",
+   "vi": "Mua ở giá mở cửa hôm sau khi giá 5 ngày dưới -2.4% và khoảng cách tới MA200 trên +11%; giữ 5 ngày.",
+   "why": {
+    "en": "Pulling back on almost no volume: nobody is really selling, it just drifts.",
+    "vi": "Giá lùi mà gần như không có khối lượng: không ai thật sự bán, chỉ trôi nhẹ."
+   },
+   "stage": "validation-failed",
+   "discovery": {
+    "n": 2609,
+    "days": 1106,
+    "excessPct": 0.499,
+    "t": 3.178,
+    "eras": 1
+   },
+   "validation": {
+    "n": 1931,
+    "excessPct2x": -0.143,
+    "t": -0.531
+   },
+   "vault": null
+  },
+  {
+   "key": "r20<3&rel5<1&spy5<0|h5|s0",
+   "family": "O3",
+   "exactSeed": false,
+   "en": "Buy at the next open when SPY's 5-day change below -3.8% and 5-day change minus SPY below -3.6% and 20-day change below -2.1%; hold 5 days.",
+   "vi": "Mua ở giá mở cửa hôm sau khi SPY 5 ngày dưới -3.8% và giá 5 ngày trừ SPY (mạnh hơn thị trường) dưới -3.6% và giá 20 ngày dưới -2.1%; giữ 5 ngày.",
+   "why": {
+    "en": "Up while the market sinks: someone big is buying through the fear.",
+    "vi": "Thị trường chìm mà mã này vẫn tăng: có tay to đang gom bất chấp nỗi sợ."
+   },
+   "stage": "validation-failed",
+   "discovery": {
+    "n": 954,
+    "days": 122,
+    "excessPct": 2.472,
+    "t": 3.094,
+    "eras": 1
+   },
+   "validation": {
+    "n": 777,
+    "excessPct2x": -0.794,
+    "t": -0.935
+   },
+   "vault": null
+  }
+ ],
+ "seeds": [
+  {
+   "id": "O1",
+   "n": 94,
+   "excessPct": -0.234,
+   "t": -0.292,
+   "fitness": -99
+  },
+  {
+   "id": "O2",
+   "n": 1878,
+   "excessPct": -0.225,
+   "t": -2.648,
+   "fitness": 0
+  },
+  {
+   "id": "O3",
+   "n": 1252,
+   "excessPct": 0.189,
+   "t": 0.524,
+   "fitness": 0.349
+  },
+  {
+   "id": "O4",
+   "n": 1719,
+   "excessPct": -0.337,
+   "t": -2.194,
+   "fitness": 0
+  },
+  {
+   "id": "O5",
+   "n": 1186,
+   "excessPct": 0.583,
+   "t": 2.306,
+   "fitness": 2.306
+  },
+  {
+   "id": "O6",
+   "n": 3264,
+   "excessPct": 0.094,
+   "t": 0.907,
+   "fitness": 0.605
+  },
+  {
+   "id": "O7",
+   "n": 5926,
+   "excessPct": 0.05,
+   "t": 0.572,
+   "fitness": 0.572
+  },
+  {
+   "id": "O8",
+   "n": 565,
+   "excessPct": 0.569,
+   "t": 1.678,
+   "fitness": 1.678
+  },
+  {
+   "id": "O9",
+   "n": 2284,
+   "excessPct": 1.218,
+   "t": 1.619,
+   "fitness": 1.619
+  },
+  {
+   "id": "O10",
+   "n": 639,
+   "excessPct": -0.891,
+   "t": -3.091,
+   "fitness": 0
+  },
+  {
+   "id": "O11",
+   "n": 866,
+   "excessPct": -0.033,
+   "t": -0.093,
+   "fitness": -0.031
+  },
+  {
+   "id": "O12",
+   "n": 2300,
+   "excessPct": -0.164,
+   "t": -1.696,
+   "fitness": 0
+  },
+  {
+   "id": "O13",
+   "n": 2514,
+   "excessPct": -0.854,
+   "t": -2.389,
+   "fitness": 0
+  },
+  {
+   "id": "O14",
+   "n": 1222,
+   "excessPct": -0.08,
+   "t": -0.523,
+   "fitness": -0.174
+  },
+  {
+   "id": "O15",
+   "n": 2186,
+   "excessPct": -0.003,
+   "t": -0.023,
+   "fitness": -0.015
+  },
+  {
+   "id": "O16",
+   "n": 63,
+   "excessPct": -1.146,
+   "t": -2.296,
+   "fitness": -99
+  },
+  {
+   "id": "O17",
+   "n": 917,
+   "excessPct": 0.347,
+   "t": 0.388,
+   "fitness": 0.259
+  },
+  {
+   "id": "O18",
+   "n": 1040,
+   "excessPct": -0.772,
+   "t": -1.581,
+   "fitness": 0
+  },
+  {
+   "id": "O19",
+   "n": 1498,
+   "excessPct": -0.033,
+   "t": -0.338,
+   "fitness": -0.225
+  },
+  {
+   "id": "O20",
+   "n": 1158,
+   "excessPct": 0.012,
+   "t": 0.044,
+   "fitness": 0.015
+  },
+  {
+   "id": "O21",
+   "n": 568,
+   "excessPct": -0.733,
+   "t": -1.334,
+   "fitness": -0.445
+  },
+  {
+   "id": "O22",
+   "n": 2067,
+   "excessPct": -0.114,
+   "t": -1.452,
+   "fitness": -0.484
+  },
+  {
+   "id": "O23",
+   "n": 287,
+   "excessPct": 0.117,
+   "t": 0.3,
+   "fitness": -99
+  },
+  {
+   "id": "O24",
+   "n": 998,
+   "excessPct": 0.351,
+   "t": 0.868,
+   "fitness": 0.579
+  },
+  {
+   "id": "O25",
+   "n": 3069,
+   "excessPct": -0.17,
+   "t": -1.348,
+   "fitness": 0
+  },
+  {
+   "id": "O26",
+   "n": 5733,
+   "excessPct": -0.153,
+   "t": -0.856,
+   "fitness": -0.285
+  },
+  {
+   "id": "O27",
+   "n": 0,
+   "excessPct": 0,
+   "t": 0,
+   "fitness": -99
+  },
+  {
+   "id": "O28",
+   "n": 820,
+   "excessPct": 0.792,
+   "t": 2.482,
+   "fitness": 2.482
+  },
+  {
+   "id": "O29",
+   "n": 1542,
+   "excessPct": -0.693,
+   "t": -1.859,
+   "fitness": 0
+  },
+  {
+   "id": "O30",
+   "n": 1040,
+   "excessPct": 0.456,
+   "t": 1.418,
+   "fitness": 1.418
+  }
+ ],
+ "signals": [
+  {
+   "day": "2026-10-30",
+   "symbol": "CRM",
+   "key": "d200>6&r5<1&rsi2<4|h20|s0",
+   "close": 229.1699981689453,
+   "sl": null,
+   "hold": 20,
+   "vi": "Mua ở giá mở cửa hôm sau khi RSI(2) dưới 55 và khoảng cách tới MA200 trên +15% và giá 5 ngày dưới -4.5%; giữ 20 ngày.",
+   "en": "Buy at the next open when RSI(2) below 55 and distance to the 200-day average above +15% and 5-day change below -4.5%; hold 20 days."
+  },
+  {
+   "day": "2026-10-30",
+   "symbol": "PLTR",
+   "key": "d200>6&r5<1&rsi2<4|h20|s0",
+   "close": 184.11000061035156,
+   "sl": null,
+   "hold": 20,
+   "vi": "Mua ở giá mở cửa hôm sau khi RSI(2) dưới 55 và khoảng cách tới MA200 trên +15% và giá 5 ngày dưới -4.5%; giữ 20 ngày.",
+   "en": "Buy at the next open when RSI(2) below 55 and distance to the 200-day average above +15% and 5-day change below -4.5%; hold 20 days."
+  },
+  {
+   "day": "2026-10-30",
+   "symbol": "SNOW",
+   "key": "d200>6&r5<1&rsi2<4|h20|s0",
+   "close": 306.0799865722656,
+   "sl": null,
+   "hold": 20,
+   "vi": "Mua ở giá mở cửa hôm sau khi RSI(2) dưới 55 và khoảng cách tới MA200 trên +15% và giá 5 ngày dưới -4.5%; giữ 20 ngày.",
+   "en": "Buy at the next open when RSI(2) below 55 and distance to the 200-day average above +15% and 5-day change below -4.5%; hold 20 days."
+  },
+  {
+   "day": "2026-10-30",
+   "symbol": "SHOP",
+   "key": "d200>6&r5<1&rsi2<4|h20|s0",
+   "close": 157.49000549316406,
+   "sl": null,
+   "hold": 20,
+   "vi": "Mua ở giá mở cửa hôm sau khi RSI(2) dưới 55 và khoảng cách tới MA200 trên +15% và giá 5 ngày dưới -4.5%; giữ 20 ngày.",
+   "en": "Buy at the next open when RSI(2) below 55 and distance to the 200-day average above +15% and 5-day change below -4.5%; hold 20 days."
+  },
+  {
+   "day": "2026-10-30",
+   "symbol": "DDOG",
+   "key": "d200>6&r5<1&rsi2<4|h20|s0",
+   "close": 235.27000427246094,
+   "sl": null,
+   "hold": 20,
+   "vi": "Mua ở giá mở cửa hôm sau khi RSI(2) dưới 55 và khoảng cách tới MA200 trên +15% và giá 5 ngày dưới -4.5%; giữ 20 ngày.",
+   "en": "Buy at the next open when RSI(2) below 55 and distance to the 200-day average above +15% and 5-day change below -4.5%; hold 20 days."
+  },
+  {
+   "day": "2026-10-30",
+   "symbol": "CRM",
+   "key": "d200>6&r5<1|h20|s0",
+   "close": 229.1699981689453,
+   "sl": null,
+   "hold": 20,
+   "vi": "Mua ở giá mở cửa hôm sau khi giá 5 ngày dưới -4.5% và khoảng cách tới MA200 trên +15%; giữ 20 ngày.",
+   "en": "Buy at the next open when 5-day change below -4.5% and distance to the 200-day average above +15%; hold 20 days."
+  },
+  {
+   "day": "2026-10-30",
+   "symbol": "PLTR",
+   "key": "d200>6&r5<1|h20|s0",
+   "close": 184.11000061035156,
+   "sl": null,
+   "hold": 20,
+   "vi": "Mua ở giá mở cửa hôm sau khi giá 5 ngày dưới -4.5% và khoảng cách tới MA200 trên +15%; giữ 20 ngày.",
+   "en": "Buy at the next open when 5-day change below -4.5% and distance to the 200-day average above +15%; hold 20 days."
+  },
+  {
+   "day": "2026-10-30",
+   "symbol": "SNOW",
+   "key": "d200>6&r5<1|h20|s0",
+   "close": 306.0799865722656,
+   "sl": null,
+   "hold": 20,
+   "vi": "Mua ở giá mở cửa hôm sau khi giá 5 ngày dưới -4.5% và khoảng cách tới MA200 trên +15%; giữ 20 ngày.",
+   "en": "Buy at the next open when 5-day change below -4.5% and distance to the 200-day average above +15%; hold 20 days."
+  },
+  {
+   "day": "2026-10-30",
+   "symbol": "SHOP",
+   "key": "d200>6&r5<1|h20|s0",
+   "close": 157.49000549316406,
+   "sl": null,
+   "hold": 20,
+   "vi": "Mua ở giá mở cửa hôm sau khi giá 5 ngày dưới -4.5% và khoảng cách tới MA200 trên +15%; giữ 20 ngày.",
+   "en": "Buy at the next open when 5-day change below -4.5% and distance to the 200-day average above +15%; hold 20 days."
+  },
+  {
+   "day": "2026-10-30",
+   "symbol": "DDOG",
+   "key": "d200>6&r5<1|h20|s0",
+   "close": 235.27000427246094,
+   "sl": null,
+   "hold": 20,
+   "vi": "Mua ở giá mở cửa hôm sau khi giá 5 ngày dưới -4.5% và khoảng cách tới MA200 trên +15%; giữ 20 ngày.",
+   "en": "Buy at the next open when 5-day change below -4.5% and distance to the 200-day average above +15%; hold 20 days."
+  },
+  {
+   "day": "2026-10-30",
+   "symbol": "CRM",
+   "key": "d200>6&r5<1&spy1<4|h20|s0",
+   "close": 229.1699981689453,
+   "sl": null,
+   "hold": 20,
+   "vi": "Mua ở giá mở cửa hôm sau khi giá 5 ngày dưới -4.5% và khoảng cách tới MA200 trên +15% và SPY hôm nay dưới +0.06%; giữ 20 ngày.",
+   "en": "Buy at the next open when 5-day change below -4.5% and distance to the 200-day average above +15% and SPY's change today below +0.06%; hold 20 days."
+  },
+  {
+   "day": "2026-10-30",
+   "symbol": "PLTR",
+   "key": "d200>6&r5<1&spy1<4|h20|s0",
+   "close": 184.11000061035156,
+   "sl": null,
+   "hold": 20,
+   "vi": "Mua ở giá mở cửa hôm sau khi giá 5 ngày dưới -4.5% và khoảng cách tới MA200 trên +15% và SPY hôm nay dưới +0.06%; giữ 20 ngày.",
+   "en": "Buy at the next open when 5-day change below -4.5% and distance to the 200-day average above +15% and SPY's change today below +0.06%; hold 20 days."
+  },
+  {
+   "day": "2026-10-30",
+   "symbol": "SNOW",
+   "key": "d200>6&r5<1&spy1<4|h20|s0",
+   "close": 306.0799865722656,
+   "sl": null,
+   "hold": 20,
+   "vi": "Mua ở giá mở cửa hôm sau khi giá 5 ngày dưới -4.5% và khoảng cách tới MA200 trên +15% và SPY hôm nay dưới +0.06%; giữ 20 ngày.",
+   "en": "Buy at the next open when 5-day change below -4.5% and distance to the 200-day average above +15% and SPY's change today below +0.06%; hold 20 days."
+  },
+  {
+   "day": "2026-10-30",
+   "symbol": "SHOP",
+   "key": "d200>6&r5<1&spy1<4|h20|s0",
+   "close": 157.49000549316406,
+   "sl": null,
+   "hold": 20,
+   "vi": "Mua ở giá mở cửa hôm sau khi giá 5 ngày dưới -4.5% và khoảng cách tới MA200 trên +15% và SPY hôm nay dưới +0.06%; giữ 20 ngày.",
+   "en": "Buy at the next open when 5-day change below -4.5% and distance to the 200-day average above +15% and SPY's change today below +0.06%; hold 20 days."
+  },
+  {
+   "day": "2026-10-30",
+   "symbol": "DDOG",
+   "key": "d200>6&r5<1&spy1<4|h20|s0",
+   "close": 235.27000427246094,
+   "sl": null,
+   "hold": 20,
+   "vi": "Mua ở giá mở cửa hôm sau khi giá 5 ngày dưới -4.5% và khoảng cách tới MA200 trên +15% và SPY hôm nay dưới +0.06%; giữ 20 ngày.",
+   "en": "Buy at the next open when 5-day change below -4.5% and distance to the 200-day average above +15% and SPY's change today below +0.06%; hold 20 days."
+  }
+ ],
+ "mode": "full",
+ "today": {
+  "day": "2026-10-30",
+  "signals": [
+   {
+    "day": "2026-10-30",
+    "symbol": "CRM",
+    "key": "d200>6&r5<1&rsi2<4|h20|s0",
+    "close": 229.1699981689453,
+    "sl": null,
+    "hold": 20,
+    "vi": "Mua ở giá mở cửa hôm sau khi RSI(2) dưới 55 và khoảng cách tới MA200 trên +15% và giá 5 ngày dưới -4.5%; giữ 20 ngày.",
+    "en": "Buy at the next open when RSI(2) below 55 and distance to the 200-day average above +15% and 5-day change below -4.5%; hold 20 days.",
+    "why": {
+     "en": "Far above its long average and resting for two days: a breather, not the end.",
+     "vi": "Cao xa trên MA200 và nghỉ hai ngày: chỉ là lấy hơi, chưa phải kết thúc."
+    }
+   },
+   {
+    "day": "2026-10-30",
+    "symbol": "PLTR",
+    "key": "d200>6&r5<1&rsi2<4|h20|s0",
+    "close": 184.11000061035156,
+    "sl": null,
+    "hold": 20,
+    "vi": "Mua ở giá mở cửa hôm sau khi RSI(2) dưới 55 và khoảng cách tới MA200 trên +15% và giá 5 ngày dưới -4.5%; giữ 20 ngày.",
+    "en": "Buy at the next open when RSI(2) below 55 and distance to the 200-day average above +15% and 5-day change below -4.5%; hold 20 days.",
+    "why": {
+     "en": "Far above its long average and resting for two days: a breather, not the end.",
+     "vi": "Cao xa trên MA200 và nghỉ hai ngày: chỉ là lấy hơi, chưa phải kết thúc."
+    }
+   },
+   {
+    "day": "2026-10-30",
+    "symbol": "SNOW",
+    "key": "d200>6&r5<1&rsi2<4|h20|s0",
+    "close": 306.0799865722656,
+    "sl": null,
+    "hold": 20,
+    "vi": "Mua ở giá mở cửa hôm sau khi RSI(2) dưới 55 và khoảng cách tới MA200 trên +15% và giá 5 ngày dưới -4.5%; giữ 20 ngày.",
+    "en": "Buy at the next open when RSI(2) below 55 and distance to the 200-day average above +15% and 5-day change below -4.5%; hold 20 days.",
+    "why": {
+     "en": "Far above its long average and resting for two days: a breather, not the end.",
+     "vi": "Cao xa trên MA200 và nghỉ hai ngày: chỉ là lấy hơi, chưa phải kết thúc."
+    }
+   },
+   {
+    "day": "2026-10-30",
+    "symbol": "SHOP",
+    "key": "d200>6&r5<1&rsi2<4|h20|s0",
+    "close": 157.49000549316406,
+    "sl": null,
+    "hold": 20,
+    "vi": "Mua ở giá mở cửa hôm sau khi RSI(2) dưới 55 và khoảng cách tới MA200 trên +15% và giá 5 ngày dưới -4.5%; giữ 20 ngày.",
+    "en": "Buy at the next open when RSI(2) below 55 and distance to the 200-day average above +15% and 5-day change below -4.5%; hold 20 days.",
+    "why": {
+     "en": "Far above its long average and resting for two days: a breather, not the end.",
+     "vi": "Cao xa trên MA200 và nghỉ hai ngày: chỉ là lấy hơi, chưa phải kết thúc."
+    }
+   },
+   {
+    "day": "2026-10-30",
+    "symbol": "DDOG",
+    "key": "d200>6&r5<1&rsi2<4|h20|s0",
+    "close": 235.27000427246094,
+    "sl": null,
+    "hold": 20,
+    "vi": "Mua ở giá mở cửa hôm sau khi RSI(2) dưới 55 và khoảng cách tới MA200 trên +15% và giá 5 ngày dưới -4.5%; giữ 20 ngày.",
+    "en": "Buy at the next open when RSI(2) below 55 and distance to the 200-day average above +15% and 5-day change below -4.5%; hold 20 days.",
+    "why": {
+     "en": "Far above its long average and resting for two days: a breather, not the end.",
+     "vi": "Cao xa trên MA200 và nghỉ hai ngày: chỉ là lấy hơi, chưa phải kết thúc."
+    }
+   },
+   {
+    "day": "2026-10-30",
+    "symbol": "CRM",
+    "key": "d200>6&r5<1|h20|s0",
+    "close": 229.1699981689453,
+    "sl": null,
+    "hold": 20,
+    "vi": "Mua ở giá mở cửa hôm sau khi giá 5 ngày dưới -4.5% và khoảng cách tới MA200 trên +15%; giữ 20 ngày.",
+    "en": "Buy at the next open when 5-day change below -4.5% and distance to the 200-day average above +15%; hold 20 days.",
+    "why": {
+     "en": "Down many days in a row while the market is healthy: the streak is tired.",
+     "vi": "Giảm nhiều ngày liên tiếp trong khi thị trường khỏe: chuỗi giảm đã mệt."
+    }
+   },
+   {
+    "day": "2026-10-30",
+    "symbol": "PLTR",
+    "key": "d200>6&r5<1|h20|s0",
+    "close": 184.11000061035156,
+    "sl": null,
+    "hold": 20,
+    "vi": "Mua ở giá mở cửa hôm sau khi giá 5 ngày dưới -4.5% và khoảng cách tới MA200 trên +15%; giữ 20 ngày.",
+    "en": "Buy at the next open when 5-day change below -4.5% and distance to the 200-day average above +15%; hold 20 days.",
+    "why": {
+     "en": "Down many days in a row while the market is healthy: the streak is tired.",
+     "vi": "Giảm nhiều ngày liên tiếp trong khi thị trường khỏe: chuỗi giảm đã mệt."
+    }
+   },
+   {
+    "day": "2026-10-30",
+    "symbol": "SNOW",
+    "key": "d200>6&r5<1|h20|s0",
+    "close": 306.0799865722656,
+    "sl": null,
+    "hold": 20,
+    "vi": "Mua ở giá mở cửa hôm sau khi giá 5 ngày dưới -4.5% và khoảng cách tới MA200 trên +15%; giữ 20 ngày.",
+    "en": "Buy at the next open when 5-day change below -4.5% and distance to the 200-day average above +15%; hold 20 days.",
+    "why": {
+     "en": "Down many days in a row while the market is healthy: the streak is tired.",
+     "vi": "Giảm nhiều ngày liên tiếp trong khi thị trường khỏe: chuỗi giảm đã mệt."
+    }
+   },
+   {
+    "day": "2026-10-30",
+    "symbol": "SHOP",
+    "key": "d200>6&r5<1|h20|s0",
+    "close": 157.49000549316406,
+    "sl": null,
+    "hold": 20,
+    "vi": "Mua ở giá mở cửa hôm sau khi giá 5 ngày dưới -4.5% và khoảng cách tới MA200 trên +15%; giữ 20 ngày.",
+    "en": "Buy at the next open when 5-day change below -4.5% and distance to the 200-day average above +15%; hold 20 days.",
+    "why": {
+     "en": "Down many days in a row while the market is healthy: the streak is tired.",
+     "vi": "Giảm nhiều ngày liên tiếp trong khi thị trường khỏe: chuỗi giảm đã mệt."
+    }
+   },
+   {
+    "day": "2026-10-30",
+    "symbol": "DDOG",
+    "key": "d200>6&r5<1|h20|s0",
+    "close": 235.27000427246094,
+    "sl": null,
+    "hold": 20,
+    "vi": "Mua ở giá mở cửa hôm sau khi giá 5 ngày dưới -4.5% và khoảng cách tới MA200 trên +15%; giữ 20 ngày.",
+    "en": "Buy at the next open when 5-day change below -4.5% and distance to the 200-day average above +15%; hold 20 days.",
+    "why": {
+     "en": "Down many days in a row while the market is healthy: the streak is tired.",
+     "vi": "Giảm nhiều ngày liên tiếp trong khi thị trường khỏe: chuỗi giảm đã mệt."
+    }
+   },
+   {
+    "day": "2026-10-30",
+    "symbol": "CRM",
+    "key": "d200>6&r5<1&spy1<4|h20|s0",
+    "close": 229.1699981689453,
+    "sl": null,
+    "hold": 20,
+    "vi": "Mua ở giá mở cửa hôm sau khi giá 5 ngày dưới -4.5% và khoảng cách tới MA200 trên +15% và SPY hôm nay dưới +0.06%; giữ 20 ngày.",
+    "en": "Buy at the next open when 5-day change below -4.5% and distance to the 200-day average above +15% and SPY's change today below +0.06%; hold 20 days.",
+    "why": {
+     "en": "Down many days in a row while the market is healthy: the streak is tired.",
+     "vi": "Giảm nhiều ngày liên tiếp trong khi thị trường khỏe: chuỗi giảm đã mệt."
+    }
+   },
+   {
+    "day": "2026-10-30",
+    "symbol": "PLTR",
+    "key": "d200>6&r5<1&spy1<4|h20|s0",
+    "close": 184.11000061035156,
+    "sl": null,
+    "hold": 20,
+    "vi": "Mua ở giá mở cửa hôm sau khi giá 5 ngày dưới -4.5% và khoảng cách tới MA200 trên +15% và SPY hôm nay dưới +0.06%; giữ 20 ngày.",
+    "en": "Buy at the next open when 5-day change below -4.5% and distance to the 200-day average above +15% and SPY's change today below +0.06%; hold 20 days.",
+    "why": {
+     "en": "Down many days in a row while the market is healthy: the streak is tired.",
+     "vi": "Giảm nhiều ngày liên tiếp trong khi thị trường khỏe: chuỗi giảm đã mệt."
+    }
+   },
+   {
+    "day": "2026-10-30",
+    "symbol": "SNOW",
+    "key": "d200>6&r5<1&spy1<4|h20|s0",
+    "close": 306.0799865722656,
+    "sl": null,
+    "hold": 20,
+    "vi": "Mua ở giá mở cửa hôm sau khi giá 5 ngày dưới -4.5% và khoảng cách tới MA200 trên +15% và SPY hôm nay dưới +0.06%; giữ 20 ngày.",
+    "en": "Buy at the next open when 5-day change below -4.5% and distance to the 200-day average above +15% and SPY's change today below +0.06%; hold 20 days.",
+    "why": {
+     "en": "Down many days in a row while the market is healthy: the streak is tired.",
+     "vi": "Giảm nhiều ngày liên tiếp trong khi thị trường khỏe: chuỗi giảm đã mệt."
+    }
+   },
+   {
+    "day": "2026-10-30",
+    "symbol": "SHOP",
+    "key": "d200>6&r5<1&spy1<4|h20|s0",
+    "close": 157.49000549316406,
+    "sl": null,
+    "hold": 20,
+    "vi": "Mua ở giá mở cửa hôm sau khi giá 5 ngày dưới -4.5% và khoảng cách tới MA200 trên +15% và SPY hôm nay dưới +0.06%; giữ 20 ngày.",
+    "en": "Buy at the next open when 5-day change below -4.5% and distance to the 200-day average above +15% and SPY's change today below +0.06%; hold 20 days.",
+    "why": {
+     "en": "Down many days in a row while the market is healthy: the streak is tired.",
+     "vi": "Giảm nhiều ngày liên tiếp trong khi thị trường khỏe: chuỗi giảm đã mệt."
+    }
+   },
+   {
+    "day": "2026-10-30",
+    "symbol": "DDOG",
+    "key": "d200>6&r5<1&spy1<4|h20|s0",
+    "close": 235.27000427246094,
+    "sl": null,
+    "hold": 20,
+    "vi": "Mua ở giá mở cửa hôm sau khi giá 5 ngày dưới -4.5% và khoảng cách tới MA200 trên +15% và SPY hôm nay dưới +0.06%; giữ 20 ngày.",
+    "en": "Buy at the next open when 5-day change below -4.5% and distance to the 200-day average above +15% and SPY's change today below +0.06%; hold 20 days.",
+    "why": {
+     "en": "Down many days in a row while the market is healthy: the streak is tired.",
+     "vi": "Giảm nhiều ngày liên tiếp trong khi thị trường khỏe: chuỗi giảm đã mệt."
+    }
+   }
+  ]
+ },
+ "score": {
+  "graded": 0,
+  "wins": 0,
+  "winRate": null,
+  "avgPct": null,
+  "waiting": 15
+ },
+ "rules": [
+  {
+   "key": "d200>6&r5<1&rsi2<4|h20|s0",
+   "family": "O28",
+   "conds": [
+    {
+     "f": "rsi2",
+     "op": "<",
+     "q": 4
+    },
+    {
+     "f": "d200",
+     "op": ">",
+     "q": 6
+    },
+    {
+     "f": "r5",
+     "op": "<",
+     "q": 1
+    }
+   ],
+   "hold": 20,
+   "stop": null,
+   "en": "Buy at the next open when RSI(2) below 55 and distance to the 200-day average above +15% and 5-day change below -4.5%; hold 20 days.",
+   "vi": "Mua ở giá mở cửa hôm sau khi RSI(2) dưới 55 và khoảng cách tới MA200 trên +15% và giá 5 ngày dưới -4.5%; giữ 20 ngày.",
+   "why": {
+    "en": "Far above its long average and resting for two days: a breather, not the end.",
+    "vi": "Cao xa trên MA200 và nghỉ hai ngày: chỉ là lấy hơi, chưa phải kết thúc."
+   },
+   "passed": false,
+   "vault": {
+    "n": 548,
+    "winRate": 53,
+    "excessPct": -2.753,
+    "dsr": 0.047
+   }
+  },
+  {
+   "key": "d200>6&r5<1|h20|s0",
+   "family": "O6",
+   "conds": [
+    {
+     "f": "r5",
+     "op": "<",
+     "q": 1
+    },
+    {
+     "f": "d200",
+     "op": ">",
+     "q": 6
+    }
+   ],
+   "hold": 20,
+   "stop": null,
+   "en": "Buy at the next open when 5-day change below -4.5% and distance to the 200-day average above +15%; hold 20 days.",
+   "vi": "Mua ở giá mở cửa hôm sau khi giá 5 ngày dưới -4.5% và khoảng cách tới MA200 trên +15%; giữ 20 ngày.",
+   "why": {
+    "en": "Down many days in a row while the market is healthy: the streak is tired.",
+    "vi": "Giảm nhiều ngày liên tiếp trong khi thị trường khỏe: chuỗi giảm đã mệt."
+   },
+   "passed": false,
+   "vault": {
+    "n": 562,
+    "winRate": 52,
+    "excessPct": -2.82,
+    "dsr": 0.044
+   }
+  },
+  {
+   "key": "d200>6&r5<1&spy1<4|h20|s0",
+   "family": "O6",
+   "conds": [
+    {
+     "f": "r5",
+     "op": "<",
+     "q": 1
+    },
+    {
+     "f": "d200",
+     "op": ">",
+     "q": 6
+    },
+    {
+     "f": "spy1",
+     "op": "<",
+     "q": 4
+    }
+   ],
+   "hold": 20,
+   "stop": null,
+   "en": "Buy at the next open when 5-day change below -4.5% and distance to the 200-day average above +15% and SPY's change today below +0.06%; hold 20 days.",
+   "vi": "Mua ở giá mở cửa hôm sau khi giá 5 ngày dưới -4.5% và khoảng cách tới MA200 trên +15% và SPY hôm nay dưới +0.06%; giữ 20 ngày.",
+   "why": {
+    "en": "Down many days in a row while the market is healthy: the streak is tired.",
+    "vi": "Giảm nhiều ngày liên tiếp trong khi thị trường khỏe: chuỗi giảm đã mệt."
+   },
+   "passed": false,
+   "vault": {
+    "n": 486,
+    "winRate": 53,
+    "excessPct": -2.854,
+    "dsr": 0.066
+   }
+  }
+ ],
+ "best": [
+  {
+   "conds": [
+    {
+     "f": "r5",
+     "op": "<",
+     "q": 2
+    },
+    {
+     "f": "d200",
+     "op": ">",
+     "q": 5
+    },
+    {
+     "f": "clv",
+     "op": "<",
+     "q": 4
+    }
+   ],
+   "hold": 3,
+   "stop": null,
+   "origin": "O8"
+  },
+  {
+   "conds": [
+    {
+     "f": "r5",
+     "op": "<",
+     "q": 1
+    },
+    {
+     "f": "d200",
+     "op": ">",
+     "q": 6
+    },
+    {
+     "f": "spy1",
+     "op": "<",
+     "q": 4
+    }
+   ],
+   "hold": 20,
+   "stop": null,
+   "origin": "O6"
+  },
+  {
+   "conds": [
+    {
+     "f": "r5",
+     "op": "<",
+     "q": 2
+    },
+    {
+     "f": "d200",
+     "op": ">",
+     "q": 5
+    },
+    {
+     "f": "rsi2",
+     "op": "<",
+     "q": 3
+    }
+   ],
+   "hold": 5,
+   "stop": null,
+   "origin": "O8"
+  },
+  {
+   "conds": [
+    {
+     "f": "r5",
+     "op": "<",
+     "q": 2
+    },
+    {
+     "f": "d200",
+     "op": ">",
+     "q": 5
+    },
+    {
+     "f": "rsi2",
+     "op": "<",
+     "q": 4
+    }
+   ],
+   "hold": 3,
+   "stop": null,
+   "origin": "O8"
+  },
+  {
+   "conds": [
+    {
+     "f": "r5",
+     "op": "<",
+     "q": 2
+    },
+    {
+     "f": "d200",
+     "op": ">",
+     "q": 5
+    }
+   ],
+   "hold": 5,
+   "stop": null,
+   "origin": "O8"
+  },
+  {
+   "conds": [
+    {
+     "f": "spy5",
+     "op": "<",
+     "q": 0
+    },
+    {
+     "f": "rel5",
+     "op": "<",
+     "q": 1
+    },
+    {
+     "f": "r20",
+     "op": "<",
+     "q": 3
+    }
+   ],
+   "hold": 5,
+   "stop": null,
+   "origin": "O3"
+  },
+  {
+   "conds": [
+    {
+     "f": "spy5",
+     "op": "<",
+     "q": 0
+    },
+    {
+     "f": "rsi2",
+     "op": "<",
+     "q": 3
+    },
+    {
+     "f": "rel5",
+     "op": "<",
+     "q": 1
+    }
+   ],
+   "hold": 5,
+   "stop": null,
+   "origin": "O8"
+  },
+  {
+   "conds": [
+    {
+     "f": "r5",
+     "op": "<",
+     "q": 2
+    },
+    {
+     "f": "d200",
+     "op": ">",
+     "q": 5
+    },
+    {
+     "f": "rsi2",
+     "op": "<",
+     "q": 3
+    }
+   ],
+   "hold": 5,
+   "stop": 3,
+   "origin": "O8"
+  },
+  {
+   "conds": [
+    {
+     "f": "down",
+     "op": ">",
+     "q": 6
+    },
+    {
+     "f": "spyTrend",
+     "op": ">",
+     "q": 3
+    },
+    {
+     "f": "d200",
+     "op": ">",
+     "q": 4
+    }
+   ],
+   "hold": 5,
+   "stop": null,
+   "origin": "random"
+  },
+  {
+   "conds": [
+    {
+     "f": "r5",
+     "op": "<",
+     "q": 0
+    },
+    {
+     "f": "clv",
+     "op": "<",
+     "q": 3
+    },
+    {
+     "f": "d200",
+     "op": ">",
+     "q": 4
+    }
+   ],
+   "hold": 3,
+   "stop": null,
+   "origin": "O9"
+  },
+  {
+   "conds": [
+    {
+     "f": "rsi2",
+     "op": "<",
+     "q": 4
+    },
+    {
+     "f": "d200",
+     "op": ">",
+     "q": 6
+    },
+    {
+     "f": "r5",
+     "op": "<",
+     "q": 1
+    }
+   ],
+   "hold": 20,
+   "stop": null,
+   "origin": "O28"
+  },
+  {
+   "conds": [
+    {
+     "f": "spy5",
+     "op": "<",
+     "q": 0
+    },
+    {
+     "f": "rel5",
+     "op": "<",
+     "q": 1
+    },
+    {
+     "f": "r20",
+     "op": "<",
+     "q": 2
+    }
+   ],
+   "hold": 5,
+   "stop": null,
+   "origin": "O3"
+  },
+  {
+   "conds": [
+    {
+     "f": "d200",
+     "op": ">",
+     "q": 4
+    },
+    {
+     "f": "r5",
+     "op": "<",
+     "q": 2
+    },
+    {
+     "f": "rsi2",
+     "op": "<",
+     "q": 2
+    }
+   ],
+   "hold": 5,
+   "stop": null,
+   "origin": "O9"
+  },
+  {
+   "conds": [
+    {
+     "f": "clv",
+     "op": "<",
+     "q": 3
+    },
+    {
+     "f": "r5",
+     "op": "<",
+     "q": 0
+    },
+    {
+     "f": "d200",
+     "op": ">",
+     "q": 4
+    }
+   ],
+   "hold": 3,
+   "stop": 3,
+   "origin": "O9"
+  },
+  {
+   "conds": [
+    {
+     "f": "r5",
+     "op": "<",
+     "q": 2
+    },
+    {
+     "f": "d200",
+     "op": ">",
+     "q": 5
+    },
+    {
+     "f": "spy5",
+     "op": "<",
+     "q": 0
+    }
+   ],
+   "hold": 5,
+   "stop": 3,
+   "origin": "O8"
+  }
+ ],
+ "history": [
+  {
+   "run": 1,
+   "generated": "2026-11-02T09:13:16.310Z",
+   "tried": 800,
+   "passed": 0
+  }
+ ],
+ "verdict": {
+  "en": "No rule survived the vault this run (800 new rules, 1206 trials counted). The good ones are remembered for the next run.",
+  "vi": "Lần này chưa luật nào qua được két khóa (800 luật mới, tính 1206 lần thử). Các luật tốt nhất được nhớ lại cho lần chạy sau.",
+  "lines": [
+   "vault             O28    disc ex 2.22% t 3.02 | val 2.23% t 1.76 | vault n 548/313d ex -2.753% p 1 dsr 0.047 :: Buy at the next open when RSI(2) below 55 and distance to the 200-day average above +15% and 5-day change below -4.5%; hold 20 days.",
+   "vault             O6     disc ex 2.18% t 2.89 | val 2.02% t 1.65 | vault n 562/322d ex -2.82% p 1 dsr 0.044 :: Buy at the next open when 5-day change below -4.5% and distance to the 200-day average above +15%; hold 20 days.",
+   "vault             O6     disc ex 2.98% t 3.43 | val 2.56% t 1.57 | vault n 486/232d ex -2.854% p 1 dsr 0.066 :: Buy at the next open when 5-day change below -4.5% and distance to the 200-day average above +15% and SPY's change today below +0.06%; hold 20 days.",
+   "validation-failed O8     disc ex 0.42% t 3.61 | val -0.08% t -0.45 :: Buy at the next open when 5-day change below -2.4% and distance to the 200-day average above +11% and where it closed in the day range (0 = low, 1 = high) below 0.52; hold 3 days.",
+   "validation-weak   O8     disc ex 0.58% t 3.35 | val 0.07% t 0.26 :: Buy at the next open when 5-day change below -2.4% and distance to the 200-day average above +11% and RSI(2) below 30; hold 5 days.",
+   "validation-failed O8     disc ex 0.38% t 3.25 | val -0.06% t -0.34 :: Buy at the next open when 5-day change below -2.4% and distance to the 200-day average above +11% and RSI(2) below 55; hold 3 days.",
+   "validation-failed O8     disc ex 0.50% t 3.18 | val -0.14% t -0.53 :: Buy at the next open when 5-day change below -2.4% and distance to the 200-day average above +11%; hold 5 days.",
+   "validation-failed O3     disc ex 2.47% t 3.09 | val -0.79% t -0.94 :: Buy at the next open when SPY's 5-day change below -3.8% and 5-day change minus SPY below -3.6% and 20-day change below -2.1%; hold 5 days."
+  ]
+ }
+}

@@ -5,6 +5,7 @@ import { useLang } from '../lib/i18n'
 import { dayKey, parsePractice, type PracticeState } from '../lib/practice'
 import { pickSourceLabel } from '../lib/practicePicks'
 import type { LeadsReport } from '../lib/shadowLeads'
+import { AtlasIdeaFactory } from './AtlasIdeaFactory'
 import './AtlasSignalBoard.css'
 
 type Bi = { en: string; vi: string }
@@ -88,7 +89,7 @@ function LearnRing({ v, top, sub }: { v: number; top: string; sub: string }) {
  * learning and how far toward the review day, each signal with entry/TP/SL and the real win rate of its
  * kind, and why it traded or not. Display only: it never places, changes or blocks a trade.
  */
-export function AtlasSignalBoard({ practice, onSymbol }: { practice: PracticeState; onSymbol?: (symbol: string, asset: 'stock' | 'crypto') => void }) {
+export function AtlasSignalBoard({ practice, onSymbol, ideas = true }: { practice: PracticeState; onSymbol?: (symbol: string, asset: 'stock' | 'crypto') => void; ideas?: boolean }) {
   const vi = useLang() === 'vi'
   const L = (b: Bi) => (vi ? b.vi : b.en)
   const G = (k: TKey, vars?: Record<string, string | number>) => Object.entries(vars ?? {}).reduce<string>((s, [a, b]) => s.replaceAll(`{${a}}`, String(b)), L(T[k]))
@@ -257,6 +258,9 @@ export function AtlasSignalBoard({ practice, onSymbol }: { practice: PracticeSta
         {sigs.length ? <div className="asb-siglist">{shown.map(sigCard)}</div> : <p className="muted">{G('noSig', { d: ddmm(sigDay) })}</p>}
         {sigs.length > shown.length && <p className="asb-note">{G('more', { n: sigs.length - shown.length, d: ddmm(sigDay) })}</p>}
       </section>
+
+      {/* the idea factory next to the book signals: same layout, its own record (AI rule ideaFactory) */}
+      {ideas && <AtlasIdeaFactory trades={s.trades} onSymbol={onSymbol} />}
 
       <section className="bf-card asb-why">
         <header>

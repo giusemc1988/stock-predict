@@ -16,6 +16,8 @@ assert.equal(parseRun('làm mới ảnh chụp máy bay')?.id, 'iris-snapshot')
 assert.equal(parseRun('build app Android')?.id, 'android')
 assert.equal(parseRun('run the Kronos test')?.id, 'kronos')
 assert.equal(parseRun('sao lưu dữ liệu')?.id, 'backup')
+assert.equal(parseRun('chạy xưởng ý tưởng')?.id, 'ideas')
+assert.deepEqual(WORKFLOWS.find((w) => w.id === 'ideas')?.inputs, { mode: 'full' })
 // no verb, or nothing it knows: not a run
 assert.equal(parseRun('Nova thế nào?'), null)
 assert.equal(parseRun('chạy đi'), null)
