@@ -16,6 +16,7 @@ import { kronosPct5, type KronosForecast } from '../lib/kronosView'
 import { leadsReport, parseLeads } from '../lib/shadowLeads'
 import type { JournalEntry } from '../lib/journal'
 import { dayKey, emptyPractice, kindOf, nextBaseline, parsePractice, PENNY_MIN_PRICE, PENNY_PRICE, sessionEnd, type PracticeState } from '../lib/practice'
+import { parseScannerFile, SCANNER_URL } from '../lib/scannerList'
 import { cryptoMovers, scanCycle, scanMarkets, withOpenMarkets, type Mover, type ScanMarket } from '../lib/practiceScan'
 
 /** Buy-and-hold yardstick for the scoreboard. */
@@ -71,6 +72,13 @@ async function yahooMovers(top = 10, minPrice = 5): Promise<ScanMarket[]> {
   for (const q of gainers.filter((g) => (g.regularMarketPrice ?? 0) >= minPrice).slice(0, top)) out.push({ symbol: q.symbol, asset: 'stock', source: 'gainer', marketCap: q.marketCap ?? null })
   for (const q of actives.slice(0, top)) if (!out.some((m) => m.symbol === q.symbol)) out.push({ symbol: q.symbol, asset: 'stock', source: 'active', marketCap: q.marketCap ?? null })
   return out
+}
+
+/** The TradingView candidate list (GitHub Actions writes it every 15 minutes); null when missing or stale. */
+async function tradingviewMovers(now: number): Promise<Mover[] | null> {
+  const res = await fetch(`${SCANNER_URL}?t=${Math.floor(now / 60_000)}`, { headers: UA })
+  if (!res.ok) return null
+  return parseScannerFile(await res.json(), now)
 }
 
 async function coingeckoMovers(top = 8): Promise<Mover[]> {
@@ -261,7 +269,7 @@ export async function practiceCycle(env: WorkerEnv): Promise<{ state: PracticeSt
   const now = Date.now()
   const markets: ScanMarket[] = scanMarkets(
     INSTRUMENTS,
-    rules.practiceMovers ? (await yahooMovers(10, rules.practicePenny ? PENNY_MIN_PRICE : PENNY_PRICE).catch(() => [])).map((m) => ({ symbol: m.symbol, source: m.source as Mover['source'], marketCap: m.marketCap ?? null })) : [],
+    rules.practiceMovers ? (await tradingviewMovers(now).catch(() => null)) ?? (await yahooMovers(10, rules.practicePenny ? PENNY_MIN_PRICE : PENNY_PRICE).catch(() => [])).map((m) => ({ symbol: m.symbol, source: m.source as Mover['source'], marketCap: m.marketCap ?? null })) : [],
     rules.practiceCryptoMovers ? await coingeckoMovers().catch(() => []) : [],
   )
 
