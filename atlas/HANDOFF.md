@@ -185,3 +185,16 @@ Hard rules: never change trading logic, thresholds, skills or the AI brain witho
   - Anything that changes live Atlas or the deployed Worker needs his OK first.
   - Heavy work runs in the cloud session, because local runs flood his PC with console windows.
 - **Goal:** a Vietnamese summary before the Monday 09:30 ET open: which edges are real, and what Atlas should shadow or switch on.
+
+## 13. Round 4: news lab, edge sweep, Alpaca intraday (02/11, cloud thread "Find real Atlas edges before Monday open")
+- **Merged:** #221 news lab (`replay-news.yml`, public/replay-news.json), #222 edge sweep (`replay-edges.yml`, public/replay-edges.json, `npm run replay:edges`). Both lab only.
+- **Summary for Chanh (Vietnamese):** https://claude.ai/artifact/15kZdq3H9yLtjtPcGATGft
+- **Trial count:** the Deflated Sharpe now counts every trial of every round (`TRIAL_LEDGER` in src/lib/replayEdges.ts, 398 = 340 filter rules + 4 + 14 + 14 + 14 news + 10 edges + 2 portfolios). Add new rounds to the ledger. The edge sweep computes DSR on daily return streams (per-trade Sharpes of different holding periods are not one unit).
+- **Results, nothing passed:**
+  - Alpaca 5m from 2018 (run 41375695627): ORB +0.05%/trade at 1x but −0.03% at 2x. Dead.
+  - News (Alpaca timestamps only, 461k items from 2018-01): almost every name has news every week, so the "no news" buckets have 7-83 trades. The test is underpowered for these large names. Post-hoc: big drops (≤−4%) WITH news bounce (+0.56%/trade over random, p<0.01), opposite to Chan. Hypothesis only.
+  - Edge sweep (2007-2026, exam from 2020-03-20): FOMC, turn of month, OPEX, VIX/VIX3M, HYG, PUT, BXM all fail. Pairs: excess +0.38%, p=0.015, DSR 0.01. Overnight winners (buy the close of a +3%/2x-volume day, sell the next open): +0.37%/trade, p<0.01, sleeve Sharpe 1.4, DSR 0.39. Without 14 high-vol names (`HIGH_VOL`): +0.06%, negative at 2x. The daily version decides on the close (slight look-ahead).
+  - Risk-parity portfolio of all sleeves + L1: exam Sharpe 1.39 vs SPY 1.13, maxDD −4.6%, DSR 0.38.
+- **Insider (EDGAR):** coded, not run. SEC needs a contact in the User-Agent; the workflow reads repo variable `SEC_USER_AGENT`. Needs Chanh's OK to use his email.
+- **Recommendation given:** no live change. Keep L1-L3. Proposed L4 shadow "overnight winners" decided at 15:50 ET (record only), with the high-vol names reported separately. Stop new intraday rounds.
+- **Standing rule (02/11):** Chanh: merge PRs yourself, including live Atlas/Worker ones, once `npm test` + `npm run build` pass and the deploy is verified, then report.
