@@ -2,7 +2,7 @@
  * Version and "What's new". Bump APP_VERSION and add an entry to the top of RELEASES
  * with each update. The banner shows once per version, then stays dismissed.
  */
-export const APP_VERSION = '1.95.0'
+export const APP_VERSION = '1.95.1'
 
 export interface Release {
   version: string
@@ -13,6 +13,16 @@ export interface Release {
 }
 
 export const RELEASES: Release[] = [
+  {
+    version: '1.95.1',
+    date: '2026-11-01',
+    changes: [
+      'Atlas daily replay lab, round 2: five follow-ups on the one idea that beat its random-entry control (short-term reversal). E1 trades it only when the VIX is high (above its 1-year median, or 25+). E2 hedges each trade with SPY over the same dates. E3 tests ETF time-series momentum on 23 ETFs against SPY and 60/40. E4 sizes trades by SPY volatility. E5 tests adding to winning or losing positions. All use next-open fills, 1x and 2x costs, the same book/exam split, and a luck check that counts all 14 variants tried. Results in the new round2 section of replay-daily.json.',
+    ],
+    changesVi: [
+      'Phòng lab replay theo ngày của Atlas, vòng 2: năm thử nghiệm tiếp theo cho ý tưởng duy nhất thắng nhóm đối chứng ngẫu nhiên (đảo chiều ngắn hạn). E1 chỉ vào lệnh khi VIX cao (trên trung vị 1 năm, hoặc từ 25). E2 phòng hộ mỗi lệnh bằng SPY trong cùng khoảng ngày. E3 thử động lượng chuỗi thời gian trên 23 ETF so với SPY và 60/40. E4 chỉnh cỡ lệnh theo biến động của SPY. E5 thử mua thêm khi lệnh đang lãi hoặc đang lỗ. Tất cả vào lệnh ở giá mở cửa kế tiếp, phí 1x và 2x, cùng cách chia book/exam, và bài kiểm tra "đúng do may" tính cả 14 biến thể đã thử. Kết quả nằm ở phần round2 của replay-daily.json.',
+    ],
+  },
   {
     version: '1.95.0',
     date: '2026-11-01',

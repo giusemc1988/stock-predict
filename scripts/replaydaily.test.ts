@@ -1,5 +1,7 @@
 import assert from 'node:assert/strict'
 import type { Candle } from '../src/types'
+import { dayKey } from '../src/lib/practice'
+import { addBar, boundaryPx, gateSignals, legStream, monthEnds, perf, portfolioMonthly, realizedVol, spyLeg, tsmomOn, tsmomWeights, unitTrade, vixDays, vixGate, volScale } from '../src/lib/replayRound2'
 import { buyHold, controlDaily, d1Reversal, d2High52, d3Rsi2, d4GapDrift, evalDaily, runDaily, scaleCosts, simulateDaily, type DailyTrade, type Series } from '../src/lib/replayDaily'
 
 const t0 = Date.UTC(2020, 0, 2, 15)
@@ -126,5 +128,109 @@ const plan = { i: 0, hold: 3, stopDist: null, targetDist: null }
   assert.ok(res.examAvgByCost.x1 > 0 && res.exam.n > 0 && Object.keys(res.byYear).length === 1)
   const bh = buyHold([bar(0, 100, 100, 100, 100), bar(1, 100, 100, 100, 100), bar(2, 100, 120, 100, 110)], '2020-01-03', null)!
   assert.equal(bh.retPct, 10)
+}
+// ---- round 2 ----
+
+// E1 VIX gate: a day's flag uses that day and earlier only (changing a later close changes nothing before it)
+{
+  const mk = (last: number) => Array.from({ length: 300 }, (_, k) => bar(k, 20, 20, 20, k === 299 ? last : 10 + (k % 30)))
+  const a = vixDays(mk(15))
+  const b = vixDays(mk(90))
+  const days = [...a.keys()].sort()
+  for (let k = 0; k < 299; k++) assert.deepEqual(a.get(days[k]), b.get(days[k]), 'a future close never moves an earlier day')
+  assert.equal(Number.isNaN(a.get(days[250])!.med), true, 'no median before 252 closes')
+  assert.equal(a.get(days[299])!.med, 25, 'median of the last 252 closes, today included')
+  assert.equal(vixGate(a, 'A')(days[299]), false, 'close 15 is under the median 25')
+  assert.equal(vixGate(b, 'A')(days[299]), true, 'close 90 is over it')
+  assert.equal(vixGate(b, 'B')(days[299]), true, 'close 90 >= 25')
+  assert.equal(vixGate(a, 'B')(days[299]), false, 'close 15 < 25')
+  assert.equal(vixGate(a, 'A')('1999-01-01'), false, 'a missing day is closed')
+  const u: Series[] = [{ symbol: 'G', bars: Array.from({ length: 4 }, (_, k) => flat(k)) }]
+  const sig = (i: number) => ({ sym: 0, i, hold: 1, stopDist: null, targetDist: null })
+  const keep = dayKey(u[0].bars[1].time * 1000)
+  assert.deepEqual(gateSignals(u, [sig(0), sig(1), sig(2)], (d) => d === keep).map((x) => x.i), [1])
+}
+
+// E2 neutral math: trade minus a short SPY hedge from the same entry open to the same exit close, the hedge paying costs too
+{
+  const spy = [bar(0, 100, 100, 100, 100), bar(1, 100, 101, 99, 100), bar(2, 100, 101, 99, 105), bar(3, 105, 111, 105, 110)]
+  const stock = [flat(0), bar(1, 50, 50, 50, 50), bar(2, 50, 50, 50, 50), bar(3, 50, 60, 50, 60)]
+  const t = simulateDaily(stock, { ...plan, hold: 3 }, null)!
+  assert.equal(t.exitAt, stock[3].time * 1000)
+  assert.equal(t.exitBar, 3)
+  const leg = spyLeg(spy)
+  assert.ok(Math.abs(leg(t, null) - 10) < 1e-9, 'SPY open day 1 (100) to close day 3 (110) = 10%')
+  assert.ok(Math.abs(t.retPct - leg(t, null) - 10) < 1e-9, 'stock +20% minus SPY +10% = +10% excess')
+  const c = leg(t, costs)
+  assert.ok(c > 10.05 && c < 10.2, 'the hedge pays the round trip costs too, so the leg is bigger')
+  assert.equal(leg({ ...t, exitAt: 0 }, null), 0, 'a date SPY lacks gives no leg')
+  const u: Series[] = [{ symbol: 'C', bars: Array.from({ length: 300 }, (_, k) => bar(k, 100 * 1.01 ** k, 100 * 1.01 ** k, 100 * 1.01 ** k, 100 * 1.01 ** k)) }]
+  const sigs = Array.from({ length: 10 }, (_, k) => ({ sym: 0, i: 50 + k * 10, hold: 3, stopDist: null, targetDist: null }))
+  const actual = runDaily(u, sigs, null)
+  const none = controlDaily(u, sigs, actual, '2020-04-01', null, 3, 7, { allow: () => false })
+  assert.deepEqual(none.count, [0, 0, 0], 'a gate that is always closed leaves no days to draw')
+  const raw = controlDaily(u, sigs, actual, '2020-04-01', null, 3, 7)
+  const adj = controlDaily(u, sigs, actual, '2020-04-01', null, 3, 7, { adj: () => 1 })
+  assert.ok(Math.abs(raw.exam1[0] - adj.exam1[0] - 1) < 1e-9 && Math.abs(raw.book1[0] - adj.book1[0] - 1) < 1e-9, 'the control subtracts the same leg')
+}
+
+// E3 TSMOM signal: 12-1 month, the last month is skipped; weights and rebalance costs
+{
+  const ends = Array.from({ length: 20 }, (_, k) => k)
+  const rising = Array.from({ length: 20 }, (_, k) => 100 + k)
+  assert.equal(tsmomOn(rising, ends, 13), true)
+  assert.equal(tsmomOn(rising.map((x, k) => (k === 13 ? 1 : x)), ends, 13), true, 'a crash in the skipped month does not turn the signal off')
+  assert.equal(tsmomOn(rising.map((x, k) => (k === 12 ? 90 : x)), ends, 13), false, 'month-end k-1 below month-end k-12 turns it off')
+  assert.equal(tsmomOn(rising, ends, 11), false, 'needs 12 months of history')
+  assert.deepEqual(monthEnds(['2020-01-30', '2020-01-31', '2020-02-03', '2020-02-28', '2020-03-02']), [1, 3])
+  const up = Array.from({ length: 20 }, (_, k) => 100 + k)
+  const dn = Array.from({ length: 20 }, (_, k) => 200 - k)
+  const gone = Array.from({ length: 20 }, (_, k) => (k < 10 ? NaN : 100 + k))
+  assert.deepEqual(tsmomWeights([up, dn, gone], ends, 'eq')[0], [0.5, 0, 0], 'equal weight over the 2 ETFs that existed; the falling one is cash')
+  const jitter = Array.from({ length: 20 }, (_, k) => 100 + k + (k % 2) * 3)
+  const iv = tsmomWeights([up, jitter, dn], ends, 'ivol', 5)[0]
+  assert.ok(iv[0] > iv[1] && iv[1] > 0 && iv[2] === 0 && iv[0] + iv[1] < 1, 'inverse vol: calmer ETF weighs more, the falling one is cash')
+  const r = portfolioMonthly([[100, 110, 121]], [[1], [1]], 0.001)
+  assert.ok(Math.abs(r[0] - 0.099) < 1e-12 && Math.abs(r[1] - 0.1) < 1e-12, 'costs only on the first buy; no turnover after')
+  const px = boundaryPx([Array.from({ length: 16 }, (_, k) => k)], [Array.from({ length: 16 }, (_, k) => 100 + k)], Array.from({ length: 14 }, (_, k) => k))
+  assert.deepEqual(px[0], [13, 14, 115], 'fills at the open after each month-end signal, last column the final close')
+  const pf = perf([0.1, -0.5, 0.1], [2020, 2020, 2021], 12)
+  assert.ok(Math.abs(pf.maxDD + 50) < 1e-9 && Math.abs(pf.worstYear + 45) < 1e-9)
+}
+
+// E4 sizing: trailing vol uses closes up to today only; the multiplier is capped at 2x
+{
+  const c = Array.from({ length: 40 }, (_, k) => 100 + Math.sin(k) * 3)
+  const a = realizedVol(c)
+  const b = realizedVol(c.map((x, k) => (k === 39 ? 500 : x)))
+  for (let k = 0; k < 39; k++) assert.equal(Number.isNaN(a[k]) ? -1 : a[k], Number.isNaN(b[k]) ? -1 : b[k])
+  assert.ok(Number.isNaN(a[19]) && Number.isFinite(a[20]))
+  assert.equal(volScale(0.05, 0.2), 2, 'cap 2x')
+  assert.equal(volScale(0.4, 0.2), 0.5)
+  assert.equal(volScale(NaN, 0.2), 1)
+  const bars = [bar(0, 100, 100, 100, 100), bar(1, 100, 102, 100, 102), bar(2, 102, 104, 102, 104.04)]
+  const path = legStream(bars, 1, 100, 2, 104.04, 0.0404 - 0.0002)
+  assert.equal(path.length, 2)
+  assert.ok(Math.abs((1 + path[0][1]) * (1 + path[1][1]) - 1 - 0.0402) < 1e-12, 'daily returns compound to the net trade return')
+}
+
+// E5 unit accounting: pyramid adds one unit at the next open after a close 1 ATR up, down after 1 ATR down
+{
+  const bars = [flat(0), bar(1, 100, 104, 100, 103), bar(2, 104, 106, 104, 105), bar(3, 105, 107, 105, 106)]
+  const t = simulateDaily(bars, { ...plan, hold: 3 }, null)!
+  assert.equal(addBar(bars, t, 2, 'pyramid'), 2, 'close 103 is 3 above the 100 entry: buy at the day-2 open')
+  assert.equal(addBar(bars, t, 2, 'down'), -1, 'never 1 ATR down')
+  const u = unitTrade(bars, t, 2, null)
+  assert.ok(Math.abs(u.r1 - 6) < 1e-9 && Math.abs(u.r2 - (106 / 104 - 1) * 100) < 1e-9 && u.cap === 2 && Math.abs(u.pnl - u.r1 - u.r2) < 1e-12)
+  assert.deepEqual([unitTrade(bars, t, -1, null).cap, unitTrade(bars, t, -1, null).r2], [1, 0])
+  const dip = [flat(0), bar(1, 100, 100, 96, 97), bar(2, 97, 98, 96, 97), bar(3, 97, 99, 97, 98)]
+  const d = simulateDaily(dip, { ...plan, hold: 3 }, null)!
+  assert.equal(addBar(dip, d, 2, 'down'), 2, 'average down after a close 3 under the entry')
+  assert.equal(addBar(dip, d, 2, 'pyramid'), -1)
+  const rb = [bar(0, 100, 100, 100, 100), bar(1, 100, 100, 100, 100), bar(2, 100, 100, 100, 100), bar(3, 100, 100, 100, 100), bar(4, 100, 100, 100, 100), bar(5, 100, 106, 100, 105), bar(6, 107, 108, 106, 107), flat(7)]
+  const rule = simulateDaily(rb, { i: 3, hold: 10, stopDist: null, targetDist: null, sma5Exit: true }, null)!
+  assert.equal(rule.exitBar, 6)
+  assert.equal(addBar(rb, rule, 0, 'pyramid'), 5, 'the add comes at least one bar before a rule exit that fills at an open')
+  assert.equal(addBar(rb, rule, 5, 'pyramid'), -1, 'the +5 close on day 5 is too late: the add would land on the exit open')
 }
 console.log('replaydaily ok')
