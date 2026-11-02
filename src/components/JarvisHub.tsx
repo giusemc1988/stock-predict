@@ -364,7 +364,16 @@ export function JarvisHub(p: HubProps & { flipAuto: boolean; council: boolean })
   const voteText = (v: Vote) => G(v === 'yes' ? 'voteYes' : v === 'no' ? 'voteNo' : 'voteNone')
 
   const think = (c: CardModel, i: number) => {
-    const lines = [vi ? c.p.what.vi : c.p.what.en, ...c.facts.map((f) => `${L(f.label)}: ${f.value}`), `${L(c.ring.cap)}: ${c.ring.label}`]
+    // the Atlas card already shows its account, BUY calls, open trades and ring in tiles (Chanh: no repeats), so its thought says what's new instead
+    const lines =
+      c.p.id === 'atlas'
+        ? [
+            p.picks.length ? G('buyCallsNow', { n: p.picks.length }) : '',
+            opusPicks.length ? `${G('duelOpus')}: ${opusPicks.slice(0, 3).map((x) => x.symbol).join(', ')}${opusPicks.length > 3 ? ` +${opusPicks.length - 3}` : ''}` : '',
+            aLearn.lead ? `${L2(aLearn.lead.short)}: ${aLearn.lead.n}/${aLearn.lead.goal}` : '',
+            G('kronosGraded', { n: graded }),
+          ].filter(Boolean)
+        : [vi ? c.p.what.vi : c.p.what.en, ...c.facts.map((f) => `${L(f.label)}: ${f.value}`), `${L(c.ring.cap)}: ${c.ring.label}`]
     return lines[(tick + i) % lines.length]
   }
   const say = [`${hello}.`, G('projectsReady', { n: working, t: cards.length }), p.picks.length ? G('buyCallsNow', { n: p.picks.length }) : G('noBuyNow'), homeUp == null ? '' : homeUp ? G('pcOn') : G('pcOff')].filter(Boolean)
