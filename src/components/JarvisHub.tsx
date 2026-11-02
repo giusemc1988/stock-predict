@@ -81,6 +81,8 @@ const GX = {
   opusToday: { en: 'Opus picks from the {d} close, hold {h} days', vi: 'Opus chọn từ phiên {d}, giữ {h} ngày' },
   bookToday: { en: "Atlas's BUY calls now", vi: 'Lệnh MUA của Atlas lúc này' },
   duelN: { en: '{n} graded', vi: '{n} đã chấm' },
+  reviewIn: { en: 'Verdict {d} in', vi: 'Chấm điểm {d} sau' },
+  daysN: { en: '{n} days', vi: '{n} ngày' },
   nextBuy: { en: 'Next step: {n} BUY calls are ready, check them on the Trading desk', vi: 'Việc cần làm: có {n} lệnh MUA, xem ở Trading desk' },
   nextWait: { en: 'Next step: nothing to do, Atlas learns until {d} ({n} days left)', vi: 'Việc cần làm: chưa cần làm gì, Atlas học tới {d} (còn {n} ngày)' },
   duelTitle: { en: 'Win rate: book vs Opus', vi: 'Tỉ lệ thắng: Sách vở vs Opus' },
@@ -369,10 +371,8 @@ export function JarvisHub(p: HubProps & { flipAuto: boolean; council: boolean })
     // the Atlas card already shows its account, BUY calls, open trades and ring in tiles (Chanh: no repeats), so its thought says what's new instead
     const lines =
       c.p.id === 'atlas'
-        ? [
-            // the one next step, so a glance says what to do (everything else is already in the tiles and boxes)
-            p.picks.length ? G('nextBuy', { n: p.picks.length }) : G('nextWait', { d: `${REVIEW_DAY.slice(8, 10)}/${REVIEW_DAY.slice(5, 7)}`, n: aLearn.daysLeft }),
-          ]
+        ? // the account lives in the thought (Chanh 02/11); the tiles carry the rest
+          c.facts.slice(0, 1).map((f) => `${L(f.label)}: ${f.value}`)
         : [vi ? c.p.what.vi : c.p.what.en, ...c.facts.map((f) => `${L(f.label)}: ${f.value}`), `${L(c.ring.cap)}: ${c.ring.label}`]
     return lines[(tick + i) % lines.length]
   }
@@ -575,14 +575,14 @@ export function JarvisHub(p: HubProps & { flipAuto: boolean; council: boolean })
                         </div>
                         <div className="ax-body">
                           <div className="ax-stats">
-                            {c.facts.slice(0, 1).map((f) => (
-                              <div key={f.label} className="ax-stat hg-inset">
-                                <small>{L(f.label)}</small>
-                                <b className={`mono ${f.tone ?? ''}`}>
-                                  <CountUp text={f.value} />
-                                </b>
-                              </div>
-                            ))}
+                            <div className="ax-stat hg-inset" title={G(p.picks.length ? 'nextBuy' : 'nextWait', { n: p.picks.length || aLearn.daysLeft, d: `${REVIEW_DAY.slice(8, 10)}/${REVIEW_DAY.slice(5, 7)}` })}>
+                              {/* the next step: when the shadow tests are graded, and how far along the two weeks are */}
+                              <small>{G('reviewIn', { d: `${REVIEW_DAY.slice(8, 10)}/${REVIEW_DAY.slice(5, 7)}` })}</small>
+                              <b className="mono">{G('daysN', { n: aLearn.daysLeft })}</b>
+                              <em className="ax-bar">
+                                <i className="acc" style={{ width: `${Math.round(((14 - Math.min(14, aLearn.daysLeft)) / 14) * 100)}%` }} />
+                              </em>
+                            </div>
                             <div className="ax-stat hg-inset">
                               <small>{L(c.ring.cap)}</small>
                               <b className="mono">{c.ring.label}</b>
