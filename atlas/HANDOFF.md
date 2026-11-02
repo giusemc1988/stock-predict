@@ -198,3 +198,12 @@ Hard rules: never change trading logic, thresholds, skills or the AI brain witho
 - **Insider (EDGAR):** run 2026-11-02 from a Claude session with Chanh's OK (his contact passed only as the env var `SEC_USER_AGENT`, never committed). 81 quarters, 221 trades. Exam: 63 trades, +6.0% per 60-day hold vs +2.7% for random entry (excess +3.3%), p=0.07, DSR 0.03. Not passed. As a sleeve: exam Sharpe 0.70 vs SPY 1.13. The other ideas reproduced the same verdicts.
 - **Recommendation given:** no live change. Keep L1-L3. Proposed L4 shadow "overnight winners" decided at 15:50 ET (record only), with the high-vol names reported separately. Stop new intraday rounds.
 - **Standing rule (02/11):** Chanh: merge PRs yourself, including live Atlas/Worker ones, once `npm test` + `npm run build` pass and the deploy is verified, then report.
+
+## 14. Round 5: momentum lab (02/11, cloud thread "Find 5 changes to improve Atlas", v1.98.1)
+- **What:** `npm run replay:momentum` or the manual Action "Atlas momentum lab" writes public/replay-momentum.json. 12-1 month cross-sectional momentum, monthly, long only, on 96 stocks (survivor-biased) and 41 ETFs, with and without SPY > 200-day average. Control = 200 random-pick draws on the same dates/costs. Four trials added to `TRIAL_LEDGER` (`momentumRound5`), total 402. A stock idea only counts when its ETF twin passes.
+- **Result (exam from 2020-08, 75 months): nothing passed.**
+  - M1 stocks top-10: Sharpe 1.32 vs SPY 1.07, DSR 0.99, would pass alone, but the survivor-biased list explains much of it (without the 14 high-vol names Sharpe 0.97, DSR 0.90) and its ETF twin failed.
+  - M3 ETFs top-5: Sharpe 1.15, maxDD −17% vs SPY −23%, beats random picks (p<0.01), DSR 0.94, a near miss (rule needs 0.95). The BOOK (2008-2020) Sharpe was only 0.32 (CAGR 4%), so the result lives in the exam years. Not tuned afterwards.
+  - Trend filter (M2, M4) made both worse.
+- **Also checked (same thread):** the proposed "cost gate" is useless: median planned target 3.2% vs round-trip cost ~0.1%; gross P&L is −$3, so fees are only the toll on a system without edge. Insider cluster buys (PR #226) failed.
+- **Not started:** vol-managed sizing + Kelly fix (live logic, needs Chanh's OK), meta-labeling (lowest expected value).

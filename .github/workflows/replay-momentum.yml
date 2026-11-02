@@ -1,0 +1,38 @@
+name: Atlas momentum lab
+
+# Manual only (Chanh: no scheduled jobs). Round 5: 12-1 month cross-sectional momentum, monthly, on the shared
+# stock list and on ETFs, each against a 200-draw random-pick control, with the trend filter as a variant.
+# Free data (Yahoo). Commits public/replay-momentum.json. Paper only; never touches live trading.
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: replay-momentum
+  cancel-in-progress: false
+
+jobs:
+  replay:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run replay:momentum
+        env:
+          NODE_OPTIONS: --max-old-space-size=6144
+      - name: Commit result
+        run: |
+          git config user.email "replay@stock-predict"
+          git config user.name "Atlas Replay Lab"
+          git add public/replay-momentum.json
+          git diff --cached --quiet && exit 0
+          git commit -m "Atlas momentum lab $(date -u +%Y-%m-%dT%H:%MZ)"
+          for i in 1 2 3; do git pull --rebase origin main && git push origin HEAD:main && exit 0; sleep 5; done
+          exit 1
