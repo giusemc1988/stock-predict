@@ -1,6 +1,6 @@
 {
- "generated": "2026-11-02T09:13:16.309Z",
- "seconds": 63,
+ "generated": "2026-11-02T11:42:11.280Z",
+ "seconds": 26,
  "run": 1,
  "periods": {
   "discovery": [
@@ -652,7 +652,7 @@
    "en": "Buy at the next open when 5-day change below -4.5% and distance to the 200-day average above +15% and SPY's change today below +0.06%; hold 20 days."
   }
  ],
- "mode": "full",
+ "mode": "signals",
  "today": {
   "day": "2026-10-30",
   "signals": [
