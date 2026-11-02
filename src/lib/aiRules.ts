@@ -115,6 +115,7 @@ export interface AiRules {
   dashMotion: boolean // dashboard cards and motion: project cards on the Hub, stat cards with change chips; off = the previous look
   briefAi: boolean // a free AI helper writes the Neo Brief from the page's real data (once per scan)
   practiceCryptoMovers: boolean // practice also scans today's top crypto gainers and most-traded coins
+  shadowLeads: boolean // record-only shadow runs of the three replay-lab leads (D1+VIX gate, hold winners overnight, ETF trend core); never trades
   adjustableTimeRange: boolean // custom time range input on the Trading desk chart (beyond the preset 1D/1W/1M/1Y/All buttons)
   localModelName: string // local LLM name: llama3.2, gemma4:e2b, qwen3-coder:30b (default: llama3.2)
   localExplain: boolean // explain your trades using llama3.2 (browser only, no API)
@@ -253,6 +254,7 @@ export const DEFAULT_AI_RULES: AiRules = {
   webFlash: true,
   briefAi: true,
   practiceCryptoMovers: true,
+  shadowLeads: true,
   adjustableTimeRange: true,
   localModelName: 'llama3.2',
   localExplain: false,
@@ -332,6 +334,7 @@ export const RULE_FIELDS: RuleField[] = [
   { group: 'modules', key: 'practiceAutoPick', en: 'Practice picks its own stocks (best volume, gain and Trade Score)', vi: 'Luyện tập tự chọn mã (khối lượng, mức tăng và Điểm GD tốt nhất)' },
   { group: 'modules', key: 'practiceMovers', en: "Practice also scans today's top gainers and most-traded stocks", vi: 'Luyện tập quét thêm mã tăng mạnh và giao dịch nhiều nhất hôm nay' },
   { group: 'modules', key: 'practiceCryptoMovers', en: "Practice also scans today's top crypto gainers and most-traded coins", vi: 'Luyện tập quét thêm crypto tăng mạnh và giao dịch nhiều nhất hôm nay' },
+  { group: 'modules', key: 'shadowLeads', en: 'Shadow-run the three replay-lab leads (record only, never places or changes a trade)', vi: 'Chạy bóng ba hướng từ phòng lab replay (chỉ ghi lại, không bao giờ đặt hay đổi lệnh)' },
   { group: 'modules', key: 'practiceServer', en: 'Practice 24/7 on the server (keeps trading while the app is closed)', vi: 'Luyện tập 24/7 trên máy chủ (vẫn giao dịch khi đóng ứng dụng)' },
   { group: 'modules', key: 'practiceWatchlist', en: 'Show what practice is watching and trading at the top of the watchlist', vi: 'Hiện các mã luyện tập đang theo dõi và giao dịch ở đầu danh sách' },
   { group: 'modules', key: 'practiceFollow', en: 'Chart follows each new practice trade', vi: 'Biểu đồ tự chuyển theo mỗi lệnh luyện tập mới' },

@@ -4,6 +4,7 @@
  */
 import type { PracticeState } from '../../src/lib/practice'
 import { shadowReport } from '../../src/lib/shadowFilters'
+import { leadsReport, parseLeads } from '../../src/lib/shadowLeads'
 
 interface Env {
   PRACTICE: KVNamespace
@@ -101,6 +102,8 @@ export default {
           kelly: kellyStatus,
           // proposed rules recorded on every trade but never applied (src/lib/shadowFilters.ts)
           shadow: shadowReport(trades),
+          // the three replay-lab leads run record-only (src/lib/shadowLeads.ts): lead results, and `last` = how the latest run went
+          shadowLeads: { ...leadsReport(parseLeads(await env.PRACTICE.get('shadow:leads', 'json').catch(() => null))), last: await env.PRACTICE.get('shadowLast', 'json').catch(() => null) },
           diag: { ...diagnostics(state), cronLast: await env.PRACTICE.get('cronLast', 'json').catch(() => null) },
         })
       } catch (e) {

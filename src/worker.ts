@@ -6,6 +6,8 @@
  */
 import { askBrain, brainStatus, cleanAsk, type BrainEnv } from './lib/brainServer'
 import { practiceCycle, type WorkerEnv as PracticeEnv } from './worker/practiceCycle'
+import { shadowGuarded } from './worker/shadowLeads'
+import { DEFAULT_AI_RULES } from './lib/aiRules'
 import { cleanKey, isSlot, keySources, sameOrigin, storeKey, testProvider, withSavedKeys, type KeyStore } from './lib/brainKeys'
 import type { PracticeState } from './lib/practice'
 import { upstreamAsset } from './lib/webFlash'
@@ -885,6 +887,8 @@ export default {
         console.error('Practice cycle error:', e)
         await mark({ phase: 'done', ok: false, ms: Date.now() - now.getTime(), error: e instanceof Error ? `${e.message}\n${e.stack ?? ''}`.slice(0, 2000) : String(e) })
       }
+      // shadow leads: record only, after the live cycle is fully done; never throws (failures land in KV `shadowLast`)
+      await shadowGuarded(env, now.getTime(), DEFAULT_AI_RULES)
     }
   },
 }
