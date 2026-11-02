@@ -81,6 +81,8 @@ const GX = {
   opusToday: { en: 'Opus picks from the {d} close, hold {h} days', vi: 'Opus chọn từ phiên {d}, giữ {h} ngày' },
   bookToday: { en: "Atlas's BUY calls now", vi: 'Lệnh MUA của Atlas lúc này' },
   duelN: { en: '{n} graded', vi: '{n} đã chấm' },
+  nextBuy: { en: 'Next step: {n} BUY calls are ready, check them on the Trading desk', vi: 'Việc cần làm: có {n} lệnh MUA, xem ở Trading desk' },
+  nextWait: { en: 'Next step: nothing to do, Atlas learns until {d} ({n} days left)', vi: 'Việc cần làm: chưa cần làm gì, Atlas học tới {d} (còn {n} ngày)' },
   duelTitle: { en: 'Win rate: book vs Opus', vi: 'Tỉ lệ thắng: Sách vở vs Opus' },
   duelCta: { en: 'Compare the signals', vi: 'Xem tín hiệu & so sánh' },
   duelOpen: { en: 'Compare: book signals vs rules Atlas invented itself', vi: 'So sánh: tín hiệu sách vở và luật Atlas tự nghĩ' },
@@ -368,11 +370,9 @@ export function JarvisHub(p: HubProps & { flipAuto: boolean; council: boolean })
     const lines =
       c.p.id === 'atlas'
         ? [
-            p.picks.length ? G('buyCallsNow', { n: p.picks.length }) : '',
-            opusPicks.length ? `${G('duelOpus')}: ${opusPicks.slice(0, 3).map((x) => x.symbol).join(', ')}${opusPicks.length > 3 ? ` +${opusPicks.length - 3}` : ''}` : '',
-            aLearn.lead ? `${L2(aLearn.lead.short)}: ${aLearn.lead.n}/${aLearn.lead.goal}` : '',
-            G('kronosGraded', { n: graded }),
-          ].filter(Boolean)
+            // the one next step, so a glance says what to do (everything else is already in the tiles and boxes)
+            p.picks.length ? G('nextBuy', { n: p.picks.length }) : G('nextWait', { d: `${REVIEW_DAY.slice(8, 10)}/${REVIEW_DAY.slice(5, 7)}`, n: aLearn.daysLeft }),
+          ]
         : [vi ? c.p.what.vi : c.p.what.en, ...c.facts.map((f) => `${L(f.label)}: ${f.value}`), `${L(c.ring.cap)}: ${c.ring.label}`]
     return lines[(tick + i) % lines.length]
   }
