@@ -1,0 +1,558 @@
+{
+ "generated": "2026-11-02T08:49:55.045Z",
+ "seconds": 28,
+ "examFrom": "2020-03-20",
+ "universe": {
+  "stocks": 94,
+  "failed": [],
+  "hardToBorrow": [
+   "TSLA",
+   "PLTR",
+   "COIN",
+   "HOOD",
+   "SOFI",
+   "RIVN",
+   "LCID",
+   "NIO",
+   "PLUG",
+   "MARA",
+   "RIOT",
+   "SMCI",
+   "ARM",
+   "MRNA"
+  ]
+ },
+ "assumptions": {
+  "borrowEasyPerYear": 0.01,
+  "borrowHardPerYear": 0.08,
+  "stopsAreHard": true,
+  "kronos": "not testable: no history of Kronos forecasts"
+ },
+ "trials": {
+  "ledger": {
+   "replay15mRules": 340,
+   "replay15mStrategies": 4,
+   "dailyRounds12": 14,
+   "intradayRound3": 14,
+   "newsRound4": 14,
+   "edgesRound4": 10,
+   "ensembles": 2,
+   "momentumRound5": 4,
+   "shortRound6": 4
+  },
+  "total": 406,
+  "round6": 4
+ },
+ "pass": {
+  "en": "PASS (trade-based ideas) = at least 30 exam trades, exam average per trade above 0 at 1x AND 2x costs, exam excess over the 200-draw seeded random-date control above 0 at 1x and 2x with p <= 0.05 at both, the BOOK excess also above 0, and a Deflated Sharpe >= 0.95 of its daily return stream counting all 406 trials of every round (340 filter rules and 4 strategies of the 15m lab, 14 daily, 14 intraday, 14 news, 10 here, 2 portfolios). Fixed in advance; nothing is tuned on the exam.",
+  "vi": "QUA (ý tưởng theo lệnh) = từ 30 lệnh thi, trung bình mỗi lệnh bài thi > 0 ở phí 1x VÀ 2x, phần vượt trội bài thi so với 200 lần chọn ngày ngẫu nhiên (có seed) > 0 ở 1x và 2x với p <= 0,05 ở cả hai, phần vượt trội của BOOK cũng > 0, và Deflated Sharpe >= 0,95 của chuỗi lợi nhuận ngày tính cả 406 lần thử của mọi vòng (340 luật lọc và 4 chiến lược của lab 15 phút, 14 nến ngày, 14 trong ngày, 14 tin tức, 10 ở đây, 2 danh mục). Cố định từ trước; không chỉnh gì trên bài thi."
+ },
+ "results": [
+  {
+   "id": "S1-fade-spike",
+   "en": "Fade a spike: short the next open after a +7% day on 2x volume, hold 5 days, stop +8%",
+   "vi": "Bán khống sau cú tăng vọt: bán khống ở giá mở cửa hôm sau khi mã tăng 7% trong 1 ngày với volume gấp 2, giữ 5 ngày, cắt lỗ +8%",
+   "book": {
+    "n": 856,
+    "avg": -0.07731261653201586,
+    "ctrl": -0.2692119733386089,
+    "excess": 0.19189935680659304
+   },
+   "exam": {
+    "n": 928,
+    "winRate": 0.4224137931034483,
+    "tstat": -2.8177335291297596,
+    "avg1x": -0.7533484797753746,
+    "avg2x": -0.9352562874545237,
+    "ctrl1x": -0.9911886535503982,
+    "ctrl2x": -1.177500525658826,
+    "excess1x": 0.23784017377502364,
+    "excess2x": 0.2422442382043023,
+    "p1x": 0.2,
+    "p2x": 0.2
+   },
+   "dsr": 0,
+   "dsrTrades": 0,
+   "passed": false,
+   "stopRate": 0.34051724137931033,
+   "worstTrade1x": -30.77718442894583,
+   "avgDays": 4.089439655172414,
+   "grossAvgNoCostNoBorrow": -0.5714406720962204,
+   "hedgedAvg1x": -0.5166204585876963,
+   "byYear": {
+    "2020": {
+     "n": 178,
+     "avg1x": -3.1977000913563907
+    },
+    "2021": {
+     "n": 120,
+     "avg1x": -0.25454793899374156
+    },
+    "2022": {
+     "n": 113,
+     "avg1x": 0.14505320485792553
+    },
+    "2023": {
+     "n": 125,
+     "avg1x": -1.924768831355217
+    },
+    "2024": {
+     "n": 139,
+     "avg1x": -0.4822797588788382
+    },
+    "2025": {
+     "n": 146,
+     "avg1x": 0.9838560520758786
+    },
+    "2026": {
+     "n": 107,
+     "avg1x": 0.4507287323427748
+    }
+   },
+   "examTrades": 928
+  },
+  {
+   "id": "S2-weak-market-breakdown",
+   "en": "Weak-market break-down: SPY under its 200-day average and the name at a new 20-day closing low, short the next open, hold 10 days, stop +8%",
+   "vi": "Phá đáy khi thị trường yếu: SPY dưới trung bình 200 ngày và mã chạm đáy đóng cửa 20 ngày, bán khống ở giá mở cửa hôm sau, giữ 10 ngày, cắt lỗ +8%",
+   "book": {
+    "n": 2631,
+    "avg": -0.8993747617351592,
+    "ctrl": -0.40472865535611263,
+    "excess": -0.49464610637904655
+   },
+   "exam": {
+    "n": 1386,
+    "winRate": 0.354978354978355,
+    "tstat": -8.848283799861667,
+    "avg1x": -1.8710356659718388,
+    "avg2x": -2.0353172883140913,
+    "ctrl1x": -1.1436734943691507,
+    "ctrl2x": -1.3103223207878278,
+    "excess1x": -0.7273621716026881,
+    "excess2x": -0.7249949675262635,
+    "p1x": 1,
+    "p2x": 1
+   },
+   "dsr": 0,
+   "dsrTrades": 0,
+   "passed": false,
+   "stopRate": 0.4025974025974026,
+   "worstTrade1x": -20.817445576456336,
+   "avgDays": 7.880952380952381,
+   "grossAvgNoCostNoBorrow": -1.7067540436295816,
+   "hedgedAvg1x": -0.6651260704091431,
+   "byYear": {
+    "2020": {
+     "n": 53,
+     "avg1x": -5.94875338249551
+    },
+    "2022": {
+     "n": 915,
+     "avg1x": -0.9874697601137844
+    },
+    "2023": {
+     "n": 156,
+     "avg1x": -3.677936005024094
+    },
+    "2025": {
+     "n": 187,
+     "avg1x": -3.286989041277531
+    },
+    "2026": {
+     "n": 75,
+     "avg1x": -2.480156076772442
+    }
+   },
+   "examTrades": 1386
+  },
+  {
+   "id": "S3-12-1-losers",
+   "en": "Momentum losers: each month short the 10 worst 12-1 month returns until the next rebalance, stop +15%",
+   "vi": "Nhóm yếu nhất: mỗi tháng bán khống 10 mã có lợi nhuận 12-1 tháng thấp nhất đến kỳ đổi tháng sau, cắt lỗ +15%",
+   "book": {
+    "n": 1460,
+    "avg": -1.4702278523747032,
+    "ctrl": -1.3508615612307004,
+    "excess": -0.11936629114400277
+   },
+   "exam": {
+    "n": 780,
+    "winRate": 0.43333333333333335,
+    "tstat": -3.5491679177143,
+    "avg1x": -1.7630220767024374,
+    "avg2x": -2.0858611127349236,
+    "ctrl1x": -2.135686406907061,
+    "ctrl2x": -2.3642708525285743,
+    "excess1x": 0.37266433020462375,
+    "excess2x": 0.2784097397936507,
+    "p1x": 0.12,
+    "p2x": 0.185
+   },
+   "dsr": 0,
+   "dsrTrades": 0,
+   "passed": false,
+   "stopRate": 0.3346153846153846,
+   "worstTrade1x": -47.37825051599611,
+   "avgDays": 16.583333333333332,
+   "grossAvgNoCostNoBorrow": -1.4401830406699574,
+   "hedgedAvg1x": -0.42949692394171185,
+   "byYear": {
+    "2020": {
+     "n": 90,
+     "avg1x": -6.763134917591824
+    },
+    "2021": {
+     "n": 120,
+     "avg1x": -3.0640589271680665
+    },
+    "2022": {
+     "n": 120,
+     "avg1x": 2.8887354843823085
+    },
+    "2023": {
+     "n": 120,
+     "avg1x": -2.474224402142033
+    },
+    "2024": {
+     "n": 120,
+     "avg1x": -1.1520310820958097
+    },
+    "2025": {
+     "n": 120,
+     "avg1x": -2.020301301633955
+    },
+    "2026": {
+     "n": 90,
+     "avg1x": -0.7538827756192263
+    }
+   },
+   "examTrades": 780
+  },
+  {
+   "id": "S4-overnight-losers",
+   "en": "Overnight short of big losers: short the close of a -3% day on 2x volume, cover the next open (no stop possible overnight)",
+   "vi": "Bán khống qua đêm mã giảm mạnh: bán khống ở giá đóng cửa ngày giảm 3% với volume gấp 2, mua lại ở giá mở cửa hôm sau (qua đêm không đặt được cắt lỗ)",
+   "book": {
+    "n": 2478,
+    "avg": -0.40440880843566934,
+    "ctrl": -0.17906764782478496,
+    "excess": -0.22534116061088438
+   },
+   "exam": {
+    "n": 1574,
+    "winRate": 0.4059720457433291,
+    "tstat": -2.1347038562046023,
+    "avg1x": -0.17004322331849947,
+    "avg2x": -0.28478124247315484,
+    "ctrl1x": -0.18743800403766767,
+    "ctrl2x": -0.30215786087037594,
+    "excess1x": 0.017394780719168196,
+    "excess2x": 0.0173766183972211,
+    "p1x": 0.355,
+    "p2x": 0.355
+   },
+   "dsr": 0,
+   "dsrTrades": 0,
+   "passed": false,
+   "stopRate": 0,
+   "worstTrade1x": -24.55364023796942,
+   "avgDays": 1,
+   "grossAvgNoCostNoBorrow": -0.0553052041638479,
+   "hedgedAvg1x": -0.18960772284779565,
+   "byYear": {
+    "2020": {
+     "n": 135,
+     "avg1x": -0.4391348236595467
+    },
+    "2021": {
+     "n": 228,
+     "avg1x": -0.5109459906566777
+    },
+    "2022": {
+     "n": 243,
+     "avg1x": 0.10102942446335399
+    },
+    "2023": {
+     "n": 234,
+     "avg1x": -0.23722233938387566
+    },
+    "2024": {
+     "n": 260,
+     "avg1x": -0.08239784728051334
+    },
+    "2025": {
+     "n": 269,
+     "avg1x": 0.11409489561382624
+    },
+    "2026": {
+     "n": 205,
+     "avg1x": -0.34232856485614993
+    }
+   },
+   "examTrades": 1574
+  }
+ ],
+ "robustness": {
+  "withoutHighVol": [
+   {
+    "id": "S1-fade-spike-exHighVol",
+    "en": "Fade a spike: short the next open after a +7% day on 2x volume, hold 5 days, stop +8%",
+    "vi": "Bán khống sau cú tăng vọt: bán khống ở giá mở cửa hôm sau khi mã tăng 7% trong 1 ngày với volume gấp 2, giữ 5 ngày, cắt lỗ +8%",
+    "book": {
+     "n": 560,
+     "avg": -0.740307332138082,
+     "ctrl": -0.43059289374181925,
+     "excess": -0.3097144383962627
+    },
+    "exam": {
+     "n": 511,
+     "winRate": 0.42857142857142855,
+     "tstat": -2.649212239142863,
+     "avg1x": -0.717121076049084,
+     "avg2x": -0.8323725500232381,
+     "ctrl1x": -0.7765349714959623,
+     "ctrl2x": -0.8922739853446767,
+     "excess1x": 0.05941389544687825,
+     "excess2x": 0.059901435321438656,
+     "p1x": 0.41,
+     "p2x": 0.41
+    },
+    "dsr": 0,
+    "dsrTrades": 5.551115123125783e-17,
+    "passed": false,
+    "stopRate": 0.19960861056751467,
+    "worstTrade1x": -25.359145737014472,
+    "avgDays": 4.553816046966732,
+    "grossAvgNoCostNoBorrow": -0.6018696020749369,
+    "hedgedAvg1x": -0.4534323830167231,
+    "byYear": {
+     "2020": {
+      "n": 86,
+      "avg1x": -1.7515914768632854
+     },
+     "2021": {
+      "n": 61,
+      "avg1x": -1.404136541492014
+     },
+     "2022": {
+      "n": 70,
+      "avg1x": -0.445738559829573
+     },
+     "2023": {
+      "n": 71,
+      "avg1x": -1.389788131480278
+     },
+     "2024": {
+      "n": 67,
+      "avg1x": -0.3886608289115458
+     },
+     "2025": {
+      "n": 91,
+      "avg1x": 0.3859118759741923
+     },
+     "2026": {
+      "n": 65,
+      "avg1x": -0.1440111149728406
+     }
+    },
+    "examTrades": 511
+   },
+   {
+    "id": "S2-weak-market-breakdown-exHighVol",
+    "en": "Weak-market break-down: SPY under its 200-day average and the name at a new 20-day closing low, short the next open, hold 10 days, stop +8%",
+    "vi": "Phá đáy khi thị trường yếu: SPY dưới trung bình 200 ngày và mã chạm đáy đóng cửa 20 ngày, bán khống ở giá mở cửa hôm sau, giữ 10 ngày, cắt lỗ +8%",
+    "book": {
+     "n": 2524,
+     "avg": -0.9773057465811591,
+     "ctrl": -0.40540919106755785,
+     "excess": -0.5718965555136013
+    },
+    "exam": {
+     "n": 1146,
+     "winRate": 0.3726003490401396,
+     "tstat": -9.086870717149237,
+     "avg1x": -1.8389740252121187,
+     "avg2x": -1.9704668461961068,
+     "ctrl1x": -1.144938969369553,
+     "ctrl2x": -1.2769931588697838,
+     "excess1x": -0.6940350558425656,
+     "excess2x": -0.693473687326323,
+     "p1x": 1,
+     "p2x": 1
+    },
+    "dsr": 0,
+    "dsrTrades": 0,
+    "passed": false,
+    "stopRate": 0.3481675392670157,
+    "worstTrade1x": -20.817445576456336,
+    "avgDays": 8.322862129144852,
+    "grossAvgNoCostNoBorrow": -1.7074812042281329,
+    "hedgedAvg1x": -0.5610867893424303,
+    "byYear": {
+     "2020": {
+      "n": 52,
+      "avg1x": -5.905474830327384
+     },
+     "2022": {
+      "n": 748,
+      "avg1x": -1.1270762899329876
+     },
+     "2023": {
+      "n": 130,
+      "avg1x": -3.091477320523117
+     },
+     "2025": {
+      "n": 154,
+      "avg1x": -2.7843061769167368
+     },
+     "2026": {
+      "n": 62,
+      "avg1x": -2.0427624827903736
+     }
+    },
+    "examTrades": 1146
+   },
+   {
+    "id": "S3-12-1-losers-exHighVol",
+    "en": "Momentum losers: each month short the 10 worst 12-1 month returns until the next rebalance, stop +15%",
+    "vi": "Nhóm yếu nhất: mỗi tháng bán khống 10 mã có lợi nhuận 12-1 tháng thấp nhất đến kỳ đổi tháng sau, cắt lỗ +15%",
+    "book": {
+     "n": 1460,
+     "avg": -1.4021086954563253,
+     "ctrl": -1.3358230986056716,
+     "excess": -0.06628559685065372
+    },
+    "exam": {
+     "n": 780,
+     "winRate": 0.4371794871794872,
+     "tstat": -5.190466756451838,
+     "avg1x": -1.9480159531234982,
+     "avg2x": -2.124943307167097,
+     "ctrl1x": -2.0667379606243124,
+     "ctrl2x": -2.2435327964327616,
+     "excess1x": 0.11872200750081419,
+     "excess2x": 0.11858948926566448,
+     "p1x": 0.35,
+     "p2x": 0.35
+    },
+    "dsr": 0,
+    "dsrTrades": 0,
+    "passed": false,
+    "stopRate": 0.2128205128205128,
+    "worstTrade1x": -27.487672258315644,
+    "avgDays": 18.503846153846155,
+    "grossAvgNoCostNoBorrow": -1.7710885990799041,
+    "hedgedAvg1x": -0.4941675722540988,
+    "byYear": {
+     "2020": {
+      "n": 90,
+      "avg1x": -6.099811227457592
+     },
+     "2021": {
+      "n": 120,
+      "avg1x": -3.3623208832030644
+     },
+     "2022": {
+      "n": 120,
+      "avg1x": 0.6998162522004358
+     },
+     "2023": {
+      "n": 120,
+      "avg1x": -2.787100400606379
+     },
+     "2024": {
+      "n": 120,
+      "avg1x": -0.5879359612621238
+     },
+     "2025": {
+      "n": 120,
+      "avg1x": -2.0060004999003724
+     },
+     "2026": {
+      "n": 90,
+      "avg1x": -0.05827170925071863
+     }
+    },
+    "examTrades": 780
+   },
+   {
+    "id": "S4-overnight-losers-exHighVol",
+    "en": "Overnight short of big losers: short the close of a -3% day on 2x volume, cover the next open (no stop possible overnight)",
+    "vi": "Bán khống qua đêm mã giảm mạnh: bán khống ở giá đóng cửa ngày giảm 3% với volume gấp 2, mua lại ở giá mở cửa hôm sau (qua đêm không đặt được cắt lỗ)",
+    "book": {
+     "n": 2160,
+     "avg": -0.3109415857500403,
+     "ctrl": -0.11813946137789945,
+     "excess": -0.19280212437214084
+    },
+    "exam": {
+     "n": 1270,
+     "winRate": 0.4023622047244094,
+     "tstat": -2.337327604627157,
+     "avg1x": -0.1772670508269889,
+     "avg2x": -0.27962476443289724,
+     "ctrl1x": -0.16433826023874776,
+     "ctrl2x": -0.26668557557161887,
+     "excess1x": -0.012928790588241146,
+     "excess2x": -0.012939188861278372,
+     "p1x": 0.62,
+     "p2x": 0.62
+    },
+    "dsr": 0,
+    "dsrTrades": 0,
+    "passed": false,
+    "stopRate": 0,
+    "worstTrade1x": -24.55364023796942,
+    "avgDays": 1,
+    "grossAvgNoCostNoBorrow": -0.07490933722108717,
+    "hedgedAvg1x": -0.2239334827111176,
+    "byYear": {
+     "2020": {
+      "n": 111,
+      "avg1x": -0.20662828060444002
+     },
+     "2021": {
+      "n": 185,
+      "avg1x": -0.6076718651900068
+     },
+     "2022": {
+      "n": 203,
+      "avg1x": 0.027896732221591707
+     },
+     "2023": {
+      "n": 187,
+      "avg1x": -0.3944794876812441
+     },
+     "2024": {
+      "n": 199,
+      "avg1x": -0.2582525179795482
+     },
+     "2025": {
+      "n": 217,
+      "avg1x": 0.344454917586993
+     },
+     "2026": {
+      "n": 168,
+      "avg1x": -0.2679997549170824
+     }
+    },
+    "examTrades": 1270
+   }
+  ]
+ },
+ "verdict": {
+  "en": "Nothing passed with all 406 trials counted.",
+  "vi": "Không ý tưởng nào đạt khi tính cả 406 lần thử.",
+  "lines": [
+   "S1-fade-spike: exam 928 trades, avg -0.75% (2x -0.94%), random shorts -0.99%, excess 0.24% p=0.20, hedged vs SPY -0.52%, stops hit 34.05%, DSR 0.00, fail",
+   "S2-weak-market-breakdown: exam 1386 trades, avg -1.87% (2x -2.04%), random shorts -1.14%, excess -0.73% p=1.00, hedged vs SPY -0.67%, stops hit 40.26%, DSR 0.00, fail",
+   "S3-12-1-losers: exam 780 trades, avg -1.76% (2x -2.09%), random shorts -2.14%, excess 0.37% p=0.12, hedged vs SPY -0.43%, stops hit 33.46%, DSR 0.00, fail",
+   "S4-overnight-losers: exam 1574 trades, avg -0.17% (2x -0.28%), random shorts -0.19%, excess 0.02% p=0.35, hedged vs SPY -0.19%, stops hit 0.00%, DSR 0.00, fail",
+   "S1-fade-spike-exHighVol: exam 511 trades, avg -0.72% (2x -0.83%), random shorts -0.78%, excess 0.06% p=0.41, hedged vs SPY -0.45%, stops hit 19.96%, DSR 0.00, fail",
+   "S2-weak-market-breakdown-exHighVol: exam 1146 trades, avg -1.84% (2x -1.97%), random shorts -1.14%, excess -0.69% p=1.00, hedged vs SPY -0.56%, stops hit 34.82%, DSR 0.00, fail",
+   "S3-12-1-losers-exHighVol: exam 780 trades, avg -1.95% (2x -2.12%), random shorts -2.07%, excess 0.12% p=0.35, hedged vs SPY -0.49%, stops hit 21.28%, DSR 0.00, fail",
+   "S4-overnight-losers-exHighVol: exam 1270 trades, avg -0.18% (2x -0.28%), random shorts -0.16%, excess -0.01% p=0.62, hedged vs SPY -0.22%, stops hit 0.00%, DSR 0.00, fail"
+  ]
+ }
+}

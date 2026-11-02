@@ -2,7 +2,7 @@
  * Version and "What's new". Bump APP_VERSION and add an entry to the top of RELEASES
  * with each update. The banner shows once per version, then stays dismissed.
  */
-export const APP_VERSION = '1.99.0'
+export const APP_VERSION = '1.99.1'
 
 export interface Release {
   version: string
@@ -13,6 +13,16 @@ export interface Release {
 }
 
 export const RELEASES: Release[] = [
+  {
+    version: '1.99.1',
+    date: '2026-11-02',
+    changes: [
+      'Atlas short lab (round 6, lab only): can Atlas profit by selling short? Four ideas on 94 liquid stocks since 2007: fade a +7% spike on 2x volume, break-down to a 20-day low while SPY is below its 200-day average, the 10 worst 12-1 month names each month, and an overnight short of -3% days. Every idea has a hard stop and pays a borrow fee (1% a year, 8% for the 14 high-volatility names, doubled at 2x costs). Each is compared with 200 random shorts of the same names and years, and a Deflated Sharpe counts all 406 trials. Nothing passed: every idea lost money in the 2020-2026 exam, and 33-40% of the stops were hit. Kronos "forecast down" cannot be replayed (no forecast history). Manual workflow, public/replay-short.json. It never touches live trading.',
+    ],
+    changesVi: [
+      'Phòng lab bán khống của Atlas (vòng 6, chỉ nghiên cứu): Atlas có kiếm được tiền khi bán khống không? Bốn ý tưởng trên 94 cổ phiếu thanh khoản cao từ 2007: bán khống cú tăng vọt 7% với volume gấp 2, phá đáy 20 ngày khi SPY dưới trung bình 200 ngày, 10 mã yếu nhất theo lợi nhuận 12-1 tháng mỗi tháng, và bán khống qua đêm các ngày giảm 3%. Mọi ý tưởng đều có cắt lỗ cứng và trả phí mượn cổ phiếu (1% một năm, 8% cho 14 mã biến động mạnh, gấp đôi ở phí 2x). Mỗi ý tưởng so với 200 lần bán khống ngẫu nhiên cùng mã cùng năm, và Deflated Sharpe tính cả 406 lần thử. Không ý tưởng nào đạt: cả bốn đều lỗ trong bài thi 2020-2026, và 33-40% lệnh bị cắt lỗ. Dự báo giảm của Kronos không thử lại được (không có lịch sử dự báo). Chạy tay, public/replay-short.json. Không bao giờ đụng giao dịch thật.',
+    ],
+  },
   {
     version: '1.99.0',
     date: '2026-11-02',
