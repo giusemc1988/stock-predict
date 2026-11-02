@@ -13,6 +13,7 @@ import { onBarClose, onBars, onPrice, type EntryContext, type PickRow, type Prac
 import { dollarVolume, gainToday, pickWhy, rankCandidates, volumeVsAvg, type PickSource, type PracticeCandidate } from './practicePicks'
 import { runStrategy } from './strategy'
 import { shadowTag } from './shadowFilters'
+import { baseSymbol } from './kronosView'
 import { fetchAlpacaNews } from './newsProvider'
 import { analyzeSentiment } from './newsSentiment'
 
@@ -34,6 +35,8 @@ export interface ScanInput {
   journal: JournalEntry[]
   /** Journal for the shadow learner call (works while learning is paused); defaults to `journal`. */
   shadowJournal?: JournalEntry[]
+  /** Kronos's 5-day forecast move in percent by base symbol (kronosPct5), for the "Kronos objects" shadow tag. */
+  kronosPct?: Record<string, number>
   killSwitch: boolean
   maxTradesPerDay: number
   /** Last closed bar already decided on, per market. */
@@ -220,7 +223,7 @@ export async function scanCycle(input: ScanInput): Promise<ScanResult> {
       if (opened && !opened.info.shadow) {
         const sj = input.shadowJournal ?? journal
         const shadowLearner = x.probUp != null && baseRate(sj) ? (decide(sj, x.probUp, 0.55, rules.learnEdgeMarginPct / 100).signal === 'BUY' ? 'BUY' : 'HOLD') : 'n/a'
-        const tag = shadowTag({ kind: opened.kind ?? 'day', source: x.source, volVsAvg: x.volVsAvg }, shadowLearner)
+        const tag = shadowTag({ kind: opened.kind ?? 'day', source: x.source, volVsAvg: x.volVsAvg, kronosPct: rules.shadowKronos ? (input.kronosPct?.[baseSymbol(opened.symbol)] ?? null) : null }, shadowLearner)
         s = { ...s, open: s.open.map((p) => (p.id === opened.id ? { ...p, info: { ...p.info, shadow: tag } } : p)) }
       }
     }

@@ -2,6 +2,7 @@
 # candles of Atlas's symbols, and earlier forecasts are graded against the real closes and two
 # simple guesses (no change, always up). Results: docs/kronos-shadow.md (readable on the phone)
 # and public/kronos-shadow.json. It never touches Atlas or places any order.
+# The list = Atlas's built-in watchlist + the symbols Atlas is trading (see tools/kronos/shadow.py).
 # Free: public Yahoo bars, no key; a few minutes of Actions a day.
 # To stop it: Actions > Kronos shadow test > ... > Disable workflow.
 name: Kronos shadow test
@@ -47,8 +48,16 @@ jobs:
           git clone -q https://github.com/shiyu-coder/Kronos.git "$RUNNER_TEMP/kronos"
           git -C "$RUNNER_TEMP/kronos" checkout -q "$KRONOS_SHA"
 
+      # The symbols Atlas is trading come from the daily practice snapshot (backup-kv.yml, 20:00 UTC, before this
+      # run) on the `backups` branch. No snapshot yet is fine: Kronos then uses the built-in list only.
+      - name: Atlas's current symbols
+        run: |
+          git fetch -q origin backups || exit 0
+          latest=$(git ls-tree -r --name-only origin/backups | grep 'practice\.json$' | sort | tail -1)
+          [ -n "$latest" ] && git show "origin/backups:$latest" > "$RUNNER_TEMP/atlas-practice.json" || true
+
       - name: Grade old forecasts, make new ones
-        run: python tools/kronos/shadow.py --kronos "$RUNNER_TEMP/kronos"
+        run: python tools/kronos/shadow.py --kronos "$RUNNER_TEMP/kronos" --atlas "$RUNNER_TEMP/atlas-practice.json"
 
       - name: Save the log and report
         run: |

@@ -11,6 +11,7 @@ import { DEFAULT_AI_RULES } from '../lib/aiRules'
 import { SKILLS, skillTag } from '../lib/skills'
 import { parseState } from '../lib/autoLearn'
 import { shadowReport } from '../lib/shadowFilters'
+import { kronosPct5, type KronosForecast } from '../lib/kronosView'
 import { leadsReport, parseLeads } from '../lib/shadowLeads'
 import type { JournalEntry } from '../lib/journal'
 import { dayKey, emptyPractice, kindOf, nextBaseline, parsePractice, PENNY_MIN_PRICE, PENNY_PRICE, sessionEnd, type PracticeState } from '../lib/practice'
@@ -239,7 +240,7 @@ async function sendDailySummary(env: WorkerEnv, s: PracticeState, now: number, c
     } catch {
       /* no shadow lines */
     }
-  await sendTelegram(summaryText({ day, report, trades, equity: PRACTICE_START + s.realized, totalRetPct: (s.realized / PRACTICE_START) * 100, learning, brakes, shadow: shadowReport(s.trades).vi, shadowLeads }), cfg.token, cfg.chatId)
+  await sendTelegram(summaryText({ day, report, trades, equity: PRACTICE_START + s.realized, totalRetPct: (s.realized / PRACTICE_START) * 100, learning, brakes, shadow: shadowReport(s.trades).vi, shadowKronos: shadowReport(s.trades).kronosVi, shadowLeads }), cfg.token, cfg.chatId)
 }
 
 export async function practiceCycle(env: WorkerEnv): Promise<{ state: PracticeState; message: string; alerts?: TradeAlert[] }> {
@@ -268,6 +269,17 @@ export async function practiceCycle(env: WorkerEnv): Promise<{ state: PracticeSt
       if (res.ok) journal = parseState(await res.json())?.journal ?? []
     } catch {
       /* no published journal */
+    }
+  }
+
+  // Kronos's 5-day forecasts ship with the site as /kronos-shadow.json: read-only, only tags buys ("Kronos objects")
+  let kronosPct: Record<string, number> = {}
+  if (env.ASSETS) {
+    try {
+      const res = await env.ASSETS.fetch(new Request('https://assets.local/kronos-shadow.json'))
+      if (res.ok) kronosPct = kronosPct5(((await res.json()) as { forecasts?: KronosForecast[] }).forecasts ?? [])
+    } catch {
+      /* no Kronos file: buys are tagged n/a */
     }
   }
 
@@ -317,6 +329,7 @@ export async function practiceCycle(env: WorkerEnv): Promise<{ state: PracticeSt
     pauseLearning,
     drawdownBrakeMultiplier: brakeMult,
     kellyMultiplier: kellyMult,
+    kronosPct,
   })
 
   if (Object.keys(r.prices).length === 0) {

@@ -2,7 +2,7 @@
  * Version and "What's new". Bump APP_VERSION and add an entry to the top of RELEASES
  * with each update. The banner shows once per version, then stays dismissed.
  */
-export const APP_VERSION = '1.96.2'
+export const APP_VERSION = '1.97.0'
 
 export interface Release {
   version: string
@@ -13,6 +13,18 @@ export interface Release {
 }
 
 export const RELEASES: Release[] = [
+  {
+    version: '1.97.0',
+    date: '2026-11-02',
+    changes: [
+      'Atlas: the Kronos 5-day forecast no longer sticks to 8 fixed symbols. Each evening it forecasts Atlas\'s built-in watchlist (now with SOL and BNB) plus the stocks Atlas is trading right now (open positions and the last 5 days of trades), up to 20 symbols, and the Atlas card shows all of them and drops symbols that left the list. Tickers added only in your own browser are not visible to the evening job.',
+      'New shadow test "Kronos objects" (record only, never blocks a trade): every buy is tagged with whether Kronos\'s 5-day forecast for that symbol was a drop of 1% or more. The daily Telegram summary compares the buys it objected to with the rest. Off switch: Settings > AI rules.',
+    ],
+    changesVi: [
+      'Atlas: dự báo 5 phiên của Kronos không còn kẹt ở 8 mã cố định. Mỗi tối nó dự báo watchlist có sẵn của Atlas (thêm SOL và BNB) cộng các cổ phiếu Atlas đang giao dịch (lệnh đang mở và 5 ngày gần nhất), tối đa 20 mã. Thẻ Atlas hiện đủ các mã và bỏ mã đã rời danh sách. Mã anh thêm riêng trong trình duyệt thì job buổi tối chưa thấy được.',
+      'Chạy bóng mới "Kronos phản đối" (chỉ ghi, không chặn lệnh): mỗi lệnh mua được ghi lại xem dự báo 5 phiên của Kronos cho mã đó có giảm từ 1% trở lên không. Tin Telegram cuối ngày so các lệnh bị phản đối với phần còn lại. Công tắc tắt: Cài đặt > Luật AI.',
+    ],
+  },
   {
     version: '1.96.2',
     date: '2026-11-02',
