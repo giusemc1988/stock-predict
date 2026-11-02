@@ -88,7 +88,7 @@ type GxKey = keyof typeof GX
 /** The hub's own agent (Chanh renamed Jarvis to Neo, 2026-10-23); its character id stays 'jarvis'. */
 const HUB_NAME = 'Neo'
 /** Kronos forecasts shown on the Atlas card before "see all". */
-const K_TOP = 6
+const K_TOP = 5
 
 /** Each project's colour in this look: mid-tone, so it reads on every theme. */
 const HUE: Record<ProjectId | 'jarvis', string> = {
@@ -582,6 +582,24 @@ export function JarvisHub(p: HubProps & { flipAuto: boolean; council: boolean })
                             <KronosChart key={kPick.symbol} f={kPick.f} recent={kronos?.recent?.[kPick.f.symbol]} vi={vi} label={cLabel} onAll={() => setKSel(null)} />
                           ) : kBars.length ? (
                             <>
+                              {!kAll ? (
+                                // compact: the K_TOP biggest moves as chips; "See all" opens the bar list
+                                <div className="hg-kchips" role={p.council ? 'group' : 'img'} aria-label={kShown.map((b) => `${b.symbol} ${fmtPct(b.pct)}`).join(', ')}>
+                                  {kShown.map((b) =>
+                                    p.council ? (
+                                      <button key={b.symbol} tabIndex={on ? -1 : 0} onClick={() => setKSel(b.symbol)}>
+                                        <b>{b.symbol}</b>
+                                        <em className={tone(b.pct)}>{fmtPct(b.pct)}</em>
+                                      </button>
+                                    ) : (
+                                      <span key={b.symbol}>
+                                        <b>{b.symbol}</b>
+                                        <em className={tone(b.pct)}>{fmtPct(b.pct)}</em>
+                                      </span>
+                                    ),
+                                  )}
+                                </div>
+                              ) : (
                               <div className={`hg-kbars${kOne ? ' one' : ''}${kAll ? '' : ' top'}`} role={p.council ? 'group' : 'img'} aria-label={kShown.map((b) => `${b.symbol} ${fmtPct(b.pct)}`).join(', ')}>
                                 {kShown.map((b, j) => {
                                   // horizontal bar from the centre line: right = up, left = down; square-root scale so one big move doesn't flatten the rest
@@ -607,6 +625,7 @@ export function JarvisHub(p: HubProps & { flipAuto: boolean; council: boolean })
                                   )
                                 })}
                               </div>
+                              )}
                               <div className="hg-kfootrow">
                                 {kBars.length > K_TOP && (
                                   <button className="hg-kmore" tabIndex={on ? -1 : 0} onClick={() => setKAll((x) => !x)} aria-expanded={kAll}>
@@ -630,6 +649,20 @@ export function JarvisHub(p: HubProps & { flipAuto: boolean; council: boolean })
                                 {G('learnHead', { d: `${REVIEW_DAY.slice(8, 10)}/${REVIEW_DAY.slice(5, 7)}` })} · {G('learnSigs', { n: p.practice.open.length })}
                               </span>
                             </span>
+                            <span className="hg-ltests">
+                              {aLearn.tests.map((t) => (
+                                <span key={t.id} title={L2(t.what)}>
+                                  <small>{L2(t.short)}</small>
+                                  <em className="mono">
+                                    {t.n}/{t.goal}
+                                  </em>
+                                  <i className="hg-dbar">
+                                    <i style={{ width: `${t.pct}%` }} />
+                                  </i>
+                                </span>
+                              ))}
+                            </span>
+                            <span className="hg-lopen">{G('learnOpen')} →</span>
                           </button>
                         )}
                         {rules.ideaFactory && (

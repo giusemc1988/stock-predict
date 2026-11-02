@@ -94,6 +94,8 @@ export function atlasSignals(s: PracticeState, day: string, dayOf: (ms: number) 
 export interface LearnTest {
   id: 'l1' | 'l2' | 'l3' | 'l4' | 'vol' | 'kronos'
   label: Bi
+  /** two or three words, for the Hub card */
+  short: Bi
   /** what it measures, one line */
   what: Bi
   n: number
@@ -111,7 +113,7 @@ export function learnTests(trades: PracticeTrade[], leads: LeadsReport | null, n
   const live = trades.filter((t) => t.info.shadow)
   const kron = live.filter((t) => (t.info.shadow?.kronos ?? 'n/a') !== 'n/a').length
   const days = learnDays(now)
-  const T = (id: LearnTest['id'], label: Bi, what: Bi, n: number, goal = LEARN_GOAL, unit: LearnTest['unit'] = 'trades'): LearnTest => ({ id, label, what, n, goal, unit, pct: Math.min(100, Math.round((n / goal) * 100)) })
+  const T = (id: LearnTest['id'], label: Bi, what: Bi, n: number, goal = LEARN_GOAL, unit: LearnTest['unit'] = 'trades'): LearnTest => ({ id, label, short: SHORT[id], what, n, goal, unit, pct: Math.min(100, Math.round((n / goal) * 100)) })
   return [
     T('l1', { en: 'L1 Reversal when VIX is high', vi: 'L1 Đảo chiều khi VIX cao' }, { en: 'Buy the 5-day losers when fear is high, sell after 5 days', vi: 'Mua mã giảm mạnh 5 ngày khi thị trường sợ, bán sau 5 ngày' }, leads?.l1.n ?? 0),
     T('l2', { en: 'L2 Hold winners overnight', vi: 'L2 Giữ lệnh thắng qua đêm' }, { en: 'Would selling winners at the next open beat selling before the close?', vi: 'Bán lệnh thắng sáng hôm sau có hơn bán trước giờ đóng cửa?' }, leads?.l2.n ?? 0),
@@ -120,6 +122,15 @@ export function learnTests(trades: PracticeTrade[], leads: LeadsReport | null, n
     T('vol', { en: 'Volume filter ≥ 1x', vi: 'Lọc khối lượng ≥ 1x' }, { en: 'Do trades on normal-or-better volume win more?', vi: 'Lệnh có khối lượng từ bình thường trở lên có thắng hơn không?' }, live.length),
     T('kronos', { en: 'Kronos objects', vi: 'Kronos phản đối' }, { en: 'Do trades Kronos warned about lose more?', vi: 'Lệnh bị Kronos cảnh báo có thua nhiều hơn không?' }, kron),
   ]
+}
+
+const SHORT: Record<LearnTest['id'], Bi> = {
+  l1: { en: 'L1 VIX reversal', vi: 'L1 Đảo chiều' },
+  l2: { en: 'L2 Overnight', vi: 'L2 Qua đêm' },
+  l3: { en: 'L3 ETF trend', vi: 'L3 ETF' },
+  l4: { en: 'L4 Big gainers', vi: 'L4 Tăng mạnh' },
+  vol: { en: 'Volume ≥1x', vi: 'Khối lượng' },
+  kronos: { en: 'Kronos', vi: 'Kronos' },
 }
 
 export interface LearnProgress {

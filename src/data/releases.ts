@@ -2,7 +2,7 @@
  * Version and "What's new". Bump APP_VERSION and add an entry to the top of RELEASES
  * with each update. The banner shows once per version, then stays dismissed.
  */
-export const APP_VERSION = '2.0.2'
+export const APP_VERSION = '2.0.3'
 
 export interface Release {
   version: string
@@ -13,6 +13,16 @@ export interface Release {
 }
 
 export const RELEASES: Release[] = [
+  {
+    version: '2.0.3',
+    date: '2026-11-02',
+    changes: [
+      'Hub Atlas card, from Chanh\'s test on the Fold: the card now grows to fit everything (no more cut bottom, the page scrolls normally). Kronos takes one line of chips (the 5 biggest forecast moves; "See all" still opens the full bar list), and the freed space shows what Atlas is learning: the six shadow tests (L1-L4, volume, Kronos) with new trades collected of the 50 each needs, under the learning ring. Tap it to open the signal board.',
+    ],
+    changesVi: [
+      'Thẻ Atlas trên Hub, theo lần anh Chanh thử trên Fold: thẻ giờ tự cao theo nội dung (hết bị cắt đáy, trang cuộn bình thường). Kronos thu còn một dòng nhãn (5 mã dự báo biến động mạnh nhất; "Xem tất cả" vẫn mở đủ danh sách thanh), chỗ trống dành cho phần Atlas đang học: sáu bài kiểm tra chạy bóng (L1-L4, khối lượng, Kronos) với số lệnh mới đã gom trên 50 lệnh mỗi bài cần, nằm dưới vòng tròn học. Bấm vào để mở bảng tín hiệu.',
+    ],
+  },
   {
     version: '2.0.2',
     date: '2026-11-02',

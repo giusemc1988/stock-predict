@@ -127,6 +127,10 @@ button.hg-stat:hover { border-color: color-mix(in srgb, var(--acc) 60%, transpar
 .hg-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); grid-auto-rows: 286px; gap: 18px; }
 .hg-card { position: relative; perspective: 1400px; border-radius: 24px; min-width: 0; }
 .hg-feat { grid-column: span 2; grid-row: span 2; }
+/* the Atlas card sizes to its content: its front face is in the flow, so nothing is cut at the bottom */
+.hg-grid { grid-auto-rows: minmax(286px, auto); }
+.hg-feat .hg-flip { height: auto; min-height: 100%; }
+.hg-feat .hg-front { position: relative; inset: auto; min-height: 100%; }
 .hg-flip { position: relative; width: 100%; height: 100%; transform-style: preserve-3d; transition: transform 0.95s cubic-bezier(0.2, 0.9, 0.22, 1.18); }
 .hg-card.on .hg-flip { transform: rotateY(180deg); }
 .hg-face { position: absolute; inset: 0; box-sizing: border-box; border-radius: 24px; overflow: hidden; padding: 16px 16px 14px; display: flex; flex-direction: column; gap: 10px; -webkit-backface-visibility: hidden; backface-visibility: hidden; }
@@ -158,6 +162,8 @@ button.hg-stat:hover { border-color: color-mix(in srgb, var(--acc) 60%, transpar
 .hg-mini { font-size: 12px; color: var(--mute); line-height: 1.3; min-width: 0; }
 .hg-mini b { display: block; color: var(--ink); font-size: 14px; font-weight: 600; font-variant-numeric: tabular-nums; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .hg-paper { margin-left: auto; color: var(--acc); font-size: 11.5px; }
+.hg-feat .hg-foot { flex-wrap: wrap; row-gap: 6px; }
+.hg-feat .hg-mini { flex: none; }
 /* chips wrap onto a second line; a sideways scroll inside a flip card doesn't take touch on Android */
 .hg-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: auto; }
 .hg-chips button { flex: none; font-size: 12px; padding: 4px 10px; border-radius: 99px; border: 1px solid var(--line); color: var(--mute); background: rgba(255, 255, 255, 0.05); cursor: pointer; transition: background-color 0.2s, color 0.2s; }
@@ -203,7 +209,24 @@ button.hg-stat:hover { border-color: color-mix(in srgb, var(--acc) 60%, transpar
 .hg-learn { position: relative; z-index: 2; display: flex; align-items: center; gap: 12px; width: 100%; padding: 8px 12px; text-align: left; cursor: pointer; transition: border-color 0.25s ease, background-color 0.25s ease; }
 .hg-learn:hover { border-color: color-mix(in srgb, var(--k, var(--acc)) 55%, var(--line)); background: rgba(0, 0, 0, 0.32); }
 .hg-learn .hg-ring { flex: none; }
-.hg-learn-t { display: grid; gap: 2px; min-width: 0; }
+/* learning box on the Atlas card: ring + verdict, then the six shadow tests (Chanh: show what it is learning) */
+.hg-learn { flex-wrap: wrap; row-gap: 8px; }
+.hg-ltests { flex-basis: 100%; display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 4px 14px; }
+.hg-ltests > span { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: baseline; column-gap: 6px; min-width: 0; }
+.hg-ltests small { color: var(--ink); font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.hg-ltests em { font-style: normal; color: var(--mute); font-size: 11px; }
+.hg-ltests .hg-dbar { grid-column: 1 / -1; margin: 2px 0 0; }
+.hg-ltests .hg-dbar i { background: var(--k, var(--acc)); }
+.hg-lopen { flex-basis: 100%; color: var(--k, var(--acc)); font-size: 12px; font-weight: 600; }
+/* Kronos compact: chips of the biggest moves */
+.hg-kchips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+.hg-kchips > * { display: inline-flex; gap: 6px; align-items: baseline; padding: 4px 10px; border-radius: 999px; border: 1px solid var(--line); background: rgba(255, 255, 255, 0.05); font-size: 12.5px; color: inherit; font-family: inherit; }
+.hg-kchips b { font-weight: 600; }
+.hg-kchips em { font-style: normal; font-variant-numeric: tabular-nums; font-size: 12px; }
+.hg-kchips button { cursor: pointer; transition: border-color 0.2s, background-color 0.2s; }
+.hg-kchips button:hover { border-color: color-mix(in srgb, var(--acc) 55%, var(--line)); background: rgba(255, 255, 255, 0.09); }
+
+.hg-learn-t { display: grid; gap: 2px; min-width: 0; flex: 1 1 140px; }
 .hg-learn-t b { font-size: 14px; font-weight: 600; }
 .hg-learn-t span { color: var(--mute); font-size: 12px; }
 /* Atlas card body: Kronos on the left; the learning ring, book-vs-Opus duel and Opus picks on the right (Chanh: no empty half) */
@@ -214,7 +237,7 @@ button.hg-stat:hover { border-color: color-mix(in srgb, var(--acc) 60%, transpar
 .hg-kfootrow { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
 .hg-kfootrow .hg-kmore, .hg-kfootrow .hg-kfoot { margin-top: 4px; }
 @container (min-width: 500px) {
-  .hg-atlas-grid { grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); align-items: stretch; }
+  .hg-atlas-grid { grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr); align-items: start; }
   .hg-atlas-grid .hg-kbars { grid-template-columns: minmax(0, 1fr); }
   .hg-atlas-grid .hg-kb { grid-template-columns: 44px minmax(0, 1fr) 54px; padding: 2px; }
   .hg-atlas-grid .hg-kron { padding-bottom: 6px; }
@@ -357,10 +380,10 @@ button.hg-stat:hover { border-color: color-mix(in srgb, var(--acc) 60%, transpar
   .hg-hero { margin-top: 20px; }
   .hg-jbot { width: 96px; height: 96px; }
   .hg-search { width: 100%; }
-  .hg-grid { grid-template-columns: minmax(0, 1fr); grid-auto-rows: 270px; }
-  .hg-feat { grid-column: auto; grid-row: span 3; }
+  .hg-grid { grid-template-columns: minmax(0, 1fr); grid-auto-rows: minmax(270px, auto); }
+  .hg-feat { grid-column: auto; grid-row: auto; }
   /* Atlas carries Kronos, the learning ring, the book-vs-Opus duel and the Opus picks: one more row so nothing is cut */
-  .hg-feat:has(.hg-aside) { grid-row: span 3; }
+  .hg-feat:has(.hg-aside) { grid-row: auto; }
   /* phone Atlas card: tools and the Kronos hint stay one line each (tools scroll sideways), so everything fits */
   .hg-feat:has(.hg-aside) .hg-chips { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; flex-shrink: 0; }
   .hg-feat:has(.hg-aside) .hg-chips > * { flex: none; }
