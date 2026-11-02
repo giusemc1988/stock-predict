@@ -12,6 +12,8 @@ import { AtlasCouncil, type CouncilVote } from './AtlasCouncil'
 import { CountUp } from './CountUp'
 import { LangSwitch } from './HubPanels'
 import { KronosChart } from './KronosChart'
+import { atlasVerdict, learnProgress, REVIEW_DAY } from '../lib/atlasSignals'
+import type { LeadsReport } from '../lib/shadowLeads'
 import { currentForecasts, type CouncilId, type KronosForecast } from '../lib/kronosView'
 import { ProjectLogo } from './ProjectLogo'
 import { useHubModel, type CardModel, type HubProps } from './useHubModel'
@@ -66,11 +68,18 @@ const GX = {
   kronosFlat: { en: 'Kronos sees {p}, about flat', vi: 'Kronos thấy {p}, gần như đi ngang' },
   kronosOff: { en: 'Kronos has no forecast for this symbol', vi: 'Kronos chưa dự báo mã này' },
   tapSymbol: { en: 'Tap a symbol to draw its forecast', vi: 'Bấm một mã để vẽ đường dự báo' },
+  kMore: { en: 'See all {n} ▾', vi: 'Xem tất cả {n} mã ▾' },
+  kLess: { en: 'Show fewer ▴', vi: 'Thu gọn ▴' },
+  learnHead: { en: 'Graded on {d}', vi: 'Chấm điểm {d}' },
+  learnSigs: { en: '{n} open signals', vi: '{n} tín hiệu đang mở' },
+  learnOpen: { en: 'See signals and learning progress', vi: 'Xem tín hiệu và tiến độ học' },
 } as const
 type GxKey = keyof typeof GX
 
 /** The hub's own agent (Chanh renamed Jarvis to Neo, 2026-10-23); its character id stays 'jarvis'. */
 const HUB_NAME = 'Neo'
+/** Kronos forecasts shown on the Atlas card before "see all". */
+const K_TOP = 6
 
 /** Each project's colour in this look: mid-tone, so it reads on every theme. */
 const HUE: Record<ProjectId | 'jarvis', string> = {
@@ -282,9 +291,27 @@ export function JarvisHub(p: HubProps & { flipAuto: boolean; council: boolean })
   )
   const kMax = Math.max(2, ...kBars.map((b) => Math.abs(b.pct)))
   const [kSel, setKSel] = useState<string | null>(null)
+  // compact by default: the K_TOP biggest forecast moves, the rest behind "see all"
+  const [kAll, setKAll] = useState(false)
+  const kShown = kAll ? kBars : [...kBars].sort((a, b) => Math.abs(b.pct) - Math.abs(a.pct)).slice(0, K_TOP)
   const kPick = kBars.find((b) => b.symbol === kSel)
   const cLabel = (id: CouncilId) => (id === 'kronos' ? 'Kronos' : G(id))
   const graded = kronos?.score['5']?.graded ?? 0
+
+  // Atlas signal board summary: honest verdict + learning ring (src/lib/atlasSignals.ts), opens the board on Atlas's page
+  const [leads, setLeads] = useState<LeadsReport | null>(null)
+  useEffect(() => {
+    if (!rules.atlasSignals) return
+    const ac = new AbortController()
+    fetch('/api/practice/learning', { signal: ac.signal })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((j: { leads?: LeadsReport } | null) => setLeads(j?.leads ?? null))
+      .catch(() => {})
+    return () => ac.abort()
+  }, [rules.atlasSignals])
+  const aVerdict = useMemo(() => atlasVerdict(p.practice.trades), [p.practice.trades])
+  const L2 = (b: { en: string; vi: string }) => (vi ? b.vi : b.en)
+  const aLearn = useMemo(() => learnProgress(p.practice.trades, leads, Date.now()), [p.practice.trades, leads])
 
   // the agents' votes on Atlas's top BUY call
   const top = p.picks[0]
@@ -528,18 +555,20 @@ export function JarvisHub(p: HubProps & { flipAuto: boolean; council: boolean })
                             <KronosChart key={kPick.symbol} f={kPick.f} recent={kronos?.recent?.[kPick.f.symbol]} vi={vi} label={cLabel} onAll={() => setKSel(null)} />
                           ) : kBars.length ? (
                             <>
-                              <div className="hg-kbars" role={p.council ? 'group' : 'img'} aria-label={kBars.map((b) => `${b.symbol} ${fmtPct(b.pct)}`).join(', ')}>
-                                {kBars.map((b, j) => {
+                              <div className="hg-kbars" role={p.council ? 'group' : 'img'} aria-label={kShown.map((b) => `${b.symbol} ${fmtPct(b.pct)}`).join(', ')}>
+                                {kShown.map((b, j) => {
+                                  // horizontal bar from the centre line: right = up, left = down; square-root scale so one big move doesn't flatten the rest
+                                  const w = Math.max(4, Math.sqrt(Math.abs(b.pct) / kMax) * 100)
                                   const inner = (
                                     <>
-                                      <span className="hg-kv">
-                                        <i className={b.pct >= 0 ? 'up' : 'down'} style={{ '--h': `${(Math.abs(b.pct) / kMax) * 100}%` } as CSSProperties} />
-                                      </span>
                                       <b>{b.symbol}</b>
+                                      <span className="hg-kv">
+                                        <i className={b.pct >= 0 ? 'up' : 'down'} style={{ '--w': `${w / 2}%` } as CSSProperties} />
+                                      </span>
                                       <em className={tone(b.pct)}>{fmtPct(b.pct)}</em>
                                     </>
                                   )
-                                  const st = { '--d': `${j * 80}ms` } as CSSProperties
+                                  const st = { '--d': `${j * 60}ms` } as CSSProperties
                                   return p.council ? (
                                     <button key={b.symbol} className="hg-kb" style={st} tabIndex={on ? -1 : 0} onClick={() => setKSel(b.symbol)} aria-label={`${b.symbol} ${fmtPct(b.pct)}`}>
                                       {inner}
@@ -551,12 +580,28 @@ export function JarvisHub(p: HubProps & { flipAuto: boolean; council: boolean })
                                   )
                                 })}
                               </div>
+                              {kBars.length > K_TOP && (
+                                <button className="hg-kmore" tabIndex={on ? -1 : 0} onClick={() => setKAll((x) => !x)} aria-expanded={kAll}>
+                                  {kAll ? G('kLess') : G('kMore', { n: kBars.length })}
+                                </button>
+                              )}
                               <p className="hg-kfoot">{G('kronosGraded', { n: graded })}</p>
                             </>
                           ) : (
                             <p className="hg-kfoot">{G('kronosNone')}</p>
                           )}
                         </div>
+                        {rules.atlasSignals && (
+                          <button className="hg-learn hg-inset" tabIndex={on ? -1 : 0} onClick={() => p.onAtlasBlock('atlas-signals')} aria-label={G('learnOpen')} title={G('learnOpen')}>
+                            <Ring v={aLearn.pct / 100} label={`${aLearn.pct}%`} />
+                            <span className="hg-learn-t">
+                              <b>{L2(aVerdict.title)}</b>
+                              <span>
+                                {G('learnHead', { d: `${REVIEW_DAY.slice(8, 10)}/${REVIEW_DAY.slice(5, 7)}` })} · {G('learnSigs', { n: p.practice.open.length })}
+                              </span>
+                            </span>
+                          </button>
+                        )}
                         {top ? (
                           <div className="hg-council" aria-label={G('council', { s: top.symbol })}>
                             <span className="hg-council-h">{G('council', { s: top.symbol })}</span>

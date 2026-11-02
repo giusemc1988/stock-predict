@@ -116,6 +116,7 @@ export interface AiRules {
   briefAi: boolean // a free AI helper writes the Neo Brief from the page's real data (once per scan)
   practiceCryptoMovers: boolean // practice also scans today's top crypto gainers and most-traded coins
   shadowKronos: boolean // record-only: tag each buy with whether Kronos's 5-day forecast for the symbol objected (a drop of 1% or more); never blocks a trade
+  atlasSignals: boolean // Atlas signal board: verdict, learning progress, signals with TP/SL and real win rate (display only)
   shadowLeads: boolean // record-only shadow runs of the replay-lab leads (D1+VIX gate, hold winners overnight, ETF trend core, overnight winners); never trades
   adjustableTimeRange: boolean // custom time range input on the Trading desk chart (beyond the preset 1D/1W/1M/1Y/All buttons)
   localModelName: string // local LLM name: llama3.2, gemma4:e2b, qwen3-coder:30b (default: llama3.2)
@@ -256,6 +257,7 @@ export const DEFAULT_AI_RULES: AiRules = {
   briefAi: true,
   practiceCryptoMovers: true,
   shadowKronos: true,
+  atlasSignals: true,
   shadowLeads: true,
   adjustableTimeRange: true,
   localModelName: 'llama3.2',
@@ -337,6 +339,7 @@ export const RULE_FIELDS: RuleField[] = [
   { group: 'modules', key: 'practiceMovers', en: "Practice also scans today's top gainers and most-traded stocks", vi: 'Luyện tập quét thêm mã tăng mạnh và giao dịch nhiều nhất hôm nay' },
   { group: 'modules', key: 'practiceCryptoMovers', en: "Practice also scans today's top crypto gainers and most-traded coins", vi: 'Luyện tập quét thêm crypto tăng mạnh và giao dịch nhiều nhất hôm nay' },
   { group: 'modules', key: 'shadowKronos', en: 'Tag each buy with whether Kronos\'s 5-day forecast objected (record only, never blocks a trade)', vi: 'Ghi lại mỗi lệnh mua xem dự báo 5 phiên của Kronos có phản đối không (chỉ ghi, không bao giờ chặn lệnh)' },
+  { group: 'modules', key: 'atlasSignals', en: 'Atlas signal board: honest verdict, learning progress and each signal with entry, TP, SL and its real win rate (display only)', vi: 'Bảng tín hiệu Atlas: kết luận thật, tiến độ học và mỗi tín hiệu có giá vào, TP, SL và % thắng thật (chỉ hiển thị)' },
   { group: 'modules', key: 'shadowLeads', en: 'Shadow-run the four replay-lab leads (record only, never places or changes a trade)', vi: 'Chạy bóng bốn hướng từ phòng lab replay (chỉ ghi lại, không bao giờ đặt hay đổi lệnh)' },
   { group: 'modules', key: 'practiceServer', en: 'Practice 24/7 on the server (keeps trading while the app is closed)', vi: 'Luyện tập 24/7 trên máy chủ (vẫn giao dịch khi đóng ứng dụng)' },
   { group: 'modules', key: 'practiceWatchlist', en: 'Show what practice is watching and trading at the top of the watchlist', vi: 'Hiện các mã luyện tập đang theo dõi và giao dịch ở đầu danh sách' },

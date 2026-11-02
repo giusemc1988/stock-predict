@@ -173,17 +173,19 @@ button.hg-stat:hover { border-color: color-mix(in srgb, var(--acc) 60%, transpar
 .hg-kron { padding: 12px 14px 8px; pointer-events: none; }
 .hg-khead { display: flex; justify-content: space-between; gap: 10px; flex-wrap: wrap; font-size: 12.5px; color: var(--mute); }
 .hg-khead b { color: var(--ink); font-weight: 600; font-size: 14px; }
-.hg-kbars { display: grid; grid-template-columns: repeat(auto-fill, minmax(52px, 1fr)); gap: 6px; grid-auto-rows: 100px; margin-top: 8px; }
-.hg-kb { display: grid; grid-template-rows: 1fr auto auto; justify-items: center; gap: 2px; min-width: 0; font-size: 11px; }
-.hg-kb b { font-weight: 600; font-size: 11px; }
-.hg-kb em { font-style: normal; font-size: 10.5px; font-variant-numeric: tabular-nums; }
+.hg-kbars { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); column-gap: 18px; row-gap: 2px; margin-top: 8px; }
+.hg-kb { display: grid; grid-template-columns: 52px minmax(0, 1fr) 62px; align-items: center; gap: 8px; min-width: 0; padding: 5px 4px; font-size: 12px; text-align: left; }
+.hg-kb b { font-weight: 600; font-size: 12px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.hg-kb em { font-style: normal; font-size: 12px; text-align: right; font-variant-numeric: tabular-nums; }
 /* bars grow up (forecast up) or down (forecast down) from a middle line */
-.hg-kv { position: relative; width: 14px; height: 100%; }
-.hg-kv::before { content: ''; position: absolute; left: -6px; right: -6px; top: 50%; height: 1px; background: var(--line); }
-.hg-kv i { position: absolute; left: 0; right: 0; height: calc(var(--h) / 2); border-radius: 4px; animation: hg-kgrow 1s cubic-bezier(0.2, 0.9, 0.22, 1.2) both; animation-delay: var(--d); }
-.hg-kv i.up { bottom: 50%; background: linear-gradient(to top, color-mix(in srgb, #8fdca5 40%, transparent), #8fdca5); box-shadow: 0 0 10px rgba(143, 220, 165, 0.5); transform-origin: bottom; }
-.hg-kv i.down { top: 50%; background: linear-gradient(to bottom, color-mix(in srgb, #f09a8e 40%, transparent), #f09a8e); box-shadow: 0 0 10px rgba(240, 154, 142, 0.5); transform-origin: top; }
-@keyframes hg-kgrow { from { transform: scaleY(0); } }
+.hg-kv { position: relative; height: 10px; border-radius: 5px; background: rgba(255, 255, 255, 0.05); }
+.hg-kv::before { content: ''; position: absolute; top: -3px; bottom: -3px; left: 50%; width: 1px; background: var(--line); }
+.hg-kv i { position: absolute; top: 0; bottom: 0; width: var(--w); border-radius: 5px; animation: hg-kgrow 1s cubic-bezier(0.2, 0.9, 0.22, 1.2) both; animation-delay: var(--d); }
+.hg-kv i.up { left: 50%; background: linear-gradient(to right, color-mix(in srgb, #8fdca5 40%, transparent), #8fdca5); box-shadow: 0 0 10px rgba(143, 220, 165, 0.45); transform-origin: left; }
+.hg-kv i.down { right: 50%; background: linear-gradient(to left, color-mix(in srgb, #f09a8e 40%, transparent), #f09a8e); box-shadow: 0 0 10px rgba(240, 154, 142, 0.45); transform-origin: right; }
+@keyframes hg-kgrow { from { transform: scaleX(0); } }
+.hg-kmore { position: relative; z-index: 2; pointer-events: auto; margin-top: 4px; padding: 4px 10px; border-radius: 999px; border: 1px solid var(--line); background: rgba(0, 0, 0, 0.2); font-size: 12px; color: var(--mute); cursor: pointer; }
+.hg-kmore:hover { color: var(--ink); border-color: color-mix(in srgb, var(--acc) 55%, var(--line)); }
 .hg-kfoot { margin: 4px 0 0; font-size: 12px; color: var(--mute); }
 .hg-council { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
 .hg-council-h { font-size: 12px; color: var(--mute); margin-right: 4px; }
@@ -195,6 +197,12 @@ button.hg-stat:hover { border-color: color-mix(in srgb, var(--acc) 60%, transpar
 .hg-vote.act i { box-shadow: 0 0 10px currentColor; animation: hg-blink 0.9s ease-in-out infinite; }
 @keyframes hg-blink { 50% { opacity: 0.4; } }
 .hg-note { margin: 0; color: var(--mute); font-size: 13px; }
+.hg-learn { position: relative; z-index: 2; display: flex; align-items: center; gap: 12px; width: 100%; padding: 8px 12px; text-align: left; cursor: pointer; transition: border-color 0.25s ease, background-color 0.25s ease; }
+.hg-learn:hover { border-color: color-mix(in srgb, var(--k, var(--acc)) 55%, var(--line)); background: rgba(0, 0, 0, 0.32); }
+.hg-learn .hg-ring { flex: none; }
+.hg-learn-t { display: grid; gap: 2px; min-width: 0; }
+.hg-learn-t b { font-size: 14px; font-weight: 600; }
+.hg-learn-t span { color: var(--mute); font-size: 12px; }
 .hg-picks { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; pointer-events: none; }
 .hg-pick { display: flex; gap: 8px; align-items: baseline; padding: 8px 12px; border-radius: 14px; font-size: 13px; min-width: 0; }
 .hg-pick b { font-weight: 600; }
@@ -293,7 +301,7 @@ button.hg-stat:hover { border-color: color-mix(in srgb, var(--acc) 60%, transpar
   .hg-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .hg-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .hg-lower { grid-template-columns: minmax(0, 1fr); }
-  .hg-kbars { grid-template-columns: repeat(4, minmax(0, 1fr)); height: auto; grid-auto-rows: 84px; }
+  .hg-kbars { grid-template-columns: minmax(0, 1fr); }
 }
 @media (max-width: 900px) { .page-home .jh.hg { overflow: visible; } }
 @media (max-width: 560px) {
@@ -318,7 +326,7 @@ button.hg-stat:hover { border-color: color-mix(in srgb, var(--acc) 60%, transpar
 
 /* ---------- Atlas: tap a Kronos symbol, turn over for the council (KronosChart.tsx, AtlasCouncil.tsx) ---------- */
 .hg-kron.live { pointer-events: auto; position: relative; z-index: 2; }
-button.hg-kb { background: none; border: 0; padding: 2px 0; color: inherit; font: inherit; cursor: pointer; border-radius: 10px; transition: background-color 0.2s; }
+button.hg-kb { background: none; border: 0; padding: 5px 4px; color: inherit; font: inherit; cursor: pointer; border-radius: 10px; transition: background-color 0.2s; }
 button.hg-kb:hover, button.hg-kb:focus-visible { background: rgba(255, 255, 255, 0.07); }
 .hg-kchart { display: flex; flex-direction: column; gap: 6px; margin-top: 8px; }
 .hg-ksel { display: flex; justify-content: space-between; align-items: center; gap: 10px; font-size: 13px; font-variant-numeric: tabular-nums; }
