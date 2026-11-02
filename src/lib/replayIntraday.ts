@@ -292,10 +292,10 @@ export interface Control {
 
 /** Same symbols, same trade count per symbol, same direction and hold/stop rules (the stop % is kept), but entered at a
  *  random bar of a random exam day of that symbol. Limit rules keep their limit fill rule, so unfilled draws are skipped. */
-export function control(syms: SymDays[], actual: ITrade[], examFrom: string, model: CostModel, draws = 200, seed = 1): Control {
+export function control(syms: SymDays[], actual: ITrade[], examFrom: string, model: CostModel, draws = 200, seed = 1, allow?: (sd: SymDays, di: number) => boolean): Control {
   const out: Control = { mNew: [], m2x: [] }
   const by = new Map(syms.map((s) => [s.symbol, s]))
-  const pool = new Map(syms.map((s) => [s.symbol, s.days.map((d, i) => (d.key >= examFrom ? i : -1)).filter((i) => i >= 0)]))
+  const pool = new Map(syms.map((s) => [s.symbol, s.days.map((d, i) => (d.key >= examFrom && (!allow || allow(s, i)) ? i : -1)).filter((i) => i >= 0)]))
   const exam = actual.filter((t) => dayKey(t.openedAt) >= examFrom)
   for (let d = 0; d < draws; d++) {
     const rnd = seededRng(seed * 100_003 + d)
@@ -342,7 +342,7 @@ export const PASS_RULE_VI = 'ĐẠT = n kỳ thi >= 100, lãi trung bình mỗi 
 /** Judge variants on the exam (each item carries its dataset's `examFrom`, the first day of the newest third). `sigs` are the signals behind
  *  `trades` (for the limit fill rate); leave it empty when every signal is a trade. */
 export function judge(
-  items: { id: string; en: string; vi: string; examFrom: string; syms: SymDays[]; sigs: Sig[]; trades: ITrade[] }[],
+  items: { id: string; en: string; vi: string; examFrom: string; syms: SymDays[]; sigs: Sig[]; trades: ITrade[]; allow?: (sd: SymDays, di: number) => boolean }[],
   model: CostModel,
   trials = ALL_TRIALS,
 ): Result[] {
@@ -352,7 +352,7 @@ export function judge(
     const book = it.trades.filter((t) => !isExam(t.openedAt))
     const exam = it.trades.filter((t) => isExam(t.openedAt))
     const at = (m: CostMode) => exam.map((t) => retPct(t, costOf(model, m, t.symbol)))
-    return { it, book, exam, rNew: at('new'), rOld: at('old'), r2x: at('x2'), c: control(it.syms, it.trades, examFrom, model) }
+    return { it, book, exam, rNew: at('new'), rOld: at('old'), r2x: at('x2'), c: control(it.syms, it.trades, examFrom, model, 200, 1, it.allow) }
   })
   const srs = rows.map((r) => stats(r.rNew.map((x) => ({ retPct: x }))).sharpe)
   const mu = srs.reduce((a, b) => a + b, 0) / Math.max(1, srs.length)

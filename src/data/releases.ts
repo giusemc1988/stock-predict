@@ -2,7 +2,7 @@
  * Version and "What's new". Bump APP_VERSION and add an entry to the top of RELEASES
  * with each update. The banner shows once per version, then stays dismissed.
  */
-export const APP_VERSION = '1.95.2'
+export const APP_VERSION = '1.95.3'
 
 export interface Release {
   version: string
@@ -13,6 +13,16 @@ export interface Release {
 }
 
 export const RELEASES: Release[] = [
+  {
+    version: '1.95.3',
+    date: '2026-11-01',
+    changes: [
+      'Atlas news lab, round 4: does "big moves with no news reverse, moves with news continue" (Chan 2003) hold for our leads? D1 short-term reversal (plain and VIX-gated), intraday winners held overnight and all big daily movers (4%+) are each split by whether the stock had a news item in the window, using only Alpaca news timestamps and symbols (never headline text). Each side is compared with 200 random-entry draws from the same symbols and the same news bucket, at per-symbol costs 1x and 2x, with a Deflated Sharpe over all 42 variants tried, and the no-news vs news difference gets a permutation test. Manual workflow (needs the Alpaca repo secrets; without them it does nothing). Paper only, no change to live trading.',
+    ],
+    changesVi: [
+      'Phòng lab tin tức của Atlas, vòng 4: giả thuyết "biến động mạnh không có tin thì đảo chiều, có tin thì tiếp diễn" (Chan 2003) có đúng với các hướng của ta không? D1 đảo chiều ngắn hạn (thường và có cổng VIX), cổ phiếu thắng trong ngày giữ qua đêm và mọi cổ phiếu biến động mạnh trong ngày (từ 4%) đều được chia theo việc mã đó có tin trong khoảng thời gian xét hay không, chỉ dùng thời điểm và mã của tin Alpaca (không dùng nội dung tiêu đề). Mỗi nhóm được so với 200 lần vào lệnh ngẫu nhiên cùng mã và cùng nhóm tin, phí theo từng mã ở 1x và 2x, với Deflated Sharpe trên cả 42 biến thể đã thử, và chênh lệch không tin so với có tin có thêm kiểm định hoán vị. Workflow chạy tay (cần secrets Alpaca của repo; thiếu thì không làm gì). Chỉ giao dịch giả lập, không đổi giao dịch thật.',
+    ],
+  },
   {
     version: '1.95.2',
     date: '2026-11-01',

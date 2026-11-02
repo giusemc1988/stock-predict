@@ -36,3 +36,4 @@ dist-ssr
 argus/dist
 __pycache__/
 firmware/*/.pio/
+.cache
