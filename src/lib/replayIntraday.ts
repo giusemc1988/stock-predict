@@ -18,7 +18,7 @@ import type { Candle } from '../types'
 import type { Costs } from './costs'
 import { dayKey } from './practice'
 import { scaleCosts, seededRng } from './replayDaily'
-import { deflatedSharpe, stats } from './replayLab'
+import { deflatedSharpe } from './replayLab'
 
 /** Variants tried in round 3: I1 4, I2 4, I3 6. Rounds 1+2 tried 14 (ROUND2_TRIALS), so the DSR counts 28. */
 export const ROUND3_TRIALS = 14
@@ -354,9 +354,6 @@ export function judge(
     const at = (m: CostMode) => exam.map((t) => retPct(t, costOf(model, m, t.symbol)))
     return { it, book, exam, rNew: at('new'), rOld: at('old'), r2x: at('x2'), c: control(it.syms, it.trades, examFrom, model, 200, 1, it.allow) }
   })
-  const srs = rows.map((r) => stats(r.rNew.map((x) => ({ retPct: x }))).sharpe)
-  const mu = srs.reduce((a, b) => a + b, 0) / Math.max(1, srs.length)
-  const v = srs.reduce((a, b) => a + (b - mu) ** 2, 0) / Math.max(1, srs.length - 1)
   const mean = (a: number[]) => a.reduce((x, y) => x + y, 0) / Math.max(1, a.length)
   const pv = (draws: number[], actual: number) => (1 + draws.filter((x) => x >= actual).length) / (draws.length + 1)
   return rows.map((r) => {
@@ -365,7 +362,7 @@ export function judge(
     const cn = mean(r.c.mNew)
     const c2 = mean(r.c.m2x)
     const sigsExam = r.it.sigs.filter((s) => s.sd.days[s.di].key >= r.it.examFrom).length
-    const dsr = deflatedSharpe(r.rNew, trials, v)
+    const dsr = deflatedSharpe(r.rNew, trials)
     const control = { meanNew: cn, excessNew: avgNew - cn, pNew: pv(r.c.mNew, avgNew), excess2x: avg2x - c2, p2x: pv(r.c.m2x, avg2x) }
     return {
       id: r.it.id,

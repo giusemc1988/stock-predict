@@ -105,7 +105,7 @@ assert.ok(out.all.size >= 20)
 assert.ok(out.best[0].fit.fitness >= out.best[out.best.length - 1].fit.fitness)
 
 // on a random walk nothing should pass the vault
-const v = vaultExam(u, r, cuts, '2020-01-01', 1000, 0.01, new Set(['MARA']), 40)
+const v = vaultExam(u, r, cuts, '2020-01-01', 1000, new Set(['MARA']), 40)
 assert.equal(v.passed, false)
 assert.ok(v.days <= v.n)
 assert.ok(MIN_VAULT_DAYS >= 30)

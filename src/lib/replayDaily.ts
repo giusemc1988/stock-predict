@@ -332,10 +332,6 @@ const mean = (a: number[]) => a.reduce((x, y) => x + y, 0) / Math.max(1, a.lengt
  *  counting every strategy tried here (`trials` overrides the count). `runs[k][m]` = trades of strategy k at cost multiplier m. */
 export function evalDaily(examFrom: string, strategies: Pick<DailyStrategy, 'id' | 'en' | 'vi'>[], runs: Record<number, DailyTrade[]>[], controls: ControlDraws[], trials = strategies.length): DailyResult[] {
   const split = (rows: DailyTrade[]) => [rows.filter((t) => dayKey(t.openedAt) < examFrom), rows.filter((t) => dayKey(t.openedAt) >= examFrom)]
-  const exams = runs.map((r) => split(r[1])[1])
-  const srs = exams.map((e) => stats(e).sharpe)
-  const mu = srs.reduce((a, b) => a + b, 0) / Math.max(1, srs.length)
-  const v = srs.reduce((a, b) => a + (b - mu) ** 2, 0) / Math.max(1, srs.length - 1)
   return strategies.map((s, k) => {
     const [b, e] = split(runs[k][1])
     const exam = stats(e)
@@ -346,7 +342,7 @@ export function evalDaily(examFrom: string, strategies: Pick<DailyStrategy, 'id'
       const st = stats(runs[k][1].filter((t) => new Date(t.openedAt).getUTCFullYear() === y))
       byYear[y] = { n: st.n, avgRet: st.avgRet }
     }
-    const dsr = deflatedSharpe(e.map((t) => t.retPct), trials, v)
+    const dsr = deflatedSharpe(e.map((t) => t.retPct), trials)
     const book = stats(b)
     const cd = controls[k]
     const control = { book: mean(cd.book1), examX1: mean(cd.exam1), examX2: mean(cd.exam2) }

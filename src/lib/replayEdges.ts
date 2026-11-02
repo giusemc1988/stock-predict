@@ -42,9 +42,15 @@ export const TRIAL_LEDGER = {
   shortRound6: SHORT_TRIALS, // S1-S4: short side (fade spike, weak-market break-down, 12-1 losers, overnight losers)
 }
 export const ALL_ROUNDS_TRIALS = Object.values(TRIAL_LEDGER).reduce((a, b) => a + b, 0)
-/** Trials counted by the Deflated Sharpe of a single idea and of an ensemble (both use the full ledger). */
-export const SINGLE_TRIALS = ALL_ROUNDS_TRIALS
-export const ENSEMBLE_TRIALS = ALL_ROUNDS_TRIALS
+/** Trials judged on the recent years (the daily labs' exam since 2020 and the factory's vault since 2023): every
+ *  round except the 340 filter rules of the 15m lab, which were mined and judged on 60 days of 15-minute bars of
+ *  Atlas's own trades, a different data set. The Deflated Sharpe of an idea counts the ideas that were judged on
+ *  the same data as it (lab audit 2026-11-02): ideas that only ever saw other data cannot have made it lucky there.
+ *  The bar still rises with every new idea judged on these years. */
+export const HOLDOUT_TRIALS = ALL_ROUNDS_TRIALS - TRIAL_LEDGER.replay15mRules
+/** Trials counted by the Deflated Sharpe of a single idea and of an ensemble. */
+export const SINGLE_TRIALS = HOLDOUT_TRIALS
+export const ENSEMBLE_TRIALS = HOLDOUT_TRIALS
 /** The older labs' count (strategy variants of rounds 1-3 plus this round), shown next to the strict one. */
 export const LAB_TRIALS = ALL_TRIALS + EDGES_TRIALS
 export { HIGH_VOL } from './replayUniverse'
@@ -274,19 +280,14 @@ const sd = (a: number[]) => {
   return Math.sqrt(a.reduce((x, y) => x + (y - m) ** 2, 0) / Math.max(1, a.length - 1))
 }
 export const sharpeOf = (a: number[]) => (sd(a) > 0 ? mean(a) / sd(a) : 0)
-/** Variance of a list of per-observation Sharpe ratios (the spread of luck among the ideas tried). */
-export const sharpeVar = (srs: number[]) => {
-  const m = mean(srs)
-  return srs.reduce((x, y) => x + (y - m) ** 2, 0) / Math.max(1, srs.length - 1)
-}
 
-export const PASS_TRADES_EN = `PASS (trade-based ideas) = at least ${MIN_EXAM_TRADES} exam trades, exam average per trade above 0 at 1x AND 2x costs, exam excess over the 200-draw seeded random-date control above 0 at 1x and 2x with p <= 0.05 at both, the BOOK excess also above 0, and a Deflated Sharpe >= 0.95 of its daily return stream counting all ${SINGLE_TRIALS} trials of every round (340 filter rules and 4 strategies of the 15m lab, 14 daily, 14 intraday, 14 news, ${EDGES_TRIALS} here, 2 portfolios). Fixed in advance; nothing is tuned on the exam.`
-export const PASS_TRADES_VI = `QUA (ý tưởng theo lệnh) = từ ${MIN_EXAM_TRADES} lệnh thi, trung bình mỗi lệnh bài thi > 0 ở phí 1x VÀ 2x, phần vượt trội bài thi so với 200 lần chọn ngày ngẫu nhiên (có seed) > 0 ở 1x và 2x với p <= 0,05 ở cả hai, phần vượt trội của BOOK cũng > 0, và Deflated Sharpe >= 0,95 của chuỗi lợi nhuận ngày tính cả ${SINGLE_TRIALS} lần thử của mọi vòng (340 luật lọc và 4 chiến lược của lab 15 phút, 14 nến ngày, 14 trong ngày, 14 tin tức, ${EDGES_TRIALS} ở đây, 2 danh mục). Cố định từ trước; không chỉnh gì trên bài thi.`
+export const PASS_TRADES_EN = `PASS (trade-based ideas) = at least ${MIN_EXAM_TRADES} exam trades, exam average per trade above 0 at 1x AND 2x costs, exam excess over the 200-draw seeded random-date control above 0 at 1x and 2x with p <= 0.05 at both, the BOOK excess also above 0, and a Deflated Sharpe >= 0.95 of its daily return stream counting all ${SINGLE_TRIALS} ideas judged on the recent years (every round except the 340 filter rules of the 15m lab, which used other data). Fixed in advance; nothing is tuned on the exam.`
+export const PASS_TRADES_VI = `QUA (ý tưởng theo lệnh) = từ ${MIN_EXAM_TRADES} lệnh thi, trung bình mỗi lệnh bài thi > 0 ở phí 1x VÀ 2x, phần vượt trội bài thi so với 200 lần chọn ngày ngẫu nhiên (có seed) > 0 ở 1x và 2x với p <= 0,05 ở cả hai, phần vượt trội của BOOK cũng > 0, và Deflated Sharpe >= 0,95 của chuỗi lợi nhuận ngày tính cả ${SINGLE_TRIALS} ý tưởng đã thi trên những năm gần đây (mọi vòng, trừ 340 luật lọc của lab 15 phút vốn dùng dữ liệu khác). Cố định từ trước; không chỉnh gì trên bài thi.`
 
 /** `dsrDaily`, when given, is the Deflated Sharpe of the idea's DAILY return stream (the pass uses it instead of the
  *  per-trade one): per-trade Sharpes of ideas with different holding periods are not in the same unit, so their
  *  variance would be meaningless as the spread of luck between trials. */
-export function evalTrades(id: string, en: string, vi: string, t: TradeSet, c: ControlDraws, trials: number, trialVar: number, dsrDaily?: number): EdgeEval {
+export function evalTrades(id: string, en: string, vi: string, t: TradeSet, c: ControlDraws, trials: number, dsrDaily?: number): EdgeEval {
   const ex = stats(t.exam1.map((retPct) => ({ retPct })))
   const ctrl = { book: mean(c.book1), x1: mean(c.exam1), x2: mean(c.exam2) }
   const avg2x = mean(t.exam2)
@@ -294,7 +295,7 @@ export function evalTrades(id: string, en: string, vi: string, t: TradeSet, c: C
   const p2x = c.exam2.filter((x) => x >= avg2x).length / Math.max(1, c.exam2.length)
   const book = { n: t.book1.length, avg: mean(t.book1), ctrl: ctrl.book, excess: mean(t.book1) - ctrl.book }
   const exam = { n: ex.n, winRate: ex.winRate, tstat: ex.sharpe * Math.sqrt(ex.n), avg1x: ex.avgRet, avg2x, ctrl1x: ctrl.x1, ctrl2x: ctrl.x2, excess1x: ex.avgRet - ctrl.x1, excess2x: avg2x - ctrl.x2, p1x, p2x }
-  const dsrTrades = deflatedSharpe(t.exam1, trials, trialVar)
+  const dsrTrades = deflatedSharpe(t.exam1, trials)
   const dsr = dsrDaily ?? dsrTrades
   const passed = exam.n >= MIN_EXAM_TRADES && exam.avg1x > 0 && exam.avg2x > 0 && exam.excess1x > 0 && exam.excess2x > 0 && p1x <= 0.05 && p2x <= 0.05 && book.excess > 0 && dsr >= 0.95
   return { id, en, vi, book, exam, dsr, dsrTrades, passed }
@@ -365,8 +366,8 @@ export interface SwitchEval {
   passed: boolean
 }
 
-export const PASS_SWITCH_EN = `PASS (switches and portfolios, judged against SPY buy-and-hold over the same days) = exam Sharpe above SPY's at 1x AND 2x costs, exam max drawdown shallower than SPY's at both, the BOOK agrees (Sharpe above SPY's and max drawdown shallower at 1x), the exam Sharpe beats a random-timing control (the same signal shifted in time by 200 seeded random offsets, so the same share of days invested and the same number of switches) with p <= 0.05, and a Deflated Sharpe >= 0.95 on the exam daily returns counting all ${SINGLE_TRIALS} trials of every round. Fixed in advance.`
-export const PASS_SWITCH_VI = `QUA (chuyển trạng thái và danh mục, so với SPY mua-giữ cùng khoảng ngày) = Sharpe bài thi cao hơn SPY ở phí 1x VÀ 2x, sụt giảm tối đa bài thi nông hơn SPY ở cả hai, BOOK đồng ý (Sharpe cao hơn SPY và sụt giảm nông hơn ở 1x), Sharpe bài thi thắng nhóm đối chứng chọn thời điểm ngẫu nhiên (cùng tín hiệu dịch thời gian theo 200 độ lệch ngẫu nhiên có seed, nên cùng tỉ lệ ngày cầm hàng và cùng số lần chuyển) với p <= 0,05, và Deflated Sharpe >= 0,95 trên lợi nhuận ngày của bài thi tính cả ${SINGLE_TRIALS} lần thử của mọi vòng. Cố định từ trước.`
+export const PASS_SWITCH_EN = `PASS (switches and portfolios, judged against SPY buy-and-hold over the same days) = exam Sharpe above SPY's at 1x AND 2x costs, exam max drawdown shallower than SPY's at both, the BOOK agrees (Sharpe above SPY's and max drawdown shallower at 1x), the exam Sharpe beats a random-timing control (the same signal shifted in time by 200 seeded random offsets, so the same share of days invested and the same number of switches) with p <= 0.05, and a Deflated Sharpe >= 0.95 on the exam daily returns counting all ${SINGLE_TRIALS} ideas judged on the recent years. Fixed in advance.`
+export const PASS_SWITCH_VI = `QUA (chuyển trạng thái và danh mục, so với SPY mua-giữ cùng khoảng ngày) = Sharpe bài thi cao hơn SPY ở phí 1x VÀ 2x, sụt giảm tối đa bài thi nông hơn SPY ở cả hai, BOOK đồng ý (Sharpe cao hơn SPY và sụt giảm nông hơn ở 1x), Sharpe bài thi thắng nhóm đối chứng chọn thời điểm ngẫu nhiên (cùng tín hiệu dịch thời gian theo 200 độ lệch ngẫu nhiên có seed, nên cùng tỉ lệ ngày cầm hàng và cùng số lần chuyển) với p <= 0,05, và Deflated Sharpe >= 0,95 trên lợi nhuận ngày của bài thi tính cả ${SINGLE_TRIALS} ý tưởng đã thi trên những năm gần đây. Cố định từ trước.`
 
 export function switchPass(spy: HalfPerf, x1: HalfPerf, x2: HalfPerf, dsr: number, pShift = 0): boolean {
   const beats = (x: HalfPerf, half: 'book' | 'exam') => x[half].sharpe > spy[half].sharpe && Math.abs(x[half].maxDD) < Math.abs(spy[half].maxDD)
@@ -395,10 +396,10 @@ export function shiftControl(open: number[], close: number[], sig: number[], sid
   return { p: (1 + hits) / (draws + 1), mean: sum / draws }
 }
 
-export function evalSwitch(id: string, en: string, vi: string, o: { days: string[]; years: number[]; start: number; examIdx: number; spy: number[]; x1: number[]; x2: number[]; invested: number; trials: number; trialVar: number; shift?: { p: number; mean: number } }): SwitchEval {
+export function evalSwitch(id: string, en: string, vi: string, o: { days: string[]; years: number[]; start: number; examIdx: number; spy: number[]; x1: number[]; x2: number[]; invested: number; trials: number; shift?: { p: number; mean: number } }): SwitchEval {
   const h = (r: number[]) => halfPerf(r, o.years, o.start, o.examIdx)
   const [spy, x1, x2] = [h(o.spy), h(o.x1), h(o.x2)]
-  const dsr = deflatedSharpe(o.x1.slice(Math.max(o.start, o.examIdx)), o.trials, o.trialVar)
+  const dsr = deflatedSharpe(o.x1.slice(Math.max(o.start, o.examIdx)), o.trials)
   return { id, en, vi, start: o.days[o.start], invested: o.invested, spy, x1, x2, dsr, shift: o.shift, passed: switchPass(spy, x1, x2, dsr, o.shift?.p ?? 0) }
 }
 

@@ -32,7 +32,7 @@ const T = {
   nSig: { en: '{n} stocks', vi: '{n} mã' },
   similar: { en: '+{n} similar rule(s) fired on the same stocks (see Details).', vi: '+{n} luật tương tự báo cùng các mã này (xem Chi tiết).' },
   funnel: { en: 'This run: {t} new rules → {d} looked good on 2008-2017 → {v} held on 2018-2022 → {k} passed the vault.', vi: 'Lần này: {t} luật mới → {d} tốt trên 2008-2017 → {v} vẫn đứng trên 2018-2022 → {k} qua két khóa.' },
-  counter: { en: 'Trial counter: {total} ideas tried in total ({f} by the factory, {l} by the labs). More tries = a higher bar, so a lucky rule cannot slip through.', vi: 'Bộ đếm lượt thử: tổng {total} ý tưởng đã thử ({f} của xưởng, {l} của các lab). Thử càng nhiều thì vạch đỗ càng cao, nên luật "ăn may" không lọt được.' },
+  counter: { en: 'Trial counter: {total} ideas judged on the recent years ({l} by the labs, {v} factory rules that reached the vault). The factory also tried {f} rules on the old years only; those cannot be lucky in the vault, so they do not raise its bar. More ideas judged = a higher bar, so a lucky rule cannot slip through.', vi: 'Bộ đếm lượt thử: {total} ý tưởng đã thi trên dữ liệu những năm gần đây ({l} của các lab, {v} luật của xưởng vào tới két). Xưởng còn thử {f} luật chỉ trên dữ liệu cũ; chúng không thể "ăn may" trong két nên không làm vạch đỗ cao thêm. Càng nhiều ý tưởng thi thì vạch đỗ càng cao, nên luật "ăn may" không lọt được.' },
   honest: { en: 'Honest note: none of these rules passed the vault yet, so the signals are a live test, not advice.', vi: 'Nói thật: chưa luật nào qua két khóa, nên các tín hiệu này là bài thi thật, không phải lời khuyên.' },
   passedNote: { en: '{n} rule(s) passed the vault. Still paper only: switching any on needs your OK.', vi: '{n} luật đã qua két khóa. Vẫn chỉ giấy: bật thật cần anh OK.' },
   rulesNow: { en: 'Rules making the signals', vi: 'Các luật đang ra tín hiệu' },
@@ -194,7 +194,7 @@ export function AtlasIdeaFactory({ trades, onSymbol }: { trades: PracticeTrade[]
           <details className="asb-more">
             <summary>{G('details')}</summary>
             <p>{G('funnel', { t: rep.funnel.tried, d: rep.funnel.discovery, v: rep.funnel.validation, k: rep.funnel.vault })}</p>
-            <p>{G('counter', { total: rep.trials.total, f: rep.trials.factoryTotal, l: rep.trials.labs })}</p>
+            <p>{G('counter', { total: rep.trials.total, f: rep.trials.factoryTotal, l: rep.trials.holdout ?? rep.trials.labs, v: rep.trials.vaultTotal ?? 0 })}</p>
             <p>
               <b>{G('rulesNow')}</b>
             </p>

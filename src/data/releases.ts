@@ -2,7 +2,7 @@
  * Version and "What's new". Bump APP_VERSION and add an entry to the top of RELEASES
  * with each update. The banner shows once per version, then stays dismissed.
  */
-export const APP_VERSION = '2.0.4'
+export const APP_VERSION = '2.0.5'
 
 export interface Release {
   version: string
@@ -14,7 +14,7 @@ export interface Release {
 
 export const RELEASES: Release[] = [
   {
-    version: '2.0.4',
+    version: '2.0.5',
     date: '2026-11-02',
     changes: [
       'Hub Atlas card redesigned on one grid (Chanh: too many uneven gaps). A head band (Atlas, status, Paper trading only, the thought), four equal tiles (days left to the 16/11 verdict, learner right, BUY calls, open trades), then two equal boxes with the same row shape: Kronos (6 biggest forecast moves as bars) and the six shadow tests with progress bars. Below, one box for the win rate of book vs Opus with each side\'s picks, then the council and the tools spread evenly. The account sits in the thought bubble at the top right. Nothing was removed.',
@@ -27,10 +27,10 @@ export const RELEASES: Release[] = [
     version: '2.0.4',
     date: '2026-11-02',
     changes: [
-      'Hub Atlas card, even spacing (Chanh: too many uneven gaps): Book vs Opus moved up beside the Atlas name, with a "Compare the signals" link. Kronos and the learning box are now the same height with their rows spread evenly, the account row spreads across the full width, and the tool buttons share each line evenly.',
+      'Atlas lab audit (Atlas 1.2.4, lab only): the lab itself had a flaw. Its Deflated Sharpe (the "not just luck" check) measured luck with the spread between the few ideas of the same round, a different unit from the idea itself and random from round to round, and it counted ideas that never saw the same data (the 340 rules of the 15-minute lab, the factory rules that only saw the old years). Tested with a planted edge: before, a rule that makes +1% more per 5-day trade than random FAILED, and SPY itself scored 0.00. Now luck is measured the textbook way (a zero-edge Sharpe over the same number of days) and only ideas judged on the same recent years are counted (66 lab ideas + the rules that reached the vault). The planted +1% edge now passes 5/5 and pure noise 0/5. Re-scored: still nothing passes, but now for real reasons. Overnight winners DSR 0.39 to 0.89 (still lives on the 14 high-volatility names), ETF momentum 0.94 to 0.68 (it was too lenient before), insider 0.03 to 0.28 (p 0.07, too few trades), the factory finalists lose to random entry in the vault. New `npm run lab:audit`, public/lab-audit.json. Live trading unchanged.',
     ],
     changesVi: [
-      'Thẻ Atlas trên Hub, chia khoảng cách đều (anh Chanh: nhiều chỗ trống không đều): ô Sách vở vs Opus lên cạnh tên Atlas, có link "Xem tín hiệu & so sánh". Ô Kronos và ô đang học giờ cao bằng nhau, các dòng chia đều; hàng tài khoản giãn đủ chiều ngang; các nút công cụ chia đều mỗi dòng.',
+      'Kiểm tra lại phòng lab của Atlas (Atlas 1.2.4, chỉ nghiên cứu): chính phòng lab có lỗi. Phép thử Deflated Sharpe (kiểm tra "không phải ăn may") đo độ may rủi bằng độ chênh giữa vài ý tưởng trong cùng vòng, khác đơn vị với ý tưởng và thay đổi ngẫu nhiên giữa các vòng, lại còn đếm cả những ý tưởng không hề thi trên cùng dữ liệu (340 luật của lab 15 phút, các luật xưởng chỉ thấy dữ liệu cũ). Thử bằng lợi thế cài sẵn: trước đây một luật lời hơn ngẫu nhiên +1% mỗi lệnh 5 ngày vẫn TRƯỢT, và chính SPY bị chấm 0,00. Nay đo may rủi đúng sách (Sharpe của chuỗi không có lợi thế, cùng số ngày) và chỉ đếm các ý tưởng đã thi trên cùng những năm gần đây (66 ý tưởng lab + các luật vào két). Lợi thế +1% cài sẵn nay đạt 5/5, nhiễu thuần đạt 0/5. Chấm lại: vẫn chưa ý tưởng nào đạt, nhưng giờ là trượt thật. Qua đêm DSR 0,39 lên 0,89 (vẫn chỉ sống nhờ 14 mã biến động mạnh), momentum ETF 0,94 xuống 0,68 (trước đây chấm quá dễ), insider 0,03 lên 0,28 (p 0,07, quá ít lệnh), các luật chung kết của xưởng thua mua ngẫu nhiên trong két. Lệnh mới `npm run lab:audit`, public/lab-audit.json. Giao dịch thật không đổi.',
     ],
   },
   {

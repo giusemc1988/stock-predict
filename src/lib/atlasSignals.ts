@@ -18,7 +18,7 @@ export const LEARN_GOAL = 50
 export const TRUST_MIN = 30
 
 /** Replay labs so far (public/replay-*.json; TRIAL_LEDGER in src/lib/replayEdges.ts). Update when a lab round lands. */
-export const LAB = { trials: 402, passed: 0, bestDsr: 0.39, needDsr: 0.95, best: { en: 'L4 overnight winners', vi: 'L4 mua mã tăng mạnh, bán sáng mai' } }
+export const LAB = { trials: 406, passed: 0, bestDsr: 0.89, needDsr: 0.95, best: { en: 'L4 overnight winners', vi: 'L4 mua mã tăng mạnh, bán sáng mai' } }
 
 const dayMs = 86_400_000
 const dayNum = (d: string) => Date.parse(`${d}T00:00:00Z`)

@@ -21,9 +21,9 @@ import type { Costs } from '../src/lib/costs'
 import { dayKey } from '../src/lib/practice'
 import { controlDaily, d1Reversal, runDaily, scaleCosts, type Series } from '../src/lib/replayDaily'
 import {
-  ALL_ROUNDS_TRIALS, EDGES_TRIALS, HIGH_VOL, FOMC_ANNOUNCEMENTS, LAB_TRIALS, PASS_SWITCH_EN, PASS_SWITCH_VI, PASS_TRADES_EN, PASS_TRADES_VI, PAIR_RULE, TRIAL_LEDGER,
+  ALL_ROUNDS_TRIALS, EDGES_TRIALS, HIGH_VOL, HOLDOUT_TRIALS, FOMC_ANNOUNCEMENTS, LAB_TRIALS, PASS_SWITCH_EN, PASS_SWITCH_VI, PASS_TRADES_EN, PASS_TRADES_VI, PAIR_RULE, TRIAL_LEDGER,
   barOnOrBefore, bookInvVol, clusterDays, ensembleStream, evalSwitch, evalTrades, eventGroups, eventReturns, eventStream, firstFinite, fomcEvents, hygSignal,
-  insiderRows, olsBeta, opexWeeks, overnightRet, overnightSignals, pairPath, pairPool, pairTradeRet, pairTrades, poolControl, sharpeOf, sharpeVar, shiftControl,
+  insiderRows, olsBeta, opexWeeks, overnightRet, overnightSignals, pairPath, pairPool, pairTradeRet, pairTrades, poolControl, shiftControl,
   sleeveCorr, spreadZ, switchStream, turnOfMonthEvents, vixTsSignal, type EdgeEval, type Ev, type Group, type InsiderRow, type PairBars, type Sleeve, type SwitchEval, type TradeSet,
 } from '../src/lib/replayEdges'
 import { deflatedSharpe } from '../src/lib/replayLab'
@@ -407,20 +407,18 @@ async function main() {
   const sleevesAll: Sleeve[] = [...trade.map((x) => x.sleeve), ...sw.map((x) => ({ id: x.id, rets: x.x1, start: x.start })), l1Sleeve]
   const sleeves2 = [...trade.map((x) => x.sleeve2), ...sw.map((x) => x.x2), l1Sleeve2]
   const examRets = (s: Sleeve) => s.rets.slice(Math.max(s.start, examIdx))
-  const dayVar = sharpeVar(sleevesAll.map((s) => sharpeOf(examRets(s))))
-  const tradeVar = sharpeVar(trade.map((x) => sharpeOf(x.t.exam1)))
   const evals: EdgeEval[] = trade.map((x) => {
-    const e = evalTrades(x.id, x.en, x.vi, x.t, x.c, ALL_ROUNDS_TRIALS, tradeVar, deflatedSharpe(examRets(x.sleeve), ALL_ROUNDS_TRIALS, dayVar))
+    const e = evalTrades(x.id, x.en, x.vi, x.t, x.c, HOLDOUT_TRIALS, deflatedSharpe(examRets(x.sleeve), HOLDOUT_TRIALS))
     if (x.gate === false) e.passed = false
     return e
   })
   const switches: SwitchEval[] = sw.map((x) =>
     evalSwitch(x.id, x.en, x.vi, {
-      days, years, start: x.start, examIdx, spy: spyRet, x1: x.x1, x2: x.x2, invested: x.invested, trials: ALL_ROUNDS_TRIALS, trialVar: dayVar,
+      days, years, start: x.start, examIdx, spy: spyRet, x1: x.x1, x2: x.x2, invested: x.invested, trials: HOLDOUT_TRIALS,
       shift: x.sig ? shiftControl(sOpen, sClose, x.sig, side, x.start, examIdx, years) : undefined,
     }),
   )
-  const labDsr = (r: number[], v: number) => deflatedSharpe(r, LAB_TRIALS, v)
+  const labDsr = (r: number[]) => deflatedSharpe(r, LAB_TRIALS)
 
   // ---- portfolios (risk parity = inverse book volatility, monthly rebalance) ----
   const survivors = new Set([...evals.filter((e) => e.passed).map((e) => e.id), ...switches.filter((s) => s.passed).map((s) => s.id)])
@@ -431,7 +429,7 @@ async function main() {
     const e1 = ensembleStream(sleevesAll, w, days)
     const e2 = ensembleStream(sleevesAll.map((s, k) => ({ ...s, rets: sleeves2[k] })), w, days)
     const tot = w.reduce((a, b) => a + b, 0)
-    const ev = evalSwitch(id, en, vi, { days, years, start: e1.start, examIdx, spy: spyRet, x1: e1.rets, x2: e2.rets, invested: 1, trials: ALL_ROUNDS_TRIALS, trialVar: dayVar })
+    const ev = evalSwitch(id, en, vi, { days, years, start: e1.start, examIdx, spy: spyRet, x1: e1.rets, x2: e2.rets, invested: 1, trials: HOLDOUT_TRIALS })
     return { ...ev, weights: Object.fromEntries(sleevesAll.map((s, k) => [s.id, +(w[k] / tot).toFixed(3)]).filter(([, x]) => (x as number) > 0)) }
   }
   const portfolios = [
@@ -445,7 +443,7 @@ async function main() {
     corr[a.id] = {}
     for (const b of examSleeves) corr[a.id][b.id] = +sleeveCorr(a, b).toFixed(2)
   }
-  const sleeveStats = sleevesAll.map((s, k) => ({ id: s.id, exam: perf(s.rets.slice(Math.max(s.start, examIdx)), years.slice(Math.max(s.start, examIdx)), 252), exam2x: perf(sleeves2[k].slice(Math.max(s.start, examIdx)), years.slice(Math.max(s.start, examIdx)), 252), dsrLab: labDsr(s.rets.slice(Math.max(s.start, examIdx)), dayVar) }))
+  const sleeveStats = sleevesAll.map((s, k) => ({ id: s.id, exam: perf(s.rets.slice(Math.max(s.start, examIdx)), years.slice(Math.max(s.start, examIdx)), 252), exam2x: perf(sleeves2[k].slice(Math.max(s.start, examIdx)), years.slice(Math.max(s.start, examIdx)), 252), dsrLab: labDsr(s.rets.slice(Math.max(s.start, examIdx))) }))
 
   const won = [...evals.filter((e) => e.passed).map((e) => e.id), ...switches.filter((s) => s.passed).map((s) => s.id), ...portfolios.filter((p) => p.passed).map((p) => p.id)]
   const out = {
@@ -454,20 +452,20 @@ async function main() {
     markets: need.length,
     failed,
     split: { from: days[0], examFrom, days: n },
-    trials: { ledger: TRIAL_LEDGER, total: ALL_ROUNDS_TRIALS, round4Edges: EDGES_TRIALS, labConvention: LAB_TRIALS },
+    trials: { ledger: TRIAL_LEDGER, total: ALL_ROUNDS_TRIALS, holdout: HOLDOUT_TRIALS, round4Edges: EDGES_TRIALS, labConvention: LAB_TRIALS },
     costs: 'Per-symbol tiers (half-spread by median daily dollar volume: >$5B 0.5 bps, $1-5B 1.5, $0.2-1B 4, below 10; slippage 1 bp per fill; fee 0), at 1x and 2x.',
     passRule: { trades: { en: PASS_TRADES_EN, vi: PASS_TRADES_VI }, switches: { en: PASS_SWITCH_EN, vi: PASS_SWITCH_VI } },
-    trades: evals.map((e, k) => ({ ...e, dsrLab: labDsr(examRets(trade[k].sleeve), dayVar), note: trade[k].note })),
-    switches: switches.map((s, k) => ({ ...s, dsrLab: labDsr(sw[k].x1.slice(Math.max(sw[k].start, examIdx)), dayVar), note: sw[k].note })),
+    trades: evals.map((e, k) => ({ ...e, dsrLab: labDsr(examRets(trade[k].sleeve)), note: trade[k].note })),
+    switches: switches.map((s, k) => ({ ...s, dsrLab: labDsr(sw[k].x1.slice(Math.max(sw[k].start, examIdx))), note: sw[k].note })),
     portfolios,
-    robustness: { overnightWithoutHighVol: { dropped: [...HIGH_VOL], ...evalTrades('E-OVERNIGHT-exHV', 'Overnight winners without the 14 high-volatility names', 'Qua đêm, bỏ 14 mã biến động mạnh', onRobust.t, onRobust.c, ALL_ROUNDS_TRIALS, tradeVar, deflatedSharpe(examRets(onRobust.sleeve), ALL_ROUNDS_TRIALS, dayVar)) } },
+    robustness: { overnightWithoutHighVol: { dropped: [...HIGH_VOL], ...evalTrades('E-OVERNIGHT-exHV', 'Overnight winners without the 14 high-volatility names', 'Qua đêm, bỏ 14 mã biến động mạnh', onRobust.t, onRobust.c, HOLDOUT_TRIALS, deflatedSharpe(examRets(onRobust.sleeve), HOLDOUT_TRIALS)) } },
     sleeves: sleeveStats,
     examCorrelation: corr,
     fomcSkipped: fomc.skipped,
     insider: insiderNote,
     summary: {
-      en: won.length ? `Passed: ${won.join(', ')}.` : `Nothing passed with all ${ALL_ROUNDS_TRIALS} trials counted.`,
-      vi: won.length ? `Đạt: ${won.join(', ')}.` : `Không ý tưởng nào đạt khi tính cả ${ALL_ROUNDS_TRIALS} lần thử.`,
+      en: won.length ? `Passed: ${won.join(', ')}.` : `Nothing passed with ${HOLDOUT_TRIALS} trials counted.`,
+      vi: won.length ? `Đạt: ${won.join(', ')}.` : `Không ý tưởng nào đạt khi tính cả ${HOLDOUT_TRIALS} lần thử.`,
     },
     caveats: [
       'Survivorship: today\'s liquid names applied back to 2007 (pairs, overnight, L1).',
@@ -477,7 +475,7 @@ async function main() {
     ],
   }
   writeFileSync(OUT, JSON.stringify(out, null, 1))
-  console.log(`\nexam from ${examFrom}, ${n} days, ${out.seconds}s, trials ${ALL_ROUNDS_TRIALS}`)
+  console.log(`\nexam from ${examFrom}, ${n} days, ${out.seconds}s, trials ${HOLDOUT_TRIALS}`)
   for (const e of out.trades) console.log(`${e.passed ? 'PASS' : '    '} ${e.id}: exam n=${e.exam.n} avg ${e.exam.avg1x.toFixed(3)}% (2x ${e.exam.avg2x.toFixed(3)}) excess ${e.exam.excess1x.toFixed(3)} p ${e.exam.p1x.toFixed(3)}/${e.exam.p2x.toFixed(3)} book ex ${e.book.excess.toFixed(3)} dsr ${e.dsr.toFixed(3)} (per trade ${e.dsrTrades.toFixed(3)}, lab N ${e.dsrLab.toFixed(3)})`)
   for (const s of [...out.switches, ...portfolios]) console.log(`${s.passed ? 'PASS' : '    '} ${s.id}: exam Sharpe ${s.x1.exam.sharpe.toFixed(2)} (2x ${s.x2.exam.sharpe.toFixed(2)}) vs SPY ${s.spy.exam.sharpe.toFixed(2)}, maxDD ${s.x1.exam.maxDD.toFixed(1)} vs ${s.spy.exam.maxDD.toFixed(1)}, book Sharpe ${s.x1.book.sharpe.toFixed(2)} vs ${s.spy.book.sharpe.toFixed(2)} DD ${s.x1.book.maxDD.toFixed(1)} vs ${s.spy.book.maxDD.toFixed(1)}, shift p ${s.shift?.p.toFixed(3) ?? '-'}, dsr ${s.dsr.toFixed(3)}`)
   console.log(out.summary.en)

@@ -18,10 +18,10 @@ import type { Candle } from '../src/types'
 import { SEEDS } from '../src/data/ideaSeeds'
 import {
   DISCOVERY_END, FINALISTS, familyOf, GENERATIONS, MIN_VALIDATION_TRADES, VALIDATION_END, baselines, describeRule, features, fitOf,
-  PASS_EN, PASS_VI, gradeSignal, latestSignals, quantileCuts, signalScore, type FactorySignal, ruleKey, ruleSignals, search, trialSharpeVar, vaultExam, type Cuts, type Rule, type Scored, type Universe, type VaultResult,
+  PASS_EN, PASS_VI, gradeSignal, latestSignals, quantileCuts, signalScore, type FactorySignal, ruleKey, ruleSignals, search, vaultExam, type Cuts, type Rule, type Scored, type Universe, type VaultResult,
 } from '../src/lib/ideaFactory'
 import { runDaily, scaleCosts } from '../src/lib/replayDaily'
-import { ALL_ROUNDS_TRIALS } from '../src/lib/replayEdges'
+import { ALL_ROUNDS_TRIALS, HOLDOUT_TRIALS } from '../src/lib/replayEdges'
 import { symbolCosts } from '../src/lib/replayIntraday'
 import { atr } from '../src/lib/replayStrategies'
 import { HIGH_VOL, STOCKS } from '../src/lib/replayUniverse'
@@ -76,7 +76,7 @@ const r3 = (x: number) => Math.round(x * 1000) / 1000
 
 interface Prev {
   run?: number
-  trials?: { factoryTotal?: number }
+  trials?: { factoryTotal?: number; vaultTotal?: number }
   best?: (Omit<Rule, 'origin'> & { origin?: string })[]
   history?: { run: number; generated: string; tried: number; passed: number }[]
   signals?: FactorySignal[]
@@ -177,11 +177,13 @@ async function main() {
     .filter((x, k, a) => a.findIndex((y) => familyOf(y.s.rule) === familyOf(x.s.rule)) === k)
     .slice(0, FINALISTS)
 
-  // vault: one-shot exam with the full lab rule; the DSR counts every lab trial and every factory rule ever tried
+  // vault: one-shot exam with the full lab rule. The DSR counts every idea ever judged on these recent years: the
+  // labs' exam ideas plus every rule that reached the vault in any run (this run's finalists included). The search's
+  // other rules only saw the discovery years, so they cannot have been lucky in the vault (lab audit 2026-11-02).
   const factoryTotal = (prev.trials?.factoryTotal ?? 0) + tried
-  const trials = ALL_ROUNDS_TRIALS + factoryTotal
-  const tv = trialSharpeVar(all.values())
-  const vault = finalists.map((x) => vaultExam(u, x.s.rule, cuts, vaultFrom, trials, tv, HIGH_VOL))
+  const vaultTotal = (prev.trials?.vaultTotal ?? (prev.run ? FINALISTS * prev.run : 0)) + finalists.length
+  const trials = HOLDOUT_TRIALS + vaultTotal
+  const vault = finalists.map((x) => vaultExam(u, x.s.rule, cuts, vaultFrom, trials, HIGH_VOL))
   const passed = vault.filter((v) => v.passed).length
 
   // signals: the finalists' rules (or the best discovery families when none got through) on the latest close,
@@ -217,7 +219,7 @@ async function main() {
     periods: { discovery: [first, DISCOVERY_END], validation: [DISCOVERY_END, VALIDATION_END], vault: [vaultFrom, vaultTo] },
     universe: { symbols: used.length, failed },
     search: { generations: GENS, seeds: SEEDS.length, fromLastRun: prev.best?.length ?? 0 },
-    trials: { labs: ALL_ROUNDS_TRIALS, thisRun: tried, factoryTotal, total: trials },
+    trials: { labs: ALL_ROUNDS_TRIALS, holdout: HOLDOUT_TRIALS, thisRun: tried, factoryTotal, vaultTotal, total: trials },
     funnel: { tried, discovery: best.filter((s) => s.fit.fitness > 0).length, validation: finalists.length, vault: passed },
     pass: { en: PASS_EN(trials), vi: PASS_VI(trials) },
     top,

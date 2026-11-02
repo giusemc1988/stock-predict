@@ -115,8 +115,16 @@ export function normInv(p: number): number {
   return ((((((a[0] * r + a[1]) * r + a[2]) * r + a[3]) * r + a[4]) * r + a[5]) * u) / (((((b[0] * r + b[1]) * r + b[2]) * r + b[3]) * r + b[4]) * r + 1)
 }
 
-/** Deflated Sharpe Ratio: P(true Sharpe > the best you would expect from `trials` lucky tries). */
-export function deflatedSharpe(rets: number[], trials: number, trialSharpeVar: number): number {
+/** Spread of the Sharpe estimate of `n` returns when the true Sharpe is 0 (about 1/n). The Deflated Sharpe uses it
+ *  as the "luck" spread: it is in the same unit as the idea's own Sharpe and does not depend on which few other
+ *  ideas happened to be in the same round (lab audit 2026-11-02). */
+export const nullSharpeVar = (n: number) => (n > 1 ? 1 / n : 0)
+
+/** Deflated Sharpe Ratio: P(true Sharpe > the best you would expect from `trials` lucky tries).
+ *  The luck spread is `nullSharpeVar(n)`. Until 2026-11-02 the labs passed the spread of the Sharpes of the few ideas
+ *  in the same round instead: a different unit from the idea's own Sharpe and random from round to round, which
+ *  failed a planted +1%-per-trade edge and SPY itself (scripts/lab-audit.ts). */
+export function deflatedSharpe(rets: number[], trials: number): number {
   const n = rets.length
   if (n < 3) return 0
   const mean = rets.reduce((a, b) => a + b, 0) / n
@@ -127,7 +135,7 @@ export function deflatedSharpe(rets: number[], trials: number, trialSharpeVar: n
   const kurt = rets.reduce((a, b) => a + ((b - mean) / sd) ** 4, 0) / n
   const EM = 0.5772156649
   const N = Math.max(2, trials)
-  const sr0 = Math.sqrt(Math.max(trialSharpeVar, 0)) * ((1 - EM) * normInv(1 - 1 / N) + EM * normInv(1 - 1 / (N * Math.E)))
+  const sr0 = Math.sqrt(nullSharpeVar(n)) * ((1 - EM) * normInv(1 - 1 / N) + EM * normInv(1 - 1 / (N * Math.E)))
   const denom = Math.sqrt(Math.max(1e-9, 1 - skew * sr + ((kurt - 1) / 4) * sr * sr))
   return normCdf(((sr - sr0) * Math.sqrt(n - 1)) / denom)
 }
@@ -152,15 +160,12 @@ export function mineRules(trades: ReplayTrade[], opts: { bookShare?: number; min
       candidates.push({ name: `${a.name} + ${b.name}`, vi: `${a.vi} + ${b.vi}`, test: (t) => a.test(t) && b.test(t) })
     }
   const tried = candidates.map((c) => ({ c, bookRows: book.filter(c.test) })).filter((x) => x.bookRows.length >= minBook)
-  const srs = tried.map((x) => stats(x.bookRows).sharpe)
-  const mu = srs.reduce((a, b) => a + b, 0) / Math.max(1, srs.length)
-  const srVar = srs.reduce((a, b) => a + (b - mu) ** 2, 0) / Math.max(1, srs.length - 1)
 
   const results: RuleResult[] = tried
     .map(({ c, bookRows }) => {
       const b = stats(bookRows)
       const e = stats(exam.filter(c.test))
-      const dsr = deflatedSharpe(bookRows.map((t) => t.retPct), tried.length, srVar)
+      const dsr = deflatedSharpe(bookRows.map((t) => t.retPct), tried.length)
       const passed = b.avgRet > 0 && b.avgRet > base.book.avgRet && e.n >= minExam && e.avgRet > 0 && e.avgRet > base.exam.avgRet && dsr >= 0.95
       return { name: c.name, vi: c.vi, book: b, exam: e, dsr, passed }
     })
@@ -197,15 +202,11 @@ export function evalStrategies(examFrom: string, atlas: { retPct: number; opened
   const [ab, ae] = split(atlas)
   const base = { book: stats(ab), exam: stats(ae) }
   const all = [{ id: 'S0', vi: 'Atlas như hiện tại', trades: atlas }, ...runs]
-  const books = all.map((r) => split(r.trades)[0])
-  const srs = books.map((b) => stats(b).sharpe)
-  const mu = srs.reduce((a, b) => a + b, 0) / srs.length
-  const v = srs.reduce((a, b) => a + (b - mu) ** 2, 0) / Math.max(1, srs.length - 1)
   return all.map((r) => {
     const [b, e] = split(r.trades)
     const book = stats(b)
     const exam = stats(e)
-    const dsr = deflatedSharpe(b.map((t) => t.retPct), all.length, v)
+    const dsr = deflatedSharpe(b.map((t) => t.retPct), all.length)
     const passed = r.id !== 'S0' && book.avgRet > 0 && exam.n >= 15 && exam.avgRet > 0 && exam.avgRet > base.exam.avgRet && dsr >= 0.95
     return { id: r.id, vi: r.vi, book, exam, dsr, passed }
   }).map((x, k) => (k === 0 ? { ...x, book: base.book, exam: base.exam } : x))

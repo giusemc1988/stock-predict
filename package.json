@@ -1,7 +1,7 @@
 {
   "name": "stock-predict",
   "private": true,
-  "version": "2.0.4",
+  "version": "2.0.5",
   "type": "module",
   "scripts": {
     "replay": "vite build --ssr scripts/replay-lab.ts --outDir .learn/replay --emptyOutDir --logLevel warn && node .learn/replay/replay-lab.js",
@@ -11,6 +11,7 @@
     "replay:momentum": "vite build --ssr scripts/replay-momentum.ts --outDir .learn/replay-momentum --emptyOutDir --logLevel warn && node .learn/replay-momentum/replay-momentum.js",
     "replay:short": "vite build --ssr scripts/replay-short.ts --outDir .learn/replay-short --emptyOutDir --logLevel warn && node .learn/replay-short/replay-short.js",
     "ideas": "vite build --ssr scripts/idea-factory.ts --outDir .learn/ideas --emptyOutDir --logLevel warn && node .learn/ideas/idea-factory.js",
+    "lab:audit": "vite build --ssr scripts/lab-audit.ts --outDir .learn/lab-audit --emptyOutDir --logLevel warn && node .learn/lab-audit/lab-audit.js",
     "replay:daily": "vite build --ssr scripts/replay-daily.ts --outDir .learn/replay-daily --emptyOutDir --logLevel warn && node .learn/replay-daily/replay-daily.js",
     "dev": "vite",
     "build": "tsc -b && vite build",
