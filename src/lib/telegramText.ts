@@ -45,6 +45,8 @@ export interface SummaryInfo {
   shadow?: string
   /** One short line per shadow lead (src/lib/shadowLeads.ts leadsReport().vi), under the shadow line. */
   shadowLeads?: string[]
+  /** One line from shadowReport().kronosVi: did Kronos's 5-day forecast object to the buys. */
+  shadowKronos?: string
 }
 
 const EXIT_VI: Record<ExitCode, string> = {
@@ -104,6 +106,7 @@ export function summaryText(x: SummaryInfo): string {
   if (lessons.length) lines.push('', '💡 Bài học:', ...lessons.map((l) => `• ${l.vi}`))
   lines.push('', `⚙️ AI tự học: ${x.learning} · Phanh: ${x.brakes}`)
   if (x.shadow) lines.push(`🧪 Chạy bóng (volume ≥1x, bỏ watchlist): ${x.shadow}`)
+  if (x.shadowKronos) lines.push(`   🔮 ${x.shadowKronos}`)
   if (x.shadowLeads?.length) lines.push(...x.shadowLeads.map((l) => `   ${l}`))
   return lines.join('\n')
 }

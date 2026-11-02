@@ -12,7 +12,7 @@ import { AtlasCouncil, type CouncilVote } from './AtlasCouncil'
 import { CountUp } from './CountUp'
 import { LangSwitch } from './HubPanels'
 import { KronosChart } from './KronosChart'
-import type { CouncilId, KronosForecast } from '../lib/kronosView'
+import { currentForecasts, type CouncilId, type KronosForecast } from '../lib/kronosView'
 import { ProjectLogo } from './ProjectLogo'
 import { useHubModel, type CardModel, type HubProps } from './useHubModel'
 import './JarvisHub.css'
@@ -275,11 +275,9 @@ export function JarvisHub(p: HubProps & { flipAuto: boolean; council: boolean })
   }, [])
   const kBars = useMemo(
     () =>
-      (kronos?.forecasts ?? [])
-        .filter((f) => f.pred['5'] && f.lastClose)
-        .reduce<KronosForecast[]>((acc, f) => [...acc.filter((x) => x.symbol !== f.symbol), f], [])
+      currentForecasts((kronos?.forecasts ?? []).filter((f) => f.pred['5'] && f.lastClose))
         .map((f) => ({ symbol: f.symbol.replace('-USD', ''), pct: (f.pred['5'] / f.lastClose - 1) * 100, f }))
-        .slice(0, 8),
+        .slice(0, 24),
     [kronos],
   )
   const kMax = Math.max(2, ...kBars.map((b) => Math.abs(b.pct)))

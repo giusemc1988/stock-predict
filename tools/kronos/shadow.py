@@ -9,7 +9,11 @@ Nothing here reaches Atlas or places an order. The log is public/kronos-shadow.j
 readable report docs/kronos-shadow.md. Kronos only earns a place in Atlas's filters if, after
 at least MIN_GRADED graded forecasts per horizon, it beats both baselines (see verdict()).
 
-  python tools/kronos/shadow.py --kronos <path to a Kronos checkout> [--dry-run]
+The symbol list is Atlas's built-in watchlist plus the symbols Atlas is trading right now (open positions and
+the stocks it traded in the last days), read from the daily practice snapshot on the `backups` branch. Tickers
+you add only in your own browser are not visible here.
+
+  python tools/kronos/shadow.py --kronos <path to a Kronos checkout> [--atlas practice.json] [--dry-run]
 """
 import argparse
 import json
@@ -21,9 +25,13 @@ from pathlib import Path
 
 import numpy as np
 import pandas as pd
+import re
 
-# Atlas's stocks plus the two big coins; Yahoo symbols
-SYMBOLS = ['SPY', 'AAPL', 'NVDA', 'TSLA', 'MSFT', 'AMZN', 'BTC-USD', 'ETH-USD']
+# Atlas's built-in watchlist (src/data/instruments.ts); Yahoo symbols
+BASE_SYMBOLS = ['SPY', 'AAPL', 'NVDA', 'TSLA', 'MSFT', 'AMZN', 'BTC-USD', 'ETH-USD', 'SOL-USD', 'BNB-USD']
+MAX_SYMBOLS = 20           # Actions CPU time: a 20-symbol run takes a few minutes
+RECENT_DAYS = 5            # stocks Atlas traded within this many days are forecast too
+UNGRADED_DAYS = 14         # keep fetching bars for older forecasts until they are graded
 HORIZONS = [1, 5]          # trading bars ahead
 CONTEXT = 400              # bars fed to the model (Kronos-small reads at most 512)
 SAMPLES = 5                # forecasts averaged per symbol, to tame sampling noise
@@ -58,6 +66,38 @@ def bars(symbol: str) -> pd.DataFrame:
     if period and res['timestamp'][-1] >= period.get('start', 0) and time.time() < period.get('end', 0):
         df = df.iloc[:-1]  # the bar of the session still trading is not final yet
     return df
+
+
+def atlas_symbols(state: dict, now_ms: float, base: list[str] = BASE_SYMBOLS, cap: int = MAX_SYMBOLS,
+                  days: int = RECENT_DAYS) -> list[str]:
+    """The forecast list: the built-in watchlist first, then Atlas's open positions, then the stocks it closed
+    trades on most recently, up to `cap`. Only plain stock tickers are added from Atlas (Yahoo has no bars
+    for most of the coin pairs it trades); the coins in `base` stay."""
+    out = list(base)
+    ticker = re.compile(r'^[A-Z]{1,5}$')
+    cutoff = now_ms - days * 86_400_000
+    opened = [p['symbol'] for p in state.get('open', [])]
+    closed = [t['symbol'] for t in sorted(state.get('trades', []), key=lambda t: t.get('closedAt', 0), reverse=True)
+              if t.get('closedAt', 0) >= cutoff]
+    for sym in opened + closed:
+        if len(out) >= cap:
+            break
+        if ticker.match(sym) and sym not in out:
+            out.append(sym)
+    return out[:cap]
+
+
+def load_atlas_state(path: str | None) -> dict:
+    """Atlas's paper account from the KV backup (`{"state": "<json>"}`) or a plain state file; {} when absent."""
+    if not path or not Path(path).exists():
+        return {}
+    try:
+        d = json.loads(Path(path).read_text())
+        st = d.get('state', d)
+        return json.loads(st) if isinstance(st, str) else st
+    except Exception as e:
+        print(f'Atlas state unreadable ({e}); using the built-in list only.')
+        return {}
 
 
 def future_days(last: pd.Timestamp, n: int, crypto: bool) -> pd.Series:
@@ -118,7 +158,7 @@ def verdict(n: int, hit: float, up: float, mae_k: float, mae_n: float) -> str:
     return 'no edge'
 
 
-def forecast(kronos_dir: str, frames: dict[str, pd.DataFrame], as_of_run: str) -> list[dict]:
+def forecast(kronos_dir: str, frames: dict[str, pd.DataFrame], as_of_run: str, base: list[str] = BASE_SYMBOLS) -> list[dict]:
     sys.path.insert(0, kronos_dir)
     import torch
     from model import Kronos, KronosPredictor, KronosTokenizer
@@ -142,6 +182,7 @@ def forecast(kronos_dir: str, frames: dict[str, pd.DataFrame], as_of_run: str) -
             'path': [round(float(c), 6) for c in p['close'].iloc[:max(HORIZONS)]],
             'actual': {},
             'run': as_of_run,
+            'list': 'base' if sym in base else 'atlas',
         })
         print(f"{sym}: last {x['close'].iloc[-1]:.2f} -> " + ', '.join(f"+{h}d {p['close'].iloc[h - 1]:.2f}" for h in HORIZONS))
     return out
@@ -170,7 +211,10 @@ def report(log: dict) -> str:
     latest = {}
     for f in log['forecasts']:
         latest[f['symbol']] = f
+    newest = max((f['asOf'] for f in latest.values()), default='')
     for f in latest.values():
+        if f['asOf'] < (pd.Timestamp(newest) - pd.Timedelta(days=4)).strftime('%Y-%m-%d'):
+            continue  # dropped from the list: its last forecast is history, not a current one
         c = f['lastClose']
         p1, p5 = f['pred']['1'], f['pred']['5']
         lines.append(f"| {f['symbol']} | {f['asOf']} | {c:,.2f} | {p1:,.2f} ({(p1 / c - 1):+.1%}) | {p5:,.2f} ({(p5 / c - 1):+.1%}) |")
@@ -182,12 +226,18 @@ def report(log: dict) -> str:
 def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument('--kronos', required=True, help='path to a Kronos checkout (its model/ package)')
+    ap.add_argument('--atlas', help='Atlas practice backup/state JSON; adds the symbols Atlas is trading to the list')
     ap.add_argument('--dry-run', action='store_true', help='print, do not write files')
     a = ap.parse_args()
 
     log = json.loads(LOG.read_text()) if LOG.exists() else {'forecasts': []}
+    wanted = atlas_symbols(load_atlas_state(a.atlas), time.time() * 1000)
+    print(f'{len(wanted)} symbols: ' + ' '.join(wanted))
+    # older forecasts still waiting for their grade need bars too, even for symbols no longer listed
+    horizon_cut = (datetime.now(timezone.utc) - pd.Timedelta(days=UNGRADED_DAYS)).strftime('%Y-%m-%d')
+    waiting = [f['symbol'] for f in log['forecasts'] if f['asOf'] >= horizon_cut and any(str(h) not in f['actual'] for h in HORIZONS)]
     frames = {}
-    for sym in SYMBOLS:
+    for sym in list(dict.fromkeys(wanted + waiting)):
         try:
             frames[sym] = bars(sym)
         except Exception as e:
@@ -198,14 +248,15 @@ def main() -> int:
     grade(log, frames)
     run = datetime.now(timezone.utc).strftime('%Y-%m-%dT%H:%MZ')
     seen = {(f['symbol'], f['asOf']) for f in log['forecasts']}
-    fresh = {k: v for k, v in frames.items() if (k, v['timestamps'].iloc[-1].strftime('%Y-%m-%d')) not in seen}
+    fresh = {k: v for k, v in frames.items() if k in wanted and (k, v['timestamps'].iloc[-1].strftime('%Y-%m-%d')) not in seen}
     if fresh:
         log['forecasts'] += forecast(a.kronos, fresh, run)
     else:
         print('Every symbol already has a forecast for its latest bar.')
     log['updated'] = run
     # the last 30 closes per symbol, for the price line the Hub draws before the forecast
-    log['recent'] = {k: [round(float(c), 6) for c in v['close'].tail(30)] for k, v in frames.items()}
+    log['recent'] = {k: [round(float(c), 6) for c in v['close'].tail(30)] for k, v in frames.items() if k in wanted}
+    log['symbols'] = wanted
     log['score'] = score(log)
     print(json.dumps(log['score'], indent=1))
     if not a.dry_run:

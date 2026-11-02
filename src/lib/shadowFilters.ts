@@ -8,24 +8,31 @@
  * 2. Source: no day trades picked from the watchlist (audit: 45 trades, won 29%, PF 0.48).
  * 3. Learner: what the journal learner said, even while learning is paused, to see whether its HOLD
  *    calls lose (it is recorded only and never gates a trade).
+ * 4. Kronos: whether Kronos's 5-day forecast for the symbol was a drop of SHADOW_KRONOS_PCT or more at the
+ *    moment of the buy ("Kronos objects"). Reported on its own, it is not part of `pass`.
  */
 import type { PracticeKind, PracticeTrade } from './practice'
 
 export const SHADOW_MIN_VOL = 1
+/** Kronos objects when its 5-day forecast is at least this many percent below the price (a negative number). */
+export const SHADOW_KRONOS_PCT = -1
 
 export interface ShadowTag {
   volOk: boolean
   srcOk: boolean
   learner: 'BUY' | 'HOLD' | 'n/a'
+  /** Kronos's 5-day forecast at the buy: 'against' = a drop of SHADOW_KRONOS_PCT or more, 'n/a' = no forecast for the symbol. Absent on older trades. */
+  kronos?: 'against' | 'ok' | 'n/a'
   /** volOk and srcOk: the trade would still be taken with rules 1 and 2 on. */
   pass: boolean
 }
 
-export function shadowTag(x: { kind: PracticeKind; source?: string | null; volVsAvg?: number | null }, learner: ShadowTag['learner'] = 'n/a'): ShadowTag {
+export function shadowTag(x: { kind: PracticeKind; source?: string | null; volVsAvg?: number | null; kronosPct?: number | null }, learner: ShadowTag['learner'] = 'n/a'): ShadowTag {
   // unknown volume counts as passing: the rule only skips trades it can see are thin
   const volOk = x.volVsAvg == null || x.volVsAvg >= SHADOW_MIN_VOL
   const srcOk = !(x.kind === 'day' && x.source === 'watchlist')
-  return { volOk, srcOk, learner, pass: volOk && srcOk }
+  const kronos = x.kronosPct == null ? 'n/a' : x.kronosPct <= SHADOW_KRONOS_PCT ? 'against' : 'ok'
+  return { volOk, srcOk, learner, kronos, pass: volOk && srcOk }
 }
 
 /** The tag a trade carries, or one rebuilt from its pick info for trades closed before tags existed. */
@@ -61,8 +68,15 @@ export interface ShadowReport {
   /** Keep / skip among live-tagged trades only: the out-of-sample test. */
   liveKeep: ShadowBucket
   liveSkip: ShadowBucket
+  /** Kronos objected / did not object, among live-tagged trades that had a Kronos forecast. */
+  kronosAgainst: ShadowBucket
+  kronosOk: ShadowBucket
+  /** Live-tagged trades on symbols Kronos had no forecast for. */
+  kronosNone: number
   /** Plain Vietnamese verdict. */
   vi: string
+  /** Plain Vietnamese line for the Kronos objection test. */
+  kronosVi: string
 }
 
 const money = (x: number) => `${x >= 0 ? '+' : '−'}$${Math.abs(x).toFixed(2)}`
@@ -93,5 +107,11 @@ export function shadowReport(trades: Pick<PracticeTrade, 'pnl' | 'info' | 'kind'
       ? `lọc sẽ bỏ ${sk.n} lệnh đã lỗ ${money(sk.net)}: có ích`
       : `lọc sẽ bỏ ${sk.n} lệnh đã lời ${money(sk.net)}: chưa có ích`
   const vi = `${label}: giữ ${k.n} lệnh (thắng ${wr(k)}, ${money(k.net)}) · bỏ ${sk.n} lệnh (thắng ${wr(sk)}, ${money(sk.net)}) → ${verdict}`
-  return { ...r, liveKeep, liveSkip, vi }
+  const kronosAgainst = bucket(live.filter((x) => x.tag.kronos === 'against').map((x) => x.t))
+  const kronosOk = bucket(live.filter((x) => x.tag.kronos === 'ok').map((x) => x.t))
+  const kronosNone = live.filter((x) => (x.tag.kronos ?? 'n/a') === 'n/a').length
+  const kronosVi = kronosAgainst.n + kronosOk.n
+    ? `Kronos phản đối ${kronosAgainst.n} lệnh (thắng ${wr(kronosAgainst)}, ${money(kronosAgainst.net)}) · không phản đối ${kronosOk.n} lệnh (thắng ${wr(kronosOk)}, ${money(kronosOk.net)}) · ${kronosNone} lệnh chưa có dự báo`
+    : `Kronos chưa có dự báo cho lệnh nào (${kronosNone} lệnh)`
+  return { ...r, liveKeep, liveSkip, kronosAgainst, kronosOk, kronosNone, vi, kronosVi }
 }
