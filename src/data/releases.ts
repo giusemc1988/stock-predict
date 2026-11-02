@@ -2,7 +2,7 @@
  * Version and "What's new". Bump APP_VERSION and add an entry to the top of RELEASES
  * with each update. The banner shows once per version, then stays dismissed.
  */
-export const APP_VERSION = '2.0.7'
+export const APP_VERSION = '2.0.8'
 
 export interface Release {
   version: string
@@ -13,6 +13,22 @@ export interface Release {
 }
 
 export const RELEASES: Release[] = [
+  {
+    version: '2.0.8',
+    date: '2026-11-02',
+    changes: [
+      'Atlas now sizes each trade by risk: every trade loses about the same (0.05% of the account, about $5) if its stop is hit, so a $760 fund and a $10 stock no longer lose $0.94 against $3.66. Tight stops buy more (capped at 5% of the account), wide stops buy less.',
+      'Atlas only buys stocks that pass a quality gate: price at least $5, market cap at least $300M when known, about $26M a day traded, volume at least 1x normal, and a chart that actually moves (0.3% per 15-minute bar). Stops closer than 0.4% are refused. Each refusal is written to the decision log with its reason. This turns the shadow "volume 1x" rule on for real, so the 16/11 review compares trades before and after this change.',
+      'Telegram: "SL" meant quantity, not stop loss. Messages now say "Số lượng … cổ" and show the most you can lose and win on the trade. The "price did not move" exit explains it is the 3-hour limit.',
+      'Notifications: "Show me" now also appears on the server pre-trade card, opens that stock and walks you through the trade (or the chart when there is no trade yet). The Neo pop-up stays 12 seconds instead of 7.',
+    ],
+    changesVi: [
+      'Atlas giờ chia vốn theo rủi ro: mỗi lệnh nếu chạm cắt lỗ chỉ mất cỡ nhau (0.05% tài khoản, khoảng $5), nên quỹ $760 và cổ phiếu $10 không còn lỗ $0.94 so với $3.66. Cắt lỗ gần thì mua nhiều hơn (tối đa 5% tài khoản), cắt lỗ xa thì mua ít hơn.',
+      'Atlas chỉ mua cổ phiếu qua bộ lọc chất lượng: giá từ $5, vốn hóa từ $300M (khi biết), giao dịch khoảng $26M/ngày, volume từ 1x bình thường và biểu đồ thật sự chạy (0.3% mỗi nến 15 phút). Cắt lỗ gần hơn 0.4% bị từ chối. Mỗi lần từ chối đều ghi lý do vào nhật ký quyết định. Luật chạy bóng "volume 1x" nay được bật thật, nên bài kiểm tra 16/11 sẽ so lệnh trước và sau thay đổi này.',
+      'Telegram: "SL" là số lượng chứ không phải cắt lỗ. Tin nhắn giờ ghi "Số lượng … cổ" và cho biết tối đa lỗ và lãi bao nhiêu. Lý do thoát "giá không chạy" giờ nói rõ là hết 3 giờ.',
+      'Thông báo: nút "Chỉ cho tôi" giờ có cả trên thẻ báo trước lệnh của máy chủ, mở đúng cổ phiếu và giải thích lệnh (hoặc biểu đồ nếu chưa có lệnh). Cửa sổ Neo ở lại 12 giây thay vì 7.',
+    ],
+  },
   {
     version: '2.0.7',
     date: '2026-11-02',

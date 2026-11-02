@@ -9,10 +9,10 @@ export interface JarvisAlertData {
   tone: 'buy' | 'win' | 'loss'
 }
 
-/** Neo pops up when a practice trade opens or closes, HUD style, with Show me. Closes by itself after a few seconds. */
+/** Neo pops up when a practice trade opens or closes, HUD style, with Show me. Closes by itself after 12 seconds. */
 export function JarvisAlert({ alert, motion, showLabel, onShow, onClose }: { alert: JarvisAlertData; motion: boolean; showLabel: string; onShow?: () => void; onClose: () => void }) {
   useEffect(() => {
-    const id = setTimeout(onClose, 7000)
+    const id = setTimeout(onClose, 12000)
     return () => clearTimeout(id)
   }, [alert.id, onClose])
   const swipe = useSwipeDismiss(onClose)

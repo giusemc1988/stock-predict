@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict'
 import { dayKey, emptyPractice, kindOf, lessons, onBarClose, onBars, onPrice, practiceEquity, practiceReport, sessionEnd, type EntryContext, nextBaseline, scoreboardNumbers } from '../src/lib/practice'
+import { atrPercent, qualityBlock } from '../src/lib/practiceQuality'
 import { practiceRows } from '../src/lib/practiceRows'
 import type { Analysis } from '../src/types'
 
@@ -12,7 +13,9 @@ const ctx = (over: Partial<EntryContext> = {}): EntryContext => ({
 // enters small on an AI BUY with the plan's stop and target
 let s = onBarClose(emptyPractice(), ctx())
 assert.equal(s.open.length, 1)
-assert.ok(Math.abs(s.open[0].qty * 100 - 200) < 1e-9, '2% of $10,000')
+// sized by risk: a 5% stop risks 0.05% of $10,000 = $5, so the position is $100 (1% of the account)
+assert.ok(Math.abs(s.open[0].qty * 100 - 100) < 1e-9, 'risk $5 at a 5% stop')
+assert.ok(Math.abs(s.open[0].qty * (100 - s.open[0].stop) - 5) < 1e-9)
 assert.equal(s.events[0].kind, 'buy')
 // no second entry on the same market while one is open
 assert.equal(onBarClose(s, ctx({ barTime: 2000 })).open.length, 1)
@@ -128,7 +131,7 @@ assert.equal(onBarClose(emptyPractice(), pctx({ pennyOn: true, dollarVol: 50_000
 assert.equal(onBarClose(emptyPractice(), pctx({ pennyOn: true, dollarVol: 500_000, price: 0.8, analysis: { ...buy, exitPlan: { entry: 0.8, stop: 0.75, target: 0.9 } } as unknown as Analysis })).open.length, 0, 'under $1')
 const pen = onBarClose(emptyPractice(), pctx({ pennyOn: true, dollarVol: 500_000 })).open[0]
 assert.ok(pen.info.penny)
-assert.ok(Math.abs(pen.qty * 3 - 100) < 2, 'half of the 2% size')
+assert.ok(Math.abs(pen.qty * 3 - 50) < 2, 'penny: half of the risk-sized $100')
 assert.equal(pen.cost?.spreadBps, 20)
 assert.equal(pen.cost?.slippageBps, 10)
 const reg = onBarClose(emptyPractice(), ctx({ costs: { feeBps: 1, spreadBps: 4, slippageBps: 2 } })).open[0]
@@ -151,4 +154,40 @@ assert.ok(Math.abs(sbn.edgePct! + 0.4) < 1e-9, 'Jarvis 0.4 points behind')
 const noBase = scoreboardNumbers({ ...openSt, baseline: undefined, server: undefined })
 assert.equal(noBase.priced, 0, 'no prices: open P&L left out, not guessed')
 assert.equal(noBase.edgePct, null)
+// ---- v2.0.8: size by risk, entry quality gate ----
+// a tight stop and a wide stop lose about the same dollars: a $760 fund (0.5% stop) and a $10 stock (2% stop)
+const planAt = (price: number, stopPct: number) => ({ ...buy, exitPlan: { entry: price, stop: price * (1 - stopPct / 100), target: price * (1 + (stopPct * 2) / 100) } }) as unknown as Analysis
+const tight = onBarClose(emptyPractice(), ctx({ price: 760, analysis: planAt(760, 0.5) })).open[0]
+const wide = onBarClose(emptyPractice(), ctx({ price: 10, analysis: planAt(10, 2) })).open[0]
+assert.ok(Math.abs(tight.qty * (760 - tight.stop) - 5) < 1e-6 || tight.qty * 760 <= 500 + 1e-6, 'tight stop: risk $5 or capped at 5% of the account')
+assert.ok(Math.abs(wide.qty * (10 - wide.stop) - 5) < 1e-6, 'wide stop: risk $5')
+assert.ok(tight.qty * 760 <= 500 + 1e-6, 'never more than 2.5x the flat 2% size')
+const mid = onBarClose(emptyPractice(), ctx({ price: 50, analysis: planAt(50, 1) })).open[0]
+assert.ok(Math.abs(mid.qty * (50 - mid.stop) - 5) < 1e-6 && Math.abs(mid.qty * 50 - 500) < 1e-6, '1% stop: $500 position risks $5')
+// a stop closer than 0.4% is noise: no entry, and the log says why
+const noisy = onBarClose(emptyPractice(), ctx({ price: 100, analysis: planAt(100, 0.3) }))
+assert.equal(noisy.open.length, 0)
+assert.equal(noisy.audit?.[0].blockedBy, 'Stop too tight')
+// the quality gate blocks the entry and names the check
+const gated = onBarClose(emptyPractice(), ctx({ qualityBlock: { check: 'Volume', en: 'x', vi: 'y' } }))
+assert.equal(gated.open.length, 0)
+assert.equal(gated.audit?.[0].blockedBy, 'Volume')
+// Kelly/brake multipliers still scale the risk-sized position
+const half = onBarClose(emptyPractice(), ctx({ price: 50, analysis: planAt(50, 1), kellyMultiplier: 0.5 })).open[0]
+assert.ok(Math.abs(half.qty * 50 - 250) < 1e-6)
+
+const good = { asset: 'stock' as const, price: 50, dollarVol: 2_000_000, volVsAvg: 1.5, atrPct: 0.6 }
+assert.equal(qualityBlock(good), null)
+assert.equal(qualityBlock({ ...good, price: 3 })?.check, 'Penny stock')
+assert.equal(qualityBlock({ ...good, marketCap: 80_000_000 })?.check, 'Company size')
+assert.equal(qualityBlock({ ...good, marketCap: null }), null, 'unknown market cap passes')
+assert.equal(qualityBlock({ ...good, dollarVol: 200_000 })?.check, 'Liquidity')
+assert.equal(qualityBlock({ ...good, volVsAvg: 0.5 })?.check, 'Volume', 'MHK was bought at 0.5x volume')
+assert.equal(qualityBlock({ ...good, volVsAvg: null })?.check, 'Volume')
+assert.equal(qualityBlock({ ...good, atrPct: 0.1 })?.check, 'Flat chart')
+assert.equal(qualityBlock({ asset: 'crypto', price: 0.5, dollarVol: null, volVsAvg: 1.2, atrPct: 0.8 }), null, 'crypto skips the stock-only checks')
+const flatBars = Array.from({ length: 30 }, (_, i) => ({ time: i * 900, open: 100, high: 100.1, low: 99.9, close: 100, volume: 1000 }))
+assert.ok(Math.abs(atrPercent(flatBars)! - 0.2) < 1e-9)
+assert.equal(atrPercent(flatBars.slice(0, 10)), null)
+
 console.log('practice tests passed')

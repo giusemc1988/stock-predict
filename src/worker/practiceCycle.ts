@@ -63,13 +63,13 @@ async function yahooMovers(top = 10, minPrice = 5): Promise<ScanMarket[]> {
   const screen = async (id: string) => {
     const res = await fetch(`https://query1.finance.yahoo.com/v1/finance/screener/predefined/saved?scrIds=${id}&count=${top * 3}`, { headers: UA })
     if (!res.ok) throw new Error(`Yahoo screener ${res.status}`)
-    const json = (await res.json()) as { finance: { result?: { quotes?: { symbol: string; regularMarketPrice?: number; quoteType?: string }[] }[] } }
+    const json = (await res.json()) as { finance: { result?: { quotes?: { symbol: string; regularMarketPrice?: number; quoteType?: string; marketCap?: number }[] }[] } }
     return (json.finance.result?.[0]?.quotes ?? []).filter((q) => q.quoteType === 'EQUITY' && plain(q.symbol))
   }
   const [gainers, actives] = await Promise.all([screen('day_gainers').catch(() => []), screen('most_actives').catch(() => [])])
   const out: ScanMarket[] = []
-  for (const q of gainers.filter((g) => (g.regularMarketPrice ?? 0) >= minPrice).slice(0, top)) out.push({ symbol: q.symbol, asset: 'stock', source: 'gainer' })
-  for (const q of actives.slice(0, top)) if (!out.some((m) => m.symbol === q.symbol)) out.push({ symbol: q.symbol, asset: 'stock', source: 'active' })
+  for (const q of gainers.filter((g) => (g.regularMarketPrice ?? 0) >= minPrice).slice(0, top)) out.push({ symbol: q.symbol, asset: 'stock', source: 'gainer', marketCap: q.marketCap ?? null })
+  for (const q of actives.slice(0, top)) if (!out.some((m) => m.symbol === q.symbol)) out.push({ symbol: q.symbol, asset: 'stock', source: 'active', marketCap: q.marketCap ?? null })
   return out
 }
 
@@ -261,7 +261,7 @@ export async function practiceCycle(env: WorkerEnv): Promise<{ state: PracticeSt
   const now = Date.now()
   const markets: ScanMarket[] = scanMarkets(
     INSTRUMENTS,
-    rules.practiceMovers ? (await yahooMovers(10, rules.practicePenny ? PENNY_MIN_PRICE : PENNY_PRICE).catch(() => [])).map((m) => ({ symbol: m.symbol, source: m.source as Mover['source'] })) : [],
+    rules.practiceMovers ? (await yahooMovers(10, rules.practicePenny ? PENNY_MIN_PRICE : PENNY_PRICE).catch(() => [])).map((m) => ({ symbol: m.symbol, source: m.source as Mover['source'], marketCap: m.marketCap ?? null })) : [],
     rules.practiceCryptoMovers ? await coingeckoMovers().catch(() => []) : [],
   )
 
