@@ -189,6 +189,9 @@ button.hg-stat:hover { border-color: color-mix(in srgb, var(--acc) 60%, transpar
 .hg-kfoot { margin: 4px 0 0; font-size: 12px; color: var(--mute); }
 .hg-council { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
 .hg-council-h { font-size: 12px; color: var(--mute); margin-right: 4px; }
+/* wide Atlas card: the agents in one scrolling line, so the card body fits its height */
+.hg-feat .hg-council { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; flex-shrink: 0; }
+.hg-feat .hg-council > * { flex: none; }
 .hg-vote { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; padding: 4px 10px; border-radius: 99px; border: 1px solid var(--line); color: var(--mute); transition: all 0.5s cubic-bezier(0.2, 0.9, 0.22, 1.3); }
 .hg-vote i { width: 7px; height: 7px; border-radius: 50%; background: rgba(255, 255, 255, 0.3); }
 .hg-vote.v-yes i { background: #7fd59a; }
@@ -203,26 +206,41 @@ button.hg-stat:hover { border-color: color-mix(in srgb, var(--acc) 60%, transpar
 .hg-learn-t { display: grid; gap: 2px; min-width: 0; }
 .hg-learn-t b { font-size: 14px; font-weight: 600; }
 .hg-learn-t span { color: var(--mute); font-size: 12px; }
-/* Atlas card body: Kronos across (its bars in two columns), then the learning ring and the book-vs-Opus duel side by side when the card is wide */
+/* Atlas card body: Kronos on the left; the learning ring, book-vs-Opus duel and Opus picks on the right (Chanh: no empty half) */
 .hg-atlas-wrap { container-type: inline-size; position: relative; z-index: 2; pointer-events: none; }
 .hg-atlas-grid { display: grid; gap: 10px; grid-template-columns: minmax(0, 1fr); }
+.hg-aside { display: grid; gap: 10px; align-content: start; min-width: 0; }
 .hg-atlas-grid .hg-learn, .hg-atlas-grid .hg-duel, .hg-atlas-grid .hg-kmore { pointer-events: auto; }
-@container (min-width: 620px) {
-  .hg-atlas-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .hg-atlas-grid > .hg-kron { grid-column: 1 / -1; }
+.hg-kfootrow { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.hg-kfootrow .hg-kmore, .hg-kfootrow .hg-kfoot { margin-top: 4px; }
+@container (min-width: 500px) {
+  .hg-atlas-grid { grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); align-items: stretch; }
+  .hg-atlas-grid .hg-kbars { grid-template-columns: minmax(0, 1fr); }
+  .hg-atlas-grid .hg-kb { grid-template-columns: 44px minmax(0, 1fr) 54px; padding: 2px; }
+  .hg-atlas-grid .hg-kron { padding-bottom: 6px; }
+  .hg-atlas-grid .hg-kbars { margin-top: 4px; }
+  /* wide card: the 5 biggest moves (See all still shows every one) */
+  .hg-aside .hg-learn { padding: 6px 10px; }
+  .hg-aside .hg-learn .hg-ring { transform: scale(0.85); }
 }
+.hg-opus-chips { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 4px; }
+.hg-duel > span:nth-of-type(2) .hg-opus-chips { justify-content: flex-end; }
+.hg-duel .hg-opus-chips b { font-size: 11px; font-weight: 600; color: var(--ink); }
+.hg-opus-chips b { padding: 1px 7px; border-radius: 999px; border: 1px solid var(--line); background: rgba(255, 255, 255, 0.05); font-size: 12px; font-weight: 600; }
+.hg-opus-chips em, .hg-opus small { font-style: normal; color: var(--mute); font-size: 12px; align-self: center; }
 /* one-sided Kronos bars (every forecast up, or every one down) */
+.hg-atlas-grid .hg-kbars.top > :nth-child(n + 6) { display: none; }
 .hg-kbars.one .hg-kv::before { display: none; }
 .hg-kbars.one .hg-kv i.up, .hg-kbars.one .hg-kv i.down { left: 0; right: auto; transform-origin: left; }
 .hg-kbars.one .hg-kv i.down { background: linear-gradient(to right, color-mix(in srgb, #f09a8e 40%, transparent), #f09a8e); }
 /* book vs idea factory win rates (AI rule ideaFactory) */
 .hg-duel { position: relative; z-index: 2; display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); align-items: center; gap: 8px; width: 100%; padding: 8px 12px; text-align: left; cursor: pointer; transition: border-color 0.25s ease, background-color 0.25s ease; }
 .hg-duel:hover { border-color: color-mix(in srgb, var(--k, var(--acc)) 55%, var(--line)); background: rgba(0, 0, 0, 0.32); }
-.hg-duel > span { display: grid; gap: 1px; min-width: 0; }
-.hg-duel > span:last-child { text-align: right; }
+.hg-duel > span { display: grid; gap: 1px; min-width: 0; align-self: start; }
+.hg-duel > span:nth-of-type(2) { text-align: right; }
 .hg-dbar { display: block; height: 5px; margin: 4px 0 2px; border-radius: 3px; background: rgba(255, 255, 255, 0.06); overflow: hidden; }
 .hg-dbar i { display: block; height: 100%; border-radius: 3px; background: var(--mute); transition: width 0.8s ease; }
-.hg-duel > span:last-child .hg-dbar i { margin-left: auto; }
+.hg-duel > span:nth-of-type(2) .hg-dbar i { margin-left: auto; }
 .hg-duel .lead .hg-dbar i { background: var(--k, var(--acc)); }
 .hg-duel small { color: var(--mute); font-size: 11px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .hg-duel b { font-size: 18px; font-weight: 700; }
@@ -341,6 +359,13 @@ button.hg-stat:hover { border-color: color-mix(in srgb, var(--acc) 60%, transpar
   .hg-search { width: 100%; }
   .hg-grid { grid-template-columns: minmax(0, 1fr); grid-auto-rows: 270px; }
   .hg-feat { grid-column: auto; grid-row: span 3; }
+  /* Atlas carries Kronos, the learning ring, the book-vs-Opus duel and the Opus picks: one more row so nothing is cut */
+  .hg-feat:has(.hg-aside) { grid-row: span 3; }
+  /* phone Atlas card: tools and the Kronos hint stay one line each (tools scroll sideways), so everything fits */
+  .hg-feat:has(.hg-aside) .hg-chips { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; flex-shrink: 0; }
+  .hg-feat:has(.hg-aside) .hg-chips > * { flex: none; }
+  .hg-feat .hg-atlas-grid .hg-kb { padding: 3px 4px; }
+  .hg-feat .hg-atlas-grid .hg-khead span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 11.5px; }
   .hg-feat .hg-id h2 { font-size: 30px; }
   .hg .hg-feat .hg-face-av { width: 96px; height: 96px; }
   .hg-feat .hg-top { flex-wrap: wrap; }
