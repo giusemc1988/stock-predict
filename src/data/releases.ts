@@ -2,7 +2,7 @@
  * Version and "What's new". Bump APP_VERSION and add an entry to the top of RELEASES
  * with each update. The banner shows once per version, then stays dismissed.
  */
-export const APP_VERSION = '1.98.0'
+export const APP_VERSION = '1.98.1'
 
 export interface Release {
   version: string
@@ -13,6 +13,16 @@ export interface Release {
 }
 
 export const RELEASES: Release[] = [
+  {
+    version: '1.98.1',
+    date: '2026-11-02',
+    changes: [
+      'Atlas momentum lab (round 5, lab only): 12-1 month cross-sectional momentum, rebalanced monthly, on 96 liquid stocks and 41 ETFs, with and without a trend filter (SPY above its 200-day average). Each idea is compared with 200 random-pick draws on the same dates and costs (1x and 2x), and a Deflated Sharpe that counts all 402 trials of every round. A stock result only counts when its ETF twin also passes, because the stock list is survivor-biased. Manual workflow, public/replay-momentum.json. It never touches live trading.',
+    ],
+    changesVi: [
+      'Phòng lab động lượng của Atlas (vòng 5, chỉ nghiên cứu): động lượng chéo 12-1 tháng, đổi danh mục mỗi tháng, trên 96 cổ phiếu thanh khoản cao và 41 ETF, có và không có bộ lọc xu hướng (SPY trên trung bình 200 ngày). Mỗi ý tưởng so với 200 lần chọn mã ngẫu nhiên cùng ngày và cùng phí (1x và 2x), cùng Deflated Sharpe tính cả 402 lần thử của mọi vòng. Kết quả trên cổ phiếu chỉ tính khi bản ETF song sinh cũng đạt, vì danh sách cổ phiếu thiên lệch người sống sót. Chạy tay, public/replay-momentum.json. Không bao giờ đụng giao dịch thật.',
+    ],
+  },
   {
     version: '1.98.0',
     date: '2026-11-02',

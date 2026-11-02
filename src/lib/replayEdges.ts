@@ -14,6 +14,7 @@
  *  E-PUTWRITE Cboe PUT and BXM index histories against SPY.
  *  E-OVERNIGHT  buy the close of a 3%+ / 2x-volume up day, sell the next open (the daily-bar version of round 3's overnight idea).
  */
+import { MOMENTUM_TRIALS } from './replayMomentum'
 import type { Candle } from '../types'
 import type { Costs } from './costs'
 import type { ControlDraws } from './replayDaily'
@@ -36,6 +37,7 @@ export const TRIAL_LEDGER = {
   newsRound4: 14, // N1-N3 bucket cells (NEWS_TRIALS)
   edgesRound4: EDGES_TRIALS,
   ensembles: 2, // survivors-only and all-sleeves portfolios
+  momentumRound5: MOMENTUM_TRIALS, // M1-M4: 12-1 momentum, stocks and ETFs, with and without the trend filter
 }
 export const ALL_ROUNDS_TRIALS = Object.values(TRIAL_LEDGER).reduce((a, b) => a + b, 0)
 /** Trials counted by the Deflated Sharpe of a single idea and of an ensemble (both use the full ledger). */
