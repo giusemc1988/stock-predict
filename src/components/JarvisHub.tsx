@@ -81,6 +81,8 @@ const GX = {
   opusToday: { en: 'Opus picks from the {d} close, hold {h} days', vi: 'Opus chọn từ phiên {d}, giữ {h} ngày' },
   bookToday: { en: "Atlas's BUY calls now", vi: 'Lệnh MUA của Atlas lúc này' },
   duelN: { en: '{n} graded', vi: '{n} đã chấm' },
+  duelTitle: { en: 'Win rate: book vs Opus', vi: 'Tỉ lệ thắng: Sách vở vs Opus' },
+  duelCta: { en: 'Compare the signals', vi: 'Xem tín hiệu & so sánh' },
   duelOpen: { en: 'Compare: book signals vs rules Atlas invented itself', vi: 'So sánh: tín hiệu sách vở và luật Atlas tự nghĩ' },
 } as const
 type GxKey = keyof typeof GX
@@ -88,7 +90,7 @@ type GxKey = keyof typeof GX
 /** The hub's own agent (Chanh renamed Jarvis to Neo, 2026-10-23); its character id stays 'jarvis'. */
 const HUB_NAME = 'Neo'
 /** Kronos forecasts shown on the Atlas card before "see all". */
-const K_TOP = 5
+const K_TOP = 6
 
 /** Each project's colour in this look: mid-tone, so it reads on every theme. */
 const HUE: Record<ProjectId | 'jarvis', string> = {
@@ -303,8 +305,6 @@ export function JarvisHub(p: HubProps & { flipAuto: boolean; council: boolean })
   // compact by default: the K_TOP biggest forecast moves, the rest behind "see all"
   const [kAll, setKAll] = useState(false)
   const kShown = kAll ? kBars : [...kBars].sort((a, b) => Math.abs(b.pct) - Math.abs(a.pct)).slice(0, K_TOP)
-  // all forecasts on one side (e.g. all down): bars start at the left edge and use the full width, no empty half
-  const kOne = kShown.length > 0 && (kShown.every((b) => b.pct < 0) || kShown.every((b) => b.pct >= 0))
   const kPick = kBars.find((b) => b.symbol === kSel)
   const cLabel = (id: CouncilId) => (id === 'kronos' ? 'Kronos' : G(id))
   const graded = kronos?.score['5']?.graded ?? 0
@@ -538,17 +538,207 @@ export function JarvisHub(p: HubProps & { flipAuto: boolean; council: boolean })
                         </svg>
                       </button>
                     )}
-                    <div className="hg-top">
-                      <AgentFace id={id} hue={HUE[id]} className="hg-face-av" />
-                      <div className="hg-id">
-                        <span className={`hg-pill s-${c.state}`}>
-                          <i />
-                          {stateLabel(c.state)}
-                        </span>
-                        <h2>{c.p.name}</h2>
-                        <p>{what}</p>
-                      </div>
-                      {feat && (
+                    {feat ? (
+                      <>
+                        {/* Atlas card, one grid (Chanh 02/11: no patching, even spaces): head band, 4 equal stat tiles,
+                            two equal lists with the same row shape (Kronos | shadow tests), today's picks, council, tools */}
+                        <div className="ax-head">
+                          <AgentFace id={id} hue={HUE[id]} className="hg-face-av" />
+                          <div className="hg-id">
+                            <span className="ax-tags">
+                              <span className={`hg-pill s-${c.state}`}>
+                                <i />
+                                {stateLabel(c.state)}
+                              </span>
+                              <em className="ax-acc">{L('paperOnly')}</em>
+                            </span>
+                            <h2>{c.p.name}</h2>
+                            <p>{what}</p>
+                          </div>
+                          <p className="hg-think hg-inset">
+                            <span className="hg-dots" aria-hidden="true">
+                              <i />
+                              <i />
+                              <i />
+                            </span>
+                            <span className={`hg-tt ${beat}`}>{think(c, i)}</span>
+                          </p>
+                        </div>
+                        <div className="ax-body">
+                          <div className="ax-stats">
+                            {c.facts.slice(0, 1).map((f) => (
+                              <div key={f.label} className="ax-stat hg-inset">
+                                <small>{L(f.label)}</small>
+                                <b className={`mono ${f.tone ?? ''}`}>
+                                  <CountUp text={f.value} />
+                                </b>
+                              </div>
+                            ))}
+                            <div className="ax-stat hg-inset">
+                              <small>{L(c.ring.cap)}</small>
+                              <b className="mono">{c.ring.label}</b>
+                              <em className="ax-bar">
+                                <i className="acc" style={{ width: `${Math.round((c.ring.v ?? 0) * 100)}%` }} />
+                              </em>
+                            </div>
+                            {c.facts.slice(1, 3).map((f) => (
+                              <div key={f.label} className="ax-stat hg-inset">
+                                <small>{L(f.label)}</small>
+                                <b className={`mono ${f.tone ?? ''}`}>{f.value}</b>
+                              </div>
+                            ))}
+                          </div>
+                          <div className="ax-cols">
+                            <div className={`ax-box hg-inset${p.council ? ' live' : ''}`}>
+                              <div className="ax-bh">
+                                <b>{G('kronos')}</b>
+                                <span>{p.council && kBars.length && !kPick ? G('tapSymbol') : G('watchOnly')}</span>
+                              </div>
+                              {kPick && p.council ? (
+                                <KronosChart key={kPick.symbol} f={kPick.f} recent={kronos?.recent?.[kPick.f.symbol]} vi={vi} label={cLabel} onAll={() => setKSel(null)} />
+                              ) : kBars.length ? (
+                                <div className={`ax-rows k${kAll ? ' all' : ''}`} role={p.council ? 'group' : 'img'} aria-label={kShown.map((b) => `${b.symbol} ${fmtPct(b.pct)}`).join(', ')}>
+                                  {kShown.map((b, j) => {
+                                    const w = Math.max(4, Math.sqrt(Math.abs(b.pct) / kMax) * 100)
+                                    const inner = (
+                                      <>
+                                        <b>{b.symbol}</b>
+                                        <span className="ax-bar">
+                                          <i className={b.pct >= 0 ? 'up' : 'down'} style={{ width: `${w}%`, '--d': `${j * 60}ms` } as CSSProperties} />
+                                        </span>
+                                        <em className={`mono ${tone(b.pct)}`}>{fmtPct(b.pct)}</em>
+                                      </>
+                                    )
+                                    return p.council ? (
+                                      <button key={b.symbol} className="ax-row" tabIndex={on ? -1 : 0} onClick={() => setKSel(b.symbol)} aria-label={`${b.symbol} ${fmtPct(b.pct)}`}>
+                                        {inner}
+                                      </button>
+                                    ) : (
+                                      <div key={b.symbol} className="ax-row">
+                                        {inner}
+                                      </div>
+                                    )
+                                  })}
+                                </div>
+                              ) : (
+                                <p className="ax-empty">{G('kronosNone')}</p>
+                              )}
+                              <div className="ax-bf">
+                                <span>{G('kronosGraded', { n: graded })}</span>
+                                {kBars.length > K_TOP && !kPick && (
+                                  <button className="ax-link" tabIndex={on ? -1 : 0} onClick={() => setKAll((x) => !x)} aria-expanded={kAll}>
+                                    {kAll ? G('kLess') : G('kMore', { n: kBars.length })}
+                                  </button>
+                                )}
+                              </div>
+                            </div>
+                            {rules.atlasSignals && (
+                              <button className="ax-box ax-tap hg-inset" tabIndex={on ? -1 : 0} onClick={() => p.onAtlasBlock('atlas-signals')} aria-label={G('learnOpen')} title={G('learnOpen')}>
+                                <span className="ax-bh">
+                                  <b>{L2(aVerdict.title)}</b>
+                                  <span>
+                                    {G('learnHead', { d: `${REVIEW_DAY.slice(8, 10)}/${REVIEW_DAY.slice(5, 7)}` })} · {G('learnSigs', { n: p.practice.open.length })}
+                                  </span>
+                                </span>
+                                <span className="ax-rows t">
+                                  {aLearn.tests.map((t) => (
+                                    <span key={t.id} className="ax-row" title={L2(t.what)}>
+                                      <b>{L2(t.short)}</b>
+                                      <span className="ax-bar">
+                                        <i className="acc" style={{ width: `${t.pct}%` }} />
+                                      </span>
+                                      <em className="mono">
+                                        {t.n}/{t.goal}
+                                      </em>
+                                    </span>
+                                  ))}
+                                </span>
+                                <span className="ax-bf">
+                                  <span className="ax-link">{G('learnOpen')} →</span>
+                                </span>
+                              </button>
+                            )}
+                          </div>
+                          {rules.ideaFactory && (
+                            <button className="ax-duel hg-inset" tabIndex={on ? -1 : 0} onClick={() => p.onAtlasBlock('atlas-ideas')} aria-label={G('duelOpen')} title={G('duelOpen')}>
+                              <span className="ax-dh">
+                                <b>{G('duelTitle')}</b>
+                                <span className="ax-link">{G('duelCta')} →</span>
+                              </span>
+                              {(
+                                [
+                                  { k: 'book', name: G('duelBook'), rate: aDuel.book.winRate, sub: G('duelReal', { n: aDuel.book.n }), picks: p.picks.slice(0, 3).map((x) => x.symbol), more: 0, tip: G('bookToday') },
+                                  {
+                                    k: 'opus',
+                                    name: G('duelOpus'),
+                                    rate: aDuel.opus.winRate,
+                                    sub: aDuel.opus.graded ? G('duelN', { n: aDuel.opus.graded }) : G('duelWait'),
+                                    picks: opusPicks.slice(0, 3).map((x) => x.symbol),
+                                    more: Math.max(0, opusPicks.length - 3),
+                                    tip: opusPicks.length ? G('opusToday', { d: `${factory!.today.day.slice(8, 10)}/${factory!.today.day.slice(5, 7)}`, h: opusPicks[0].hold }) : '',
+                                  },
+                                ] as const
+                              ).map((s) => (
+                                <span key={s.k} className={`ax-side${aDuel.winner === s.k ? ' lead' : ''}`} title={s.tip}>
+                                  <small>{s.name}</small>
+                                  <b className="mono">{s.rate != null ? `${s.rate}%` : '—'}</b>
+                                  <em className="ax-bar">
+                                    <i className="acc" style={{ width: `${s.rate ?? 0}%` }} />
+                                  </em>
+                                  <span className="ax-sub">
+                                    <small>{s.sub}</small>
+                                    <span className="ax-picks">
+                                      {s.picks.map((x) => (
+                                        <b key={x} className="mono">
+                                          {x}
+                                        </b>
+                                      ))}
+                                      {s.more > 0 && <em>+{s.more}</em>}
+                                    </span>
+                                  </span>
+                                </span>
+                              ))}
+                            </button>
+                          )}
+                          {!rules.ideaFactory && p.picks.length > 0 && (
+                            <div className="hg-picks">
+                              {p.picks.slice(0, 3).map((b) => (
+                                <div key={b.symbol} className="hg-pick hg-inset">
+                                  <b>{b.symbol}</b>
+                                  <span className={tone(b.gainPct ?? 0)}>{b.gainPct != null ? fmtPct(b.gainPct) : ''}</span>
+                                  <span>{b.tradeScore != null ? `TS ${Math.round(b.tradeScore)}` : ''}</span>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                          {top ? (
+                            <div className="hg-council" aria-label={G('council', { s: top.symbol })}>
+                              <span className="hg-council-h">{G('council', { s: top.symbol })}</span>
+                              {votes.map((v, j) => (
+                                <span key={v.id} className={`hg-vote v-${v.vote as Vote}${j === voteAt ? ' act' : ''}`} title={vi ? v.why.vi : v.why.en}>
+                                  <i />
+                                  {G(v.id as GxKey)}
+                                </span>
+                              ))}
+                            </div>
+                          ) : (
+                            <p className="hg-note">{L('noPicks')}</p>
+                          )}
+                        </div>
+                      </>
+                    ) : (
+                      <>
+                        <div className="hg-top">
+                          <AgentFace id={id} hue={HUE[id]} className="hg-face-av" />
+                          <div className="hg-id">
+                            <span className={`hg-pill s-${c.state}`}>
+                              <i />
+                              {stateLabel(c.state)}
+                            </span>
+                            <h2>{c.p.name}</h2>
+                            <p>{what}</p>
+                          </div>
+                        </div>
                         <p className="hg-think hg-inset">
                           <span className="hg-dots" aria-hidden="true">
                             <i />
@@ -557,187 +747,17 @@ export function JarvisHub(p: HubProps & { flipAuto: boolean; council: boolean })
                           </span>
                           <span className={`hg-tt ${beat}`}>{think(c, i)}</span>
                         </p>
-                      )}
-                    </div>
-                    {!feat && (
-                      <p className="hg-think hg-inset">
-                        <span className="hg-dots" aria-hidden="true">
-                          <i />
-                          <i />
-                          <i />
-                        </span>
-                        <span className={`hg-tt ${beat}`}>{think(c, i)}</span>
-                      </p>
-                    )}
-                    {feat && (
-                      <>
-                        <div className="hg-atlas-wrap">
-                        <div className="hg-atlas-grid">
-                        <div className={`hg-kron hg-inset${p.council ? ' live' : ''}`}>
-                          <div className="hg-khead">
-                            <b>{G('kronos')}</b>
-                            <span>{p.council && kBars.length && !kPick ? G('tapSymbol') : G('watchOnly')}</span>
-                          </div>
-                          {kPick && p.council ? (
-                            <KronosChart key={kPick.symbol} f={kPick.f} recent={kronos?.recent?.[kPick.f.symbol]} vi={vi} label={cLabel} onAll={() => setKSel(null)} />
-                          ) : kBars.length ? (
-                            <>
-                              {!kAll ? (
-                                // compact: the K_TOP biggest moves as chips; "See all" opens the bar list
-                                <div className="hg-kchips" role={p.council ? 'group' : 'img'} aria-label={kShown.map((b) => `${b.symbol} ${fmtPct(b.pct)}`).join(', ')}>
-                                  {kShown.map((b) =>
-                                    p.council ? (
-                                      <button key={b.symbol} tabIndex={on ? -1 : 0} onClick={() => setKSel(b.symbol)}>
-                                        <b>{b.symbol}</b>
-                                        <em className={tone(b.pct)}>{fmtPct(b.pct)}</em>
-                                      </button>
-                                    ) : (
-                                      <span key={b.symbol}>
-                                        <b>{b.symbol}</b>
-                                        <em className={tone(b.pct)}>{fmtPct(b.pct)}</em>
-                                      </span>
-                                    ),
-                                  )}
-                                </div>
-                              ) : (
-                              <div className={`hg-kbars${kOne ? ' one' : ''}${kAll ? '' : ' top'}`} role={p.council ? 'group' : 'img'} aria-label={kShown.map((b) => `${b.symbol} ${fmtPct(b.pct)}`).join(', ')}>
-                                {kShown.map((b, j) => {
-                                  // horizontal bar from the centre line: right = up, left = down; square-root scale so one big move doesn't flatten the rest
-                                  const w = Math.max(4, Math.sqrt(Math.abs(b.pct) / kMax) * 100)
-                                  const inner = (
-                                    <>
-                                      <b>{b.symbol}</b>
-                                      <span className="hg-kv">
-                                        <i className={b.pct >= 0 ? 'up' : 'down'} style={{ '--w': `${kOne ? w : w / 2}%` } as CSSProperties} />
-                                      </span>
-                                      <em className={tone(b.pct)}>{fmtPct(b.pct)}</em>
-                                    </>
-                                  )
-                                  const st = { '--d': `${j * 60}ms` } as CSSProperties
-                                  return p.council ? (
-                                    <button key={b.symbol} className="hg-kb" style={st} tabIndex={on ? -1 : 0} onClick={() => setKSel(b.symbol)} aria-label={`${b.symbol} ${fmtPct(b.pct)}`}>
-                                      {inner}
-                                    </button>
-                                  ) : (
-                                    <div key={b.symbol} className="hg-kb" style={st}>
-                                      {inner}
-                                    </div>
-                                  )
-                                })}
-                              </div>
-                              )}
-                              <div className="hg-kfootrow">
-                                {kBars.length > K_TOP && (
-                                  <button className="hg-kmore" tabIndex={on ? -1 : 0} onClick={() => setKAll((x) => !x)} aria-expanded={kAll}>
-                                    {kAll ? G('kLess') : G('kMore', { n: kBars.length })}
-                                  </button>
-                                )}
-                                <p className="hg-kfoot">{G('kronosGraded', { n: graded })}</p>
-                              </div>
-                            </>
-                          ) : (
-                            <p className="hg-kfoot">{G('kronosNone')}</p>
-                          )}
+                        <div className="hg-foot">
+                          <Ring v={c.ring.v} label={c.ring.label} />
+                          {c.facts.slice(0, 2).map((f) => (
+                            <div key={f.label} className="hg-mini">
+                              <b className={f.tone ?? ''}>{f.label === 'accountShort' ? <CountUp text={f.value} /> : f.value}</b>
+                              {L(f.label)}
+                            </div>
+                          ))}
                         </div>
-                        <div className="hg-aside">
-                        {rules.atlasSignals && (
-                          <button className="hg-learn hg-inset" tabIndex={on ? -1 : 0} onClick={() => p.onAtlasBlock('atlas-signals')} aria-label={G('learnOpen')} title={G('learnOpen')}>
-                            <Ring v={aLearn.pct / 100} label={`${aLearn.pct}%`} />
-                            <span className="hg-learn-t">
-                              <b>{L2(aVerdict.title)}</b>
-                              <span>
-                                {G('learnHead', { d: `${REVIEW_DAY.slice(8, 10)}/${REVIEW_DAY.slice(5, 7)}` })} · {G('learnSigs', { n: p.practice.open.length })}
-                              </span>
-                            </span>
-                            <span className="hg-ltests">
-                              {aLearn.tests.map((t) => (
-                                <span key={t.id} title={L2(t.what)}>
-                                  <small>{L2(t.short)}</small>
-                                  <em className="mono">
-                                    {t.n}/{t.goal}
-                                  </em>
-                                  <i className="hg-dbar">
-                                    <i style={{ width: `${t.pct}%` }} />
-                                  </i>
-                                </span>
-                              ))}
-                            </span>
-                            <span className="hg-lopen">{G('learnOpen')} →</span>
-                          </button>
-                        )}
-                        {rules.ideaFactory && (
-                          <button className="hg-duel hg-inset" tabIndex={on ? -1 : 0} onClick={() => p.onAtlasBlock('atlas-ideas')} aria-label={G('duelOpen')} title={G('duelOpen')}>
-                            <span className={aDuel.winner === 'book' ? 'lead' : ''}>
-                              <small>{G('duelBook')}</small>
-                              <b className="mono">{aDuel.book.winRate != null ? `${aDuel.book.winRate}%` : '—'}</b>
-                              <em className="hg-dbar"><i style={{ width: `${aDuel.book.winRate ?? 0}%` }} /></em>
-                              <small>{G('duelReal', { n: aDuel.book.n })}</small>
-                              {p.picks.length > 0 && (
-                                <span className="hg-opus-chips" title={G('bookToday')}>
-                                  {p.picks.slice(0, 3).map((x) => (
-                                    <b key={x.symbol} className={`mono ${tone(x.gainPct ?? 0)}`} title={`${x.gainPct != null ? fmtPct(x.gainPct) : ''}${x.tradeScore != null ? ` · TS ${Math.round(x.tradeScore)}` : ''}`}>
-                                      {x.symbol}
-                                    </b>
-                                  ))}
-                                </span>
-                              )}
-                            </span>
-                            <i aria-hidden="true">vs</i>
-                            <span className={aDuel.winner === 'opus' ? 'lead' : ''}>
-                              <small>{G('duelOpus')}</small>
-                              <b className="mono">{aDuel.opus.winRate != null ? `${aDuel.opus.winRate}%` : '—'}</b>
-                              <em className="hg-dbar"><i style={{ width: `${aDuel.opus.winRate ?? 0}%` }} /></em>
-                              <small>{aDuel.opus.graded ? G('duelN', { n: aDuel.opus.graded }) : G('duelWait')}</small>
-                              {opusPicks.length > 0 && (
-                                <span className="hg-opus-chips" title={G('opusToday', { d: `${factory!.today.day.slice(8, 10)}/${factory!.today.day.slice(5, 7)}`, h: opusPicks[0].hold })}>
-                                  {opusPicks.slice(0, 3).map((x) => (
-                                    <b key={x.symbol} className="mono">{x.symbol}</b>
-                                  ))}
-                                  {opusPicks.length > 3 && <em>+{opusPicks.length - 3}</em>}
-                                </span>
-                              )}
-                            </span>
-                          </button>
-                        )}
-                        </div>
-                        </div>
-                        </div>
-                        {top ? (
-                          <div className="hg-council" aria-label={G('council', { s: top.symbol })}>
-                            <span className="hg-council-h">{G('council', { s: top.symbol })}</span>
-                            {votes.map((v, j) => (
-                              <span key={v.id} className={`hg-vote v-${v.vote as Vote}${j === voteAt ? ' act' : ''}`} title={vi ? v.why.vi : v.why.en}>
-                                <i />
-                                {G(v.id as GxKey)}
-                              </span>
-                            ))}
-                          </div>
-                        ) : (
-                          <p className="hg-note">{L('noPicks')}</p>
-                        )}
-                        {p.picks.length > 0 && !rules.ideaFactory && (
-                          <div className="hg-picks">
-                            {p.picks.slice(0, 3).map((b) => (
-                              <div key={b.symbol} className="hg-pick hg-inset">
-                                <b>{b.symbol}</b>
-                                <span className={tone(b.gainPct ?? 0)}>{b.gainPct != null ? fmtPct(b.gainPct) : ''}</span>
-                                <span>{b.tradeScore != null ? `TS ${Math.round(b.tradeScore)}` : ''}</span>
-                              </div>
-                            ))}
-                          </div>
-                        )}
                       </>
                     )}
-                    <div className="hg-foot">
-                      <Ring v={c.ring.v} label={c.ring.label} />
-                      {c.facts.slice(0, feat ? 3 : 2).map((f) => (
-                        <div key={f.label} className="hg-mini">
-                          <b className={f.tone ?? ''}>{f.label === 'accountShort' ? <CountUp text={f.value} /> : f.value}</b>
-                          {L(f.label)}
-                        </div>
-                      ))}
-                      {feat && <small className="hg-paper">{L('paperOnly')}</small>}
-                    </div>
                     {tools.length > 0 && (
                       <div className="hg-chips">
                         {tools.map((t) => (

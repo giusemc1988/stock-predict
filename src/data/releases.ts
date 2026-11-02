@@ -2,7 +2,7 @@
  * Version and "What's new". Bump APP_VERSION and add an entry to the top of RELEASES
  * with each update. The banner shows once per version, then stays dismissed.
  */
-export const APP_VERSION = '2.0.3'
+export const APP_VERSION = '2.0.4'
 
 export interface Release {
   version: string
@@ -13,6 +13,26 @@ export interface Release {
 }
 
 export const RELEASES: Release[] = [
+  {
+    version: '2.0.4',
+    date: '2026-11-02',
+    changes: [
+      'Hub Atlas card redesigned on one grid (Chanh: too many uneven gaps). A head band (Atlas, status, Paper trading only, the thought), four equal tiles (Account, learner right, BUY calls, open trades), then two equal boxes with the same row shape: Kronos (6 biggest forecast moves as bars) and the six shadow tests with progress bars. Below, one box for the win rate of book vs Opus with each side\'s picks, then the council and the tools spread evenly. Nothing was removed.',
+    ],
+    changesVi: [
+      'Thẻ Atlas trên Hub được thiết kế lại trên một lưới thống nhất (anh Chanh: nhiều khoảng trống không đều). Dải đầu (Atlas, trạng thái, Chỉ giao dịch tiền ảo, suy nghĩ), bốn ô bằng nhau (Tài khoản, tỉ lệ đúng, lệnh MUA, lệnh đang giữ), rồi hai ô bằng nhau cùng kiểu dòng: Kronos (6 mã dự báo biến động mạnh nhất, dạng thanh) và sáu bài kiểm tra chạy bóng có thanh tiến độ. Bên dưới là một ô tỉ lệ thắng Sách vở vs Opus kèm mã mỗi bên chọn, rồi hội đồng và các nút công cụ chia đều. Không bỏ phần nào.',
+    ],
+  },
+  {
+    version: '2.0.4',
+    date: '2026-11-02',
+    changes: [
+      'Hub Atlas card, even spacing (Chanh: too many uneven gaps): Book vs Opus moved up beside the Atlas name, with a "Compare the signals" link. Kronos and the learning box are now the same height with their rows spread evenly, the account row spreads across the full width, and the tool buttons share each line evenly.',
+    ],
+    changesVi: [
+      'Thẻ Atlas trên Hub, chia khoảng cách đều (anh Chanh: nhiều chỗ trống không đều): ô Sách vở vs Opus lên cạnh tên Atlas, có link "Xem tín hiệu & so sánh". Ô Kronos và ô đang học giờ cao bằng nhau, các dòng chia đều; hàng tài khoản giãn đủ chiều ngang; các nút công cụ chia đều mỗi dòng.',
+    ],
+  },
   {
     version: '2.0.3',
     date: '2026-11-02',

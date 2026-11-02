@@ -385,8 +385,6 @@ button.hg-stat:hover { border-color: color-mix(in srgb, var(--acc) 60%, transpar
   /* Atlas carries Kronos, the learning ring, the book-vs-Opus duel and the Opus picks: one more row so nothing is cut */
   .hg-feat:has(.hg-aside) { grid-row: auto; }
   /* phone Atlas card: tools and the Kronos hint stay one line each (tools scroll sideways), so everything fits */
-  .hg-feat:has(.hg-aside) .hg-chips { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; flex-shrink: 0; }
-  .hg-feat:has(.hg-aside) .hg-chips > * { flex: none; }
   .hg-feat .hg-atlas-grid .hg-kb { padding: 3px 4px; }
   .hg-feat .hg-atlas-grid .hg-khead span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 11.5px; }
   .hg-feat .hg-id h2 { font-size: 30px; }
@@ -577,3 +575,77 @@ button.hg-kb:hover, button.hg-kb:focus-visible { background: rgba(255, 255, 255,
 
 /* Neo's 3D face in the hero (NeoFace, `neoFace`) */
 .hg-jbot .hg-neo { position: relative; width: 100%; height: 100%; box-shadow: 0 0 0 3px color-mix(in srgb, var(--k) 70%, transparent), 0 18px 40px -14px color-mix(in srgb, var(--k) 80%, transparent); }
+
+/* ===== Atlas card (v2.0.4 redesign, Chanh 02/11: one grid, even spaces, no patching) =====
+   head band | 4 equal stat tiles | two equal lists with one row shape | book vs Opus | council | tools.
+   Every block is full width or an equal split, every row is the same height, the card grows to fit. */
+.hg-feat .hg-face { gap: 14px; }
+.ax-head { display: grid; grid-template-columns: auto minmax(0, auto) minmax(0, 1fr); align-items: center; gap: 16px; pointer-events: none; }
+.hg .hg-feat .ax-head .hg-face-av { width: 104px; height: 104px; }
+.hg-feat .ax-head .hg-id h2 { font-size: 36px; }
+.hg-feat .ax-head .hg-think { margin: 0; }
+.ax-body { container-type: inline-size; position: relative; z-index: 2; display: grid; gap: 12px; pointer-events: none; }
+.ax-body button { pointer-events: auto; }
+.ax-stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
+.ax-stat { display: grid; grid-template-rows: auto auto; align-content: center; gap: 4px; min-width: 0; min-height: 72px; padding: 10px 12px; box-sizing: border-box; }
+.ax-stat small::first-letter { text-transform: uppercase; }
+.ax-stat > .ax-bar { height: 5px; margin-top: 2px; }
+.ax-stat small { display: block; color: var(--mute); font-size: 11.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ax-stat b { font-size: 20px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ax-acc { font-style: normal; color: var(--acc); font-size: 11px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ax-cols { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; align-items: stretch; }
+.ax-box { display: flex; flex-direction: column; gap: 8px; min-width: 0; padding: 12px 14px; box-sizing: border-box; text-align: left; font: inherit; color: inherit; }
+.ax-box.live, .ax-tap { pointer-events: auto; }
+.ax-tap { cursor: pointer; transition: border-color 0.25s ease, background-color 0.25s ease; }
+.ax-tap:hover, .ax-duel:hover { border-color: color-mix(in srgb, var(--k, var(--acc)) 55%, var(--line)); background: rgba(0, 0, 0, 0.32); }
+.ax-bh { display: grid; gap: 2px; min-height: 38px; }
+.ax-bh b { color: var(--ink); font-size: 14px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ax-bh span { color: var(--mute); font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+/* one row shape for both lists: label | bar | value, same height, so the two boxes line up row by row */
+.ax-rows { display: grid; grid-auto-rows: 28px; flex: 1; align-content: start; }
+.ax-rows.k { --lw: 52px; }
+.ax-rows.t { --lw: minmax(0, 7.5em); }
+.ax-row { display: grid; grid-template-columns: var(--lw) minmax(0, 1fr) 58px; align-items: center; gap: 10px; min-width: 0; padding: 0 4px; margin: 0 -4px; border: 0; border-radius: 8px; background: none; font: inherit; color: inherit; text-align: left; }
+button.ax-row { cursor: pointer; }
+button.ax-row:hover { background: rgba(255, 255, 255, 0.06); }
+.ax-row b { font-size: 12.5px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ax-row em { font-style: normal; font-size: 12px; text-align: right; color: var(--mute); }
+.ax-row em.up, .ax-row em.down { color: inherit; }
+.ax-bar { display: block; position: relative; height: 8px; border-radius: 4px; background: rgba(255, 255, 255, 0.06); overflow: hidden; }
+.ax-bar i { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 4px; animation: hg-kgrow 1s cubic-bezier(0.2, 0.9, 0.22, 1.2) both; animation-delay: var(--d, 0ms); transform-origin: left; }
+.ax-bar i.up { background: linear-gradient(to right, color-mix(in srgb, #8fdca5 35%, transparent), #8fdca5); }
+.ax-bar i.down { background: linear-gradient(to right, color-mix(in srgb, #f09a8e 35%, transparent), #f09a8e); }
+.ax-bar i.acc { background: linear-gradient(to right, color-mix(in srgb, var(--k, var(--acc)) 35%, transparent), var(--k, var(--acc))); }
+.ax-bf { display: flex; align-items: center; justify-content: space-between; gap: 10px; min-height: 22px; margin-top: auto; color: var(--mute); font-size: 12px; }
+.ax-link { padding: 0; border: 0; background: none; font: inherit; font-size: 12px; font-weight: 600; color: var(--k, var(--acc)); cursor: pointer; white-space: nowrap; }
+.ax-empty { margin: 0; color: var(--mute); font-size: 13px; flex: 1; }
+/* book vs Opus: two equal halves, then the link */
+.ax-duel { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px 24px; padding: 12px 14px; text-align: left; font: inherit; color: inherit; cursor: pointer; transition: border-color 0.25s ease, background-color 0.25s ease; }
+.ax-side { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 4px 10px; min-width: 0; }
+.ax-side > small { color: var(--mute); font-size: 12px; }
+.ax-side > b { font-size: 20px; font-weight: 700; }
+.ax-side.lead > b { color: var(--k, var(--acc)); }
+.ax-side > .ax-bar { grid-column: 1 / -1; }
+.ax-sub { grid-column: 1 / -1; display: flex; align-items: center; justify-content: space-between; gap: 8px; min-width: 0; min-height: 22px; }
+.ax-sub > small { color: var(--mute); font-size: 11.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ax-picks { display: flex; gap: 4px; flex: none; }
+.ax-picks b { padding: 1px 7px; border-radius: 999px; border: 1px solid var(--line); background: rgba(255, 255, 255, 0.05); font-size: 11px; font-weight: 600; }
+.ax-picks em { font-style: normal; color: var(--mute); font-size: 11px; align-self: center; }
+.ax-dh { grid-column: 1 / -1; display: flex; align-items: baseline; justify-content: space-between; gap: 10px; min-width: 0; }
+.ax-dh b { color: var(--ink); font-size: 14px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ax-tags { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.hg-feat .hg-council { flex-wrap: wrap; overflow: visible; }
+.hg-feat .hg-chips { margin-top: auto; }
+.hg-feat .hg-chips > * { flex: 1 0 auto; text-align: center; }
+/* narrow card (phones): tiles 2 x 2, lists stacked, head wraps the thought under the name */
+@container (max-width: 520px) {
+  .ax-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .ax-cols { grid-template-columns: minmax(0, 1fr); }
+  .ax-duel { grid-template-columns: minmax(0, 1fr); }
+}
+@media (max-width: 560px) {
+  .ax-head { grid-template-columns: auto minmax(0, 1fr); }
+  .ax-head .hg-think { grid-column: 1 / -1; }
+  .hg .hg-feat .ax-head .hg-face-av { width: 84px; height: 84px; }
+  .hg-feat .ax-head .hg-id h2 { font-size: 30px; }
+}
