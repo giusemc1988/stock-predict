@@ -27,6 +27,7 @@ import { StatRow } from './StatCard'
 import { SkRows } from './Skeleton'
 import { ActivityFeed, type FeedItem } from './ActivityFeed'
 import { AgentShell } from './AgentShell'
+import { AtlasSignalBoard } from './AtlasSignalBoard'
 
 interface Props {
   rules: AiRules
@@ -328,6 +329,9 @@ export function JarvisBrief(p: Props) {
     : []
   const openPick = (b: PickRow) => p.onSymbol(b.symbol, b.symbol.includes('/') ? 'crypto' : 'stock')
 
+  // signal board on top: honest verdict, learning progress, signals with TP/SL and real win rate (AI rule atlasSignals)
+  const signalBoard = p.rules.atlasSignals ? <AtlasSignalBoard practice={p.practice} onSymbol={p.onSymbol} /> : null
+
   if (hub) {
     const glass = p.rules.agentGlass
     // Neo Hub on: Atlas's Brief opens like the other agents (AgentShell), with the greeting as its tagline
@@ -348,6 +352,7 @@ export function JarvisBrief(p: Props) {
       )
     return frame(
       <>
+        {signalBoard}
         <section className="bf-hero hub-hero">
         <BrainCore nodes={nodes} memory={memory} thinking={p.scan.busy || brief.writing} motion={p.rules.jarvisMotion} onNode={p.onNode} />
           {tools ? (
@@ -395,6 +400,7 @@ export function JarvisBrief(p: Props) {
 
   return (
     <main className="brief-page">
+      {signalBoard}
       <section className="bf-hero">
         {briefBlock}
         {core}

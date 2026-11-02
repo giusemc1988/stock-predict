@@ -7,6 +7,7 @@
 import { askBrain, brainStatus, cleanAsk, type BrainEnv } from './lib/brainServer'
 import { practiceCycle, type WorkerEnv as PracticeEnv } from './worker/practiceCycle'
 import { shadowGuarded } from './worker/shadowLeads'
+import { leadsReport, parseLeads } from './lib/shadowLeads'
 import { DEFAULT_AI_RULES } from './lib/aiRules'
 import { kellyMultiplier } from './lib/kelly'
 import { cleanKey, isSlot, keySources, sameOrigin, storeKey, testProvider, withSavedKeys, type KeyStore } from './lib/brainKeys'
@@ -478,6 +479,17 @@ export default {
         return json({ state })
       } catch (e) {
         console.error('Practice state error:', e)
+        return json({ error: String(e) }, 500)
+      }
+    }
+    if (pathname === '/api/practice/learning') {
+      // the Atlas signal board: the shadow-lead report (read only, same numbers as atlas-status shadowLeads)
+      if (req.method !== 'GET') return json({ error: 'GET only' }, 405)
+      try {
+        const l = parseLeads(JSON.parse((await env.PRACTICE.get('shadow:leads')) ?? 'null'))
+        return json({ leads: leadsReport(l) })
+      } catch (e) {
+        console.error('Practice learning error:', e)
         return json({ error: String(e) }, 500)
       }
     }

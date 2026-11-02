@@ -2,7 +2,7 @@
  * Version and "What's new". Bump APP_VERSION and add an entry to the top of RELEASES
  * with each update. The banner shows once per version, then stays dismissed.
  */
-export const APP_VERSION = '1.98.2'
+export const APP_VERSION = '1.99.0'
 
 export interface Release {
   version: string
@@ -13,6 +13,18 @@ export interface Release {
 }
 
 export const RELEASES: Release[] = [
+  {
+    version: '1.99.0',
+    date: '2026-11-02',
+    changes: [
+      'Atlas signal board, at the top of Atlas\'s page: one honest verdict ("Learning. No edge yet." with the real record), one big Refresh button that only reloads the numbers and deletes nothing, a learning ring and six progress bars toward the 16/11 review (L1-L4, the volume filter, Kronos: new trades collected of the 50 each needs), each signal Atlas really took with entry, target (TP), stop (SL) and the real win rate of that kind of signal in its own record (warned when under 30 trades), and why it traded or not on its last session. The Atlas card on the Hub shows the same verdict and ring; tap it to open the board. Display only: it never places, changes or blocks a trade. Off switch in Settings > AI rules.',
+      'Hub Atlas card: the Kronos 5-day forecast is now a compact list of the 6 biggest moves with clear left/right bars ("See all" opens the full list), instead of a 20-symbol grid of tiny bars that overflowed the card.',
+    ],
+    changesVi: [
+      'Bảng tín hiệu Atlas, ở đầu trang Atlas: một kết luận thật ("Đang học. Chưa có lợi thế." kèm số liệu thật), một nút lớn Làm mới chỉ tải số mới và không xóa gì, vòng tròn học và sáu thanh tiến độ tới lần chấm điểm 16/11 (L1-L4, lọc khối lượng, Kronos: đã gom bao nhiêu lệnh mới trên 50 lệnh mỗi bài cần), mỗi tín hiệu Atlas thật sự vào có giá vào, chốt lời (TP), cắt lỗ (SL) và % thắng thật của loại tín hiệu đó trong lịch sử của Atlas (cảnh báo khi dưới 30 lệnh), và lý do vào lệnh hay không ở phiên gần nhất. Thẻ Atlas trên Hub hiện cùng kết luận và vòng tròn; bấm vào để mở bảng. Chỉ hiển thị: không bao giờ đặt, đổi hay chặn lệnh. Có công tắc tắt trong Cài đặt > Quy tắc AI.',
+      'Thẻ Atlas trên Hub: Kronos dự báo 5 phiên giờ là danh sách gọn 6 mã biến động lớn nhất với thanh trái/phải rõ ràng ("Xem tất cả" mở đủ danh sách), thay cho lưới 20 mã với thanh tí hon bị tràn khỏi thẻ.',
+    ],
+  },
   {
     version: '1.98.2',
     date: '2026-11-02',
