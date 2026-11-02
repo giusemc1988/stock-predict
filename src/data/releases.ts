@@ -2,7 +2,7 @@
  * Version and "What's new". Bump APP_VERSION and add an entry to the top of RELEASES
  * with each update. The banner shows once per version, then stays dismissed.
  */
-export const APP_VERSION = '2.0.4'
+export const APP_VERSION = '2.0.5'
 
 export interface Release {
   version: string
@@ -13,6 +13,16 @@ export interface Release {
 }
 
 export const RELEASES: Release[] = [
+  {
+    version: '2.0.5',
+    date: '2026-11-02',
+    changes: [
+      'Hub Atlas card redesigned on one grid (Chanh: too many uneven gaps). A head band (Atlas, status, Paper trading only, the thought), four equal tiles (days left to the 16/11 verdict, learner right, BUY calls, open trades), then two equal boxes with the same row shape: Kronos (6 biggest forecast moves as bars) and the six shadow tests with progress bars. Below, one box for the win rate of book vs Opus with each side\'s picks, then the council and the tools spread evenly. The account sits in the thought bubble at the top right. Nothing was removed.',
+    ],
+    changesVi: [
+      'Thẻ Atlas trên Hub được thiết kế lại trên một lưới thống nhất (anh Chanh: nhiều khoảng trống không đều). Dải đầu (Atlas, trạng thái, Chỉ giao dịch tiền ảo, suy nghĩ), bốn ô bằng nhau (số ngày còn lại tới ngày chấm 16/11, tỉ lệ đúng, lệnh MUA, lệnh đang giữ), rồi hai ô bằng nhau cùng kiểu dòng: Kronos (6 mã dự báo biến động mạnh nhất, dạng thanh) và sáu bài kiểm tra chạy bóng có thanh tiến độ. Bên dưới là một ô tỉ lệ thắng Sách vở vs Opus kèm mã mỗi bên chọn, rồi hội đồng và các nút công cụ chia đều. Tài khoản nằm ở bong bóng suy nghĩ góc trên bên phải. Không bỏ phần nào.',
+    ],
+  },
   {
     version: '2.0.4',
     date: '2026-11-02',
