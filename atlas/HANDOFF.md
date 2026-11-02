@@ -166,3 +166,22 @@ Hard rules: never change trading logic, thresholds, skills or the AI brain witho
   - Market-neutral versions (long the strategy, short SPY), so drift cancels out.
 - **Skills added to the repo:** `.claude/skills/backtest-expert` and `.claude/skills/strategy-pivot-designer`.
   - Source: tradermonty/claude-trading-skills, MIT, vetted. Read them before changing any lab.
+
+## 12. Rounds 2-3, shadow leads, open work (01/11 night, Desktop session)
+- **Merged:**
+  - #218 lab rounds 2+3. Results are in public/replay-daily.json (`round2`) and public/replay-intraday.json.
+  - #219 shadow leads, record only. It shows up in the atlas-status `shadowLeads` field and the Telegram 🧪 lines. Off switch: AI rule `shadowLeads`.
+- **Leads (all fail DSR after 28 trials, so shadow only):**
+  - L1, D1 reversal only when VIX ≥ its 252-day median: excess +0.375%/trade, p≈0.
+  - L2, intraday winners held overnight instead of closed: +0.26%/trade, p=0.03.
+  - L3, ETF time-series momentum: maxDD −8% vs SPY −23% on the exam, and −18% vs −47% on the book.
+- **Dead ends (do not retry):** 15m scalping, opening-range breakout, SPY/QQQ intraday momentum, pyramiding, and averaging down (it doubles the worst-trade size).
+- **Running:** Action "Atlas intraday replay lab" with Alpaca data from 2018 (run 41375695627). Read public/replay-intraday.json when it finishes.
+- **Unfinished branches (WIP commits, tests not run):**
+  - `claude/atlas-news-lab`: news vs no-news split (Chan 2003). Alpaca news API, using only headline timestamps, with no LLM on past news.
+  - `claude/atlas-edge-sweep`: FOMC, turn-of-month, OPEX, the VIX/VIX3M switch, HYG, pairs, insider clusters (EDGAR), PUT/BXM, plus a risk-parity ensemble of every surviving edge.
+- **Chanh's standing rule (01/11):**
+  - Research-only lab PRs may be merged by Claude.
+  - Anything that changes live Atlas or the deployed Worker needs his OK first.
+  - Heavy work runs in the cloud session, because local runs flood his PC with console windows.
+- **Goal:** a Vietnamese summary before the Monday 09:30 ET open: which edges are real, and what Atlas should shadow or switch on.
