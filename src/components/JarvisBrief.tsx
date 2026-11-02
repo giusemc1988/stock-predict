@@ -330,7 +330,7 @@ export function JarvisBrief(p: Props) {
   const openPick = (b: PickRow) => p.onSymbol(b.symbol, b.symbol.includes('/') ? 'crypto' : 'stock')
 
   // signal board on top: honest verdict, learning progress, signals with TP/SL and real win rate (AI rule atlasSignals)
-  const signalBoard = p.rules.atlasSignals ? <AtlasSignalBoard practice={p.practice} onSymbol={p.onSymbol} /> : null
+  const signalBoard = p.rules.atlasSignals ? <AtlasSignalBoard practice={p.practice} onSymbol={p.onSymbol} ideas={p.rules.ideaFactory} /> : null
 
   if (hub) {
     const glass = p.rules.agentGlass

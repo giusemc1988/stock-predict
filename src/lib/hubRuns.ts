@@ -16,6 +16,8 @@ export interface HubWorkflow {
   label: Bi
   /** words that ask for it, accents removed */
   words: string[]
+  /** workflow_dispatch inputs */
+  inputs?: Record<string, string>
 }
 
 export const WORKFLOWS: HubWorkflow[] = [
@@ -25,6 +27,7 @@ export const WORKFLOWS: HubWorkflow[] = [
   { id: 'android', file: 'android.yml', project: 'Nexus', label: { en: 'build the Android app', vi: 'build app Android' }, words: ['android', 'apk'] },
   { id: 'practice', file: 'practice.yml', project: 'Atlas', label: { en: 'run one Atlas practice cycle', vi: 'chạy một vòng luyện tập Atlas' }, words: ['luyen tap', 'practice'] },
   { id: 'learn', file: 'auto-learn.yml', project: 'Atlas', label: { en: 'run the Atlas learning cycle', vi: 'chạy vòng tự học của Atlas' }, words: ['tu hoc', 'learn'] },
+  { id: 'ideas', file: 'idea-factory.yml', project: 'Atlas', label: { en: 'run the Atlas idea factory (Atlas invents and tests its own rules)', vi: 'chạy xưởng ý tưởng Atlas (Atlas tự nghĩ luật và tự thi)' }, words: ['xuong y tuong', 'idea factory'], inputs: { mode: 'full' } },
   { id: 'kronos', file: 'kronos-shadow.yml', project: 'Atlas', label: { en: 'run the Kronos shadow test', vi: 'chạy thử Kronos' }, words: ['kronos'] },
   { id: 'ruview-check', file: 'ruview-update.yml', project: 'Echo', label: { en: 'check for a RuView update', vi: 'kiểm tra bản cập nhật RuView' }, words: ['ruview', 'cap nhat echo', 'update echo'] },
   { id: 'backup', file: 'backup-kv.yml', project: 'Atlas', label: { en: 'back up the saved data', vi: 'sao lưu dữ liệu đã lưu' }, words: ['sao luu', 'backup', 'back up'] },
@@ -108,7 +111,7 @@ export async function startRun(id: string, token: string | null, f: typeof fetch
   const w = workflowById(id)
   if (!w) return 'unknown'
   if (!token) return 'nokey'
-  const r = await f(`https://api.github.com/repos/${NOVA_REPO}/actions/workflows/${w.file}/dispatches`, { method: 'POST', headers: { ...GH(token), 'content-type': 'application/json' }, body: JSON.stringify({ ref: 'main' }) }).catch(() => null)
+  const r = await f(`https://api.github.com/repos/${NOVA_REPO}/actions/workflows/${w.file}/dispatches`, { method: 'POST', headers: { ...GH(token), 'content-type': 'application/json' }, body: JSON.stringify({ ref: 'main', ...(w.inputs ? { inputs: w.inputs } : {}) }) }).catch(() => null)
   return r?.status === 204 ? 'ok' : 'refused'
 }
 
