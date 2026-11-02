@@ -8,6 +8,7 @@ import { askBrain, brainStatus, cleanAsk, type BrainEnv } from './lib/brainServe
 import { practiceCycle, type WorkerEnv as PracticeEnv } from './worker/practiceCycle'
 import { shadowGuarded } from './worker/shadowLeads'
 import { DEFAULT_AI_RULES } from './lib/aiRules'
+import { kellyMultiplier } from './lib/kelly'
 import { cleanKey, isSlot, keySources, sameOrigin, storeKey, testProvider, withSavedKeys, type KeyStore } from './lib/brainKeys'
 import type { PracticeState } from './lib/practice'
 import { upstreamAsset } from './lib/webFlash'
@@ -512,7 +513,8 @@ export default {
         const learningStatus = wr != null && wr < 0.4 ? `PAUSED (WR ${(wr * 100).toFixed(0)}%)` : wr != null ? `active (WR ${(wr * 100).toFixed(0)}%)` : 'n/a'
 
         // Kelly status
-        const kellyStatus = wr != null && wr >= 0.5 && trades.length >= 10 ? `${(0.25 * 100).toFixed(1)}% Kelly` : 'n/a'
+        const km = kellyMultiplier(trades)
+        const kellyStatus = km < 1 ? `size x${km.toFixed(2)} (Kelly)` : 'n/a'
 
         return json({
           equity: parseFloat(equity.toFixed(2)),
