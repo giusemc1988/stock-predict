@@ -1,0 +1,36 @@
+name: Atlas daily replay lab
+
+# Manual only (Chanh: no scheduled jobs). Runs four swing strategies on free Yahoo daily bars since 2010
+# (entry at the next open, same costs as the 15m lab), judges them on the newest 1/3, then commits
+# public/replay-daily.json. Paper only; never touches live trading. About 2 minutes.
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: replay-daily
+  cancel-in-progress: false
+
+jobs:
+  replay:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run replay:daily
+      - name: Commit result
+        run: |
+          git config user.email "replay@stock-predict"
+          git config user.name "Atlas Replay Lab"
+          git add public/replay-daily.json
+          git diff --cached --quiet && exit 0
+          git commit -m "Atlas daily replay lab $(date -u +%Y-%m-%dT%H:%MZ)"
+          for i in 1 2 3; do git pull --rebase origin main && git push origin HEAD:main && exit 0; sleep 5; done
+          exit 1
