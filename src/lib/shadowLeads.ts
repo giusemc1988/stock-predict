@@ -1,5 +1,5 @@
 /**
- * Atlas shadow leads ("chạy bóng" for the three leads the replay labs found, approved by Chanh 2026-11-01).
+ * Atlas shadow leads ("chạy bóng" for the leads the replay labs found, approved by Chanh 2026-11-01; L4 added 2026-11-02).
  * Shadow = record what each lead WOULD do and its paper result. Nothing here places, changes, blocks or closes a
  * real paper trade; it reads closed trades and public daily bars and writes only its own KV keys. Pure functions:
  * src/worker/shadowLeads.ts does the fetching and the KV I/O.
@@ -13,9 +13,15 @@
  *     last month is > 0 at weight 1/N (N = ETFs with a signal), the rest in cash, from $10,000, with rebalance
  *     costs, against SPY buy-and-hold from the same day. Only daily closes are used, so a rebalance fills at that
  *     day's close (the lab filled at the next open); the signal itself uses month-end closes only.
+ *  L4 "Overnight winners" (replayEdges E-OVERNIGHT, round 4, added 2026-11-02): after the close, every
+ *     name of the universe that closed 3%+ above the previous close on at least 2x its 20-day average volume gets a
+ *     $1,000 shadow long at that close, sold at the NEXT open. Daily bars from Alpaca (IEX feed, one request a day;
+ *     volume ratios are scale-free). The 14 high-volatility names the lab found the edge depends on (HIGH_VOL) are
+ *     counted separately, so the report shows whether the rest of the universe earns anything.
  */
 import { feeFor, fillPrice, type Costs } from './costs'
 import { dayKey, kindOf, type PracticeTrade } from './practice'
+import { HIGH_VOL } from './replayUniverse'
 import { ETF_UNIVERSE, sideCost } from './replayRound2'
 import { netRetPct } from './replayStrategies'
 
@@ -304,6 +310,62 @@ export function l3Step(prev: L3State | null, a: { day: string; etf: Record<strin
   return s
 }
 
+// ---- L4 ----
+
+export const L4_NOTIONAL = 1000
+export const L4_MIN_RET = 0.03
+export const L4_VOL_MULT = 2
+export const L4_VOL_DAYS = 20
+
+/** One daily bar: day (US Eastern), open, close, volume. */
+export type DayBar = [string, number, number, number]
+export interface L4Pending { sym: string; day: string; entry: number; hv: boolean }
+export interface L4Trade { sym: string; day: string; nextDay: string; entry: number; exit: number; retPct: number; pnl: number; hv: boolean }
+export interface L4State { pending: L4Pending[]; trades: L4Trade[]; agg: Agg; core: Agg; signalDays: number }
+export const emptyL4 = (): L4State => ({ pending: [], trades: [], agg: emptyAgg(), core: emptyAgg(), signalDays: 0 })
+
+/** Names whose bar for `day` closed >= 3% above the previous close on >= 2x the average volume of the 20 bars before it. */
+export function l4Signals(bars: Record<string, DayBar[]>, day: string): { sym: string; close: number }[] {
+  const out: { sym: string; close: number }[] = []
+  for (const [sym, b] of Object.entries(bars)) {
+    const i = b.length - 1
+    if (i < L4_VOL_DAYS + 1 || b[i][0] !== day) continue
+    let v = 0
+    for (let k = i - L4_VOL_DAYS; k < i; k++) v += b[k][3]
+    const [, , c, vol] = b[i]
+    const prev = b[i - 1][2]
+    if (v > 0 && prev > 0 && c >= prev * (1 + L4_MIN_RET) && vol >= L4_VOL_MULT * (v / L4_VOL_DAYS)) out.push({ sym, close: c })
+  }
+  return out.sort((a, b) => a.sym.localeCompare(b.sym))
+}
+
+/** Settle pending shadow buys at the first open after their day, then record today's new signals. `rankOk` false
+ *  (too few names have today's bar) records no new signals. */
+export function l4Step(prev: L4State | undefined, a: { day: string; bars: Record<string, DayBar[]> | null; costs: Costs | null; rankOk: boolean }): L4State {
+  const s: L4State = structuredClone(prev ?? emptyL4())
+  if (!a.bars) return s
+  const still: L4Pending[] = []
+  for (const p of s.pending) {
+    const nb = a.bars[p.sym]?.find(([d]) => d > p.day)
+    if (!nb) {
+      if (dayDiff(p.day, a.day) <= 6) still.push(p)
+      continue
+    }
+    const ret = netRetPct(p.entry, nb[1], a.costs, false)
+    const pnl = +((L4_NOTIONAL * ret) / 100).toFixed(2)
+    s.trades = keep(s.trades, { sym: p.sym, day: p.day, nextDay: nb[0], entry: p.entry, exit: nb[1], retPct: +ret.toFixed(3), pnl, hv: p.hv })
+    s.agg = addAgg(s.agg, ret, pnl)
+    if (!p.hv) s.core = addAgg(s.core, ret, pnl)
+  }
+  s.pending = still
+  if (a.rankOk && !s.pending.some((p) => p.day === a.day)) {
+    const sig = l4Signals(a.bars, a.day)
+    if (sig.length) s.signalDays++
+    for (const x of sig) s.pending.push({ sym: x.sym, day: a.day, entry: x.close, hv: HIGH_VOL.has(x.sym) })
+  }
+  return s
+}
+
 // ---- state and report ----
 
 export interface ShadowLeads {
@@ -313,13 +375,14 @@ export interface ShadowLeads {
   l1: L1State
   l2: L2State
   l3: L3State | null
+  l4: L4State
 }
-export const emptyLeads = (): ShadowLeads => ({ v: 1, doneDay: '', l1: emptyL1(), l2: emptyL2(), l3: null })
+export const emptyLeads = (): ShadowLeads => ({ v: 1, doneDay: '', l1: emptyL1(), l2: emptyL2(), l3: null, l4: emptyL4() })
 
 export function parseLeads(raw: unknown): ShadowLeads | null {
   const r = raw as Partial<ShadowLeads> | null
   if (!r || r.v !== 1 || typeof r.doneDay !== 'string' || !r.l1 || !r.l2) return null
-  return { v: 1, doneDay: r.doneDay, l1: { ...emptyL1(), ...r.l1 }, l2: { ...emptyL2(), ...r.l2 }, l3: r.l3 ?? null }
+  return { v: 1, doneDay: r.doneDay, l1: { ...emptyL1(), ...r.l1 }, l2: { ...emptyL2(), ...r.l2 }, l3: r.l3 ?? null, l4: { ...emptyL4(), ...r.l4 } }
 }
 
 export interface LeadsReport {
@@ -327,6 +390,7 @@ export interface LeadsReport {
   l1: { n: number; winRate: number | null; avgRet: number | null; total: number; open: number; pending: number; signalDays: number; gateDays: number }
   l2: { n: number; winRate: number | null; shadowTotal: number; actualTotal: number; delta: number; avgDeltaRet: number | null; pending: number; proxy: { n: number; delta: number } }
   l3: { since: string; equity: number; spy: number; diffPct: number; hold: string[]; rebalances: number } | null
+  l4: { n: number; winRate: number | null; avgRet: number | null; total: number; pending: number; signalDays: number; core: { n: number; avgRet: number | null; total: number } }
   /** Plain Vietnamese lines for the daily Telegram summary. */
   vi: string[]
 }
@@ -352,12 +416,18 @@ export function leadsReport(leads: ShadowLeads | null): LeadsReport {
   }
   const t = L.l3
   const l3 = t ? { since: t.startDay, equity: t.equity, spy: t.spyEquity, diffPct: r2((t.equity / t.spyEquity - 1) * 100), hold: Object.keys(t.units).sort(), rebalances: t.rebalances } : null
+  const a4 = L.l4.agg
+  const c4 = L.l4.core
+  const l4 = { n: a4.n, winRate: a4.n ? r2((a4.wins / a4.n) * 100) : null, avgRet: a4.n ? r2(a4.sumRet / a4.n) : null, total: r2(a4.total), pending: L.l4.pending.length, signalDays: L.l4.signalDays, core: { n: c4.n, avgRet: c4.n ? r2(c4.sumRet / c4.n) : null, total: r2(c4.total) } }
   const vi = [
     l1.n
       ? `L1 đảo chiều+VIX: ${l1.n} lệnh, thắng ${Math.round(l1.winRate!)}%, TB ${pc(l1.avgRet!, 2)}/lệnh, ${money(l1.total)}, mở ${l1.open}`
       : `L1 đảo chiều+VIX: chưa có lệnh đóng (mở ${l1.open}, chờ vào ${l1.pending})`,
     l2.n ? `L2 giữ qua đêm: ${l2.n} lệnh, ${money(l2.shadowTotal)} so với thật ${money(l2.actualTotal)} (chênh ${money(l2.delta)})` : `L2 giữ qua đêm: chưa có lệnh (chờ ${l2.pending})`,
     l3 ? `L3 ETF xu hướng: $${l3.equity.toFixed(0)} so với SPY $${l3.spy.toFixed(0)} (${pc(l3.diffPct)}), giữ ${l3.hold.length} ETF` : 'L3 ETF xu hướng: chưa bắt đầu',
+    l4.n
+      ? `L4 qua đêm: ${l4.n} lệnh, thắng ${Math.round(l4.winRate!)}%, TB ${pc(l4.avgRet!, 2)}/lệnh, ${money(l4.total)}; bỏ 14 mã nóng: ${l4.core.n} lệnh, ${l4.core.avgRet == null ? 'chưa có' : `TB ${pc(l4.core.avgRet, 2)}`}`
+      : `L4 qua đêm: chưa có lệnh đóng (chờ bán ${l4.pending})`,
   ]
-  return { asOf: L.doneDay || null, l1, l2, l3, vi }
+  return { asOf: L.doneDay || null, l1, l2, l3, l4, vi }
 }

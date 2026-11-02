@@ -9,3 +9,7 @@ WMT COST TGT HD LOW NKE SBUX MCD DIS KO PEP
 BA CAT DE GE HON LMT RTX UPS FDX F GM
 T VZ TMUS CMCSA
 SPY QQQ IWM`.split(/\s+/).filter(Boolean)
+
+/** The 14 crypto, meme and recent-IPO names of STOCKS (fixed before looking). The edge sweep's overnight idea is
+ *  re-run without them as a robustness check, and the live L4 shadow (shadowLeads.ts) reports the rest separately. */
+export const HIGH_VOL = new Set(['MARA', 'RIOT', 'SMCI', 'COIN', 'PLTR', 'HOOD', 'SOFI', 'RIVN', 'LCID', 'NIO', 'PLUG', 'TSLA', 'ARM', 'MRNA'])

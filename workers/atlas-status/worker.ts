@@ -102,7 +102,7 @@ export default {
           kelly: kellyStatus,
           // proposed rules recorded on every trade but never applied (src/lib/shadowFilters.ts)
           shadow: shadowReport(trades),
-          // the three replay-lab leads run record-only (src/lib/shadowLeads.ts): lead results, and `last` = how the latest run went
+          // the replay-lab leads (L1-L4) run record-only (src/lib/shadowLeads.ts): lead results, and `last` = how the latest run went
           shadowLeads: { ...leadsReport(parseLeads(await env.PRACTICE.get('shadow:leads', 'json').catch(() => null))), last: await env.PRACTICE.get('shadowLast', 'json').catch(() => null) },
           diag: { ...diagnostics(state), cronLast: await env.PRACTICE.get('cronLast', 'json').catch(() => null) },
         })

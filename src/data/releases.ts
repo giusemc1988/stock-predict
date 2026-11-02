@@ -2,7 +2,7 @@
  * Version and "What's new". Bump APP_VERSION and add an entry to the top of RELEASES
  * with each update. The banner shows once per version, then stays dismissed.
  */
-export const APP_VERSION = '1.97.0'
+export const APP_VERSION = '1.98.0'
 
 export interface Release {
   version: string
@@ -13,6 +13,16 @@ export interface Release {
 }
 
 export const RELEASES: Release[] = [
+  {
+    version: '1.98.0',
+    date: '2026-11-02',
+    changes: [
+      'Atlas shadow lead L4, overnight winners (the strongest lead of the round-4 edge sweep): after each close, every universe name that closed 3%+ up on at least 2x its 20-day average volume gets a $1,000 shadow buy at that close, sold at the next open. One Alpaca daily-bar request a day with the hub\'s Alpaca paper key. The 14 high-volatility names the lab found the edge depends on are reported separately. It shows in the atlas-status shadowLeads field and as a fourth 🧪 line in the daily Telegram summary. Record only: it never places, changes, blocks or closes a real paper trade. Same AI rules switch as the other shadow leads.',
+    ],
+    changesVi: [
+      'Atlas chạy bóng hướng L4, mua cổ phiếu thắng giữ qua đêm (manh mối mạnh nhất của vòng rà rộng lợi thế thứ 4): sau mỗi phiên, mã nào trong danh sách đóng cửa tăng từ 3% với khối lượng từ 2 lần trung bình 20 ngày thì được ghi một lệnh mua bóng $1,000 ở giá đóng cửa, bán ở giá mở cửa hôm sau. Mỗi ngày một yêu cầu nến ngày tới Alpaca bằng khóa Alpaca paper của hub. 14 mã biến động mạnh mà phòng lab thấy lợi thế phụ thuộc vào được báo riêng. Kết quả hiện ở trường shadowLeads của atlas-status và thành dòng 🧪 thứ tư trong tổng kết Telegram hằng ngày. Chỉ ghi lại: không bao giờ đặt, đổi, chặn hay đóng lệnh giả lập thật. Dùng chung công tắc AI rules với các hướng chạy bóng khác.',
+    ],
+  },
   {
     version: '1.97.0',
     date: '2026-11-02',
