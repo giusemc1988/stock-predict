@@ -1,5 +1,7 @@
 /**
- * Shadow leads runner (L1 D1+VIX gate, L2 hold winners overnight, L3 ETF trend core; logic in src/lib/shadowLeads.ts).
+ * Shadow leads runner (L1 D1+VIX gate, L2 hold winners overnight, L3 ETF trend core, L4 overnight winners; logic in
+ * src/lib/shadowLeads.ts). L4 needs daily VOLUME, which spark lacks: it makes one Alpaca multi-symbol bars request
+ * a day with the hub's Alpaca paper data key (task 'a4'); without a key L4 just records nothing.
  * Runs inside the existing Worker cron after the live cycle, at most once per trading day after the close.
  * Record-only: it READS the `state` KV key and writes only `shadow:leads`, `shadow:work` and `shadowLast`.
  *
@@ -15,7 +17,7 @@ import { costsFrom } from '../lib/costs'
 import { dayKey, sessionEnd } from '../lib/practice'
 import { ETF_UNIVERSE } from '../lib/replayRound2'
 import { STOCKS } from '../lib/replayUniverse'
-import { emptyLeads, etfCompact, l1Step, l2Candidates, l2Step, l3Step, parseLeads, type EtfData, type Opens, type Px, type ShadowLeads } from '../lib/shadowLeads'
+import { emptyLeads, etfCompact, l1Step, l2Candidates, l2Step, l3Step, l4Step, parseLeads, type DayBar, type EtfData, type Opens, type Px, type ShadowLeads } from '../lib/shadowLeads'
 import type { WorkerEnv } from './practiceCycle'
 
 const UA = { 'User-Agent': 'Mozilla/5.0 (arc-analyst practice)' }
@@ -47,8 +49,10 @@ interface Work {
   tail: Record<string, Px>
   vix: number[] | null
   opens: Opens
+  /** L4: the last daily bars [day, open, close, volume] of every universe name (Alpaca), or null when not fetched. */
+  l4bars?: Record<string, DayBar[]> | null
 }
-const newWork = (day: string): Work => ({ day, tries: {}, done: [], stocks: {}, etf: {}, tail: {}, vix: null, opens: {} })
+const newWork = (day: string): Work => ({ day, tries: {}, done: [], stocks: {}, etf: {}, tail: {}, vix: null, opens: {}, l4bars: null })
 
 type Fetch = typeof fetch
 type Json = Record<string, any> // eslint-disable-line @typescript-eslint/no-explicit-any
@@ -94,6 +98,36 @@ async function runOpen(f: Fetch, sym: string, w: Work) {
   w.opens[sym] = px
 }
 
+type AlpacaKeys = { keyId: string; secret: string }
+async function alpacaKeys(env: WorkerEnv): Promise<AlpacaKeys | null> {
+  try {
+    const raw = await env.SETTINGS?.get('brainkey:alpaca_paper')
+    const k = raw ? (JSON.parse(raw) as Partial<AlpacaKeys>) : null
+    return k?.keyId && k.secret ? { keyId: k.keyId, secret: k.secret } : null
+  } catch {
+    return null
+  }
+}
+
+/** L4: about 30 calendar days of daily bars for the whole universe in one multi-symbol request (IEX feed, free plan). */
+export async function runAlpacaBars(f: Fetch, k: AlpacaKeys, day: string, w: Work) {
+  const start = new Date(Date.parse(day) - 45 * 86_400_000).toISOString().slice(0, 10)
+  const out: Record<string, DayBar[]> = {}
+  let token: string | null = null
+  for (let page = 0; page < 4; page++) {
+    const q = new URLSearchParams({ symbols: STOCKS.join(','), timeframe: '1Day', start, limit: '10000', feed: 'iex', adjustment: 'split' })
+    if (token) q.set('page_token', token)
+    const res = await f(`https://data.alpaca.markets/v2/stocks/bars?${q}`, { headers: { 'APCA-API-KEY-ID': k.keyId, 'APCA-API-SECRET-KEY': k.secret } })
+    if (!res.ok) throw new Error(`Alpaca ${res.status}`) // never the key in a message
+    const j = (await res.json()) as { bars?: Record<string, { t: string; o: number; c: number; v: number }[]>; next_page_token?: string | null }
+    for (const [sym, rows] of Object.entries(j.bars ?? {})) for (const b of rows) (out[sym] ??= []).push([dayKey(Date.parse(b.t)), b.o, b.c, b.v])
+    token = j.next_page_token ?? null
+    if (!token) break
+  }
+  for (const sym of Object.keys(out)) out[sym] = out[sym].sort((a, b) => a[0].localeCompare(b[0])).slice(-30)
+  w.l4bars = out
+}
+
 /** Names whose next open is needed today: pending L1 entries and L2 fills whose day is already over. */
 function openSymbols(leads: ShadowLeads, state: StateLite | null, day: string): string[] {
   const out = new Set<string>()
@@ -113,7 +147,7 @@ async function readState(env: WorkerEnv): Promise<StateLite | null> {
   return Array.isArray(s.trades) ? { trades: s.trades as StateLite['trades'] } : null
 }
 
-/** Today's finished data to the three leads. Pure given its inputs. */
+/** Today's finished data to the four leads. Pure given its inputs. */
 export function applyDay(leads: ShadowLeads, w: Work, state: StateLite | null, rules: Pick<AiRules, 'costsOn' | 'feeBps' | 'spreadBps' | 'slippageBps'>): ShadowLeads {
   const day = w.day
   const costs = costsFrom(rules)
@@ -123,9 +157,12 @@ export function applyDay(leads: ShadowLeads, w: Work, state: StateLite | null, r
   for (const s of STOCKS) if (ETF_SET.has(s) && w.tail[s]) series[s] = w.tail[s]
   // a decile of a partly missing universe is not the lab's decile: with under 90% of the names there are no new signals
   const rankOk = STOCKS.filter((x) => series[x]?.at(-1)?.[0] === day).length >= STOCKS.length * 0.9
+  const l4bars = w.l4bars ?? null
+  const l4Ok = !!l4bars && STOCKS.filter((x) => l4bars[x]?.at(-1)?.[0] === day).length >= STOCKS.length * 0.9
   return {
     ...leads,
     doneDay: day,
+    l4: l4Step(leads.l4, { day, bars: l4bars, costs, rankOk: l4Ok }),
     l1: l1Step(leads.l1, { day, series, opens: w.opens, vix: w.vix, rankOk, costs }),
     l2: l2Step(leads.l2, { day, trades: state?.trades ?? [], opens: w.opens }),
     l3: l3Step(leads.l3, { day, etf: w.etf, costs }),
@@ -157,6 +194,7 @@ export async function shadowStep(env: WorkerEnv, now: number, rules: AiRules, f:
     /* unreadable progress: start the day again */
   }
   const state = await readState(env).catch(() => null)
+  const keys = await alpacaKeys(env)
 
   // the requests still to do, in order: ETF/VIX batches first (the first one holds SPY, which tells a holiday), stocks, then opens
   const notDone = (id: string) => !w.done.includes(id)
@@ -165,6 +203,7 @@ export async function shadowStep(env: WorkerEnv, now: number, rules: AiRules, f:
     ? []
     : [
         ...BATCHES.filter((b) => notDone(b.id)).map((b) => ({ id: b.id, run: () => runBatch(f, b, w) })),
+        ...(keys && notDone('a4') ? [{ id: 'a4', run: () => runAlpacaBars(f, keys, day, w) }] : []),
         ...openSymbols(leads, state, day).filter((x) => notDone(`o:${x}`)).map((x) => ({ id: `o:${x}`, run: () => runOpen(f, x, w) })),
       ]
   const batch = todo.slice(0, FETCH_BUDGET)
@@ -186,7 +225,7 @@ export async function shadowStep(env: WorkerEnv, now: number, rules: AiRules, f:
   const next = applyDay(leads, w, state, rules)
   await env.PRACTICE.put('shadow:leads', JSON.stringify(next))
   await env.PRACTICE.delete('shadow:work').catch(() => {})
-  return { note: `shadow ${day}: ${w.etf.SPY?.lastDay === day ? 'recorded' : 'no session'}; L1 ${next.l1.agg.n} closed, ${next.l1.open.length} open; L2 ${next.l2.agg.n}; L3 ${next.l3 ? next.l3.equity : 'n/a'}`, finished: true }
+  return { note: `shadow ${day}: ${w.etf.SPY?.lastDay === day ? 'recorded' : 'no session'}; L1 ${next.l1.agg.n} closed, ${next.l1.open.length} open; L2 ${next.l2.agg.n}; L4 ${next.l4.agg.n} closed, ${next.l4.pending.length} pending; L3 ${next.l3 ? next.l3.equity : 'n/a'}`, finished: true }
 }
 
 /** Called from scheduled(): never throws. Writes KV `shadowLast` (cronLast style) when a day finishes or a tick fails. */

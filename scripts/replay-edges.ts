@@ -21,7 +21,7 @@ import type { Costs } from '../src/lib/costs'
 import { dayKey } from '../src/lib/practice'
 import { controlDaily, d1Reversal, runDaily, scaleCosts, type Series } from '../src/lib/replayDaily'
 import {
-  ALL_ROUNDS_TRIALS, EDGES_TRIALS, FOMC_ANNOUNCEMENTS, LAB_TRIALS, PASS_SWITCH_EN, PASS_SWITCH_VI, PASS_TRADES_EN, PASS_TRADES_VI, PAIR_RULE, TRIAL_LEDGER,
+  ALL_ROUNDS_TRIALS, EDGES_TRIALS, HIGH_VOL, FOMC_ANNOUNCEMENTS, LAB_TRIALS, PASS_SWITCH_EN, PASS_SWITCH_VI, PASS_TRADES_EN, PASS_TRADES_VI, PAIR_RULE, TRIAL_LEDGER,
   barOnOrBefore, bookInvVol, clusterDays, ensembleStream, evalSwitch, evalTrades, eventGroups, eventReturns, eventStream, firstFinite, fomcEvents, hygSignal,
   insiderRows, olsBeta, opexWeeks, overnightRet, overnightSignals, pairPath, pairPool, pairTradeRet, pairTrades, poolControl, sharpeOf, sharpeVar, shiftControl,
   sleeveCorr, spreadZ, switchStream, turnOfMonthEvents, vixTsSignal, type EdgeEval, type Ev, type Group, type InsiderRow, type PairBars, type Sleeve, type SwitchEval, type TradeSet,
@@ -42,8 +42,6 @@ const UA = { 'User-Agent': 'Mozilla/5.0 (atlas replay lab)' }
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms))
 const PAIRS: [string, string][] = [['KO', 'PEP'], ['XOM', 'CVX'], ['HD', 'LOW'], ['V', 'MA'], ['JPM', 'BAC'], ['GS', 'MS'], ['UPS', 'FDX'], ['WMT', 'TGT']]
 /** Yearly expense ratios of the ETFs that track the Cboe indexes (PUTW 0.44%, XYLD 0.60%), charged daily. */
-/** Robustness check for the overnight idea (fixed before looking): the crypto, meme and recent-IPO names. */
-const HIGH_VOL = new Set(['MARA', 'RIOT', 'SMCI', 'COIN', 'PLTR', 'HOOD', 'SOFI', 'RIVN', 'LCID', 'NIO', 'PLUG', 'TSLA', 'ARM', 'MRNA'])
 const INDEX_FEE = { PUT: 0.0044, BXM: 0.006 }
 
 type Quote = { open: (number | null)[]; high: (number | null)[]; low: (number | null)[]; close: (number | null)[]; volume: (number | null)[] }

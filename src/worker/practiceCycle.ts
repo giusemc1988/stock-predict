@@ -108,6 +108,8 @@ export interface WorkerEnv {
   PRACTICE: { get(key: string): Promise<string | null>; put(key: string, value: string): Promise<void>; delete(key: string): Promise<void> }
   /** Static site files: the learner journal built by the auto-learn GitHub Action ships as /auto-learning.json. */
   ASSETS?: { fetch: (r: Request) => Promise<Response> }
+  /** Hub settings; the shadow L4 lead reads the Alpaca paper data key (`brainkey:alpaca_paper`) from it. */
+  SETTINGS?: { get(key: string): Promise<string | null> }
 }
 
 async function getCachedBars(env: WorkerEnv, key: string): Promise<Candle[] | null> {

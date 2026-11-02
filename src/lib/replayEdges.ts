@@ -43,6 +43,7 @@ export const SINGLE_TRIALS = ALL_ROUNDS_TRIALS
 export const ENSEMBLE_TRIALS = ALL_ROUNDS_TRIALS
 /** The older labs' count (strategy variants of rounds 1-3 plus this round), shown next to the strict one. */
 export const LAB_TRIALS = ALL_TRIALS + EDGES_TRIALS
+export { HIGH_VOL } from './replayUniverse'
 /** An idea needs this many exam trades to be judged (calendar events give only 50-80 in the exam). */
 export const MIN_EXAM_TRADES = 30
 

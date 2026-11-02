@@ -7,8 +7,10 @@ import { ETF_UNIVERSE, sideCost, vixDays, vixGate } from '../src/lib/replayRound
 import { netRetPct } from '../src/lib/replayStrategies'
 import { STOCKS } from '../src/lib/replayUniverse'
 import { summaryText } from '../src/lib/telegramText'
+import { L4_NOTIONAL, emptyL4, l4Signals, l4Step, type DayBar } from '../src/lib/shadowLeads'
+import { HIGH_VOL } from '../src/lib/replayUniverse'
 import { addMonths, emptyL1, emptyLeads, etfCompact, l1Rank, l1Step, l2Candidates, l2Shadow, l2Step, l3Step, l3Weights, leadsReport, parseLeads, vixGateOpen, type EtfData, type Px } from '../src/lib/shadowLeads'
-import { BATCHES, FETCH_BUDGET, shadowGuarded, shadowStep } from '../src/worker/shadowLeads'
+import { BATCHES, FETCH_BUDGET, runAlpacaBars, shadowGuarded, shadowStep } from '../src/worker/shadowLeads'
 
 const costs = costsFrom(DEFAULT_AI_RULES)
 assert.ok(costs, 'default rules have costs on')
@@ -319,11 +321,11 @@ class FakeKv {
   // the report
   const rep = leadsReport(leads)
   assert.equal(rep.asOf, D2)
-  assert.equal(rep.vi.length, 3)
+  assert.equal(rep.vi.length, 4)
   assert.ok(rep.vi.every((l) => l.length < 120))
   assert.ok(rep.l3 && rep.l3.equity > 0 && rep.l3.spy > 0)
   const msg = summaryText({ day: D2, report: { trades: 0, opened: 0, wins: 0, net: 0, lessons: [] } as never, trades: [], equity: 1, totalRetPct: 0, learning: '', brakes: '', shadow: 'x', shadowLeads: rep.vi })
-  assert.ok(msg.includes('🧪 Chạy bóng') && msg.includes('L1') && msg.includes('L2') && msg.includes('L3'))
+  assert.ok(msg.includes('🧪 Chạy bóng') && msg.includes('L1') && msg.includes('L2') && msg.includes('L3') && msg.includes('L4'))
   assert.ok(!summaryText({ day: D2, report: { trades: 0, opened: 0, wins: 0, net: 0, lessons: [] } as never, trades: [], equity: 1, totalRetPct: 0, learning: '', brakes: '' }).includes('L1'))
 }
 
@@ -378,6 +380,65 @@ class FakeKv {
   const all = BATCHES.flatMap((b) => b.symbols)
   assert.equal(new Set(all).size, all.length)
   for (const s of [...STOCKS, ...ETF_UNIVERSE, '^VIX']) assert.ok(all.includes(s), s)
+}
+
+// ---- L4 overnight winners ----
+{
+  const days = Array.from({ length: 23 }, (_, i) => `2026-10-${String(i + 1).padStart(2, '0')}`)
+  const flatBars = (last: { c: number; v: number }): DayBar[] => days.map((d, i) => (i < days.length - 1 ? [d, 100, 100, 1000] : [d, 100, last.c, last.v]))
+  const D = days[days.length - 1]
+  const bars: Record<string, DayBar[]> = {
+    WIN: flatBars({ c: 103, v: 2000 }), // +3% on 2x volume: signal
+    LOWVOL: flatBars({ c: 104, v: 1500 }), // up, but volume only 1.5x
+    SMALL: flatBars({ c: 102.9, v: 5000 }), // volume, but +2.9%
+    TSLA: flatBars({ c: 110, v: 9000 }), // a high-vol name: signal, counted apart
+  }
+  assert.deepEqual(l4Signals(bars, D).map((x) => x.sym), ['TSLA', 'WIN'])
+  assert.deepEqual(l4Signals(bars, '2026-10-22'), [], 'only the bar of the day itself')
+
+  let s = l4Step(undefined, { day: D, bars, costs, rankOk: true })
+  assert.deepEqual(s.pending.map((p) => [p.sym, p.entry, p.hv]), [['TSLA', 110, true], ['WIN', 103, false]])
+  assert.equal(HIGH_VOL.has('TSLA'), true)
+  assert.equal(s.signalDays, 1)
+  assert.deepEqual(l4Step(s, { day: D, bars, costs, rankOk: true }).pending.length, 2, 'the same day twice adds nothing')
+  assert.equal(l4Step(undefined, { day: D, bars, costs, rankOk: false }).pending.length, 0, 'thin data: no new signals')
+
+  // next day: sold at that day's OPEN, with costs
+  const D2 = '2026-10-24'
+  const next = Object.fromEntries(Object.entries(bars).map(([k, b]) => [k, [...b, [D2, k === 'WIN' ? 104 : 108, 100, 1000] as DayBar]]))
+  s = l4Step(s, { day: D2, bars: next, costs, rankOk: true })
+  assert.equal(s.pending.length, 0)
+  const win = s.trades.find((t) => t.sym === 'WIN')!
+  assert.ok(Math.abs(win.retPct - +netRetPct(103, 104, costs, false).toFixed(3)) < 1e-9)
+  assert.ok(Math.abs(win.pnl - (L4_NOTIONAL * win.retPct) / 100) < 0.01)
+  assert.deepEqual([s.agg.n, s.core.n], [2, 1], 'the core count leaves out the high-vol name')
+
+  // a pending buy with no next bar is kept up to 6 days, then dropped
+  const stuck = { ...emptyL4(), pending: [{ sym: 'GONE', day: '2026-10-01', entry: 10, hv: false }] }
+  assert.equal(l4Step(stuck, { day: '2026-10-05', bars: {}, costs, rankOk: false }).pending.length, 1)
+  assert.equal(l4Step(stuck, { day: '2026-10-09', bars: {}, costs, rankOk: false }).pending.length, 0)
+  assert.equal(l4Step(stuck, { day: '2026-10-09', bars: null, costs, rankOk: false }).pending.length, 1, 'no data fetched: nothing changes')
+
+  // report line + old stored leads without l4 still parse
+  const rep = leadsReport({ ...emptyLeads(), l4: s })
+  assert.equal(rep.l4.n, 2)
+  assert.ok(rep.vi[3].startsWith('L4 qua đêm: 2 lệnh'))
+  const old = parseLeads({ v: 1, doneDay: 'x', l1: emptyL1(), l2: { since: '' }, l3: null })!
+  assert.deepEqual(old.l4, emptyL4())
+
+  // Alpaca request: one multi-symbol call, keys only in headers, bars by Eastern day, newest 30 kept
+  const calls: { url: string; headers: Record<string, string> }[] = []
+  const fake = (async (url: string, init: { headers: Record<string, string> }) => {
+    calls.push({ url, headers: init.headers })
+    return Response.json({ bars: { AAA: [{ t: '2026-10-23T04:00:00Z', o: 10, c: 11, v: 5 }, { t: '2026-10-22T04:00:00Z', o: 9, c: 10, v: 4 }] }, next_page_token: null })
+  }) as never
+  const w = { l4bars: null } as never as { l4bars: Record<string, DayBar[]> }
+  await runAlpacaBars(fake, { keyId: 'PKTEST', secret: 'SECRET' }, '2026-10-23', w as never)
+  assert.equal(calls.length, 1)
+  assert.ok(!calls[0].url.includes('PKTEST') && !calls[0].url.includes('SECRET'))
+  assert.equal(calls[0].headers['APCA-API-KEY-ID'], 'PKTEST')
+  assert.ok(calls[0].url.includes('feed=iex') && calls[0].url.includes('timeframe=1Day'))
+  assert.deepEqual(w.l4bars.AAA, [['2026-10-22', 9, 10, 4], ['2026-10-23', 10, 11, 5]])
 }
 
 console.log('shadowleads ok')
