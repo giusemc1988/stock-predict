@@ -14,6 +14,7 @@ on:
 
 permissions:
   contents: write
+  actions: write # to start the deploy: a push made with the default token does not trigger it
 
 concurrency:
   group: kronos-shadow
@@ -68,7 +69,13 @@ jobs:
           git diff --cached --quiet && exit 0
           git commit -q -m "Kronos shadow test $(date -u +%Y-%m-%d)"
           for i in 1 2 3; do
-            git pull --rebase -q origin main && git push -q origin HEAD:main && exit 0
+            if git pull --rebase -q origin main && git push -q origin HEAD:main; then
+              # Atlas reads /kronos-shadow.json from the deployed site, so deploy to publish the new forecasts
+              gh workflow run deploy-worker.yml --ref main || echo "deploy not started"
+              exit 0
+            fi
             sleep $((i * 5))
           done
           exit 1
+        env:
+          GH_TOKEN: ${{ github.token }}

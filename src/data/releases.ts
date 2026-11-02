@@ -2,7 +2,7 @@
  * Version and "What's new". Bump APP_VERSION and add an entry to the top of RELEASES
  * with each update. The banner shows once per version, then stays dismissed.
  */
-export const APP_VERSION = '2.0.0'
+export const APP_VERSION = '2.0.1'
 
 export interface Release {
   version: string
@@ -13,6 +13,16 @@ export interface Release {
 }
 
 export const RELEASES: Release[] = [
+  {
+    version: '2.0.1',
+    date: '2026-11-02',
+    changes: [
+      'Atlas pre-open fix: the idea factory\'s nightly job was written with a broken line and GitHub refused to run it, so it never started. Fixed. The nightly Kronos and idea factory jobs now also start a site deploy after saving, because a save made by a job does not deploy by itself, so the new forecasts and signals reach the app and Atlas the same night.',
+    ],
+    changesVi: [
+      'Sửa lỗi Atlas trước giờ mở cửa: việc chạy hằng đêm của xưởng ý tưởng bị viết sai một dòng nên GitHub không chạy nó, nó chưa từng chạy. Đã sửa. Hai việc chạy đêm (Kronos và xưởng ý tưởng) giờ còn tự cho đăng bản mới lên web sau khi lưu, vì lưu do việc tự động không tự đăng được; nhờ vậy dự báo và tín hiệu mới tới app và Atlas ngay trong đêm.',
+    ],
+  },
   {
     version: '2.0.0',
     date: '2026-11-02',
