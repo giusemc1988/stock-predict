@@ -1,0 +1,39 @@
+name: Atlas scanner candidates
+
+# Every 15 minutes in US market hours: ask TradingView's free screener for liquid, real movers (price >= $5,
+# cap >= $300M, RVOL >= 1.5, NASDAQ/NYSE/AMEX only) and save them to the `scanner-data` branch. The Worker reads
+# that file (no deploy needed) and falls back to its Yahoo movers when it is missing or older than 45 minutes.
+# Chanh approved this on 2026-11-02. Costs no tokens. Unofficial endpoint: if it stops working, Atlas just falls back.
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '*/15 13-21 * * 1-5'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: scanner-candidates
+  cancel-in-progress: true
+
+jobs:
+  scan:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: pip install tradingview-screener==3.2.2
+      - run: python scripts/tv-scanner.py "$RUNNER_TEMP/candidates.json"
+      - name: Save to scanner-data branch (one commit, overwritten each time, so no history grows)
+        run: |
+          git config user.email "scanner@stock-predict"
+          git config user.name "Atlas scanner"
+          git checkout --orphan scanner-data
+          git rm -rf -q .
+          cp "$RUNNER_TEMP/candidates.json" candidates.json
+          git add candidates.json
+          git commit -q -m "Scanner candidates $(date -u +%Y-%m-%dT%H:%MZ)"
+          git push -f origin scanner-data

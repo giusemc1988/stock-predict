@@ -2,7 +2,7 @@
  * Version and "What's new". Bump APP_VERSION and add an entry to the top of RELEASES
  * with each update. The banner shows once per version, then stays dismissed.
  */
-export const APP_VERSION = '2.0.8'
+export const APP_VERSION = '2.0.9'
 
 export interface Release {
   version: string
@@ -13,6 +13,16 @@ export interface Release {
 }
 
 export const RELEASES: Release[] = [
+  {
+    version: '2.0.9',
+    date: '2026-11-02',
+    changes: [
+      'Atlas scanner now starts from TradingView\'s free screener: every 15 minutes in market hours a GitHub job lists real, liquid movers (price $5+, market cap $300M+, relative volume 1.5x+, NASDAQ/NYSE/AMEX only, up 1%+ today) and Atlas scans those instead of Yahoo\'s gainers list. If the list is missing or older than 45 minutes it falls back to the old scanner. The 2.0.8 quality gate and risk-based size still apply to every buy. Costs no tokens.',
+    ],
+    changesVi: [
+      'Scanner Atlas giờ bắt đầu từ bộ lọc miễn phí của TradingView: mỗi 15 phút trong giờ thị trường, một job GitHub liệt kê các mã chạy thật và thanh khoản (giá từ $5, vốn hóa từ $300M, volume tương đối từ 1.5x, chỉ NASDAQ/NYSE/AMEX, tăng từ 1% hôm nay) và Atlas quét danh sách đó thay vì danh sách tăng mạnh của Yahoo. Nếu danh sách thiếu hoặc cũ hơn 45 phút thì quay về scanner cũ. Bộ lọc chất lượng và cỡ lệnh theo rủi ro của 2.0.8 vẫn áp dụng cho mọi lệnh mua. Không tốn token.',
+    ],
+  },
   {
     version: '2.0.8',
     date: '2026-11-02',
