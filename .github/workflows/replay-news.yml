@@ -1,0 +1,48 @@
+name: Atlas news lab
+
+# Manual only (Chanh: no scheduled jobs). Round 4: Chan (2003) "no-news moves reverse, news moves continue" on D1,
+# the intraday winners held overnight and big daily movers. Reads Alpaca News API timestamps (needs the repo secrets
+# ALPACA_API_KEY_ID and ALPACA_API_SECRET_KEY; without them the script exits 0 and writes nothing) and Yahoo prices.
+# News is cached per symbol per month (.cache/news, gitignored, kept between runs with actions/cache), so if the fetch
+# hits its time budget the run ends cleanly without a result: run it again to continue. Commits public/replay-news.json.
+# Paper only.
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: replay-news
+  cancel-in-progress: false
+
+jobs:
+  replay:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - uses: actions/cache@v4
+        with:
+          path: .cache/news
+          key: news-cache-${{ github.run_id }}
+          restore-keys: news-cache-
+      - run: npm ci
+      - run: npm run replay:news
+        env:
+          ALPACA_API_KEY_ID: ${{ secrets.ALPACA_API_KEY_ID }}
+          ALPACA_API_SECRET_KEY: ${{ secrets.ALPACA_API_SECRET_KEY }}
+          NODE_OPTIONS: --max-old-space-size=6144
+      - name: Commit result
+        run: |
+          git config user.email "replay@stock-predict"
+          git config user.name "Atlas Replay Lab"
+          git add public/replay-news.json
+          git diff --cached --quiet && exit 0
+          git commit -m "Atlas news lab $(date -u +%Y-%m-%dT%H:%MZ)"
+          for i in 1 2 3; do git pull --rebase origin main && git push origin HEAD:main && exit 0; sleep 5; done
+          exit 1
