@@ -2,7 +2,7 @@
  * Version and "What's new". Bump APP_VERSION and add an entry to the top of RELEASES
  * with each update. The banner shows once per version, then stays dismissed.
  */
-export const APP_VERSION = '1.95.1'
+export const APP_VERSION = '1.95.2'
 
 export interface Release {
   version: string
@@ -13,6 +13,16 @@ export interface Release {
 }
 
 export const RELEASES: Release[] = [
+  {
+    version: '1.95.2',
+    date: '2026-11-01',
+    changes: [
+      'Atlas lab round 3, day trading: three published ideas tested on free 5-minute and 60-minute bars with per-symbol costs (spread by liquidity tier, 1 bp slippage, no fee) and limit entries. I1 opening-range breakout on stocks in play, I2 first-half-hour to last-half-hour momentum on SPY/QQQ, I3 overnight vs intraday returns and holding strong winners overnight. Each is compared with 200 random-entry draws, at the old flat costs and 2x, with a Deflated Sharpe over all 28 variants tried so far. Manual workflow; uses Alpaca data if its keys are set. Paper only, no change to live trading.',
+    ],
+    changesVi: [
+      'Phòng lab Atlas vòng 3, day trading: ba ý tưởng đã công bố được thử trên nến 5 phút và 60 phút miễn phí với chi phí theo từng mã (spread theo nhóm thanh khoản, trượt giá 1 bp, không phí) và lệnh giới hạn. I1 phá vỡ vùng mở cửa với cổ phiếu nóng, I2 động lượng nửa giờ đầu sang nửa giờ cuối trên SPY/QQQ, I3 lợi nhuận qua đêm so với trong ngày và giữ cổ phiếu thắng qua đêm. Mỗi cái so với 200 lần vào lệnh ngẫu nhiên, ở chi phí phẳng cũ và gấp đôi, với Deflated Sharpe trên cả 28 biến thể đã thử. Workflow chạy tay; dùng dữ liệu Alpaca nếu có khóa. Chỉ giao dịch giả lập, không đổi giao dịch thật.',
+    ],
+  },
   {
     version: '1.95.1',
     date: '2026-11-01',
