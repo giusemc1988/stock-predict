@@ -41,6 +41,7 @@ Say plainly what you could not test (for example, real ESP32 boards or a real ph
   - The wrangler 4 command syntax was wrong (01/11).
 - **Daily KV backup saved nothing for days (fixed in #209), and its first artifact exposed keys.** A job that "succeeds" can still be empty: check its output. Never write KV values or env to logs or artifacts.
 - **Backtest results that ignore drift.** In a rising market, any long trade looks good. Judge a strategy by its excess over a random-entry control, with the same symbols, hold and exits, at 1x and 2x costs (see `src/lib/replayDaily.ts`). A raw positive return is not an edge.
+- **Stacked PRs: a merged branch was deleted before the next PR was retargeted, so GitHub closed the next PR (#216, 01/11).** Retarget the next PR's base to `main` BEFORE deleting the merged branch.
 - **Long handoff notes left only in chat are lost to the next session.** Put state in `atlas/HANDOFF.md` (Atlas) or a doc in the repo.
 
 ## Talking to Chanh

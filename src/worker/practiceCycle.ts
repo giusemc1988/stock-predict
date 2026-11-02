@@ -11,6 +11,7 @@ import { DEFAULT_AI_RULES } from '../lib/aiRules'
 import { SKILLS, skillTag } from '../lib/skills'
 import { parseState } from '../lib/autoLearn'
 import { shadowReport } from '../lib/shadowFilters'
+import { leadsReport, parseLeads } from '../lib/shadowLeads'
 import type { JournalEntry } from '../lib/journal'
 import { dayKey, emptyPractice, kindOf, nextBaseline, parsePractice, PENNY_MIN_PRICE, PENNY_PRICE, sessionEnd, type PracticeState } from '../lib/practice'
 import { cryptoMovers, scanCycle, scanMarkets, withOpenMarkets, type Mover, type ScanMarket } from '../lib/practiceScan'
@@ -229,7 +230,16 @@ async function sendDailySummary(env: WorkerEnv, s: PracticeState, now: number, c
   // market holiday: nothing traded, nothing to say
   if (!report.trades && !report.opened) return
   const trades = s.trades.filter((t) => dayKey(t.closedAt) === day)
-  await sendTelegram(summaryText({ day, report, trades, equity: PRACTICE_START + s.realized, totalRetPct: (s.realized / PRACTICE_START) * 100, learning, brakes, shadow: shadowReport(s.trades).vi }), cfg.token, cfg.chatId)
+  // the shadow leads finish over several ticks after this one, so these lines are as of their last finished day (read only)
+  let shadowLeads: string[] | undefined
+  if (DEFAULT_AI_RULES.shadowLeads)
+    try {
+      const l = parseLeads(JSON.parse((await env.PRACTICE.get('shadow:leads')) ?? 'null'))
+      if (l) shadowLeads = leadsReport(l).vi
+    } catch {
+      /* no shadow lines */
+    }
+  await sendTelegram(summaryText({ day, report, trades, equity: PRACTICE_START + s.realized, totalRetPct: (s.realized / PRACTICE_START) * 100, learning, brakes, shadow: shadowReport(s.trades).vi, shadowLeads }), cfg.token, cfg.chatId)
 }
 
 export async function practiceCycle(env: WorkerEnv): Promise<{ state: PracticeState; message: string; alerts?: TradeAlert[] }> {

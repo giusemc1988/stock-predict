@@ -2,7 +2,7 @@
  * Version and "What's new". Bump APP_VERSION and add an entry to the top of RELEASES
  * with each update. The banner shows once per version, then stays dismissed.
  */
-export const APP_VERSION = '1.95.2'
+export const APP_VERSION = '1.96.0'
 
 export interface Release {
   version: string
@@ -13,6 +13,16 @@ export interface Release {
 }
 
 export const RELEASES: Release[] = [
+  {
+    version: '1.96.0',
+    date: '2026-11-02',
+    changes: [
+      'Atlas shadow leads: the three leads the replay labs found now run record-only inside the existing Worker cron, once per trading day after the close. L1 reversal + VIX gate (bottom 10% by 5-day return when the VIX is at or above its 1-year median, $1,000 per shadow trade, in at the next open, out at the close of day 5). L2 hold winners overnight (Atlas own before-close exits that were up 1%+, re-priced as if sold at the next session open, compared with what Atlas really got). L3 ETF trend core (23 ETFs, 12-month return skipping the last month, rebalanced on the first run of each month, from $10,000, against SPY buy-and-hold). Results show in the atlas-status shadowLeads field and as three short lines under the daily Telegram summary. They never place, change, block or close a real paper trade. New AI rules switch (on by default).',
+    ],
+    changesVi: [
+      'Atlas chạy bóng ba hướng: ba hướng mà phòng lab replay tìm ra giờ chạy chỉ-ghi-lại trong cron Worker hiện có, mỗi ngày giao dịch một lần sau giờ đóng cửa. L1 đảo chiều + cổng VIX (10% giảm mạnh nhất 5 ngày khi VIX từ trung vị 1 năm trở lên, $1,000 mỗi lệnh bóng, vào ở giá mở cửa kế tiếp, ra ở giá đóng cửa ngày thứ 5). L2 giữ cổ phiếu thắng qua đêm (các lệnh Atlas thoát trước giờ đóng cửa đang lãi từ 1% trở lên, tính lại như thể bán ở giá mở cửa phiên sau, so với kết quả thật của Atlas). L3 lõi ETF theo xu hướng (23 ETF, lợi nhuận 12 tháng bỏ qua tháng gần nhất, cân bằng lại ở lần chạy đầu mỗi tháng, từ $10,000, so với giữ SPY). Kết quả hiện ở trường shadowLeads của atlas-status và thành ba dòng ngắn dưới tổng kết Telegram hằng ngày. Không bao giờ đặt, đổi, chặn hay đóng lệnh giả lập thật. Có công tắc mới trong AI rules (mặc định bật).',
+    ],
+  },
   {
     version: '1.95.2',
     date: '2026-11-01',
