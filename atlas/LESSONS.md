@@ -10,12 +10,14 @@ Evidence window is the last 8 events of atlas-status, so busy days are only part
 | Cause | Type | Count | Last seen | Tier |
 |---|---|---|---|---|
 | Hit stop (normal stop-out) | XUI | 3 | 2026-11-02 | Log |
-| Small loss on end-of-day close | XUI | 3 | 2026-11-02 | Log |
+| Small loss on end-of-day close | XUI | 5 | 2026-11-03 | Log |
 | No move in 12 bars (time exit) | XUI | 1 | 2026-11-02 | Log |
 | Entry on very low volume (0.1x normal) | QUY TRINH (weak evidence) | 1 | 2026-10-30 | Log |
 
 ## Recent losing trades (newest first)
 
+- 2026-11-03 AMZN -$1.31 (-0.53%): closed before market close. XUI
+- 2026-11-03 CADL -$0.38 (-0.38%): closed before market close. XUI
 - 2026-11-02 SAM -$2.95 (-0.60%): closed before market close. XUI
 - 2026-11-02 TEM -$0.22 (-0.23%): closed before market close. XUI
 - 2026-11-02 MHK -$1.62 (-0.81%): no move in 12 bars. XUI
