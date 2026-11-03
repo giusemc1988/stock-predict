@@ -1,6 +1,6 @@
 {
- "generated": "2026-11-02T13:34:48.679Z",
- "seconds": 47,
+ "generated": "2026-11-03T03:02:41.553Z",
+ "seconds": 32,
  "run": 2,
  "periods": {
   "discovery": [
@@ -661,7 +661,9 @@
    "sl": null,
    "hold": 1,
    "vi": "Mua ở giá mở cửa hôm sau khi khoảng cách tới MA200 trên +11% và RSI(2) dưới 19 và giá 5 ngày trừ SPY (mạnh hơn thị trường) dưới -1.2%; giữ 1 ngày.",
-   "en": "Buy at the next open when distance to the 200-day average above +11% and RSI(2) below 19 and 5-day change minus SPY below -1.2%; hold 1 day."
+   "en": "Buy at the next open when distance to the 200-day average above +11% and RSI(2) below 19 and 5-day change minus SPY below -1.2%; hold 1 day.",
+   "retPct": -8.681,
+   "exitDay": "2026-11-02"
   },
   {
    "day": "2026-10-30",
@@ -671,7 +673,9 @@
    "sl": null,
    "hold": 1,
    "vi": "Mua ở giá mở cửa hôm sau khi khoảng cách tới MA200 trên +11% và RSI(2) dưới 19 và giá 5 ngày trừ SPY (mạnh hơn thị trường) dưới -1.2%; giữ 1 ngày.",
-   "en": "Buy at the next open when distance to the 200-day average above +11% and RSI(2) below 19 and 5-day change minus SPY below -1.2%; hold 1 day."
+   "en": "Buy at the next open when distance to the 200-day average above +11% and RSI(2) below 19 and 5-day change minus SPY below -1.2%; hold 1 day.",
+   "retPct": -1.652,
+   "exitDay": "2026-11-02"
   },
   {
    "day": "2026-10-30",
@@ -681,7 +685,9 @@
    "sl": null,
    "hold": 1,
    "vi": "Mua ở giá mở cửa hôm sau khi khoảng cách tới MA200 trên +11% và RSI(2) dưới 19 và giá 5 ngày trừ SPY (mạnh hơn thị trường) dưới -1.2%; giữ 1 ngày.",
-   "en": "Buy at the next open when distance to the 200-day average above +11% and RSI(2) below 19 and 5-day change minus SPY below -1.2%; hold 1 day."
+   "en": "Buy at the next open when distance to the 200-day average above +11% and RSI(2) below 19 and 5-day change minus SPY below -1.2%; hold 1 day.",
+   "retPct": -4.433,
+   "exitDay": "2026-11-02"
   },
   {
    "day": "2026-10-30",
@@ -691,7 +697,9 @@
    "sl": null,
    "hold": 1,
    "vi": "Mua ở giá mở cửa hôm sau khi khoảng cách tới MA200 trên +11% và RSI(2) dưới 19 và giá 5 ngày trừ SPY (mạnh hơn thị trường) dưới -1.2%; giữ 1 ngày.",
-   "en": "Buy at the next open when distance to the 200-day average above +11% and RSI(2) below 19 and 5-day change minus SPY below -1.2%; hold 1 day."
+   "en": "Buy at the next open when distance to the 200-day average above +11% and RSI(2) below 19 and 5-day change minus SPY below -1.2%; hold 1 day.",
+   "retPct": -5.101,
+   "exitDay": "2026-11-02"
   },
   {
    "day": "2026-10-30",
@@ -701,7 +709,9 @@
    "sl": null,
    "hold": 1,
    "vi": "Mua ở giá mở cửa hôm sau khi khoảng cách tới MA200 trên +11% và RSI(2) dưới 19 và giá 5 ngày trừ SPY (mạnh hơn thị trường) dưới -1.2%; giữ 1 ngày.",
-   "en": "Buy at the next open when distance to the 200-day average above +11% and RSI(2) below 19 and 5-day change minus SPY below -1.2%; hold 1 day."
+   "en": "Buy at the next open when distance to the 200-day average above +11% and RSI(2) below 19 and 5-day change minus SPY below -1.2%; hold 1 day.",
+   "retPct": -1.403,
+   "exitDay": "2026-11-02"
   },
   {
    "day": "2026-10-30",
@@ -711,7 +721,9 @@
    "sl": null,
    "hold": 1,
    "vi": "Mua ở giá mở cửa hôm sau khi khoảng cách tới MA200 trên +11% và RSI(2) dưới 19 và giá 5 ngày trừ SPY (mạnh hơn thị trường) dưới -1.2%; giữ 1 ngày.",
-   "en": "Buy at the next open when distance to the 200-day average above +11% and RSI(2) below 19 and 5-day change minus SPY below -1.2%; hold 1 day."
+   "en": "Buy at the next open when distance to the 200-day average above +11% and RSI(2) below 19 and 5-day change minus SPY below -1.2%; hold 1 day.",
+   "retPct": 1.989,
+   "exitDay": "2026-11-02"
   },
   {
    "day": "2026-10-30",
@@ -721,7 +733,9 @@
    "sl": null,
    "hold": 1,
    "vi": "Mua ở giá mở cửa hôm sau khi khoảng cách tới MA200 trên +11% và RSI(2) dưới 19 và giá 5 ngày trừ SPY (mạnh hơn thị trường) dưới -1.2%; giữ 1 ngày.",
-   "en": "Buy at the next open when distance to the 200-day average above +11% and RSI(2) below 19 and 5-day change minus SPY below -1.2%; hold 1 day."
+   "en": "Buy at the next open when distance to the 200-day average above +11% and RSI(2) below 19 and 5-day change minus SPY below -1.2%; hold 1 day.",
+   "retPct": -4.538,
+   "exitDay": "2026-11-02"
   },
   {
    "day": "2026-10-30",
@@ -731,7 +745,9 @@
    "sl": null,
    "hold": 1,
    "vi": "Mua ở giá mở cửa hôm sau khi khoảng cách tới MA200 trên +11% và RSI(2) dưới 19 và giá 5 ngày trừ SPY (mạnh hơn thị trường) dưới -1.2%; giữ 1 ngày.",
-   "en": "Buy at the next open when distance to the 200-day average above +11% and RSI(2) below 19 and 5-day change minus SPY below -1.2%; hold 1 day."
+   "en": "Buy at the next open when distance to the 200-day average above +11% and RSI(2) below 19 and 5-day change minus SPY below -1.2%; hold 1 day.",
+   "retPct": -4.518,
+   "exitDay": "2026-11-02"
   },
   {
    "day": "2026-10-30",
@@ -741,7 +757,9 @@
    "sl": null,
    "hold": 1,
    "vi": "Mua ở giá mở cửa hôm sau khi khoảng cách tới MA200 trên +11% và RSI(2) dưới 19 và giá 5 ngày trừ SPY (mạnh hơn thị trường) dưới -1.2%; giữ 1 ngày.",
-   "en": "Buy at the next open when distance to the 200-day average above +11% and RSI(2) below 19 and 5-day change minus SPY below -1.2%; hold 1 day."
+   "en": "Buy at the next open when distance to the 200-day average above +11% and RSI(2) below 19 and 5-day change minus SPY below -1.2%; hold 1 day.",
+   "retPct": -6.152,
+   "exitDay": "2026-11-02"
   },
   {
    "day": "2026-10-30",
@@ -751,7 +769,9 @@
    "sl": null,
    "hold": 1,
    "vi": "Mua ở giá mở cửa hôm sau khi khoảng cách tới MA200 trên +11% và RSI(2) dưới 19 và giá 5 ngày trừ SPY (mạnh hơn thị trường) dưới -1.2%; giữ 1 ngày.",
-   "en": "Buy at the next open when distance to the 200-day average above +11% and RSI(2) below 19 and 5-day change minus SPY below -1.2%; hold 1 day."
+   "en": "Buy at the next open when distance to the 200-day average above +11% and RSI(2) below 19 and 5-day change minus SPY below -1.2%; hold 1 day.",
+   "retPct": -8.333,
+   "exitDay": "2026-11-02"
   },
   {
    "day": "2026-10-30",
@@ -761,7 +781,9 @@
    "sl": null,
    "hold": 1,
    "vi": "Mua ở giá mở cửa hôm sau khi khoảng cách tới MA200 trên +11% và RSI(2) dưới 19; giữ 1 ngày.",
-   "en": "Buy at the next open when distance to the 200-day average above +11% and RSI(2) below 19; hold 1 day."
+   "en": "Buy at the next open when distance to the 200-day average above +11% and RSI(2) below 19; hold 1 day.",
+   "retPct": -3.273,
+   "exitDay": "2026-11-02"
   },
   {
    "day": "2026-10-30",
@@ -771,7 +793,9 @@
    "sl": null,
    "hold": 1,
    "vi": "Mua ở giá mở cửa hôm sau khi khoảng cách tới MA200 trên +11% và RSI(2) dưới 19; giữ 1 ngày.",
-   "en": "Buy at the next open when distance to the 200-day average above +11% and RSI(2) below 19; hold 1 day."
+   "en": "Buy at the next open when distance to the 200-day average above +11% and RSI(2) below 19; hold 1 day.",
+   "retPct": -8.681,
+   "exitDay": "2026-11-02"
   },
   {
    "day": "2026-10-30",
@@ -781,7 +805,9 @@
    "sl": null,
    "hold": 1,
    "vi": "Mua ở giá mở cửa hôm sau khi khoảng cách tới MA200 trên +11% và RSI(2) dưới 19; giữ 1 ngày.",
-   "en": "Buy at the next open when distance to the 200-day average above +11% and RSI(2) below 19; hold 1 day."
+   "en": "Buy at the next open when distance to the 200-day average above +11% and RSI(2) below 19; hold 1 day.",
+   "retPct": -1.652,
+   "exitDay": "2026-11-02"
   },
   {
    "day": "2026-10-30",
@@ -791,7 +817,9 @@
    "sl": null,
    "hold": 1,
    "vi": "Mua ở giá mở cửa hôm sau khi khoảng cách tới MA200 trên +11% và RSI(2) dưới 19; giữ 1 ngày.",
-   "en": "Buy at the next open when distance to the 200-day average above +11% and RSI(2) below 19; hold 1 day."
+   "en": "Buy at the next open when distance to the 200-day average above +11% and RSI(2) below 19; hold 1 day.",
+   "retPct": -4.433,
+   "exitDay": "2026-11-02"
   },
   {
    "day": "2026-10-30",
@@ -801,7 +829,9 @@
    "sl": null,
    "hold": 1,
    "vi": "Mua ở giá mở cửa hôm sau khi khoảng cách tới MA200 trên +11% và RSI(2) dưới 19; giữ 1 ngày.",
-   "en": "Buy at the next open when distance to the 200-day average above +11% and RSI(2) below 19; hold 1 day."
+   "en": "Buy at the next open when distance to the 200-day average above +11% and RSI(2) below 19; hold 1 day.",
+   "retPct": -5.101,
+   "exitDay": "2026-11-02"
   },
   {
    "day": "2026-10-30",
@@ -811,7 +841,9 @@
    "sl": null,
    "hold": 1,
    "vi": "Mua ở giá mở cửa hôm sau khi khoảng cách tới MA200 trên +11% và RSI(2) dưới 19; giữ 1 ngày.",
-   "en": "Buy at the next open when distance to the 200-day average above +11% and RSI(2) below 19; hold 1 day."
+   "en": "Buy at the next open when distance to the 200-day average above +11% and RSI(2) below 19; hold 1 day.",
+   "retPct": -1.403,
+   "exitDay": "2026-11-02"
   },
   {
    "day": "2026-10-30",
@@ -821,7 +853,9 @@
    "sl": null,
    "hold": 1,
    "vi": "Mua ở giá mở cửa hôm sau khi khoảng cách tới MA200 trên +11% và RSI(2) dưới 19; giữ 1 ngày.",
-   "en": "Buy at the next open when distance to the 200-day average above +11% and RSI(2) below 19; hold 1 day."
+   "en": "Buy at the next open when distance to the 200-day average above +11% and RSI(2) below 19; hold 1 day.",
+   "retPct": 1.989,
+   "exitDay": "2026-11-02"
   },
   {
    "day": "2026-10-30",
@@ -831,7 +865,9 @@
    "sl": null,
    "hold": 1,
    "vi": "Mua ở giá mở cửa hôm sau khi khoảng cách tới MA200 trên +11% và RSI(2) dưới 19; giữ 1 ngày.",
-   "en": "Buy at the next open when distance to the 200-day average above +11% and RSI(2) below 19; hold 1 day."
+   "en": "Buy at the next open when distance to the 200-day average above +11% and RSI(2) below 19; hold 1 day.",
+   "retPct": -4.538,
+   "exitDay": "2026-11-02"
   },
   {
    "day": "2026-10-30",
@@ -841,7 +877,9 @@
    "sl": null,
    "hold": 1,
    "vi": "Mua ở giá mở cửa hôm sau khi khoảng cách tới MA200 trên +11% và RSI(2) dưới 19; giữ 1 ngày.",
-   "en": "Buy at the next open when distance to the 200-day average above +11% and RSI(2) below 19; hold 1 day."
+   "en": "Buy at the next open when distance to the 200-day average above +11% and RSI(2) below 19; hold 1 day.",
+   "retPct": -4.518,
+   "exitDay": "2026-11-02"
   },
   {
    "day": "2026-10-30",
@@ -851,7 +889,9 @@
    "sl": null,
    "hold": 1,
    "vi": "Mua ở giá mở cửa hôm sau khi khoảng cách tới MA200 trên +11% và RSI(2) dưới 19; giữ 1 ngày.",
-   "en": "Buy at the next open when distance to the 200-day average above +11% and RSI(2) below 19; hold 1 day."
+   "en": "Buy at the next open when distance to the 200-day average above +11% and RSI(2) below 19; hold 1 day.",
+   "retPct": -6.152,
+   "exitDay": "2026-11-02"
   },
   {
    "day": "2026-10-30",
@@ -861,7 +901,9 @@
    "sl": null,
    "hold": 1,
    "vi": "Mua ở giá mở cửa hôm sau khi khoảng cách tới MA200 trên +11% và RSI(2) dưới 19; giữ 1 ngày.",
-   "en": "Buy at the next open when distance to the 200-day average above +11% and RSI(2) below 19; hold 1 day."
+   "en": "Buy at the next open when distance to the 200-day average above +11% and RSI(2) below 19; hold 1 day.",
+   "retPct": -8.333,
+   "exitDay": "2026-11-02"
   },
   {
    "day": "2026-10-30",
@@ -952,17 +994,301 @@
    "hold": 3,
    "vi": "Mua ở giá mở cửa hôm sau khi giá 5 ngày dưới -2.4% và khoảng cách tới MA200 trên +11% và vị trí giá đóng cửa trong nến (0 = đáy, 1 = đỉnh) dưới 0.52; giữ 3 ngày.",
    "en": "Buy at the next open when 5-day change below -2.4% and distance to the 200-day average above +11% and where it closed in the day range (0 = low, 1 = high) below 0.52; hold 3 days."
+  },
+  {
+   "day": "2026-11-02",
+   "symbol": "MSFT",
+   "key": "d200>5&rel5<3&rsi2<2|h1|s0",
+   "close": 507.1199951171875,
+   "sl": null,
+   "hold": 1,
+   "vi": "Mua ở giá mở cửa hôm sau khi khoảng cách tới MA200 trên +11% và RSI(2) dưới 19 và giá 5 ngày trừ SPY (mạnh hơn thị trường) dưới -1.2%; giữ 1 ngày.",
+   "en": "Buy at the next open when distance to the 200-day average above +11% and RSI(2) below 19 and 5-day change minus SPY below -1.2%; hold 1 day."
+  },
+  {
+   "day": "2026-11-02",
+   "symbol": "AMD",
+   "key": "d200>5&rel5<3&rsi2<2|h1|s0",
+   "close": 466.8399963378906,
+   "sl": null,
+   "hold": 1,
+   "vi": "Mua ở giá mở cửa hôm sau khi khoảng cách tới MA200 trên +11% và RSI(2) dưới 19 và giá 5 ngày trừ SPY (mạnh hơn thị trường) dưới -1.2%; giữ 1 ngày.",
+   "en": "Buy at the next open when distance to the 200-day average above +11% and RSI(2) below 19 and 5-day change minus SPY below -1.2%; hold 1 day."
+  },
+  {
+   "day": "2026-11-02",
+   "symbol": "CRM",
+   "key": "d200>5&rel5<3&rsi2<2|h1|s0",
+   "close": 226.17999267578125,
+   "sl": null,
+   "hold": 1,
+   "vi": "Mua ở giá mở cửa hôm sau khi khoảng cách tới MA200 trên +11% và RSI(2) dưới 19 và giá 5 ngày trừ SPY (mạnh hơn thị trường) dưới -1.2%; giữ 1 ngày.",
+   "en": "Buy at the next open when distance to the 200-day average above +11% and RSI(2) below 19 and 5-day change minus SPY below -1.2%; hold 1 day."
+  },
+  {
+   "day": "2026-11-02",
+   "symbol": "PLTR",
+   "key": "d200>5&rel5<3&rsi2<2|h1|s0",
+   "close": 178.33999633789062,
+   "sl": null,
+   "hold": 1,
+   "vi": "Mua ở giá mở cửa hôm sau khi khoảng cách tới MA200 trên +11% và RSI(2) dưới 19 và giá 5 ngày trừ SPY (mạnh hơn thị trường) dưới -1.2%; giữ 1 ngày.",
+   "en": "Buy at the next open when distance to the 200-day average above +11% and RSI(2) below 19 and 5-day change minus SPY below -1.2%; hold 1 day."
+  },
+  {
+   "day": "2026-11-02",
+   "symbol": "SNOW",
+   "key": "d200>5&rel5<3&rsi2<2|h1|s0",
+   "close": 290.67999267578125,
+   "sl": null,
+   "hold": 1,
+   "vi": "Mua ở giá mở cửa hôm sau khi khoảng cách tới MA200 trên +11% và RSI(2) dưới 19 và giá 5 ngày trừ SPY (mạnh hơn thị trường) dưới -1.2%; giữ 1 ngày.",
+   "en": "Buy at the next open when distance to the 200-day average above +11% and RSI(2) below 19 and 5-day change minus SPY below -1.2%; hold 1 day."
+  },
+  {
+   "day": "2026-11-02",
+   "symbol": "SHOP",
+   "key": "d200>5&rel5<3&rsi2<2|h1|s0",
+   "close": 156.22000122070312,
+   "sl": null,
+   "hold": 1,
+   "vi": "Mua ở giá mở cửa hôm sau khi khoảng cách tới MA200 trên +11% và RSI(2) dưới 19 và giá 5 ngày trừ SPY (mạnh hơn thị trường) dưới -1.2%; giữ 1 ngày.",
+   "en": "Buy at the next open when distance to the 200-day average above +11% and RSI(2) below 19 and 5-day change minus SPY below -1.2%; hold 1 day."
+  },
+  {
+   "day": "2026-11-02",
+   "symbol": "PANW",
+   "key": "d200>5&rel5<3&rsi2<2|h1|s0",
+   "close": 351.7200012207031,
+   "sl": null,
+   "hold": 1,
+   "vi": "Mua ở giá mở cửa hôm sau khi khoảng cách tới MA200 trên +11% và RSI(2) dưới 19 và giá 5 ngày trừ SPY (mạnh hơn thị trường) dưới -1.2%; giữ 1 ngày.",
+   "en": "Buy at the next open when distance to the 200-day average above +11% and RSI(2) below 19 and 5-day change minus SPY below -1.2%; hold 1 day."
+  },
+  {
+   "day": "2026-11-02",
+   "symbol": "CRWD",
+   "key": "d200>5&rel5<3&rsi2<2|h1|s0",
+   "close": 241.80999755859375,
+   "sl": null,
+   "hold": 1,
+   "vi": "Mua ở giá mở cửa hôm sau khi khoảng cách tới MA200 trên +11% và RSI(2) dưới 19 và giá 5 ngày trừ SPY (mạnh hơn thị trường) dưới -1.2%; giữ 1 ngày.",
+   "en": "Buy at the next open when distance to the 200-day average above +11% and RSI(2) below 19 and 5-day change minus SPY below -1.2%; hold 1 day."
+  },
+  {
+   "day": "2026-11-02",
+   "symbol": "AAPL",
+   "key": "d200>5&rsi2<2|h1|s0",
+   "close": 338.32000732421875,
+   "sl": null,
+   "hold": 1,
+   "vi": "Mua ở giá mở cửa hôm sau khi khoảng cách tới MA200 trên +11% và RSI(2) dưới 19; giữ 1 ngày.",
+   "en": "Buy at the next open when distance to the 200-day average above +11% and RSI(2) below 19; hold 1 day."
+  },
+  {
+   "day": "2026-11-02",
+   "symbol": "MSFT",
+   "key": "d200>5&rsi2<2|h1|s0",
+   "close": 507.1199951171875,
+   "sl": null,
+   "hold": 1,
+   "vi": "Mua ở giá mở cửa hôm sau khi khoảng cách tới MA200 trên +11% và RSI(2) dưới 19; giữ 1 ngày.",
+   "en": "Buy at the next open when distance to the 200-day average above +11% and RSI(2) below 19; hold 1 day."
+  },
+  {
+   "day": "2026-11-02",
+   "symbol": "AMD",
+   "key": "d200>5&rsi2<2|h1|s0",
+   "close": 466.8399963378906,
+   "sl": null,
+   "hold": 1,
+   "vi": "Mua ở giá mở cửa hôm sau khi khoảng cách tới MA200 trên +11% và RSI(2) dưới 19; giữ 1 ngày.",
+   "en": "Buy at the next open when distance to the 200-day average above +11% and RSI(2) below 19; hold 1 day."
+  },
+  {
+   "day": "2026-11-02",
+   "symbol": "CRM",
+   "key": "d200>5&rsi2<2|h1|s0",
+   "close": 226.17999267578125,
+   "sl": null,
+   "hold": 1,
+   "vi": "Mua ở giá mở cửa hôm sau khi khoảng cách tới MA200 trên +11% và RSI(2) dưới 19; giữ 1 ngày.",
+   "en": "Buy at the next open when distance to the 200-day average above +11% and RSI(2) below 19; hold 1 day."
+  },
+  {
+   "day": "2026-11-02",
+   "symbol": "PLTR",
+   "key": "d200>5&rsi2<2|h1|s0",
+   "close": 178.33999633789062,
+   "sl": null,
+   "hold": 1,
+   "vi": "Mua ở giá mở cửa hôm sau khi khoảng cách tới MA200 trên +11% và RSI(2) dưới 19; giữ 1 ngày.",
+   "en": "Buy at the next open when distance to the 200-day average above +11% and RSI(2) below 19; hold 1 day."
+  },
+  {
+   "day": "2026-11-02",
+   "symbol": "SNOW",
+   "key": "d200>5&rsi2<2|h1|s0",
+   "close": 290.67999267578125,
+   "sl": null,
+   "hold": 1,
+   "vi": "Mua ở giá mở cửa hôm sau khi khoảng cách tới MA200 trên +11% và RSI(2) dưới 19; giữ 1 ngày.",
+   "en": "Buy at the next open when distance to the 200-day average above +11% and RSI(2) below 19; hold 1 day."
+  },
+  {
+   "day": "2026-11-02",
+   "symbol": "SHOP",
+   "key": "d200>5&rsi2<2|h1|s0",
+   "close": 156.22000122070312,
+   "sl": null,
+   "hold": 1,
+   "vi": "Mua ở giá mở cửa hôm sau khi khoảng cách tới MA200 trên +11% và RSI(2) dưới 19; giữ 1 ngày.",
+   "en": "Buy at the next open when distance to the 200-day average above +11% and RSI(2) below 19; hold 1 day."
+  },
+  {
+   "day": "2026-11-02",
+   "symbol": "PANW",
+   "key": "d200>5&rsi2<2|h1|s0",
+   "close": 351.7200012207031,
+   "sl": null,
+   "hold": 1,
+   "vi": "Mua ở giá mở cửa hôm sau khi khoảng cách tới MA200 trên +11% và RSI(2) dưới 19; giữ 1 ngày.",
+   "en": "Buy at the next open when distance to the 200-day average above +11% and RSI(2) below 19; hold 1 day."
+  },
+  {
+   "day": "2026-11-02",
+   "symbol": "CRWD",
+   "key": "d200>5&rsi2<2|h1|s0",
+   "close": 241.80999755859375,
+   "sl": null,
+   "hold": 1,
+   "vi": "Mua ở giá mở cửa hôm sau khi khoảng cách tới MA200 trên +11% và RSI(2) dưới 19; giữ 1 ngày.",
+   "en": "Buy at the next open when distance to the 200-day average above +11% and RSI(2) below 19; hold 1 day."
+  },
+  {
+   "day": "2026-11-02",
+   "symbol": "MSFT",
+   "key": "clv<4&d200>5&r5<2|h3|s0",
+   "close": 507.1199951171875,
+   "sl": null,
+   "hold": 3,
+   "vi": "Mua ở giá mở cửa hôm sau khi giá 5 ngày dưới -2.4% và khoảng cách tới MA200 trên +11% và vị trí giá đóng cửa trong nến (0 = đáy, 1 = đỉnh) dưới 0.52; giữ 3 ngày.",
+   "en": "Buy at the next open when 5-day change below -2.4% and distance to the 200-day average above +11% and where it closed in the day range (0 = low, 1 = high) below 0.52; hold 3 days."
+  },
+  {
+   "day": "2026-11-02",
+   "symbol": "AMD",
+   "key": "clv<4&d200>5&r5<2|h3|s0",
+   "close": 466.8399963378906,
+   "sl": null,
+   "hold": 3,
+   "vi": "Mua ở giá mở cửa hôm sau khi giá 5 ngày dưới -2.4% và khoảng cách tới MA200 trên +11% và vị trí giá đóng cửa trong nến (0 = đáy, 1 = đỉnh) dưới 0.52; giữ 3 ngày.",
+   "en": "Buy at the next open when 5-day change below -2.4% and distance to the 200-day average above +11% and where it closed in the day range (0 = low, 1 = high) below 0.52; hold 3 days."
+  },
+  {
+   "day": "2026-11-02",
+   "symbol": "CRM",
+   "key": "clv<4&d200>5&r5<2|h3|s0",
+   "close": 226.17999267578125,
+   "sl": null,
+   "hold": 3,
+   "vi": "Mua ở giá mở cửa hôm sau khi giá 5 ngày dưới -2.4% và khoảng cách tới MA200 trên +11% và vị trí giá đóng cửa trong nến (0 = đáy, 1 = đỉnh) dưới 0.52; giữ 3 ngày.",
+   "en": "Buy at the next open when 5-day change below -2.4% and distance to the 200-day average above +11% and where it closed in the day range (0 = low, 1 = high) below 0.52; hold 3 days."
+  },
+  {
+   "day": "2026-11-02",
+   "symbol": "PLTR",
+   "key": "clv<4&d200>5&r5<2|h3|s0",
+   "close": 178.33999633789062,
+   "sl": null,
+   "hold": 3,
+   "vi": "Mua ở giá mở cửa hôm sau khi giá 5 ngày dưới -2.4% và khoảng cách tới MA200 trên +11% và vị trí giá đóng cửa trong nến (0 = đáy, 1 = đỉnh) dưới 0.52; giữ 3 ngày.",
+   "en": "Buy at the next open when 5-day change below -2.4% and distance to the 200-day average above +11% and where it closed in the day range (0 = low, 1 = high) below 0.52; hold 3 days."
+  },
+  {
+   "day": "2026-11-02",
+   "symbol": "SNOW",
+   "key": "clv<4&d200>5&r5<2|h3|s0",
+   "close": 290.67999267578125,
+   "sl": null,
+   "hold": 3,
+   "vi": "Mua ở giá mở cửa hôm sau khi giá 5 ngày dưới -2.4% và khoảng cách tới MA200 trên +11% và vị trí giá đóng cửa trong nến (0 = đáy, 1 = đỉnh) dưới 0.52; giữ 3 ngày.",
+   "en": "Buy at the next open when 5-day change below -2.4% and distance to the 200-day average above +11% and where it closed in the day range (0 = low, 1 = high) below 0.52; hold 3 days."
+  },
+  {
+   "day": "2026-11-02",
+   "symbol": "SHOP",
+   "key": "clv<4&d200>5&r5<2|h3|s0",
+   "close": 156.22000122070312,
+   "sl": null,
+   "hold": 3,
+   "vi": "Mua ở giá mở cửa hôm sau khi giá 5 ngày dưới -2.4% và khoảng cách tới MA200 trên +11% và vị trí giá đóng cửa trong nến (0 = đáy, 1 = đỉnh) dưới 0.52; giữ 3 ngày.",
+   "en": "Buy at the next open when 5-day change below -2.4% and distance to the 200-day average above +11% and where it closed in the day range (0 = low, 1 = high) below 0.52; hold 3 days."
+  },
+  {
+   "day": "2026-11-02",
+   "symbol": "PANW",
+   "key": "clv<4&d200>5&r5<2|h3|s0",
+   "close": 351.7200012207031,
+   "sl": null,
+   "hold": 3,
+   "vi": "Mua ở giá mở cửa hôm sau khi giá 5 ngày dưới -2.4% và khoảng cách tới MA200 trên +11% và vị trí giá đóng cửa trong nến (0 = đáy, 1 = đỉnh) dưới 0.52; giữ 3 ngày.",
+   "en": "Buy at the next open when 5-day change below -2.4% and distance to the 200-day average above +11% and where it closed in the day range (0 = low, 1 = high) below 0.52; hold 3 days."
+  },
+  {
+   "day": "2026-11-02",
+   "symbol": "CRWD",
+   "key": "clv<4&d200>5&r5<2|h3|s0",
+   "close": 241.80999755859375,
+   "sl": null,
+   "hold": 3,
+   "vi": "Mua ở giá mở cửa hôm sau khi giá 5 ngày dưới -2.4% và khoảng cách tới MA200 trên +11% và vị trí giá đóng cửa trong nến (0 = đáy, 1 = đỉnh) dưới 0.52; giữ 3 ngày.",
+   "en": "Buy at the next open when 5-day change below -2.4% and distance to the 200-day average above +11% and where it closed in the day range (0 = low, 1 = high) below 0.52; hold 3 days."
+  },
+  {
+   "day": "2026-11-02",
+   "symbol": "XOM",
+   "key": "clv<4&d200>5&r5<2|h3|s0",
+   "close": 179.6699981689453,
+   "sl": null,
+   "hold": 3,
+   "vi": "Mua ở giá mở cửa hôm sau khi giá 5 ngày dưới -2.4% và khoảng cách tới MA200 trên +11% và vị trí giá đóng cửa trong nến (0 = đáy, 1 = đỉnh) dưới 0.52; giữ 3 ngày.",
+   "en": "Buy at the next open when 5-day change below -2.4% and distance to the 200-day average above +11% and where it closed in the day range (0 = low, 1 = high) below 0.52; hold 3 days."
+  },
+  {
+   "day": "2026-11-02",
+   "symbol": "COP",
+   "key": "clv<4&d200>5&r5<2|h3|s0",
+   "close": 146.83999633789062,
+   "sl": null,
+   "hold": 3,
+   "vi": "Mua ở giá mở cửa hôm sau khi giá 5 ngày dưới -2.4% và khoảng cách tới MA200 trên +11% và vị trí giá đóng cửa trong nến (0 = đáy, 1 = đỉnh) dưới 0.52; giữ 3 ngày.",
+   "en": "Buy at the next open when 5-day change below -2.4% and distance to the 200-day average above +11% and where it closed in the day range (0 = low, 1 = high) below 0.52; hold 3 days."
   }
  ],
- "mode": "full",
+ "mode": "signals",
  "today": {
-  "day": "2026-10-30",
+  "day": "2026-11-02",
   "signals": [
    {
-    "day": "2026-10-30",
+    "day": "2026-11-02",
+    "symbol": "MSFT",
+    "key": "d200>5&rel5<3&rsi2<2|h1|s0",
+    "close": 507.1199951171875,
+    "sl": null,
+    "hold": 1,
+    "vi": "Mua ở giá mở cửa hôm sau khi khoảng cách tới MA200 trên +11% và RSI(2) dưới 19 và giá 5 ngày trừ SPY (mạnh hơn thị trường) dưới -1.2%; giữ 1 ngày.",
+    "en": "Buy at the next open when distance to the 200-day average above +11% and RSI(2) below 19 and 5-day change minus SPY below -1.2%; hold 1 day.",
+    "why": {
+     "en": "A market-wide flush: everything is sold together, good or bad.",
+     "vi": "Thị trường xả hàng đồng loạt: tốt xấu đều bị bán cùng lúc."
+    }
+   },
+   {
+    "day": "2026-11-02",
     "symbol": "AMD",
     "key": "d200>5&rel5<3&rsi2<2|h1|s0",
-    "close": 504.79998779296875,
+    "close": 466.8399963378906,
     "sl": null,
     "hold": 1,
     "vi": "Mua ở giá mở cửa hôm sau khi khoảng cách tới MA200 trên +11% và RSI(2) dưới 19 và giá 5 ngày trừ SPY (mạnh hơn thị trường) dưới -1.2%; giữ 1 ngày.",
@@ -973,10 +1299,10 @@
     }
    },
    {
-    "day": "2026-10-30",
+    "day": "2026-11-02",
     "symbol": "CRM",
     "key": "d200>5&rel5<3&rsi2<2|h1|s0",
-    "close": 229.1699981689453,
+    "close": 226.17999267578125,
     "sl": null,
     "hold": 1,
     "vi": "Mua ở giá mở cửa hôm sau khi khoảng cách tới MA200 trên +11% và RSI(2) dưới 19 và giá 5 ngày trừ SPY (mạnh hơn thị trường) dưới -1.2%; giữ 1 ngày.",
@@ -987,10 +1313,10 @@
     }
    },
    {
-    "day": "2026-10-30",
+    "day": "2026-11-02",
     "symbol": "PLTR",
     "key": "d200>5&rel5<3&rsi2<2|h1|s0",
-    "close": 184.11000061035156,
+    "close": 178.33999633789062,
     "sl": null,
     "hold": 1,
     "vi": "Mua ở giá mở cửa hôm sau khi khoảng cách tới MA200 trên +11% và RSI(2) dưới 19 và giá 5 ngày trừ SPY (mạnh hơn thị trường) dưới -1.2%; giữ 1 ngày.",
@@ -1001,10 +1327,10 @@
     }
    },
    {
-    "day": "2026-10-30",
+    "day": "2026-11-02",
     "symbol": "SNOW",
     "key": "d200>5&rel5<3&rsi2<2|h1|s0",
-    "close": 306.0799865722656,
+    "close": 290.67999267578125,
     "sl": null,
     "hold": 1,
     "vi": "Mua ở giá mở cửa hôm sau khi khoảng cách tới MA200 trên +11% và RSI(2) dưới 19 và giá 5 ngày trừ SPY (mạnh hơn thị trường) dưới -1.2%; giữ 1 ngày.",
@@ -1015,10 +1341,10 @@
     }
    },
    {
-    "day": "2026-10-30",
+    "day": "2026-11-02",
     "symbol": "SHOP",
     "key": "d200>5&rel5<3&rsi2<2|h1|s0",
-    "close": 157.49000549316406,
+    "close": 156.22000122070312,
     "sl": null,
     "hold": 1,
     "vi": "Mua ở giá mở cửa hôm sau khi khoảng cách tới MA200 trên +11% và RSI(2) dưới 19 và giá 5 ngày trừ SPY (mạnh hơn thị trường) dưới -1.2%; giữ 1 ngày.",
@@ -1029,24 +1355,10 @@
     }
    },
    {
-    "day": "2026-10-30",
-    "symbol": "ABNB",
-    "key": "d200>5&rel5<3&rsi2<2|h1|s0",
-    "close": 164.38999938964844,
-    "sl": null,
-    "hold": 1,
-    "vi": "Mua ở giá mở cửa hôm sau khi khoảng cách tới MA200 trên +11% và RSI(2) dưới 19 và giá 5 ngày trừ SPY (mạnh hơn thị trường) dưới -1.2%; giữ 1 ngày.",
-    "en": "Buy at the next open when distance to the 200-day average above +11% and RSI(2) below 19 and 5-day change minus SPY below -1.2%; hold 1 day.",
-    "why": {
-     "en": "A market-wide flush: everything is sold together, good or bad.",
-     "vi": "Thị trường xả hàng đồng loạt: tốt xấu đều bị bán cùng lúc."
-    }
-   },
-   {
-    "day": "2026-10-30",
+    "day": "2026-11-02",
     "symbol": "PANW",
     "key": "d200>5&rel5<3&rsi2<2|h1|s0",
-    "close": 365.8699951171875,
+    "close": 351.7200012207031,
     "sl": null,
     "hold": 1,
     "vi": "Mua ở giá mở cửa hôm sau khi khoảng cách tới MA200 trên +11% và RSI(2) dưới 19 và giá 5 ngày trừ SPY (mạnh hơn thị trường) dưới -1.2%; giữ 1 ngày.",
@@ -1057,10 +1369,10 @@
     }
    },
    {
-    "day": "2026-10-30",
+    "day": "2026-11-02",
     "symbol": "CRWD",
     "key": "d200>5&rel5<3&rsi2<2|h1|s0",
-    "close": 250.42999267578125,
+    "close": 241.80999755859375,
     "sl": null,
     "hold": 1,
     "vi": "Mua ở giá mở cửa hôm sau khi khoảng cách tới MA200 trên +11% và RSI(2) dưới 19 và giá 5 ngày trừ SPY (mạnh hơn thị trường) dưới -1.2%; giữ 1 ngày.",
@@ -1071,38 +1383,24 @@
     }
    },
    {
-    "day": "2026-10-30",
-    "symbol": "NET",
-    "key": "d200>5&rel5<3&rsi2<2|h1|s0",
-    "close": 280.70001220703125,
+    "day": "2026-11-02",
+    "symbol": "AAPL",
+    "key": "d200>5&rsi2<2|h1|s0",
+    "close": 338.32000732421875,
     "sl": null,
     "hold": 1,
-    "vi": "Mua ở giá mở cửa hôm sau khi khoảng cách tới MA200 trên +11% và RSI(2) dưới 19 và giá 5 ngày trừ SPY (mạnh hơn thị trường) dưới -1.2%; giữ 1 ngày.",
-    "en": "Buy at the next open when distance to the 200-day average above +11% and RSI(2) below 19 and 5-day change minus SPY below -1.2%; hold 1 day.",
+    "vi": "Mua ở giá mở cửa hôm sau khi khoảng cách tới MA200 trên +11% và RSI(2) dưới 19; giữ 1 ngày.",
+    "en": "Buy at the next open when distance to the 200-day average above +11% and RSI(2) below 19; hold 1 day.",
     "why": {
      "en": "A market-wide flush: everything is sold together, good or bad.",
      "vi": "Thị trường xả hàng đồng loạt: tốt xấu đều bị bán cùng lúc."
     }
    },
    {
-    "day": "2026-10-30",
-    "symbol": "DDOG",
-    "key": "d200>5&rel5<3&rsi2<2|h1|s0",
-    "close": 235.27000427246094,
-    "sl": null,
-    "hold": 1,
-    "vi": "Mua ở giá mở cửa hôm sau khi khoảng cách tới MA200 trên +11% và RSI(2) dưới 19 và giá 5 ngày trừ SPY (mạnh hơn thị trường) dưới -1.2%; giữ 1 ngày.",
-    "en": "Buy at the next open when distance to the 200-day average above +11% and RSI(2) below 19 and 5-day change minus SPY below -1.2%; hold 1 day.",
-    "why": {
-     "en": "A market-wide flush: everything is sold together, good or bad.",
-     "vi": "Thị trường xả hàng đồng loạt: tốt xấu đều bị bán cùng lúc."
-    }
-   },
-   {
-    "day": "2026-10-30",
+    "day": "2026-11-02",
     "symbol": "MSFT",
     "key": "d200>5&rsi2<2|h1|s0",
-    "close": 521.9099731445312,
+    "close": 507.1199951171875,
     "sl": null,
     "hold": 1,
     "vi": "Mua ở giá mở cửa hôm sau khi khoảng cách tới MA200 trên +11% và RSI(2) dưới 19; giữ 1 ngày.",
@@ -1113,10 +1411,10 @@
     }
    },
    {
-    "day": "2026-10-30",
+    "day": "2026-11-02",
     "symbol": "AMD",
     "key": "d200>5&rsi2<2|h1|s0",
-    "close": 504.79998779296875,
+    "close": 466.8399963378906,
     "sl": null,
     "hold": 1,
     "vi": "Mua ở giá mở cửa hôm sau khi khoảng cách tới MA200 trên +11% và RSI(2) dưới 19; giữ 1 ngày.",
@@ -1127,10 +1425,10 @@
     }
    },
    {
-    "day": "2026-10-30",
+    "day": "2026-11-02",
     "symbol": "CRM",
     "key": "d200>5&rsi2<2|h1|s0",
-    "close": 229.1699981689453,
+    "close": 226.17999267578125,
     "sl": null,
     "hold": 1,
     "vi": "Mua ở giá mở cửa hôm sau khi khoảng cách tới MA200 trên +11% và RSI(2) dưới 19; giữ 1 ngày.",
@@ -1141,10 +1439,10 @@
     }
    },
    {
-    "day": "2026-10-30",
+    "day": "2026-11-02",
     "symbol": "PLTR",
     "key": "d200>5&rsi2<2|h1|s0",
-    "close": 184.11000061035156,
+    "close": 178.33999633789062,
     "sl": null,
     "hold": 1,
     "vi": "Mua ở giá mở cửa hôm sau khi khoảng cách tới MA200 trên +11% và RSI(2) dưới 19; giữ 1 ngày.",
@@ -1155,10 +1453,10 @@
     }
    },
    {
-    "day": "2026-10-30",
+    "day": "2026-11-02",
     "symbol": "SNOW",
     "key": "d200>5&rsi2<2|h1|s0",
-    "close": 306.0799865722656,
+    "close": 290.67999267578125,
     "sl": null,
     "hold": 1,
     "vi": "Mua ở giá mở cửa hôm sau khi khoảng cách tới MA200 trên +11% và RSI(2) dưới 19; giữ 1 ngày.",
@@ -1169,10 +1467,10 @@
     }
    },
    {
-    "day": "2026-10-30",
+    "day": "2026-11-02",
     "symbol": "SHOP",
     "key": "d200>5&rsi2<2|h1|s0",
-    "close": 157.49000549316406,
+    "close": 156.22000122070312,
     "sl": null,
     "hold": 1,
     "vi": "Mua ở giá mở cửa hôm sau khi khoảng cách tới MA200 trên +11% và RSI(2) dưới 19; giữ 1 ngày.",
@@ -1183,24 +1481,10 @@
     }
    },
    {
-    "day": "2026-10-30",
-    "symbol": "ABNB",
-    "key": "d200>5&rsi2<2|h1|s0",
-    "close": 164.38999938964844,
-    "sl": null,
-    "hold": 1,
-    "vi": "Mua ở giá mở cửa hôm sau khi khoảng cách tới MA200 trên +11% và RSI(2) dưới 19; giữ 1 ngày.",
-    "en": "Buy at the next open when distance to the 200-day average above +11% and RSI(2) below 19; hold 1 day.",
-    "why": {
-     "en": "A market-wide flush: everything is sold together, good or bad.",
-     "vi": "Thị trường xả hàng đồng loạt: tốt xấu đều bị bán cùng lúc."
-    }
-   },
-   {
-    "day": "2026-10-30",
+    "day": "2026-11-02",
     "symbol": "PANW",
     "key": "d200>5&rsi2<2|h1|s0",
-    "close": 365.8699951171875,
+    "close": 351.7200012207031,
     "sl": null,
     "hold": 1,
     "vi": "Mua ở giá mở cửa hôm sau khi khoảng cách tới MA200 trên +11% và RSI(2) dưới 19; giữ 1 ngày.",
@@ -1211,10 +1495,10 @@
     }
    },
    {
-    "day": "2026-10-30",
+    "day": "2026-11-02",
     "symbol": "CRWD",
     "key": "d200>5&rsi2<2|h1|s0",
-    "close": 250.42999267578125,
+    "close": 241.80999755859375,
     "sl": null,
     "hold": 1,
     "vi": "Mua ở giá mở cửa hôm sau khi khoảng cách tới MA200 trên +11% và RSI(2) dưới 19; giữ 1 ngày.",
@@ -1225,38 +1509,38 @@
     }
    },
    {
-    "day": "2026-10-30",
-    "symbol": "NET",
-    "key": "d200>5&rsi2<2|h1|s0",
-    "close": 280.70001220703125,
+    "day": "2026-11-02",
+    "symbol": "MSFT",
+    "key": "clv<4&d200>5&r5<2|h3|s0",
+    "close": 507.1199951171875,
     "sl": null,
-    "hold": 1,
-    "vi": "Mua ở giá mở cửa hôm sau khi khoảng cách tới MA200 trên +11% và RSI(2) dưới 19; giữ 1 ngày.",
-    "en": "Buy at the next open when distance to the 200-day average above +11% and RSI(2) below 19; hold 1 day.",
+    "hold": 3,
+    "vi": "Mua ở giá mở cửa hôm sau khi giá 5 ngày dưới -2.4% và khoảng cách tới MA200 trên +11% và vị trí giá đóng cửa trong nến (0 = đáy, 1 = đỉnh) dưới 0.52; giữ 3 ngày.",
+    "en": "Buy at the next open when 5-day change below -2.4% and distance to the 200-day average above +11% and where it closed in the day range (0 = low, 1 = high) below 0.52; hold 3 days.",
     "why": {
-     "en": "A market-wide flush: everything is sold together, good or bad.",
-     "vi": "Thị trường xả hàng đồng loạt: tốt xấu đều bị bán cùng lúc."
+     "en": "Pulling back on almost no volume: nobody is really selling, it just drifts.",
+     "vi": "Giá lùi mà gần như không có khối lượng: không ai thật sự bán, chỉ trôi nhẹ."
     }
    },
    {
-    "day": "2026-10-30",
-    "symbol": "DDOG",
-    "key": "d200>5&rsi2<2|h1|s0",
-    "close": 235.27000427246094,
+    "day": "2026-11-02",
+    "symbol": "AMD",
+    "key": "clv<4&d200>5&r5<2|h3|s0",
+    "close": 466.8399963378906,
     "sl": null,
-    "hold": 1,
-    "vi": "Mua ở giá mở cửa hôm sau khi khoảng cách tới MA200 trên +11% và RSI(2) dưới 19; giữ 1 ngày.",
-    "en": "Buy at the next open when distance to the 200-day average above +11% and RSI(2) below 19; hold 1 day.",
+    "hold": 3,
+    "vi": "Mua ở giá mở cửa hôm sau khi giá 5 ngày dưới -2.4% và khoảng cách tới MA200 trên +11% và vị trí giá đóng cửa trong nến (0 = đáy, 1 = đỉnh) dưới 0.52; giữ 3 ngày.",
+    "en": "Buy at the next open when 5-day change below -2.4% and distance to the 200-day average above +11% and where it closed in the day range (0 = low, 1 = high) below 0.52; hold 3 days.",
     "why": {
-     "en": "A market-wide flush: everything is sold together, good or bad.",
-     "vi": "Thị trường xả hàng đồng loạt: tốt xấu đều bị bán cùng lúc."
+     "en": "Pulling back on almost no volume: nobody is really selling, it just drifts.",
+     "vi": "Giá lùi mà gần như không có khối lượng: không ai thật sự bán, chỉ trôi nhẹ."
     }
    },
    {
-    "day": "2026-10-30",
+    "day": "2026-11-02",
     "symbol": "CRM",
     "key": "clv<4&d200>5&r5<2|h3|s0",
-    "close": 229.1699981689453,
+    "close": 226.17999267578125,
     "sl": null,
     "hold": 3,
     "vi": "Mua ở giá mở cửa hôm sau khi giá 5 ngày dưới -2.4% và khoảng cách tới MA200 trên +11% và vị trí giá đóng cửa trong nến (0 = đáy, 1 = đỉnh) dưới 0.52; giữ 3 ngày.",
@@ -1267,10 +1551,10 @@
     }
    },
    {
-    "day": "2026-10-30",
+    "day": "2026-11-02",
     "symbol": "PLTR",
     "key": "clv<4&d200>5&r5<2|h3|s0",
-    "close": 184.11000061035156,
+    "close": 178.33999633789062,
     "sl": null,
     "hold": 3,
     "vi": "Mua ở giá mở cửa hôm sau khi giá 5 ngày dưới -2.4% và khoảng cách tới MA200 trên +11% và vị trí giá đóng cửa trong nến (0 = đáy, 1 = đỉnh) dưới 0.52; giữ 3 ngày.",
@@ -1281,10 +1565,24 @@
     }
    },
    {
-    "day": "2026-10-30",
+    "day": "2026-11-02",
+    "symbol": "SNOW",
+    "key": "clv<4&d200>5&r5<2|h3|s0",
+    "close": 290.67999267578125,
+    "sl": null,
+    "hold": 3,
+    "vi": "Mua ở giá mở cửa hôm sau khi giá 5 ngày dưới -2.4% và khoảng cách tới MA200 trên +11% và vị trí giá đóng cửa trong nến (0 = đáy, 1 = đỉnh) dưới 0.52; giữ 3 ngày.",
+    "en": "Buy at the next open when 5-day change below -2.4% and distance to the 200-day average above +11% and where it closed in the day range (0 = low, 1 = high) below 0.52; hold 3 days.",
+    "why": {
+     "en": "Pulling back on almost no volume: nobody is really selling, it just drifts.",
+     "vi": "Giá lùi mà gần như không có khối lượng: không ai thật sự bán, chỉ trôi nhẹ."
+    }
+   },
+   {
+    "day": "2026-11-02",
     "symbol": "SHOP",
     "key": "clv<4&d200>5&r5<2|h3|s0",
-    "close": 157.49000549316406,
+    "close": 156.22000122070312,
     "sl": null,
     "hold": 3,
     "vi": "Mua ở giá mở cửa hôm sau khi giá 5 ngày dưới -2.4% và khoảng cách tới MA200 trên +11% và vị trí giá đóng cửa trong nến (0 = đáy, 1 = đỉnh) dưới 0.52; giữ 3 ngày.",
@@ -1295,24 +1593,10 @@
     }
    },
    {
-    "day": "2026-10-30",
-    "symbol": "ABNB",
-    "key": "clv<4&d200>5&r5<2|h3|s0",
-    "close": 164.38999938964844,
-    "sl": null,
-    "hold": 3,
-    "vi": "Mua ở giá mở cửa hôm sau khi giá 5 ngày dưới -2.4% và khoảng cách tới MA200 trên +11% và vị trí giá đóng cửa trong nến (0 = đáy, 1 = đỉnh) dưới 0.52; giữ 3 ngày.",
-    "en": "Buy at the next open when 5-day change below -2.4% and distance to the 200-day average above +11% and where it closed in the day range (0 = low, 1 = high) below 0.52; hold 3 days.",
-    "why": {
-     "en": "Pulling back on almost no volume: nobody is really selling, it just drifts.",
-     "vi": "Giá lùi mà gần như không có khối lượng: không ai thật sự bán, chỉ trôi nhẹ."
-    }
-   },
-   {
-    "day": "2026-10-30",
+    "day": "2026-11-02",
     "symbol": "PANW",
     "key": "clv<4&d200>5&r5<2|h3|s0",
-    "close": 365.8699951171875,
+    "close": 351.7200012207031,
     "sl": null,
     "hold": 3,
     "vi": "Mua ở giá mở cửa hôm sau khi giá 5 ngày dưới -2.4% và khoảng cách tới MA200 trên +11% và vị trí giá đóng cửa trong nến (0 = đáy, 1 = đỉnh) dưới 0.52; giữ 3 ngày.",
@@ -1323,10 +1607,10 @@
     }
    },
    {
-    "day": "2026-10-30",
+    "day": "2026-11-02",
     "symbol": "CRWD",
     "key": "clv<4&d200>5&r5<2|h3|s0",
-    "close": 250.42999267578125,
+    "close": 241.80999755859375,
     "sl": null,
     "hold": 3,
     "vi": "Mua ở giá mở cửa hôm sau khi giá 5 ngày dưới -2.4% và khoảng cách tới MA200 trên +11% và vị trí giá đóng cửa trong nến (0 = đáy, 1 = đỉnh) dưới 0.52; giữ 3 ngày.",
@@ -1337,10 +1621,10 @@
     }
    },
    {
-    "day": "2026-10-30",
-    "symbol": "NET",
+    "day": "2026-11-02",
+    "symbol": "XOM",
     "key": "clv<4&d200>5&r5<2|h3|s0",
-    "close": 280.70001220703125,
+    "close": 179.6699981689453,
     "sl": null,
     "hold": 3,
     "vi": "Mua ở giá mở cửa hôm sau khi giá 5 ngày dưới -2.4% và khoảng cách tới MA200 trên +11% và vị trí giá đóng cửa trong nến (0 = đáy, 1 = đỉnh) dưới 0.52; giữ 3 ngày.",
@@ -1351,24 +1635,10 @@
     }
    },
    {
-    "day": "2026-10-30",
-    "symbol": "DDOG",
+    "day": "2026-11-02",
+    "symbol": "COP",
     "key": "clv<4&d200>5&r5<2|h3|s0",
-    "close": 235.27000427246094,
-    "sl": null,
-    "hold": 3,
-    "vi": "Mua ở giá mở cửa hôm sau khi giá 5 ngày dưới -2.4% và khoảng cách tới MA200 trên +11% và vị trí giá đóng cửa trong nến (0 = đáy, 1 = đỉnh) dưới 0.52; giữ 3 ngày.",
-    "en": "Buy at the next open when 5-day change below -2.4% and distance to the 200-day average above +11% and where it closed in the day range (0 = low, 1 = high) below 0.52; hold 3 days.",
-    "why": {
-     "en": "Pulling back on almost no volume: nobody is really selling, it just drifts.",
-     "vi": "Giá lùi mà gần như không có khối lượng: không ai thật sự bán, chỉ trôi nhẹ."
-    }
-   },
-   {
-    "day": "2026-10-30",
-    "symbol": "UNH",
-    "key": "clv<4&d200>5&r5<2|h3|s0",
-    "close": 406.9700012207031,
+    "close": 146.83999633789062,
     "sl": null,
     "hold": 3,
     "vi": "Mua ở giá mở cửa hôm sau khi giá 5 ngày dưới -2.4% và khoảng cách tới MA200 trên +11% và vị trí giá đóng cửa trong nến (0 = đáy, 1 = đỉnh) dưới 0.52; giữ 3 ngày.",
@@ -1381,11 +1651,11 @@
   ]
  },
  "score": {
-  "graded": 0,
-  "wins": 0,
-  "winRate": null,
-  "avgPct": null,
-  "waiting": 45
+  "graded": 21,
+  "wins": 2,
+  "winRate": 10,
+  "avgPct": -4.23,
+  "waiting": 51
  },
  "rules": [
   {
