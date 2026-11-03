@@ -2,7 +2,7 @@
  * Version and "What's new". Bump APP_VERSION and add an entry to the top of RELEASES
  * with each update. The banner shows once per version, then stays dismissed.
  */
-export const APP_VERSION = '2.0.9'
+export const APP_VERSION = '2.0.10'
 
 export interface Release {
   version: string
@@ -13,6 +13,16 @@ export interface Release {
 }
 
 export const RELEASES: Release[] = [
+  {
+    version: '2.0.10',
+    date: '2026-11-03',
+    changes: [
+      'Atlas now asks TradingView\'s screener directly on every scan instead of waiting for a GitHub job (on 2 Nov GitHub skipped almost every scheduled run, so Atlas used Yahoo most of the session). The saved list and then Yahoo remain as fallbacks. Same filters as before.',
+    ],
+    changesVi: [
+      'Atlas giờ hỏi thẳng bộ lọc TradingView mỗi lần quét, không chờ job GitHub nữa (hôm 2/11 GitHub bỏ gần hết các lượt chạy nên Atlas dùng Yahoo gần cả phiên). Danh sách đã lưu rồi Yahoo vẫn là phương án dự phòng. Bộ lọc giữ nguyên.',
+    ],
+  },
   {
     version: '2.0.9',
     date: '2026-11-02',
