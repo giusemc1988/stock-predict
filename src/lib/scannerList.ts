@@ -23,3 +23,32 @@ export function parseScannerFile(raw: unknown, now: number): Mover[] | null {
   }
   return out.length ? out : null
 }
+
+export const TV_SCAN_URL = 'https://scanner.tradingview.com/america/scan'
+
+/** Request body for TradingView's free screener: same filters as scripts/tv-scanner.py. */
+export const TV_SCAN_BODY = {
+  columns: ['name', 'close', 'market_cap_basic', 'relative_volume_10d_calc', 'change', 'exchange'],
+  filter: [
+    { left: 'close', operation: 'egreater', right: 5 },
+    { left: 'market_cap_basic', operation: 'egreater', right: 300_000_000 },
+    { left: 'relative_volume_10d_calc', operation: 'egreater', right: 1.5 },
+    { left: 'exchange', operation: 'in_range', right: ['NASDAQ', 'NYSE', 'AMEX'] },
+    { left: 'type', operation: 'equal', right: 'stock' },
+    { left: 'average_volume_30d_calc', operation: 'egreater', right: 500_000 },
+    { left: 'change', operation: 'egreater', right: 1 },
+  ],
+  options: { lang: 'en' },
+  markets: ['america'],
+  symbols: { query: { types: [] }, tickers: [] },
+  sort: { sortBy: 'relative_volume_10d_calc', sortOrder: 'desc' },
+  range: [0, 40],
+}
+
+/** Movers from a live TradingView scan response (always fresh), or null when the response is unusable. */
+export function parseLiveScan(raw: unknown, now: number): Mover[] | null {
+  const data = (raw as { data?: unknown } | null)?.data
+  if (!Array.isArray(data)) return null
+  const rows = data.map((r: { d?: unknown[] }) => ({ symbol: r?.d?.[0], marketCap: r?.d?.[2] }))
+  return parseScannerFile({ generatedAt: now, rows }, now)
+}

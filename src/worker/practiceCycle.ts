@@ -16,7 +16,7 @@ import { kronosPct5, type KronosForecast } from '../lib/kronosView'
 import { leadsReport, parseLeads } from '../lib/shadowLeads'
 import type { JournalEntry } from '../lib/journal'
 import { dayKey, emptyPractice, kindOf, nextBaseline, parsePractice, PENNY_MIN_PRICE, PENNY_PRICE, sessionEnd, type PracticeState } from '../lib/practice'
-import { parseScannerFile, SCANNER_URL } from '../lib/scannerList'
+import { parseLiveScan, parseScannerFile, SCANNER_URL, TV_SCAN_BODY, TV_SCAN_URL } from '../lib/scannerList'
 import { cryptoMovers, scanCycle, scanMarkets, withOpenMarkets, type Mover, type ScanMarket } from '../lib/practiceScan'
 
 /** Buy-and-hold yardstick for the scoreboard. */
@@ -76,6 +76,16 @@ async function yahooMovers(top = 10, minPrice = 5): Promise<ScanMarket[]> {
 
 /** The TradingView candidate list (GitHub Actions writes it every 15 minutes); null when missing or stale. */
 async function tradingviewMovers(now: number): Promise<Mover[] | null> {
+  // live call first (GitHub's scheduler skipped most runs on 2 Nov); the saved file and then Yahoo are the fallbacks
+  try {
+    const live = await fetch(TV_SCAN_URL, { method: 'POST', headers: { ...UA, 'Content-Type': 'application/json' }, body: JSON.stringify(TV_SCAN_BODY), signal: AbortSignal.timeout(8000) })
+    if (live.ok) {
+      const m = parseLiveScan(await live.json(), now)
+      if (m) return m
+    }
+  } catch {
+    /* fall through to the saved file */
+  }
   const res = await fetch(`${SCANNER_URL}?t=${Math.floor(now / 60_000)}`, { headers: UA })
   if (!res.ok) return null
   return parseScannerFile(await res.json(), now)
