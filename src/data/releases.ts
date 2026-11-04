@@ -2,7 +2,7 @@
  * Version and "What's new". Bump APP_VERSION and add an entry to the top of RELEASES
  * with each update. The banner shows once per version, then stays dismissed.
  */
-export const APP_VERSION = '2.0.11'
+export const APP_VERSION = '2.0.12'
 
 export interface Release {
   version: string
@@ -13,6 +13,16 @@ export interface Release {
 }
 
 export const RELEASES: Release[] = [
+  {
+    version: '2.0.12',
+    date: '2026-11-04',
+    changes: [
+      'Idea factory nightly signals now look at about 270 liquid US names instead of 97, so the strategy slots get about 3x more live paper signals a night and are graded sooner. The rules and their thresholds stay fixed from the original 97 names; the new names are unseen data for them.',
+    ],
+    changesVi: [
+      'Tín hiệu hằng đêm của xưởng ý tưởng giờ quét khoảng 270 mã Mỹ thanh khoản cao thay vì 97, nên các ô chiến lược có nhiều tín hiệu giấy hơn (khoảng 3 lần mỗi đêm) và được chấm sớm hơn. Luật và ngưỡng vẫn giữ nguyên từ 97 mã gốc; các mã mới là dữ liệu chúng chưa từng thấy.',
+    ],
+  },
   {
     version: '2.0.11',
     date: '2026-11-04',
