@@ -25,6 +25,7 @@ import { ALL_ROUNDS_TRIALS, HOLDOUT_TRIALS } from '../src/lib/replayEdges'
 import { symbolCosts } from '../src/lib/replayIntraday'
 import { atr } from '../src/lib/replayStrategies'
 import { HIGH_VOL, STOCKS } from '../src/lib/replayUniverse'
+import { SIGNAL_STOCKS } from '../src/data/signalUniverse'
 
 const args = process.argv.slice(2)
 const arg = (k: string) => (args.includes(k) ? args[args.indexOf(k) + 1] : undefined)
@@ -105,7 +106,9 @@ async function main() {
   const t0 = Date.now()
   const prev: Prev = existsSync(OUT) ? (JSON.parse(readFileSync(OUT, 'utf8')) as Prev) : {}
   const run = (prev.run ?? 0) + 1
-  const names = LIMIT ? STOCKS.slice(0, LIMIT) : [...STOCKS]
+  // signals-only nightly run: the same fixed rules also look at ~3x more names (new data for them). Thresholds stay from STOCKS only.
+  const names = LIMIT ? STOCKS.slice(0, LIMIT) : SIGNALS_ONLY && prev.rules?.length ? [...SIGNAL_STOCKS] : [...STOCKS]
+  const baseSet = new Set<string>(STOCKS)
   const bars = new Map<string, Candle[]>()
   const failed: string[] = []
   for (const s of [...new Set(['SPY', ...names])]) {
@@ -136,7 +139,8 @@ async function main() {
     u.costs.push(symbolCosts(median(b.map((c) => c.close * c.volume))))
   }
   const inDisc = u.days.map((d) => d.map((x) => x < DISCOVERY_END))
-  const cuts = quantileCuts(u.mats, inDisc)
+  const isBase = used.map((x) => baseSet.has(x))
+  const cuts = quantileCuts(u.mats.filter((_, k) => isBase[k]), inDisc.filter((_, k) => isBase[k]))
   const allDays = [...new Set(u.days.flat())].sort()
   const first = allDays.find((d) => d >= '2008-01-01') ?? allDays[0]
   const vaultFrom = VALIDATION_END
