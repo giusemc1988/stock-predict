@@ -18,7 +18,7 @@ import type { Candle } from '../src/types'
 import { SEEDS } from '../src/data/ideaSeeds'
 import {
   DISCOVERY_END, FINALISTS, familyOf, GENERATIONS, MIN_VALIDATION_TRADES, VALIDATION_END, baselines, describeRule, features, fitOf,
-  PASS_EN, PASS_VI, gradeSignal, latestSignals, quantileCuts, signalScore, type FactorySignal, ruleKey, ruleSignals, search, vaultExam, type Cuts, type Rule, type Scored, type Universe, type VaultResult,
+  PASS_EN, PASS_VI, gradeSignal, latestSignals, quantileCuts, signalScore, pickSlotRules, slotBoard, type FactorySignal, ruleKey, ruleSignals, search, vaultExam, type Cuts, type Rule, type Scored, type Universe, type VaultResult,
 } from '../src/lib/ideaFactory'
 import { runDaily, scaleCosts } from '../src/lib/replayDaily'
 import { ALL_ROUNDS_TRIALS, HOLDOUT_TRIALS } from '../src/lib/replayEdges'
@@ -96,7 +96,7 @@ function signalLog(u: Universe, used: string[], rules: Rule[], cuts: Cuts, prevL
       const k = used.indexOf(x.symbol)
       return k < 0 ? x : gradeSignal(x, u.series[k].bars, u.days[k], u.costs[k])
     })
-    .slice(-400)
+    .slice(-1200)
   const why = (key: string) => SEEDS.find((sd) => sd.id === rules.find((r) => ruleKey(r) === key)?.origin)?.why ?? null
   return { log, today: fresh.map((x) => ({ ...x, why: why(x.key) })) }
 }
@@ -144,9 +144,13 @@ async function main() {
 
   const lastDay = allDays[allDays.length - 1]
   if (SIGNALS_ONLY && prev.rules?.length) {
-    const rules: Rule[] = prev.rules.map((r) => ({ conds: r.conds, hold: r.hold, stop: r.stop, origin: r.origin ?? r.family ?? 'prev' }))
+    // slots: the saved signal rules plus the remembered best rules (any that hold <= SIGNAL_MAX_HOLD days), up to SIGNAL_SLOTS
+    const saved: Rule[] = prev.rules.map((r) => ({ conds: r.conds, hold: r.hold, stop: r.stop, origin: r.origin ?? r.family ?? 'prev' }))
+    const remembered = ((prev.best ?? []) as Rule[]).map((r) => ({ conds: r.conds, hold: r.hold, stop: r.stop, origin: r.origin ?? 'prev' }))
+    const rules: Rule[] = pickSlotRules([...saved, ...remembered], SIGNAL_MAX_HOLD)
     const { log, today } = signalLog(u, used, rules, cuts, prev.signals ?? [])
-    const out = { ...prev, generated: new Date().toISOString(), seconds: Math.round((Date.now() - t0) / 1000), mode: 'signals', signals: log, today: { day: lastDay, signals: today }, score: signalScore(log) }
+    const out = { ...prev, generated: new Date().toISOString(), seconds: Math.round((Date.now() - t0) / 1000), mode: 'signals', signals: log, today: { day: lastDay, signals: today }, score: signalScore(log), slots: slotBoard(log),
+      rules: rules.map((r) => ({ ...(prev.rules ?? []).find((x) => x.key === ruleKey(r)), key: ruleKey(r), family: r.origin, conds: r.conds, hold: r.hold, stop: r.stop, ...describeRule(r, cuts), why: SEEDS.find((sd) => sd.id === r.origin)?.why ?? null })) }
     mkdirSync(dirname(OUT), { recursive: true })
     writeFileSync(OUT, JSON.stringify(out, null, 1))
     console.log(`signals only: ${today.length} new on ${lastDay}, ${JSON.stringify(out.score)}, ${out.seconds}s`)
@@ -195,7 +199,7 @@ async function main() {
   // the longer-hold rules stay in the research table
   const short = (s: Scored) => s.rule.hold <= SIGNAL_MAX_HOLD
   const sigPool = [...finalists.map((x) => x.s).filter(short), ...best.filter((s) => s.fit.fitness > 0 && short(s))]
-  const sigRules = sigPool.filter((s, k, a) => a.findIndex((y) => familyOf(y.rule) === familyOf(s.rule)) === k).slice(0, 3).map((s) => s.rule)
+  const sigRules = pickSlotRules(sigPool.map((s) => s.rule), SIGNAL_MAX_HOLD)
   const { log, today } = signalLog(u, used, sigRules, cuts, prev.signals ?? [])
 
   const why = (r: Scored) => SEEDS.find((s) => s.id === r.rule.origin)?.why ?? null
@@ -235,6 +239,7 @@ async function main() {
     mode: 'full',
     today: { day: lastDay, signals: today },
     score: signalScore(log),
+    slots: slotBoard(log),
     /** the rules that make the signals, with their vault record (old data, never seen by the search) */
     rules: sigRules.map((r) => {
       const k = finalists.findIndex((f) => f.s.key === ruleKey(r))

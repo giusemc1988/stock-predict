@@ -37,6 +37,12 @@ const T = {
   passedNote: { en: '{n} rule(s) passed the vault. Still paper only: switching any on needs your OK.', vi: '{n} luật đã qua két khóa. Vẫn chỉ giấy: bật thật cần anh OK.' },
   rulesNow: { en: 'Rules making the signals', vi: 'Các luật đang ra tín hiệu' },
   details: { en: 'Details', vi: 'Chi tiết' },
+  slotsTitle: { en: 'Strategy slots: live paper results decide', vi: 'Ô chiến lược: kết quả chạy thật (giấy) quyết định' },
+  slotsHow: { en: 'Many rules trade on paper side by side, even ones the old tests rejected. After 20 graded signals a rule is called working (wins 55%+ and average above 0) or failing.', vi: 'Nhiều luật chạy giấy song song, cả luật bài kiểm tra cũ đã loại. Sau 20 tín hiệu được chấm: thắng từ 55% và lãi TB dương thì "đáng tin", không thì "loại".' },
+  slotTesting: { en: 'testing', vi: 'đang thử' },
+  slotWorking: { en: 'working', vi: 'đáng tin' },
+  slotFailing: { en: 'failing', vi: 'loại' },
+  slotRow: { en: '{g} graded, {w}% wins, avg {a}%, {x} waiting', vi: '{g} đã chấm, thắng {w}%, TB {a}%, {x} đang chờ' },
   none: { en: 'The factory has not run yet. Tap "Run the factory".', vi: 'Xưởng chưa chạy lần nào. Bấm "Chạy xưởng".' },
   last: { en: 'Last run {d} (run #{r}, {s} s).', vi: 'Lần chạy gần nhất {d} (lần #{r}, {s} giây).' },
   stage: { en: 'Stage:', vi: 'Vòng:' },
@@ -143,6 +149,26 @@ export function AtlasIdeaFactory({ trades, onSymbol }: { trades: PracticeTrade[]
           {d.vault && <span className="muted">{G('vaultHint', { p: d.vault.winRate, n: d.vault.n })}</span>}
         </div>
       </div>
+      {rep?.slots?.length ? (
+        <>
+          <h4 className="asb-h4">{G('slotsTitle')}</h4>
+          <p className="asb-note">{G('slotsHow')}</p>
+          <div className="asb-siglist">
+            {rep.slots.map((sl) => {
+              const rule = rep.rules.find((r) => r.key === sl.key)
+              return (
+                <div key={sl.key} className="asb-sig">
+                  <div className="asb-sig-top">
+                    <span className="asb-tag">{sl.status === 'working' ? '✅' : sl.status === 'failing' ? '❌' : '⏳'} {G(sl.status === 'working' ? 'slotWorking' : sl.status === 'failing' ? 'slotFailing' : 'slotTesting')}</span>
+                    <span className="muted small">{G('slotRow', { g: sl.graded, w: sl.winRate ?? '—', a: sl.avgPct ?? '—', x: sl.waiting })}</span>
+                  </div>
+                  {rule && <p className="asb-rule">{L(rule)}</p>}
+                </div>
+              )
+            })}
+          </div>
+        </>
+      ) : null}
       <p className="asb-note">{d.winner ? (d.trusted ? G('aheadOk', { w: winnerName }) : G('ahead', { w: winnerName, m: d.opus.graded, need: d.need })) : G('tie')}</p>
 
       <button className="btn prime asb-big" onClick={() => void run()} disabled={started != null} aria-busy={started != null}>

@@ -60,7 +60,7 @@ let exp = emptyPractice()
 for (const sym of ['A', 'B', 'C']) exp = onBarClose(exp, ctx({ symbol: sym, gatesOn: false, maxExposurePct: 2.5, hardLimitsOn: true }))
 assert.equal(exp.open.length, 2, '1% each (risk-sized): the third would make 3% > 2.5%')
 assert.equal(exp.audit![0].blockedBy, 'Exposure')
-const down = { ...emptyPractice(), realized: -2000, peak: 10_000 }
+const down = { ...emptyPractice(), realized: -20_000, peak: 100_000 }
 assert.equal(onBarClose(down, ctx({ gatesOn: false })).open.length, 0, 'drawdown halt ignores the gates switch')
 
 // ---------- costs ----------

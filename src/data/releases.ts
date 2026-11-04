@@ -2,7 +2,7 @@
  * Version and "What's new". Bump APP_VERSION and add an entry to the top of RELEASES
  * with each update. The banner shows once per version, then stays dismissed.
  */
-export const APP_VERSION = '2.0.10'
+export const APP_VERSION = '2.0.11'
 
 export interface Release {
   version: string
@@ -13,6 +13,18 @@ export interface Release {
 }
 
 export const RELEASES: Release[] = [
+  {
+    version: '2.0.11',
+    date: '2026-11-04',
+    changes: [
+      'Atlas practice account now starts at $100,000 (it was $10,000), matching the Alpaca paper account. Risk per trade is still a percent of the account, so trades are 10x bigger ($50 at the stop instead of $5).',
+      'Idea factory: 10 strategy slots run live on paper side by side (was 3), including rules the old tests rejected. Each slot has its own scoreboard; after 20 graded signals it is marked working (wins 55%+, average above 0) or failing. Live paper results decide.',
+    ],
+    changesVi: [
+      'Tài khoản tập của Atlas giờ bắt đầu từ $100,000 (trước là $10,000), khớp với tài khoản paper Alpaca. Rủi ro mỗi lệnh vẫn là % tài khoản nên lệnh to gấp 10 lần ($50 tại điểm cắt lỗ thay vì $5).',
+      'Xưởng ý tưởng: 10 ô chiến lược chạy giấy song song (trước là 3), gồm cả luật mà bài kiểm tra cũ đã loại. Mỗi ô có bảng điểm riêng; sau 20 tín hiệu được chấm sẽ gắn "đáng tin" (thắng từ 55%, lãi TB dương) hoặc "loại". Kết quả chạy thật quyết định.',
+    ],
+  },
   {
     version: '2.0.10',
     date: '2026-11-03',

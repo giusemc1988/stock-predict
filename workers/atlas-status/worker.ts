@@ -51,7 +51,7 @@ export default {
 
         if (!state) {
           return json({
-            equity: 10000,
+            equity: 100000,
             trades: 0,
             open: 0,
             wr: null,
@@ -65,8 +65,8 @@ export default {
 
         // Calculate metrics from closed trades
         const trades = state.trades || []
-        const equity = 10000 + (state.realized ?? 0)
-        const ret = (state.realized ?? 0) / 10000
+        const equity = 100000 + (state.realized ?? 0)
+        const ret = (state.realized ?? 0) / 100000
 
         let wins = 0, winSum = 0, lossSum = 0
         for (const t of trades) {
