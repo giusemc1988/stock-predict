@@ -2,12 +2,12 @@
 
 Kronos-small forecasts the next daily candles for Atlas's symbols after each US close. It is only logged and graded here; it never touches Atlas or any order (paper or real).
 
-Updated 2026-11-03T03:04Z · 88 forecasts logged · verdict needs 20+ graded per horizon.
+Updated 2026-11-04T01:40Z · 102 forecasts logged · verdict needs 20+ graded per horizon.
 
 | Horizon | Graded | Kronos direction right | Always-up baseline | Kronos avg miss | No-change avg miss | Verdict |
 |---|---|---|---|---|---|---|
-| 1 day | 68 | 54% | 41% | 1.95% | 1.42% | no edge |
-| 5 day | 26 | 50% | 27% | 4.61% | 2.70% | no edge |
+| 1 day | 72 | 54% | 39% | 1.97% | 1.45% | no edge |
+| 5 day | 28 | 50% | 25% | 4.86% | 2.87% | no edge |
 
 ## Latest forecasts
 
@@ -19,10 +19,10 @@ Updated 2026-11-03T03:04Z · 88 forecasts logged · verdict needs 20+ graded per
 | TSLA | 2026-11-02 | 403.82 | 411.41 (+1.9%) | 404.95 (+0.3%) |
 | MSFT | 2026-11-02 | 507.12 | 514.22 (+1.4%) | 523.59 (+3.2%) |
 | AMZN | 2026-11-02 | 245.63 | 250.38 (+1.9%) | 249.46 (+1.6%) |
-| BTC-USD | 2026-11-01 | 78,248.45 | 77,551.22 (-0.9%) | 75,990.61 (-2.9%) |
-| ETH-USD | 2026-11-01 | 2,273.05 | 2,307.15 (+1.5%) | 2,283.85 (+0.5%) |
-| SOL-USD | 2026-11-01 | 94.45 | 95.63 (+1.2%) | 91.18 (-3.5%) |
-| BNB-USD | 2026-11-01 | 711.88 | 708.46 (-0.5%) | 694.88 (-2.4%) |
+| BTC-USD | 2026-11-02 | 76,677.30 | 75,696.53 (-1.3%) | 71,365.07 (-6.9%) |
+| ETH-USD | 2026-11-02 | 2,248.89 | 2,226.79 (-1.0%) | 2,255.93 (+0.3%) |
+| SOL-USD | 2026-11-02 | 91.84 | 93.52 (+1.8%) | 88.87 (-3.2%) |
+| BNB-USD | 2026-11-02 | 698.04 | 683.78 (-2.0%) | 687.83 (-1.5%) |
 | CVNA | 2026-10-30 | 68.29 | 68.13 (-0.2%) | 66.42 (-2.7%) |
 | GDDY | 2026-11-02 | 116.61 | 115.14 (-1.3%) | 109.38 (-6.2%) |
 | CBOE | 2026-10-30 | 335.53 | 327.89 (-2.3%) | 312.36 (-6.9%) |
@@ -42,5 +42,15 @@ Updated 2026-11-03T03:04Z · 88 forecasts logged · verdict needs 20+ graded per
 | CPRI | 2026-11-02 | 20.05 | 18.61 (-7.2%) | 17.57 (-12.4%) |
 | XPEV | 2026-11-02 | 9.57 | 9.86 (+3.0%) | 10.00 (+4.5%) |
 | ACCO | 2026-11-02 | 5.46 | 5.19 (-4.9%) | 4.23 (-22.5%) |
+| ACB | 2026-11-02 | 4.22 | 4.17 (-1.2%) | 4.08 (-3.4%) |
+| CADL | 2026-11-02 | 8.12 | 8.21 (+1.1%) | 8.12 (-0.0%) |
+| EVER | 2026-11-02 | 24.27 | 24.37 (+0.4%) | 26.06 (+7.4%) |
+| CIFR | 2026-11-02 | 6.86 | 7.96 (+16.0%) | 10.28 (+49.8%) |
+| FISV | 2026-11-02 | 51.93 | 52.30 (+0.7%) | 52.42 (+0.9%) |
+| TBBB | 2026-11-02 | 56.97 | 45.98 (-19.3%) | 37.31 (-34.5%) |
+| BETA | 2026-11-02 | 20.38 | 20.19 (-0.9%) | 20.24 (-0.7%) |
+| BE | 2026-11-02 | 196.25 | 214.34 (+9.2%) | 231.05 (+17.7%) |
+| TAP | 2026-11-02 | 43.23 | 41.89 (-3.1%) | 42.36 (-2.0%) |
+| HUT | 2026-11-02 | 55.01 | 55.15 (+0.3%) | 54.05 (-1.7%) |
 
 Pass rule: direction right at least 3 points above the better of 50% and always-up, and average miss below 98% of the no-change guess. Not financial advice.
