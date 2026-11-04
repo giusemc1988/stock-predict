@@ -13,7 +13,7 @@ import { reviewTrade, type TradeReview } from './review'
 import { buildDailyReport, type DailyReport } from './dailyReport'
 import { provenRuleBroken } from './playbook'
 
-export const PRACTICE_START = 10_000
+export const PRACTICE_START = 100_000
 /**
  * Position size is set by risk, not by a fixed dollar amount (v2.0.8): every trade risks about RISK_PCT of the
  * account if its stop is hit, so a $760 fund and a $10 stock lose a similar amount. Before this each trade
@@ -214,7 +214,11 @@ export const emptyPractice = (): PracticeState => ({ v: 1, realized: 0, peak: PR
 export function parsePractice(raw: unknown): PracticeState | null {
   const s = raw as PracticeState | null
   if (!s || s.v !== 1 || !Array.isArray(s.open) || !Array.isArray(s.trades) || !Array.isArray(s.events) || !Array.isArray(s.curve)) return null
-  return s
+  // v2.0.11: the account grew from $10,000 to $100,000. Old saved curve points and peak were on the $10k scale; lift them once.
+  // (Idempotent: afterwards they are all above the $50k line, and the drawdown halt stops the account long before it falls that far.)
+  const OLD_START = 10_000
+  const lift = (x: number) => (x < PRACTICE_START / 2 ? x + (PRACTICE_START - OLD_START) : x)
+  return { ...s, peak: lift(s.peak), curve: s.curve.map((c) => ({ ...c, equity: lift(c.equity) })) }
 }
 
 export const practiceEquity = (s: PracticeState) => PRACTICE_START + s.realized

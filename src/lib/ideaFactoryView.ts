@@ -28,6 +28,8 @@ export interface FactoryReport {
   top: (Bi & { key: string; stage: string; family: string })[]
   today: { day: string; signals: FactorySignalView[] }
   score: { graded: number; wins: number; winRate: number | null; avgPct: number | null; waiting: number }
+  /** v2.0.11: one live scoreboard row per strategy slot */
+  slots?: { key: string; graded: number; wins: number; winRate: number | null; avgPct: number | null; waiting: number; status: 'testing' | 'working' | 'failing' }[]
   rules: (Bi & { key: string; family: string; why: Bi | null; passed: boolean; vault: { n: number; winRate: number; excessPct: number; dsr: number } | null })[]
 }
 

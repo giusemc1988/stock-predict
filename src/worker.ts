@@ -499,12 +499,12 @@ export default {
       try {
         const stored = await env.PRACTICE.get('state')
         const state: PracticeState = stored ? JSON.parse(stored) : null
-        if (!state) return json({ equity: 10000, trades: 0, open: 0, wr: null, pf: null, learning: 'n/a', brakes: 'normal', kelly: 'n/a', return: 0 })
+        if (!state) return json({ equity: 100000, trades: 0, open: 0, wr: null, pf: null, learning: 'n/a', brakes: 'normal', kelly: 'n/a', return: 0 })
 
         // Calculate metrics
         const trades = state.trades || []
-        const equity = 10000 + (state.realized ?? 0)
-        const ret = (state.realized ?? 0) / 10000
+        const equity = 100000 + (state.realized ?? 0)
+        const ret = (state.realized ?? 0) / 100000
 
         let wins = 0, winSum = 0, lossSum = 0
         for (const t of trades) {

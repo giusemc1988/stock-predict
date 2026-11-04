@@ -488,3 +488,51 @@ export function signalScore(sigs: FactorySignal[]): { graded: number; wins: numb
     waiting: sigs.length - g.length,
   }
 }
+
+// ---- strategy slots (v2.0.11): many rules run live on paper side by side, each with its own scoreboard ----
+
+/** How many rules send live paper signals at the same time (was 3, one per family). Paper only, so wrong ideas cost nothing. */
+export const SIGNAL_SLOTS = 10
+/** A slot needs this many graded signals before it can be called working or failing. */
+export const SLOT_MIN_GRADED = 20
+export const SLOT_MIN_WIN_RATE = 55
+
+/** Up to `max` distinct rules (by key) holding at most `maxHold` days, best first, at most 2 per family so one idea cannot fill every slot. */
+export function pickSlotRules<T extends Pick<Rule, 'conds' | 'hold' | 'stop' | 'origin'>>(pool: T[], maxHold: number, max = SIGNAL_SLOTS): T[] {
+  const seen = new Set<string>()
+  const perFamily: Record<string, number> = {}
+  const out: T[] = []
+  for (const r of pool) {
+    const k = ruleKey(r)
+    const fam = r.origin ?? 'x'
+    if (r.hold > maxHold || seen.has(k) || (perFamily[fam] ?? 0) >= 2) continue
+    seen.add(k)
+    perFamily[fam] = (perFamily[fam] ?? 0) + 1
+    out.push(r)
+    if (out.length >= max) break
+  }
+  return out
+}
+
+export interface SlotRow {
+  key: string
+  graded: number
+  wins: number
+  winRate: number | null
+  avgPct: number | null
+  waiting: number
+  /** testing = too few graded signals yet; working = enough, wins >= 55% and average above zero; failing = enough but not. */
+  status: 'testing' | 'working' | 'failing'
+}
+
+/** The live scoreboard of every slot (one row per rule key), best win rate first among the ones with graded signals. */
+export function slotBoard(sigs: FactorySignal[]): SlotRow[] {
+  const keys = [...new Set(sigs.map((s) => s.key))]
+  return keys
+    .map((key) => {
+      const sc = signalScore(sigs.filter((s) => s.key === key))
+      const status: SlotRow['status'] = sc.graded < SLOT_MIN_GRADED ? 'testing' : sc.winRate! >= SLOT_MIN_WIN_RATE && sc.avgPct! > 0 ? 'working' : 'failing'
+      return { key, ...sc, status }
+    })
+    .sort((a, b) => (b.winRate ?? -1) - (a.winRate ?? -1) || b.graded - a.graded)
+}

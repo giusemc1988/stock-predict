@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict'
-import { dayKey, emptyPractice, kindOf, lessons, onBarClose, onBars, onPrice, practiceEquity, practiceReport, sessionEnd, type EntryContext, nextBaseline, scoreboardNumbers } from '../src/lib/practice'
+import { dayKey, emptyPractice, kindOf, lessons, onBarClose, onBars, onPrice, practiceEquity, practiceReport, sessionEnd, type EntryContext, nextBaseline, scoreboardNumbers, parsePractice } from '../src/lib/practice'
 import { atrPercent, qualityBlock } from '../src/lib/practiceQuality'
 import { practiceRows } from '../src/lib/practiceRows'
 import type { Analysis } from '../src/types'
@@ -13,9 +13,9 @@ const ctx = (over: Partial<EntryContext> = {}): EntryContext => ({
 // enters small on an AI BUY with the plan's stop and target
 let s = onBarClose(emptyPractice(), ctx())
 assert.equal(s.open.length, 1)
-// sized by risk: a 5% stop risks 0.05% of $10,000 = $5, so the position is $100 (1% of the account)
-assert.ok(Math.abs(s.open[0].qty * 100 - 100) < 1e-9, 'risk $5 at a 5% stop')
-assert.ok(Math.abs(s.open[0].qty * (100 - s.open[0].stop) - 5) < 1e-9)
+// sized by risk: a 5% stop risks 0.05% of $100,000 = $50, so the position is $1,000 (1% of the account)
+assert.ok(Math.abs(s.open[0].qty * 100 - 1000) < 1e-9, 'risk $50 at a 5% stop')
+assert.ok(Math.abs(s.open[0].qty * (100 - s.open[0].stop) - 50) < 1e-9)
 assert.equal(s.events[0].kind, 'buy')
 // no second entry on the same market while one is open
 assert.equal(onBarClose(s, ctx({ barTime: 2000 })).open.length, 1)
@@ -23,7 +23,7 @@ assert.equal(onBarClose(s, ctx({ barTime: 2000 })).open.length, 1)
 assert.equal(onPrice(s, 'AAPL', 105, 1000, 0), null)
 const won = onPrice(s, 'AAPL', 110, 1100, 1)!
 assert.equal(won.trades[0].exitReason, 'target')
-assert.ok(won.trades[0].pnl > 0 && practiceEquity(won) > 10_000)
+assert.ok(won.trades[0].pnl > 0 && practiceEquity(won) > 100_000)
 // stop hit
 const lost = onPrice(s, 'AAPL', 94, 1100, 1)!
 assert.equal(lost.trades[0].exitReason, 'stop')
@@ -117,7 +117,7 @@ let capped = emptyPractice()
 for (const sym of ['A1', 'A2', 'A3', 'A4', 'A5', 'A6', 'A7']) capped = onBarClose(capped, ctx({ symbol: sym }))
 assert.equal(capped.open.length, 4, 'off: the daily cap still applies')
 // daily loss limit: once today's closed trades lost 2% of the account, no new buys today
-const lossDay = { ...emptyPractice(), realized: -250, trades: [{ ...won.trades[0], pnl: -250, closedAt: Date.UTC(2026, 9, 9, 14) }] }
+const lossDay = { ...emptyPractice(), realized: -2500, trades: [{ ...won.trades[0], pnl: -2500, closedAt: Date.UTC(2026, 9, 9, 14) }] }
 const stopped = onBarClose(lossDay, ctx({ symbol: 'ZZ', unlimited: true, dayLossLimitPct: 2 }))
 assert.equal(stopped.open.length, 0)
 assert.equal(stopped.audit?.[0].blockedBy, 'Daily loss limit')
@@ -131,7 +131,7 @@ assert.equal(onBarClose(emptyPractice(), pctx({ pennyOn: true, dollarVol: 50_000
 assert.equal(onBarClose(emptyPractice(), pctx({ pennyOn: true, dollarVol: 500_000, price: 0.8, analysis: { ...buy, exitPlan: { entry: 0.8, stop: 0.75, target: 0.9 } } as unknown as Analysis })).open.length, 0, 'under $1')
 const pen = onBarClose(emptyPractice(), pctx({ pennyOn: true, dollarVol: 500_000 })).open[0]
 assert.ok(pen.info.penny)
-assert.ok(Math.abs(pen.qty * 3 - 50) < 2, 'penny: half of the risk-sized $100')
+assert.ok(Math.abs(pen.qty * 3 - 500) < 20, 'penny: half of the risk-sized $1,000')
 assert.equal(pen.cost?.spreadBps, 20)
 assert.equal(pen.cost?.slippageBps, 10)
 const reg = onBarClose(emptyPractice(), ctx({ costs: { feeBps: 1, spreadBps: 4, slippageBps: 2 } })).open[0]
@@ -148,9 +148,9 @@ const openSt = { ...emptyPractice(), realized: 50, open: [{ ...reg, symbol: 'AAA
 const sbn = scoreboardNumbers(openSt, (s) => (s === 'BBB' ? 18 : 0))
 assert.equal(sbn.unrealized, 20 - 10, 'AAA +$20 from the server price, BBB -$10 from the live price')
 assert.equal(sbn.priced, 2)
-assert.ok(Math.abs(sbn.jarvisPct - 0.6) < 1e-9, '$60 on $10,000')
+assert.ok(Math.abs(sbn.jarvisPct - 0.06) < 1e-9, '$60 on $100,000')
 assert.ok(Math.abs(sbn.basePct! - 1) < 1e-9, 'SPY +1%')
-assert.ok(Math.abs(sbn.edgePct! + 0.4) < 1e-9, 'Jarvis 0.4 points behind')
+assert.ok(Math.abs(sbn.edgePct! + 0.94) < 1e-9, 'Jarvis 0.94 points behind')
 const noBase = scoreboardNumbers({ ...openSt, baseline: undefined, server: undefined })
 assert.equal(noBase.priced, 0, 'no prices: open P&L left out, not guessed')
 assert.equal(noBase.edgePct, null)
@@ -159,11 +159,11 @@ assert.equal(noBase.edgePct, null)
 const planAt = (price: number, stopPct: number) => ({ ...buy, exitPlan: { entry: price, stop: price * (1 - stopPct / 100), target: price * (1 + (stopPct * 2) / 100) } }) as unknown as Analysis
 const tight = onBarClose(emptyPractice(), ctx({ price: 760, analysis: planAt(760, 0.5) })).open[0]
 const wide = onBarClose(emptyPractice(), ctx({ price: 10, analysis: planAt(10, 2) })).open[0]
-assert.ok(Math.abs(tight.qty * (760 - tight.stop) - 5) < 1e-6 || tight.qty * 760 <= 500 + 1e-6, 'tight stop: risk $5 or capped at 5% of the account')
-assert.ok(Math.abs(wide.qty * (10 - wide.stop) - 5) < 1e-6, 'wide stop: risk $5')
-assert.ok(tight.qty * 760 <= 500 + 1e-6, 'never more than 2.5x the flat 2% size')
+assert.ok(Math.abs(tight.qty * (760 - tight.stop) - 50) < 1e-6 || tight.qty * 760 <= 5000 + 1e-6, 'tight stop: risk $50 or capped at 5% of the account')
+assert.ok(Math.abs(wide.qty * (10 - wide.stop) - 50) < 1e-6, 'wide stop: risk $50')
+assert.ok(tight.qty * 760 <= 5000 + 1e-6, 'never more than 2.5x the flat 2% size')
 const mid = onBarClose(emptyPractice(), ctx({ price: 50, analysis: planAt(50, 1) })).open[0]
-assert.ok(Math.abs(mid.qty * (50 - mid.stop) - 5) < 1e-6 && Math.abs(mid.qty * 50 - 500) < 1e-6, '1% stop: $500 position risks $5')
+assert.ok(Math.abs(mid.qty * (50 - mid.stop) - 50) < 1e-6 && Math.abs(mid.qty * 50 - 5000) < 1e-6, '1% stop: $5,000 position risks $50')
 // a stop closer than 0.4% is noise: no entry, and the log says why
 const noisy = onBarClose(emptyPractice(), ctx({ price: 100, analysis: planAt(100, 0.3) }))
 assert.equal(noisy.open.length, 0)
@@ -174,7 +174,7 @@ assert.equal(gated.open.length, 0)
 assert.equal(gated.audit?.[0].blockedBy, 'Volume')
 // Kelly/brake multipliers still scale the risk-sized position
 const half = onBarClose(emptyPractice(), ctx({ price: 50, analysis: planAt(50, 1), kellyMultiplier: 0.5 })).open[0]
-assert.ok(Math.abs(half.qty * 50 - 250) < 1e-6)
+assert.ok(Math.abs(half.qty * 50 - 2500) < 1e-6)
 
 const good = { asset: 'stock' as const, price: 50, dollarVol: 2_000_000, volVsAvg: 1.5, atrPct: 0.6 }
 assert.equal(qualityBlock(good), null)
@@ -191,3 +191,12 @@ assert.ok(Math.abs(atrPercent(flatBars)! - 0.2) < 1e-9)
 assert.equal(atrPercent(flatBars.slice(0, 10)), null)
 
 console.log('practice tests passed')
+
+// v2.0.11: an old $10k-scale state is lifted once to the $100k scale
+{
+  const old = { ...emptyPractice(), peak: 10_100, curve: [{ t: 1, equity: 10_000 }, { t: 2, equity: 9_921 }] }
+  const lifted = parsePractice(old)!
+  assert.equal(lifted.peak, 100_100)
+  assert.deepEqual(lifted.curve.map((c) => c.equity), [100_000, 99_921])
+  assert.deepEqual(parsePractice(lifted)!.curve.map((c) => c.equity), [100_000, 99_921], 'idempotent')
+}

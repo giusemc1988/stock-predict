@@ -132,3 +132,20 @@ assert.deepEqual(dd.vault, { n: 400, winRate: 45 })
 assert.equal(duel(trades, null).winner, null)
 
 console.log('ideafactory: ok')
+
+// strategy slots (v2.0.11)
+{
+  const { pickSlotRules, SIGNAL_SLOTS, slotBoard } = await import('../src/lib/ideaFactory')
+  const mk = (origin: string, hold: number, n: number) => ({ conds: [{ f: 'r5', op: '<' as const, q: n }], hold, stop: null, origin })
+  const pool = [mk('A', 3, 1), mk('A', 3, 1), mk('A', 3, 2), mk('A', 3, 3), mk('B', 20, 1), mk('B', 2, 4), ...Array.from({ length: 20 }, (_, i) => mk(`F${i}`, 1, 10 + i))]
+  const out = pickSlotRules(pool as never[], 5)
+  assert.equal(out.length, SIGNAL_SLOTS)
+  assert.equal(out.filter((r) => r.origin === 'A').length, 2)
+  assert.equal(out.some((r) => r.hold > 5), false)
+  const sg = (key: string, retPct: number | undefined) => ({ day: 'd', symbol: 'X', key, close: 1, sl: null, hold: 1, vi: '', en: '', retPct })
+  const good = Array.from({ length: 20 }, (_, i) => sg('g', i < 13 ? 1 : -0.5))
+  const bad = Array.from({ length: 20 }, (_, i) => sg('b', i < 5 ? 1 : -1))
+  const b = Object.fromEntries(slotBoard([...good, ...bad, sg('f', 1), sg('f', undefined)]).map((r) => [r.key, r.status]))
+  assert.deepEqual(b, { g: 'working', b: 'failing', f: 'testing' })
+  console.log('slots ok')
+}
