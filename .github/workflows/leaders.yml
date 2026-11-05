@@ -1,0 +1,52 @@
+name: Atlas leaders
+
+# Once after each US close (and on demand): ask TradingView's free screener for the whole liquid US market
+# (about 3,300 names), rank relative-strength leaders and commit public/leaders.json. Paper only, no trading, no tokens.
+# Chanh approved "Giai đoạn 1" on 2026-11-05. Unofficial endpoint: if it stops working the old file stays.
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '45 21 * * 1-5'
+
+permissions:
+  contents: write
+  actions: write # to start the deploy: a push made with the default token does not trigger it
+
+concurrency:
+  group: leaders
+  cancel-in-progress: false
+
+jobs:
+  leaders:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: pip install tradingview-screener==3.2.2
+      - run: python scripts/tv-leaders.py "$RUNNER_TEMP/leaders-raw.json"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run leaders -- "$RUNNER_TEMP/leaders-raw.json" public/leaders.json
+      - name: Commit result
+        run: |
+          git config user.email "replay@stock-predict"
+          git config user.name "Atlas Leaders"
+          git add public/leaders.json
+          git diff --cached --quiet && exit 0
+          git commit -m "Atlas leaders $(date -u +%Y-%m-%dT%H:%MZ)"
+          for i in 1 2 3; do
+            if git pull --rebase origin main && git push origin HEAD:main; then
+              gh workflow run deploy-worker.yml --ref main || echo "deploy not started"
+              exit 0
+            fi
+            sleep 5
+          done
+          exit 1
+        env:
+          GH_TOKEN: ${{ github.token }}
