@@ -2,7 +2,7 @@
  * Version and "What's new". Bump APP_VERSION and add an entry to the top of RELEASES
  * with each update. The banner shows once per version, then stays dismissed.
  */
-export const APP_VERSION = '2.0.12'
+export const APP_VERSION = '2.0.13'
 
 export interface Release {
   version: string
@@ -13,6 +13,16 @@ export interface Release {
 }
 
 export const RELEASES: Release[] = [
+  {
+    version: '2.0.13',
+    date: '2026-11-05',
+    changes: [
+      'New "Leaders" card on the Atlas page: every night after the US close Atlas ranks about 1,800 liquid US stocks (not only its usual 270) and keeps the ~100 with the strongest trend (price above its 50/150/200-day averages, near its yearly high, top 10% strength, or a big 1-3-6 month move), with the strongest sectors. Step 1 of the Leaders funnel: nothing trades yet, it is the shortlist for the next step.',
+    ],
+    changesVi: [
+      'Thẻ "Dẫn đầu" mới trên trang Atlas: mỗi đêm sau phiên Mỹ, Atlas xếp hạng khoảng 1,800 mã Mỹ thanh khoản cao (không chỉ 270 mã quen thuộc) và giữ ~100 mã có xu hướng mạnh nhất (giá trên các đường trung bình 50/150/200 ngày, gần đỉnh năm, sức mạnh top 10%, hoặc tăng mạnh 1-3-6 tháng), kèm các ngành mạnh nhất. Bước 1 của phễu Dẫn đầu: chưa giao dịch gì, đây là danh sách rút gọn cho bước sau.',
+    ],
+  },
   {
     version: '2.0.12',
     date: '2026-11-04',

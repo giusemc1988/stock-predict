@@ -6,6 +6,7 @@ import { dayKey, parsePractice, type PracticeState } from '../lib/practice'
 import { pickSourceLabel } from '../lib/practicePicks'
 import type { LeadsReport } from '../lib/shadowLeads'
 import { AtlasIdeaFactory } from './AtlasIdeaFactory'
+import { AtlasLeaders } from './AtlasLeaders'
 import './AtlasSignalBoard.css'
 
 type Bi = { en: string; vi: string }
@@ -261,6 +262,7 @@ export function AtlasSignalBoard({ practice, onSymbol, ideas = true }: { practic
 
       {/* the idea factory next to the book signals: same layout, its own record (AI rule ideaFactory) */}
       {ideas && <AtlasIdeaFactory trades={s.trades} onSymbol={onSymbol} />}
+      {ideas && <AtlasLeaders onSymbol={onSymbol} />}
 
       <section className="bf-card asb-why">
         <header>
