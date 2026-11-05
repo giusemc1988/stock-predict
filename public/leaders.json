@@ -1,6 +1,6 @@
 {
  "source": "tradingview-screener",
- "generated": "2026-11-05T23:38:38.573Z",
+ "generated": "2026-11-05T23:45:16.348Z",
  "universe": 1771,
  "listA": 120,
  "listB": 111,
@@ -455,7 +455,7 @@
     "B"
    ],
    "offHigh": 14.8,
-   "rvol": 1.32
+   "rvol": 1.33
   },
   {
    "symbol": "HZO",
@@ -1037,7 +1037,7 @@
     "A"
    ],
    "offHigh": 13.8,
-   "rvol": 2.26
+   "rvol": 2.27
   },
   {
    "symbol": "CRL",
