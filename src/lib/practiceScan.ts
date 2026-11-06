@@ -202,6 +202,8 @@ export async function scanCycle(input: ScanInput): Promise<ScanResult> {
         longTrades: rules.practiceLongTrades,
         holdDays: rules.practiceHoldDays,
         qualityBlock: x.blocked ?? null,
+        volVsAvg: x.volVsAvg ?? null,
+        source: x.source,
         pick: why && x.place != null ? { place: x.place, of: buys, source: x.source, gainPct: x.gainPct, volVsAvg: x.volVsAvg, en: why.en, vi: why.vi } : undefined,
         dayEnd: input.dayEnd,
         sizePct: rules.practiceSizePct,

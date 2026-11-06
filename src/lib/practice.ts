@@ -100,6 +100,9 @@ export interface PracticePosition {
   /** Costs in force when it opened, and the fee already paid. */
   cost?: Costs
   entryFee?: number
+  /** Let winners run (v1.3.3): 1R = entry minus the first stop. At +1R the stop moves to the entry price,
+   *  and while the price is above the entry the 12-bar time exit waits. Missing on older trades. */
+  run?: { r: number; be?: boolean }
 }
 
 /** Stocks under this price are penny stocks: wider spreads, thinner books, bigger swings. */
@@ -365,7 +368,21 @@ export interface EntryContext {
   /** Account % risked per trade at the stop (default RISK_PCT) and the biggest position as a multiple of sizePct (default MAX_SIZE_MULT). */
   riskPct?: number
   maxSizeMult?: number
+  /** This market's 15m volume vs its average, and where the pick came from (scanner source). */
+  volVsAvg?: number | null
+  source?: string
+  /** Block buys with volume under MIN_VOL_MULT x normal (missing volume passes). */
+  volFilter?: boolean
+  /** Block day trades whose pick came from the watchlist. */
+  noWatchlistDay?: boolean
+  /** Breakeven stop at +1R and no time exit while in profit. */
+  letWinnersRun?: boolean
+  /** Size multiplier for long-term trades (0.5 = half size). */
+  longSizeMult?: number
 }
+
+/** Buys need at least this much of the market's normal 15m volume when volFilter is on. */
+export const MIN_VOL_MULT = 1
 
 /** Called once per closed bar on the open chart: maybe enter, and age or signal-exit open trades. */
 export function onBarClose(prev: PracticeState, ctx: EntryContext): PracticeState {
@@ -376,7 +393,7 @@ export function onBarClose(prev: PracticeState, ctx: EntryContext): PracticeStat
     if (p.symbol !== ctx.symbol || p.tf !== ctx.tf || kindOf(p) !== 'day') continue
     p.bars++
     if (a?.verdict === 'SELL') close(s, p, ctx.price, 'signal', ctx.barTime, ctx.now)
-    else if (p.bars >= MAX_BARS) close(s, p, ctx.price, 'time', ctx.barTime, ctx.now)
+    else if (p.bars >= MAX_BARS && !(p.run && ctx.price > p.entry)) close(s, p, ctx.price, 'time', ctx.barTime, ctx.now)
   }
   if (!a || a.verdict !== 'BUY') return s
   // a retried cycle sees the same bar again: never a second entry for it
@@ -429,6 +446,13 @@ export function onBarClose(prev: PracticeState, ctx: EntryContext): PracticeStat
   pass('Kill switch')
   if (ctx.qualityBlock) return skip(ctx.qualityBlock.check, ctx.qualityBlock.en, ctx.qualityBlock.vi)
   pass('Quality')
+  if (ctx.volFilter) {
+    if (ctx.volVsAvg != null && ctx.volVsAvg < MIN_VOL_MULT)
+      return skip('Volume', `volume is only ${ctx.volVsAvg.toFixed(2)}x normal (need ${MIN_VOL_MULT}x)`, `khối lượng chỉ bằng ${ctx.volVsAvg.toFixed(2)} lần bình thường (cần ${MIN_VOL_MULT} lần)`)
+    pass('Volume')
+  }
+  if (ctx.noWatchlistDay && kind === 'day' && ctx.source === 'watchlist')
+    return skip('Watchlist day trade', 'day trades from the watchlist are off (they kept losing)', 'lệnh trong ngày từ danh sách theo dõi đang tắt (nhóm này thua nhiều)')
   const penny = isPenny(ctx.asset, ctx.price)
   if (penny) {
     if (!ctx.pennyOn) return skip('Penny stock', `${fmt(ctx.price)} is under $${PENNY_PRICE} and penny stocks are off`, `${fmt(ctx.price)} dưới $${PENNY_PRICE} và cổ phiếu penny đang tắt`)
@@ -477,7 +501,8 @@ export function onBarClose(prev: PracticeState, ctx: EntryContext): PracticeStat
   const brakeMult = ctx.drawdownBrakeMultiplier ?? 1
   const kellyMult = ctx.kellyMultiplier ?? 1
   // size so that hitting the stop loses riskPct of the account, never more than maxSizeMult x the flat size
-  const sizeMult = volatilityMult * brakeMult * kellyMult * (penny ? PENNY_SIZE_MULT : 1)
+  const longMult = kind === 'long' ? (ctx.longSizeMult ?? 1) : 1
+  const sizeMult = volatilityMult * brakeMult * kellyMult * longMult * (penny ? PENNY_SIZE_MULT : 1)
   const capPct = (ctx.sizePct / 100) * (ctx.maxSizeMult ?? MAX_SIZE_MULT)
   const pct = Math.min((ctx.riskPct ?? RISK_PCT) / 100 / (stopPct / 100), capPct) * sizeMult
   const costs = penny && ctx.costs ? { ...ctx.costs, spreadBps: ctx.costs.spreadBps * PENNY_COST_MULT, slippageBps: ctx.costs.slippageBps * PENNY_COST_MULT } : ctx.costs
@@ -524,6 +549,7 @@ export function onBarClose(prev: PracticeState, ctx: EntryContext): PracticeStat
     key,
     signal: ctx.price,
     ...(costs ? { cost: costs, entryFee } : {}),
+    ...(ctx.letWinnersRun && fill > plan.stop ? { run: { r: fill - plan.stop } } : {}),
   }
   if (ctx.playbookGate) {
     const rule = provenRuleBroken(pos, s.trades, { minFollowed: ctx.playbookMin ?? 30, margin: ctx.playbookMargin ?? 0.03 })
@@ -552,8 +578,11 @@ export function onBars(prev: PracticeState, symbol: string, bars: Candle[], now:
   let s: PracticeState | null = null
   for (const b of bars) {
     const cur: PracticeState = s ?? prev
-    const hits = cur.open.filter((p) => p.symbol === symbol && b.time > p.barTime && (b.low <= p.stop || b.high >= p.target))
-    if (!hits.length) continue
+    const mine = cur.open.filter((p) => p.symbol === symbol && b.time > p.barTime)
+    const hits = mine.filter((p) => b.low <= p.stop || b.high >= p.target)
+    // inside a bar the order of high and low is unknown: the stop is checked first, then the breakeven move
+    const lifts = mine.filter((p) => !hits.includes(p) && reachedOneR(p, b.high))
+    if (!hits.length && !lifts.length) continue
     const next: PracticeState = s ?? structuredClone(prev)
     for (const h of hits) {
       const p = next.open.find((x) => x.id === h.id)!
@@ -561,9 +590,17 @@ export function onBars(prev: PracticeState, symbol: string, bars: Candle[], now:
       if (b.low <= p.stop) close(next, p, Math.min(b.open, p.stop), 'stop', b.time, now)
       else close(next, p, p.target, 'target', b.time, now)
     }
+    for (const l of lifts) toBreakeven(next.open.find((x) => x.id === l.id)!)
     s = next
   }
   return s
+}
+
+/** A let-winners-run trade whose price reached entry + 1R and whose stop is still under the entry. */
+const reachedOneR = (p: PracticePosition, price: number) => !!p.run && !p.run.be && price >= p.entry + p.run.r && p.stop < p.entry
+function toBreakeven(p: PracticePosition) {
+  p.stop = p.entry
+  p.run = { ...p.run!, be: true }
 }
 
 const exitFor = (p: PracticePosition, price: number, now: number): ExitReason | null =>
@@ -573,12 +610,14 @@ const exitFor = (p: PracticePosition, price: number, now: number): ExitReason | 
  *  or the end of the holding period (long-term). Returns null when nothing changed. */
 export function onPrice(prev: PracticeState, symbol: string, price: number, barTime: number, now: number): PracticeState | null {
   const hits = prev.open.filter((p) => p.symbol === symbol && exitFor(p, price, now))
-  if (!hits.length) return null
+  const lifts = prev.open.filter((p) => p.symbol === symbol && !hits.includes(p) && reachedOneR(p, price))
+  if (!hits.length && !lifts.length) return null
   const s: PracticeState = structuredClone(prev)
   for (const h of hits) {
     const p = s.open.find((x) => x.id === h.id)!
     close(s, p, price, exitFor(p, price, now)!, barTime, now)
   }
+  for (const l of lifts) toBreakeven(s.open.find((x) => x.id === l.id)!)
   return s
 }
 
@@ -598,8 +637,11 @@ function close(s: PracticeState, p: PracticePosition, mark: number, why: ExitRea
   const fees = (p.entryFee ?? 0) + feeFor(price * p.qty, p.cost)
   const pnl = (price - p.entry) * p.qty - fees
   const gross = (mark - (p.signal ?? p.entry)) * p.qty
+  // a breakeven trade keeps its first stop on record so stop width, R and reviews stay comparable
+  const stop0 = p.run?.be ? p.entry - p.run.r : p.stop
   const t: PracticeTrade = {
     ...p,
+    stop: stop0,
     exit: price,
     closedAt: now,
     exitBarTime: barTime,
@@ -608,7 +650,7 @@ function close(s: PracticeState, p: PracticePosition, mark: number, why: ExitRea
     retPct: (pnl / (p.entry * p.qty)) * 100,
     ...(p.cost ? { gross: +gross.toFixed(2), costPaid: +(gross - pnl).toFixed(2) } : {}),
   }
-  t.review = reviewTrade({ signal: p.signal ?? p.entry, stop: p.stop, target: p.target, tradeScore: p.info.tradeScore, learner: p.info.learner, data: p.info.data, dataLimitSec: p.info.dataLimitSec, pnl: t.pnl })
+  t.review = reviewTrade({ signal: p.signal ?? p.entry, stop: stop0, target: p.target, tradeScore: p.info.tradeScore, learner: p.info.learner, data: p.info.data, dataLimitSec: p.info.dataLimitSec, pnl: t.pnl })
   s.trades.push(t)
   if (s.trades.length > MAX_TRADES) s.trades.shift()
   s.realized += pnl
