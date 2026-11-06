@@ -2,7 +2,7 @@
  * Version and "What's new". Bump APP_VERSION and add an entry to the top of RELEASES
  * with each update. The banner shows once per version, then stays dismissed.
  */
-export const APP_VERSION = '2.0.15'
+export const APP_VERSION = '2.0.16'
 
 export interface Release {
   version: string
@@ -13,6 +13,12 @@ export interface Release {
 }
 
 export const RELEASES: Release[] = [
+  {
+    version: '2.0.16',
+    date: '2026-11-06',
+    changes: ['Atlas control panel: new "Queue for Claude" card right under "To do" lists every task you sent with "Do this" and where it stands (waiting, PR ready, done). If the GitHub key is missing it shows the 4 steps with a prefilled link to make one.'],
+    changesVi: ['Bảng điều khiển Atlas: thẻ mới "Hàng chờ cho Claude" ngay dưới "Cần xử lý", hiện mọi việc anh đã bấm "Làm cái này" và trạng thái (đang chờ, có PR, xong). Nếu thiếu key GitHub thì hiện 4 bước kèm link tạo key đã điền sẵn.'],
+  },
   {
     version: '2.0.15',
     date: '2026-11-06',

@@ -111,3 +111,11 @@
   .ac-row-h > span:last-child { display: block; }
   .ac-st { grid-column: auto; }
 }
+
+/* queue for Claude + the GitHub key steps */
+.ac-qlist { grid-template-columns: minmax(0, 1fr) !important; }
+.ac-qrow { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px; align-items: center; padding: 8px 12px; border-radius: 12px; border: 1px solid var(--line); background: color-mix(in srgb, var(--panel-2) 80%, transparent); font-size: 12.5px; }
+.ac-qrow a { color: var(--text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ac-keywarn { display: grid; gap: 6px; padding: 10px 12px; border-radius: 12px; border: 1px solid color-mix(in srgb, var(--gold) 45%, var(--line)); background: color-mix(in srgb, var(--gold) 8%, transparent); font-size: 12.5px; }
+.ac-keywarn ol { margin: 0; padding-left: 18px; display: grid; gap: 4px; color: var(--muted); }
+.ac-keywarn a { color: var(--robot); font-weight: 700; }

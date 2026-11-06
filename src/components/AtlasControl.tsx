@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { headline, kpis, learners, repoUpgrade, steps, systemCheck, todos, UPGRADES, PASS, type Check, type ControlInput, type FoundRepo, type Level, type Upgrade } from '../lib/atlasControl'
 import type { FactoryReport } from '../lib/ideaFactoryView'
+import type { TaskInfo } from '../lib/hubTasks'
 import { useLang } from '../lib/i18n'
 import { parsePractice, type PracticeState } from '../lib/practice'
 import type { LeadsReport } from '../lib/shadowLeads'
@@ -17,7 +18,7 @@ async function queue(prompt: string): Promise<'ok' | 'nokey' | 'refused' | 'erro
 }
 
 const SENT: Record<string, Bi> = {
-  ok: { en: 'Queued for Claude. When you have time, say "làm hàng chờ Atlas" in Neo Hub chat.', vi: 'Đã vào hàng chờ. Khi rảnh anh nhắn "làm hàng chờ Atlas" trong chat Neo Hub.' },
+  ok: { en: 'Queued for Claude. When you have time, say "làm hàng chờ Atlas" in Neo Hub chat.', vi: 'Đã vào hàng chờ (xem ở "Hàng chờ cho Claude" bên dưới). Khi rảnh anh nhắn "làm hàng chờ Atlas" trong chat Neo Hub.' },
   nokey: { en: 'Needs the GitHub key: Nova, step 5, "GitHub key".', vi: 'Cần key GitHub: mở Nova, bước 5, ô "Key GitHub".' },
   refused: { en: 'GitHub refused: the saved key may have expired.', vi: 'GitHub từ chối: key đã lưu có thể hết hạn.' },
   error: { en: "Couldn't reach the server. Try again.", vi: 'Không gọi được máy chủ. Thử lại nhé.' },
@@ -52,6 +53,17 @@ export function AtlasControl({ practice }: { practice: PracticeState }) {
   const [found, setFound] = useState<Upgrade[] | null>(null)
   const [finding, setFinding] = useState(false)
   const [allUps, setAllUps] = useState(false)
+  const [tasks, setTasks] = useState<TaskInfo[] | null>(null)
+  const [hasKey, setHasKey] = useState<boolean | null>(null)
+  const loadQueue = useCallback(async () => {
+    const [t, r] = await Promise.all([getJson('/api/hub/tasks'), getJson('/api/hub/runs')])
+    setTasks((t as { tasks?: TaskInfo[] } | null)?.tasks ?? null)
+    const k = (r as { key?: boolean } | null)?.key
+    setHasKey(typeof k === 'boolean' ? k : null)
+  }, [])
+  useEffect(() => {
+    void loadQueue()
+  }, [loadQueue])
 
   const check = useCallback(async () => {
     setBusy(true)
@@ -84,6 +96,7 @@ export function AtlasControl({ practice }: { practice: PracticeState }) {
     setSent((m) => ({ ...m, [id]: 'busy' }))
     const r = await queue(prompt)
     setSent((m) => ({ ...m, [id]: r }))
+    if (r === 'ok') setTimeout(() => void loadQueue(), 8000)
   }
 
   const findNew = async () => {
@@ -173,7 +186,7 @@ export function AtlasControl({ practice }: { practice: PracticeState }) {
       </section>
 
       <section className="bf-card ac-todo">
-        <header className="ac-h"><h3>🛠️ {vi ? 'Cần xử lý' : 'To do'}</h3>{todo.length > 0 && <span className="ac-tag bad">{todo.length}</span>}</header>
+        <header className="ac-h"><h3>🛠️ {vi ? 'Cần xử lý (lỗi, cảnh báo)' : 'To do (problems)'}</h3>{todo.length > 0 && <span className="ac-tag bad">{todo.length}</span>}</header>
         <p className="ac-note">{vi ? 'Đỏ trên cùng. "Làm cái này" gửi việc kèm prompt viết sẵn vào hàng chờ cho Claude; bấm là anh đã duyệt.' : 'Red first. "Do this" queues the task with a ready prompt for Claude; pressing it is your approval.'}</p>
         {todo.length === 0 ? <p className="ac-empty">✓ {vi ? 'Không có việc gì cần làm.' : 'Nothing to do.'}</p> : (
           <ul className="ac-list">
@@ -181,6 +194,31 @@ export function AtlasControl({ practice }: { practice: PracticeState }) {
               <li key={c.id} className={`ac-item ${c.level}`}>
                 <div className="ac-item-top"><i className={`ac-dot ${c.level}`} /><div><b>{L(c.title)}</b><span>{L(c.detail)}</span></div></div>
                 {c.prompt && actions(c.id, c.prompt, c.id === 'grade' ? { en: 'Approve', vi: 'Duyệt' } : c.level === 'bad' ? { en: 'Fix this', vi: 'Sửa cái này' } : { en: 'Do this', vi: 'Làm cái này' })}
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
+      <section className="bf-card ac-queue">
+        <header className="ac-h"><h3>📥 {vi ? 'Hàng chờ cho Claude' : 'Queue for Claude'}</h3><button className="ac-btn" onClick={() => void loadQueue()}>{vi ? 'Làm mới' : 'Refresh'}</button></header>
+        <p className="ac-note">{vi ? 'Việc anh đã bấm "Làm cái này" nằm ở đây. Khi rảnh anh nhắn "làm hàng chờ Atlas" trong chat Neo Hub, Claude làm hết rồi mở PR.' : 'Tasks you sent with "Do this". Say "làm hàng chờ Atlas" in Neo Hub chat and Claude works through them.'}</p>
+        {hasKey === false && (
+          <div className="ac-keywarn">
+            <b>🔑 {vi ? 'Chưa có key GitHub, nên nút "Làm cái này" chưa gửi được' : 'No GitHub key yet, so "Do this" cannot send'}</b>
+            <ol>
+              <li>{vi ? 'Bấm link này (đã điền sẵn tên và quyền):' : 'Open this link (name and permission prefilled):'} <a href="https://github.com/settings/personal-access-tokens/new?name=Neo%20Hub%20tasks&description=Atlas%20and%20Neo%20send%20tasks%20to%20Claude&target_name=giusemc1988&expires_in=365&actions=write" target="_blank" rel="noreferrer">{vi ? 'Tạo key GitHub' : 'Create GitHub key'}</a></li>
+              <li>{vi ? 'Ở "Repository access" chọn "Only select repositories" rồi chọn stock-predict.' : 'Under "Repository access" pick "Only select repositories", then stock-predict.'}</li>
+              <li>{vi ? 'Kiểm tra "Actions" là "Read and write", rồi bấm "Generate token" và Copy.' : 'Check "Actions" is "Read and write", press "Generate token" and copy it.'}</li>
+              <li>{vi ? 'Mở Nova, bước 5, dán vào ô "Key GitHub" và bấm Lưu. Quay lại đây bấm "Làm mới".' : 'Open Nova, step 5, paste into "GitHub key" and save. Come back and press Refresh.'}</li>
+            </ol>
+          </div>
+        )}
+        {tasks == null ? <p className="ac-note">{vi ? 'Chưa đọc được hàng chờ.' : 'Could not read the queue.'}</p> : tasks.length === 0 ? <p className="ac-empty">{vi ? 'Hàng chờ trống.' : 'The queue is empty.'}</p> : (
+          <ul className="ac-list ac-qlist">
+            {tasks.map((t) => (
+              <li key={t.number} className="ac-qrow">
+                <a href={t.url} target="_blank" rel="noreferrer">#{t.number} {t.title}</a>
+                <span className={`ac-tag ${t.state === 'waiting' ? 'warn' : t.state === 'pr' ? 'ok' : 'off'}`}>{vi ? { waiting: 'Đang chờ', pr: 'Có PR chờ duyệt', done: 'Xong', closed: 'Đã đóng' }[t.state] : { waiting: 'Waiting', pr: 'PR ready', done: 'Done', closed: 'Closed' }[t.state]}</span>
               </li>
             ))}
           </ul>
