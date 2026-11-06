@@ -57,6 +57,23 @@ export function taskPrompt(t: { goal: string; evidence: string[]; scope: string[
   return [`Atlas task: ${t.goal}`, '', `1. Goal\n${t.goal}`, `2. Evidence (from "Kiểm tra hệ thống")\n${list(t.evidence)}`, `3. Scope and rules\n${list([...t.scope, ...RULES])}`, '4. Verify\n- Tests and build pass; screenshots if the UI changed.', `5. Done when\n${t.done}`].join('\n\n')
 }
 
+/** Most upgrades sent together as one task (keeps the issue under the 4,000-character limit). */
+export const MAX_BATCH = 6
+
+/** Several picked upgrades as ONE task: one read of the repo and one PR instead of one per item (saves tokens). */
+export function batchPrompt(ups: Upgrade[]): string {
+  const list = ups.slice(0, MAX_BATCH)
+  const names = list.map((u) => u.title.en).join(', ')
+  const goal = `Do ${list.length} upgrades together: ${names}`.slice(0, 160)
+  const items = list.map((u, i) => `${i + 1}) ${u.title.en}${u.url ? ` (${u.url})` : ''}: ${u.goal} Why: ${u.why.en.slice(0, 160)}`)
+  return taskPrompt({
+    goal,
+    evidence: items,
+    scope: ['Work them in one session: read the code once, check each repo\'s licence, cost and upkeep, skip any that are not free or not worth it (say why).', 'One PR for all accepted items, one version bump; trading-logic changes stop at a proposal for Chanh.'],
+    done: 'Chanh gets one short Vietnamese list: each item yes/no with the reason, and one PR for the yes items.',
+  }).slice(0, 3900)
+}
+
 // ---- numbers ----
 
 const r1 = (x: number) => Math.round(x * 10) / 10
@@ -336,9 +353,11 @@ export interface Upgrade {
   how: Bi
   url?: string
   prompt: string
+  /** one-line goal, used when several upgrades go to Claude as one task */
+  goal: string
 }
 
-const up = (u: Omit<Upgrade, 'prompt'> & { goal: string; scope: string[]; done: string }): Upgrade => ({ id: u.id, title: u.title, why: u.why, benefit: u.benefit, step: u.step, how: u.how, url: u.url, prompt: taskPrompt({ goal: u.goal, evidence: [u.why.en], scope: u.scope, done: u.done }) })
+const up = (u: Omit<Upgrade, 'prompt'> & { goal: string; scope: string[]; done: string }): Upgrade => ({ id: u.id, title: u.title, why: u.why, benefit: u.benefit, step: u.step, how: u.how, url: u.url, goal: u.goal, prompt: taskPrompt({ goal: u.goal, evidence: [u.why.en], scope: u.scope, done: u.done }) })
 
 /** Hand-picked next steps and outside repos, best first. */
 export const UPGRADES: Upgrade[] = [
@@ -377,6 +396,7 @@ export function repoUpgrade(r: FoundRepo): Upgrade {
     step,
     url: r.url,
     how: { en: `${r.stars.toLocaleString('en')} stars · updated ${r.pushed.slice(0, 10)}. Claude checks licence and install before adding.`, vi: `${r.stars.toLocaleString('en')} sao · cập nhật ${r.pushed.slice(0, 10)}. Claude kiểm tra giấy phép và cách cài trước khi thêm.` },
+    goal: `Evaluate ${r.url} for Atlas step ${step} and, if it is free and worth it, add it.`,
     prompt: taskPrompt({ goal: `Evaluate ${r.url} for Atlas step ${step} and, if it is free and worth it, add it.`, evidence: [`${r.stars} stars, last push ${r.pushed}`, r.desc], scope: ['Check licence, cost, maintenance and whether Atlas already does this; prefer free, no-API options.', 'If it changes trading logic, stop at a proposal for Chanh.'], done: 'Chanh gets a yes/no with reasons, and a PR if yes.' }),
   }
 }
