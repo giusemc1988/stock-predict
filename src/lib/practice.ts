@@ -105,6 +105,8 @@ export interface PracticePosition {
   run?: { r: number; be?: boolean }
 }
 
+/** With the min-price rule on, stocks under this price are never bought. */
+export const MIN_STOCK_PRICE = 10
 /** Stocks under this price are penny stocks: wider spreads, thinner books, bigger swings. */
 export const PENNY_PRICE = 5
 /** Penny stocks under this price are never traded (too easy to halt, delist or gap). */
@@ -377,6 +379,10 @@ export interface EntryContext {
   noWatchlistDay?: boolean
   /** Breakeven stop at +1R and no time exit while in profit. */
   letWinnersRun?: boolean
+  /** Never buy a stock under MIN_STOCK_PRICE. */
+  minPrice10?: boolean
+  /** Halve the size in high volatility. */
+  volatilityHalf?: boolean
   /** Size multiplier for long-term trades (0.5 = half size). */
   longSizeMult?: number
 }
@@ -453,6 +459,8 @@ export function onBarClose(prev: PracticeState, ctx: EntryContext): PracticeStat
   }
   if (ctx.noWatchlistDay && kind === 'day' && ctx.source === 'watchlist')
     return skip('Watchlist day trade', 'day trades from the watchlist are off (they kept losing)', 'lệnh trong ngày từ danh sách theo dõi đang tắt (nhóm này thua nhiều)')
+  if (ctx.minPrice10 && ctx.asset === 'stock' && ctx.price < MIN_STOCK_PRICE)
+    return skip('Penny stock', `${fmt(ctx.price)} is under $${MIN_STOCK_PRICE}: cheap stocks slip past their stop`, `${fmt(ctx.price)} dưới $${MIN_STOCK_PRICE}: mã rẻ hay trượt qua cắt lỗ`)
   const penny = isPenny(ctx.asset, ctx.price)
   if (penny) {
     if (!ctx.pennyOn) return skip('Penny stock', `${fmt(ctx.price)} is under $${PENNY_PRICE} and penny stocks are off`, `${fmt(ctx.price)} dưới $${PENNY_PRICE} và cổ phiếu penny đang tắt`)
@@ -497,7 +505,7 @@ export function onBarClose(prev: PracticeState, ctx: EntryContext): PracticeStat
   pass('Exit plan')
 
   // small, fixed practice size; halved in high volatility; reduced by drawdown brakes and Kelly sizing
-  const volatilityMult = regime === 'high' ? 0.5 : 1
+  const volatilityMult = regime === 'high' && ctx.volatilityHalf !== false ? 0.5 : 1
   const brakeMult = ctx.drawdownBrakeMultiplier ?? 1
   const kellyMult = ctx.kellyMultiplier ?? 1
   // size so that hitting the stop loses riskPct of the account, never more than maxSizeMult x the flat size
