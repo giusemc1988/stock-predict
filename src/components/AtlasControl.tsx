@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { headline, kpis, learners, repoUpgrade, steps, systemCheck, todos, UPGRADES, PASS, type Check, type ControlInput, type FoundRepo, type Level, type Upgrade } from '../lib/atlasControl'
 import type { FactoryReport } from '../lib/ideaFactoryView'
+import type { TaskInfo } from '../lib/hubTasks'
 import { useLang } from '../lib/i18n'
 import { parsePractice, type PracticeState } from '../lib/practice'
 import type { LeadsReport } from '../lib/shadowLeads'
@@ -17,7 +18,7 @@ async function queue(prompt: string): Promise<'ok' | 'nokey' | 'refused' | 'erro
 }
 
 const SENT: Record<string, Bi> = {
-  ok: { en: 'Queued for Claude. When you have time, say "làm hàng chờ Atlas" in Neo Hub chat.', vi: 'Đã vào hàng chờ. Khi rảnh anh nhắn "làm hàng chờ Atlas" trong chat Neo Hub.' },
+  ok: { en: 'Queued for Claude. When you have time, say "làm hàng chờ Atlas" in Neo Hub chat.', vi: 'Đã vào hàng chờ (xem ở "Hàng chờ cho Claude" bên dưới). Khi rảnh anh nhắn "làm hàng chờ Atlas" trong chat Neo Hub.' },
   nokey: { en: 'Needs the GitHub key: Nova, step 5, "GitHub key".', vi: 'Cần key GitHub: mở Nova, bước 5, ô "Key GitHub".' },
   refused: { en: 'GitHub refused: the saved key may have expired.', vi: 'GitHub từ chối: key đã lưu có thể hết hạn.' },
   error: { en: "Couldn't reach the server. Try again.", vi: 'Không gọi được máy chủ. Thử lại nhé.' },
@@ -52,6 +53,19 @@ export function AtlasControl({ practice }: { practice: PracticeState }) {
   const [found, setFound] = useState<Upgrade[] | null>(null)
   const [finding, setFinding] = useState(false)
   const [allUps, setAllUps] = useState(false)
+  const [tab, setTab] = useState<'fix' | 'up' | 'queue'>('fix')
+  const [allLb, setAllLb] = useState(false)
+  const [tasks, setTasks] = useState<TaskInfo[] | null>(null)
+  const [hasKey, setHasKey] = useState<boolean | null>(null)
+  const loadQueue = useCallback(async () => {
+    const [t, r] = await Promise.all([getJson('/api/hub/tasks'), getJson('/api/hub/runs')])
+    setTasks((t as { tasks?: TaskInfo[] } | null)?.tasks ?? null)
+    const k = (r as { key?: boolean } | null)?.key
+    setHasKey(typeof k === 'boolean' ? k : null)
+  }, [])
+  useEffect(() => {
+    void loadQueue()
+  }, [loadQueue])
 
   const check = useCallback(async () => {
     setBusy(true)
@@ -84,6 +98,7 @@ export function AtlasControl({ practice }: { practice: PracticeState }) {
     setSent((m) => ({ ...m, [id]: 'busy' }))
     const r = await queue(prompt)
     setSent((m) => ({ ...m, [id]: r }))
+    if (r === 'ok') setTimeout(() => void loadQueue(), 8000)
   }
 
   const findNew = async () => {
@@ -142,7 +157,7 @@ export function AtlasControl({ practice }: { practice: PracticeState }) {
           <div>
             <span className="ac-kicker">{vi ? 'ATLAS · BẢNG ĐIỀU KHIỂN' : 'ATLAS · CONTROL PANEL'}{checkedAt ? ` · ${new Date(checkedAt).toLocaleTimeString(vi ? 'vi-VN' : 'en-US', { hour: '2-digit', minute: '2-digit' })}` : ''}</span>
             <h2><i className={`ac-dot ${head.level}`} />{L(head.text)}</h2>
-            <p className="ac-note">{vi ? 'Tiền giả, không có tiền thật. Bấm nút để kiểm tra mọi bộ phận; việc cần làm hiện ở "Cần xử lý".' : 'Paper money only. Press the button to check every part; what needs doing shows under "To do".'}</p>
+            <p className="ac-note">{vi ? 'Tiền giả, không có tiền thật. Bấm nút để kiểm tra mọi bộ phận; việc cần làm hiện ở "Việc cần làm".' : 'Paper money only. Press the button to check every part; what needs doing shows under "To do".'}</p>
           </div>
           <button className="ac-big" disabled={busy} onClick={() => void check()}>{busy ? (vi ? 'Đang kiểm tra…' : 'Checking…') : vi ? 'Kiểm tra hệ thống' : 'Check the system'}</button>
         </div>
@@ -160,7 +175,7 @@ export function AtlasControl({ practice }: { practice: PracticeState }) {
           <h3>🚦 {vi ? 'Đèn sức khoẻ' : 'Health lights'}</h3>
           <span className="ac-tags"><span className="ac-tag ok">{count('ok')} {vi ? 'ổn' : 'ok'}</span><span className="ac-tag warn">{count('warn')} {vi ? 'để ý' : 'look'}</span>{count('bad') > 0 && <span className="ac-tag bad">{count('bad')} {vi ? 'đỏ' : 'red'}</span>}</span>
         </header>
-        <p className="ac-note">{vi ? 'Mỗi đèn là một bộ phận tự chạy (miễn phí, không tốn token). Vàng/đỏ thì xem ở "Cần xử lý".' : 'Each light is a part that runs by itself (free). Yellow/red ones are listed under "To do".'}</p>
+        <p className="ac-note">{vi ? 'Mỗi đèn là một bộ phận tự chạy (miễn phí, không tốn token). Vàng/đỏ thì xem ở "Việc cần làm".' : 'Each light is a part that runs by itself (free). Yellow/red ones are listed under "To do".'}</p>
         <div className="ac-lights">
           {checks.map((c) => (
             <div key={c.id} className={`ac-light ${c.level}`}>
@@ -172,9 +187,27 @@ export function AtlasControl({ practice }: { practice: PracticeState }) {
         </div>
       </section>
 
-      <section className="bf-card ac-todo">
-        <header className="ac-h"><h3>🛠️ {vi ? 'Cần xử lý' : 'To do'}</h3>{todo.length > 0 && <span className="ac-tag bad">{todo.length}</span>}</header>
-        <p className="ac-note">{vi ? 'Đỏ trên cùng. "Làm cái này" gửi việc kèm prompt viết sẵn vào hàng chờ cho Claude; bấm là anh đã duyệt.' : 'Red first. "Do this" queues the task with a ready prompt for Claude; pressing it is your approval.'}</p>
+      <section className="bf-card ac-work">
+        <header className="ac-h"><h3>🧰 {vi ? 'Việc cần làm' : 'Work list'}</h3></header>
+        <div className="ac-tabs" role="tablist">
+          <button className={tab === 'fix' ? 'on' : ''} onClick={() => setTab('fix')}>{vi ? 'Cần sửa' : 'Fix'} <span className={`ac-tag ${todo.some((c) => c.level === 'bad') ? 'bad' : todo.length ? 'warn' : 'ok'}`}>{todo.length}</span></button>
+          <button className={tab === 'up' ? 'on' : ''} onClick={() => setTab('up')}>{vi ? 'Nâng cấp' : 'Upgrade'} <span className="ac-tag">{UPGRADES.length}</span></button>
+          <button className={tab === 'queue' ? 'on' : ''} onClick={() => setTab('queue')}>{vi ? 'Hàng chờ' : 'Queue'} <span className="ac-tag">{(tasks ?? []).filter((t) => t.state === 'waiting' || t.state === 'pr').length}</span></button>
+        </div>
+        <p className="ac-note">{tab === 'fix' ? (vi ? 'Lỗi và cảnh báo hệ thống tìm ra, đỏ trên cùng.' : 'Problems the check found, red first.') : tab === 'up' ? (vi ? 'Việc nên làm thêm, xếp theo lợi ích (vạch).' : 'Things worth adding, best first (bars = benefit).') : (vi ? 'Việc anh đã bấm "Làm cái này". Nhắn "làm hàng chờ Atlas" trong chat Neo Hub để Claude làm.' : 'Tasks you sent. Say "làm hàng chờ Atlas" in Neo Hub chat.')} {tab !== 'queue' && (vi ? 'Bấm "Làm cái này" là anh đã duyệt, việc vào Hàng chờ.' : 'Pressing "Do this" approves it and adds it to the queue.')}</p>
+        {hasKey === false && (
+          <div className="ac-keywarn">
+            <b>🔑 {vi ? 'Chưa có key GitHub, nên nút "Làm cái này" chưa gửi được' : 'No GitHub key yet, so "Do this" cannot send'}</b>
+            <ol>
+              <li>{vi ? 'Bấm link này (đã điền sẵn tên và quyền):' : 'Open this link (name and permission prefilled):'} <a href="https://github.com/settings/personal-access-tokens/new?name=Neo%20Hub%20tasks&description=Atlas%20and%20Neo%20send%20tasks%20to%20Claude&target_name=giusemc1988&expires_in=365&actions=write" target="_blank" rel="noreferrer">{vi ? 'Tạo key GitHub' : 'Create GitHub key'}</a></li>
+              <li>{vi ? 'Ở "Repository access" chọn "Only select repositories" rồi chọn stock-predict.' : 'Under "Repository access" pick "Only select repositories", then stock-predict.'}</li>
+              <li>{vi ? 'Kiểm tra "Actions" là "Read and write", rồi bấm "Generate token" và Copy.' : 'Check "Actions" is "Read and write", press "Generate token" and copy it.'}</li>
+              <li>{vi ? 'Mở Nova, bước 5, dán vào ô "Key GitHub" và bấm Lưu. Quay lại đây bấm "Làm mới".' : 'Open Nova, step 5, paste into "GitHub key" and save. Come back and press Refresh.'}</li>
+            </ol>
+          </div>
+        )}
+        {tab === 'fix' && (
+          <>
         {todo.length === 0 ? <p className="ac-empty">✓ {vi ? 'Không có việc gì cần làm.' : 'Nothing to do.'}</p> : (
           <ul className="ac-list">
             {todo.map((c: Check) => (
@@ -184,6 +217,32 @@ export function AtlasControl({ practice }: { practice: PracticeState }) {
               </li>
             ))}
           </ul>
+        )}
+          </>
+        )}
+        {tab === 'up' && (
+          <>
+        <ul className="ac-list ac-uplist">{(allUps ? UPGRADES : UPGRADES.slice(0, 4)).map(upCard)}</ul>
+        {!allUps && <button className="ac-btn ac-find" onClick={() => setAllUps(true)}>{vi ? `Xem thêm ${UPGRADES.length - 4} gợi ý` : `${UPGRADES.length - 4} more ideas`}</button>}
+        <button className="ac-btn ac-find" disabled={finding} onClick={() => void findNew()}>{finding ? (vi ? 'Đang tìm…' : 'Searching…') : vi ? '🔎 Tìm mới trên GitHub' : '🔎 Find new on GitHub'}</button>
+        {finding && <div className="ac-progress"><i /></div>}
+        {found && (found.length ? <ul className="ac-list ac-uplist">{found.map(upCard)}</ul> : <p className="ac-empty">{vi ? 'Chưa tìm được (GitHub giới hạn lượt tìm, thử lại sau 1 phút).' : 'Nothing found (GitHub rate limit, try again in a minute).'}</p>)}
+          </>
+        )}
+        {tab === 'queue' && (
+          <>
+            <button className="ac-btn ac-find" onClick={() => void loadQueue()}>{vi ? 'Làm mới hàng chờ' : 'Refresh queue'}</button>
+        {tasks == null ? <p className="ac-note">{vi ? 'Chưa đọc được hàng chờ.' : 'Could not read the queue.'}</p> : tasks.length === 0 ? <p className="ac-empty">{vi ? 'Hàng chờ trống.' : 'The queue is empty.'}</p> : (
+          <ul className="ac-list ac-qlist">
+            {tasks.map((t) => (
+              <li key={t.number} className="ac-qrow">
+                <a href={t.url} target="_blank" rel="noreferrer">#{t.number} {t.title}</a>
+                <span className={`ac-tag ${t.state === 'waiting' ? 'warn' : t.state === 'pr' ? 'ok' : 'off'}`}>{vi ? { waiting: 'Đang chờ', pr: 'Có PR chờ duyệt', done: 'Xong', closed: 'Đã đóng' }[t.state] : { waiting: 'Waiting', pr: 'PR ready', done: 'Done', closed: 'Closed' }[t.state]}</span>
+              </li>
+            ))}
+          </ul>
+        )}
+          </>
         )}
       </section>
 
@@ -216,7 +275,7 @@ export function AtlasControl({ practice }: { practice: PracticeState }) {
         <p className="ac-note">{vi ? 'Ai đang học gì và đã làm bao nhiêu bài. Thanh = số bài trên số bài cần để chấm.' : 'Who is learning what and how far along. Bar = graded so far vs needed.'}</p>
         <div className="ac-rows">
           <div className="ac-row ac-row-h"><span>{vi ? 'Học viên' : 'Learner'}</span><span className="c">{vi ? 'Bài' : 'Graded'}</span><span className="c">{vi ? 'Thắng' : 'Wins'}</span><span className="c">{vi ? 'Lãi TB' : 'Avg'}</span><span>{vi ? 'Trạng thái' : 'Status'}</span></div>
-          {board.map((l) => (
+          {(allLb ? board : board.slice(0, 5)).map((l) => (
             <div key={l.id} className="ac-row">
               <div className="ac-nm"><b>{l.icon} {L(l.name)}</b><span>{L(l.sub)}</span></div>
               <span className="c">{l.n ?? '–'}</span>
@@ -229,15 +288,7 @@ export function AtlasControl({ practice }: { practice: PracticeState }) {
             </div>
           ))}
         </div>
-      </section>
-      <section className="bf-card ac-ups">
-        <header className="ac-h"><h3>🚀 {vi ? 'Nâng cấp & skill gợi ý' : 'Upgrades & suggested tools'}</h3><span className="ac-small">{vi ? 'vạch = lợi ích' : 'bars = benefit'}</span></header>
-        <p className="ac-note">{vi ? 'Xếp theo lợi ích, làm từ trên xuống. "Tìm mới" tìm repo mới trên GitHub (miễn phí).' : 'Best first. "Find new" looks for new repos on GitHub (free).'}</p>
-        <ul className="ac-list">{(allUps ? UPGRADES : UPGRADES.slice(0, 4)).map(upCard)}</ul>
-        {!allUps && <button className="ac-btn ac-find" onClick={() => setAllUps(true)}>{vi ? `Xem thêm ${UPGRADES.length - 4} gợi ý` : `${UPGRADES.length - 4} more ideas`}</button>}
-        <button className="ac-btn ac-find" disabled={finding} onClick={() => void findNew()}>{finding ? (vi ? 'Đang tìm…' : 'Searching…') : vi ? '🔎 Tìm mới trên GitHub' : '🔎 Find new on GitHub'}</button>
-        {finding && <div className="ac-progress"><i /></div>}
-        {found && (found.length ? <ul className="ac-list">{found.map(upCard)}</ul> : <p className="ac-empty">{vi ? 'Chưa tìm được (GitHub giới hạn lượt tìm, thử lại sau 1 phút).' : 'Nothing found (GitHub rate limit, try again in a minute).'}</p>)}
+        {!allLb && board.length > 5 && <button className="ac-btn ac-find" onClick={() => setAllLb(true)}>{vi ? `Xem tất cả ${board.length} học viên` : `All ${board.length} learners`}</button>}
       </section>
 
     </div>

@@ -111,3 +111,18 @@
   .ac-row-h > span:last-child { display: block; }
   .ac-st { grid-column: auto; }
 }
+
+/* queue for Claude + the GitHub key steps */
+.ac-qlist { grid-template-columns: minmax(0, 1fr) !important; }
+.ac-qrow { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px; align-items: center; padding: 8px 12px; border-radius: 12px; border: 1px solid var(--line); background: color-mix(in srgb, var(--panel-2) 80%, transparent); font-size: 12.5px; }
+.ac-qrow a { color: var(--text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ac-keywarn { display: grid; gap: 6px; padding: 10px 12px; border-radius: 12px; border: 1px solid color-mix(in srgb, var(--gold) 45%, var(--line)); background: color-mix(in srgb, var(--gold) 8%, transparent); font-size: 12.5px; }
+.ac-keywarn ol { margin: 0; padding-left: 18px; display: grid; gap: 4px; color: var(--muted); }
+.ac-keywarn a { color: var(--robot); font-weight: 700; }
+
+/* one work list with three tabs: fix / upgrade / queue */
+.ac-tabs { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 4px; padding: 4px; border-radius: 999px; border: 1px solid var(--line); background: rgba(255, 255, 255, 0.04); }
+.ac-tabs button { display: inline-flex; align-items: center; justify-content: center; gap: 4px; padding: 8px 4px; min-width: 0; border: 0; border-radius: 999px; background: none; color: var(--muted); font-size: 12.5px; font-weight: 600; cursor: pointer; white-space: nowrap; }
+.ac-tabs button.on { color: var(--text); background: color-mix(in srgb, var(--robot) 22%, transparent); }
+.ac-work .ac-list { grid-template-columns: minmax(0, 1fr); }
+@media (min-width: 760px) { .ac-work .ac-uplist { grid-template-columns: repeat(2, minmax(0, 1fr)); } }

@@ -291,7 +291,7 @@ export function learners(x: ControlInput): Learner[] {
   if (lp) slots.push({ id: 'leaders-paper', icon: '🚀', name: { en: 'Leaders: tight base', vi: 'Dẫn đầu: nền chặt' }, sub: { en: `breakout, multi-day · ${x.paper?.watching?.length ?? 0} watching`, vi: `phá nền, giữ nhiều ngày · theo dõi ${x.paper?.watching?.length ?? 0} mã` }, n: lp.graded, goal: PASS.n, winRate: lp.winRate, avgPct: lp.avgPct, verdict: lp.status === 'working' ? 'pass' : lp.status === 'failing' ? 'fail' : 'testing' })
   const shadow: Learner = { id: 'shadow', icon: '🧪', name: { en: 'Shadow rules L1-L4', vi: 'Luật chạy bóng L1-L4' }, sub: { en: `graded ${REVIEW_DAY}`, vi: `chấm ngày ${REVIEW_DAY.slice(8)}/${REVIEW_DAY.slice(5, 7)}` }, n: ts.filter((t) => t.info.shadow).length, goal: 50, winRate: null, avgPct: null, verdict: 'testing' }
   const kronos: Learner = { id: 'kronos', icon: '🔮', name: { en: 'Kronos', vi: 'Kronos' }, sub: { en: 'Forecast AI, advice only', vi: 'AI dự báo, chỉ góp ý' }, n: null, goal: 0, winRate: null, avgPct: null, verdict: 'advisor' }
-  const rank = (l: Learner) => (l.verdict === 'pass' ? 3 : l.verdict === 'testing' ? 2 : 1) * 1000 + (l.winRate ?? 0)
+  const rank = (l: Learner) => (l.verdict === 'pass' ? 3000 : 0) + ((l.n ?? 0) > 0 ? 1000 : 0) + (l.winRate ?? 0)
   return [...[book, ...slots].sort((a, b) => rank(b) - rank(a)), shadow, kronos]
 }
 
