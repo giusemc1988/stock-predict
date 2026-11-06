@@ -93,3 +93,10 @@
 .asb-lead-row:hover { border-color: var(--robot); }
 .asb-lead-p { font-size: 10.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .asb-lead-tags { font-size: 12px; color: var(--robot); }
+
+.asb-lead-paper { display: grid; gap: 6px; padding: 12px; border: 1px solid var(--line); border-radius: 12px; }
+.asb-lead-paper h4 { margin: 0; font-size: 14px; }
+.asb-lead-st { margin-left: 6px; padding: 2px 8px; border-radius: 999px; border: 1px solid var(--line); font-size: 11px; font-weight: 600; }
+.asb-lead-st.working { color: var(--up); border-color: var(--up); }
+.asb-lead-st.failing { color: var(--down, #e5605a); border-color: var(--down, #e5605a); }
+.asb-lead-mini { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; }
