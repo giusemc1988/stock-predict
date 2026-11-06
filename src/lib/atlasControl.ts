@@ -24,6 +24,8 @@ export interface ControlInput {
   leads: LeadsReport | null
   /** the Leaders tight-base paper slot (public/leaders-paper.json) */
   paper?: { score: { graded: number; winRate: number | null; avgPct: number | null; status: string }; watching?: unknown[]; open?: unknown[] } | null
+  /** the last shipped fix for the learning and PF lights (default FIX); tests pass their own */
+  fixAt?: number
 }
 
 export interface Check {
@@ -121,6 +123,25 @@ const agoEn = (h: number) => (h < 1 ? `${Math.max(1, Math.round(h * 60))} min ag
 
 // ---- the checks ----
 
+/** A fix that shipped for a red light: until `need` trades close after it, the light waits (grey, no "Do this")
+ *  instead of judging old trades the fix never touched; after that it is judged on the new trades only. */
+export const FIX = { ids: ['learn', 'pf'], at: Date.parse('2026-11-06T02:20:00Z'), need: 30, pr: 255 }
+export const afterFix = (s: PracticeState, at = FIX.at) => s.trades.filter((t) => t.closedAt >= at)
+
+/** The goal part of a queued task's title ("Atlas task: <goal>", cut with "…"), to spot a task already in the queue. */
+export const taskGoal = (title: string) => title.replace('Atlas task: ', '').split('…')[0].trim()
+
+function waitFix(c: Check, n: number): Check {
+  return {
+    ...c,
+    level: 'off',
+    status: { en: `fixed in #${FIX.pr} · ${n}/${FIX.need} new trades`, vi: `đã sửa (#${FIX.pr}) · chờ ${n}/${FIX.need} lệnh mới` },
+    title: { en: '', vi: '' },
+    detail: { en: '', vi: '' },
+    prompt: null,
+  }
+}
+
 export function systemCheck(x: ControlInput): Check[] {
   const { s, now } = x
   const k = kpis(s, now)
@@ -157,27 +178,32 @@ export function systemCheck(x: ControlInput): Check[] {
   })
 
   // 3. learning: the learner pauses when the last 20 trades win under 40%
-  const rw = k.recentWinRate
-  C({
+  const fixed = afterFix(s, x.fixAt)
+  const waiting = fixed.length < FIX.need
+  const kf = waiting ? k : kpis({ ...s, trades: fixed }, now)
+  const after = waiting ? '' : ` (only the ${fixed.length} trades since fix #${FIX.pr})`
+  const rw = kf.recentWinRate
+  const C2 = (c: Check) => C(waiting && FIX.ids.includes(c.id) && c.level !== 'off' ? waitFix(c, fixed.length) : c)
+  C2({
     id: 'learn',
     part: { en: 'Learning', vi: 'Ghi sổ, học' },
     level: rw == null ? 'off' : rw < 40 ? 'bad' : rw < 45 ? 'warn' : 'ok',
     status: rw == null ? { en: 'no trades yet', vi: 'chưa có lệnh' } : rw < 40 ? { en: `paused · last 20 win ${rw}%`, vi: `tạm dừng · 20 lệnh gần thắng ${rw}%` } : { en: `learning · last 20 win ${rw}%`, vi: `đang học · 20 lệnh gần thắng ${rw}%` },
     title: rw != null && rw < 40 ? { en: 'Learning paused: recent win rate under 40%', vi: 'Bộ học tạm dừng: 20 lệnh gần nhất thắng dưới 40%' } : { en: 'Win rate close to the learning stop line', vi: 'Tỉ lệ thắng sát ngưỡng dừng học' },
     detail: { en: `Last 20 trades win ${rw}%. Under 40% the learner stops to avoid learning from a bad streak.`, vi: `20 lệnh gần nhất thắng ${rw}%. Dưới 40% bộ học tự dừng để không học nhầm từ chuỗi xấu.` },
-    prompt: rw != null && rw < 45 ? taskPrompt({ goal: 'Explain why recent Atlas trades lose and propose (not apply) a fix.', evidence: [`last 20 trades win ${rw}%`, `all-time win ${k.winRate}%`, `PF ${k.pf}`], scope: ['Read atlas/LESSONS.md and the practice backup on branch backups.', 'Analysis + proposal only; no trading-logic change without Chanh\'s OK.'], done: 'Chanh gets a short Vietnamese explanation with 1-3 proposed fixes.' }) : null,
+    prompt: rw != null && rw < 45 ? taskPrompt({ goal: 'Explain why recent Atlas trades lose and propose (not apply) a fix.', evidence: [`last 20 trades win ${rw}%${after}`, `win ${kf.winRate}%`, `PF ${kf.pf}`, `fix #${FIX.pr} (filters, breakeven at +1R, half-size longs) already live`], scope: ['Read atlas/LESSONS.md and the practice backup on branch backups.', 'Analysis + proposal only; no trading-logic change without Chanh\'s OK.'], done: 'Chanh gets a short Vietnamese explanation with 1-3 proposed fixes.' }) : null,
   })
 
   // 4. losers bigger than winners (PF)
-  const p = k.pf
-  C({
+  const p = kf.pf
+  C2({
     id: 'pf',
     part: { en: 'Profit factor', vi: 'Lãi/lỗ (PF)' },
     level: p == null ? 'off' : p < 0.8 ? 'bad' : p < 1 ? 'warn' : 'ok',
-    status: p == null ? { en: 'no trades yet', vi: 'chưa có lệnh' } : { en: `PF ${p}${k.pfBefore != null ? ` (was ${k.pfBefore})` : ''}`, vi: `PF ${p}${k.pfBefore != null ? ` (trước ${k.pfBefore})` : ''}` },
+    status: p == null ? { en: 'no trades yet', vi: 'chưa có lệnh' } : { en: `PF ${p}${kf.pfBefore != null ? ` (was ${kf.pfBefore})` : ''}`, vi: `PF ${p}${kf.pfBefore != null ? ` (trước ${kf.pfBefore})` : ''}` },
     title: { en: 'Losing trades are bigger than winning ones', vi: 'Lệnh thua lỗ to hơn lệnh thắng' },
-    detail: { en: `Average win $${k.avgWin}, average loss $${Math.abs(k.avgLoss)}. PF under 1 means losing after costs.`, vi: `Thắng TB $${k.avgWin}, thua TB $${Math.abs(k.avgLoss)}. PF dưới 1 là đang lỗ sau phí.` },
-    prompt: p != null && p < 1 ? taskPrompt({ goal: 'Find why Atlas losing trades are bigger than winners (PF under 1) and propose a fix.', evidence: [`PF ${p}${k.pfBefore != null ? `, before the last 20 trades ${k.pfBefore}` : ''}`, `avg win $${k.avgWin}, avg loss $${k.avgLoss}`, `${s.trades.length} closed trades`], scope: ['Split losses by exit reason (stop gap, close, signal), kind (day/long), source and entry time; use the backup on branch backups.', 'Proposal only; trading-logic changes need Chanh\'s OK.'], done: 'Chanh gets the main cause with numbers and 1-3 fixes to approve.' }) : null,
+    detail: { en: `Average win $${kf.avgWin}, average loss $${Math.abs(kf.avgLoss)}. PF under 1 means losing after costs.`, vi: `Thắng TB $${kf.avgWin}, thua TB $${Math.abs(kf.avgLoss)}. PF dưới 1 là đang lỗ sau phí.` },
+    prompt: p != null && p < 1 ? taskPrompt({ goal: 'Find why Atlas losing trades are bigger than winners (PF under 1) and propose a fix.', evidence: [`PF ${p}${kf.pfBefore != null ? `, before the last 20 trades ${kf.pfBefore}` : ''}`, `avg win $${kf.avgWin}, avg loss $${kf.avgLoss}`, `${s.trades.length} closed trades`, `fix #${FIX.pr} (filters, breakeven at +1R, half-size longs) already live`], scope: ['Split losses by exit reason (stop gap, close, signal), kind (day/long), source and entry time; use the backup on branch backups.', 'Proposal only; trading-logic changes need Chanh\'s OK.'], done: 'Chanh gets the main cause with numbers and 1-3 fixes to approve.' }) : null,
   })
 
   // 5. idea factory nightly run + slots
@@ -235,6 +261,8 @@ export function headline(checks: Check[]): { level: Level; text: Bi } {
   if (machineBad) return { level: 'bad', text: { en: `Something is broken: ${bad} red item${bad > 1 ? 's' : ''} to fix.`, vi: `Có bộ phận hỏng: ${bad} việc đỏ cần sửa.` } }
   if (bad) return { level: 'warn', text: { en: `Machine runs fine. Results not there yet: ${bad} red item${bad > 1 ? 's' : ''}.`, vi: `Máy chạy tốt. Kết quả chưa đạt: ${bad} việc đỏ cần xử lý.` } }
   if (warn) return { level: 'warn', text: { en: `All running. ${warn} item${warn > 1 ? 's' : ''} to look at.`, vi: `Mọi thứ đang chạy. ${warn} việc cần để ý.` } }
+  const wait = checks.some((c) => FIX.ids.includes(c.id) && c.level === 'off' && c.status.en.startsWith('fixed'))
+  if (wait) return { level: 'ok', text: { en: 'Nothing to do. Waiting for new trades to grade the last fix.', vi: 'Không có việc cần làm. Đang chờ lệnh mới để chấm bản sửa vừa rồi.' } }
   return { level: 'ok', text: { en: 'All green. Nothing to do.', vi: 'Tất cả xanh. Không có việc gì cần làm.' } }
 }
 

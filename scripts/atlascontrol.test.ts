@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict'
-import { headline, kpis, learners, marketOpen, repoUpgrade, stepFor, steps, systemCheck, taskPrompt, todos, UPGRADES } from '../src/lib/atlasControl'
+import { headline, kpis, learners, marketOpen, repoUpgrade, stepFor, steps, systemCheck, taskGoal, taskPrompt, todos, UPGRADES } from '../src/lib/atlasControl'
 import { emptyPractice, type PracticeTrade } from '../src/lib/practice'
 
 let id = 0
@@ -21,7 +21,7 @@ assert.equal(k.winRate, 33)
 assert.equal(k.pf, 0.33)
 
 const leaders = { generated: new Date(now - 10 * 3_600_000).toISOString(), universe: 1771, leaders: [] }
-const checks = systemCheck({ s, now, factory: null, leaders, leads: null })
+const checks = systemCheck({ s, now, factory: null, leaders, leads: null, fixAt: 0 })
 const by = (x: string) => checks.find((c) => c.id === x)!
 assert.equal(by('cycle').level, 'ok')
 assert.equal(by('leaders').level, 'ok')
@@ -63,3 +63,23 @@ const c4 = systemCheck({ s, now, factory: null, leaders, leads: null, paper })
 assert.equal(c4.find((c) => c.id === 'grade')!.level, 'warn')
 assert.equal(learners({ s, now, factory: null, leaders, leads: null, paper })[0].id, 'leaders-paper')
 console.log('atlascontrol paper: ok')
+
+// after a shipped fix the learning and PF lights wait for 30 new trades (grey, no "Do this"), then judge only those
+{
+  const fixAt = now - 5 * 3_600_000 // 5 of the 30 losing-book trades closed after the fix
+  const w = systemCheck({ s, now, factory: null, leaders, leads: null, fixAt })
+  for (const id of ['learn', 'pf']) {
+    const c = w.find((x) => x.id === id)!
+    assert.equal(c.level, 'off')
+    assert.equal(c.prompt, null)
+    assert.match(c.status.vi, /chờ 5\/30 lệnh mới/)
+  }
+  assert.ok(!todos(w).some((c) => c.id === 'learn' || c.id === 'pf'), 'waiting lights are not on the to-do list')
+  // 30 new trades: judged again, on the new trades only
+  const after = systemCheck({ s, now, factory: null, leaders, leads: null, fixAt: 0 })
+  assert.equal(after.find((x) => x.id === 'pf')!.level, 'bad')
+  assert.match(after.find((x) => x.id === 'pf')!.prompt!, /already live/)
+  // a queued task is matched by its cut title
+  assert.ok(after.find((x) => x.id === 'pf')!.prompt!.includes(taskGoal('Atlas task: Find why Atlas losing trades are bigger than winners (PF under 1)…')))
+}
+console.log('atlascontrol fix-wait ok')
