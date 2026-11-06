@@ -126,3 +126,12 @@
 .ac-tabs button.on { color: var(--text); background: color-mix(in srgb, var(--robot) 22%, transparent); }
 .ac-work .ac-list { grid-template-columns: minmax(0, 1fr); }
 @media (min-width: 760px) { .ac-work .ac-uplist { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+
+/* everything below the panel and today's signals, folded (JarvisBrief fold()) */
+.ac-fold { margin: 12px 0; border: 1px solid var(--line); border-radius: 22px; background: color-mix(in srgb, var(--panel) 70%, transparent); }
+.ac-fold > summary { cursor: pointer; padding: 14px 18px; font-weight: 600; color: var(--robot); list-style: none; }
+.ac-fold > summary::-webkit-details-marker { display: none; }
+.ac-fold > summary::before { content: '▸ '; }
+.ac-fold[open] > summary::before { content: '▾ '; }
+.ac-fold-body { padding: 0 12px 12px; }
+#atlas-today .asb-sigs { grid-column: 1 / -1; }

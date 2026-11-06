@@ -726,7 +726,7 @@ export default function App() {
               }}
               onAtlasBlock={(id) => {
                 setPage(briefOn ? 'brief' : 'trade')
-                setTimeout(() => document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 350)
+                setTimeout(() => { const el = document.getElementById(id); el?.closest('details')?.setAttribute('open', ''); el?.scrollIntoView({ behavior: 'smooth', block: 'start' }) }, 350)
               }}
               onSettings={() => setSettingsOpen(true)}
             />
@@ -745,7 +745,7 @@ export default function App() {
               }}
               onAtlasBlock={(id) => {
                 setPage(briefOn ? 'brief' : 'trade')
-                setTimeout(() => document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 350)
+                setTimeout(() => { const el = document.getElementById(id); el?.closest('details')?.setAttribute('open', ''); el?.scrollIntoView({ behavior: 'smooth', block: 'start' }) }, 350)
               }}
               onSettings={() => setSettingsOpen(true)}
             />

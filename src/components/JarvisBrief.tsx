@@ -332,7 +332,18 @@ export function JarvisBrief(p: Props) {
 
   // signal board on top: honest verdict, learning progress, signals with TP/SL and real win rate (AI rule atlasSignals)
   const control = p.rules.atlasControl ? <AtlasControl practice={p.practice} /> : null
-  const signalBoard = p.rules.atlasSignals ? <AtlasSignalBoard practice={p.practice} onSymbol={p.onSymbol} ideas={p.rules.ideaFactory} /> : null
+  const signalBoard = p.rules.atlasSignals ? <AtlasSignalBoard practice={p.practice} onSymbol={p.onSymbol} ideas={p.rules.ideaFactory} part={control ? 'rest' : 'all'} /> : null
+  // with the control panel on, only today's signals stay open under it; every other card folds into "Xem chi tiết" (Chanh 06/11)
+  const todaySignals = control && p.rules.atlasSignals ? <AtlasSignalBoard practice={p.practice} onSymbol={p.onSymbol} part="signals" /> : null
+  const fold = (children: ReactNode) =>
+    control ? (
+      <details className="ac-fold">
+        <summary>{vi ? 'Xem chi tiết: tín hiệu Neo, xưởng ý tưởng, Dẫn đầu, tự học và các thẻ khác' : 'More detail: Neo picks, idea factory, Leaders, learner and other cards'}</summary>
+        <div className="ac-fold-body">{children}</div>
+      </details>
+    ) : (
+      children
+    )
 
   if (hub) {
     const glass = p.rules.agentGlass
@@ -355,8 +366,10 @@ export function JarvisBrief(p: Props) {
     return frame(
       <>
         {control}
-        {control}
-      {signalBoard}
+        {todaySignals}
+        {fold(
+          <>
+        {signalBoard}
         <section className="bf-hero hub-hero">
         <BrainCore nodes={nodes} memory={memory} thinking={p.scan.busy || brief.writing} motion={p.rules.jarvisMotion} onNode={p.onNode} />
           {tools ? (
@@ -395,6 +408,8 @@ export function JarvisBrief(p: Props) {
             )}
           </aside>
         </div>
+          </>,
+        )}
         <HubTabbar onDesk={p.onDesk} tools={tools} onHub={p.onHub} />
         {showSignalFlow && <SignalFlowExplainer signal={showSignalFlow} of={buys.length} onClose={() => setShowSignalFlow(null)} />}
         {showReadiness && <AgentReadiness nodes={nodes} onClose={() => setShowReadiness(false)} />}
@@ -404,6 +419,10 @@ export function JarvisBrief(p: Props) {
 
   return (
     <main className="brief-page">
+      {control}
+      {todaySignals}
+      {fold(
+        <>
       {signalBoard}
       <section className="bf-hero">
         {briefBlock}
@@ -418,6 +437,8 @@ export function JarvisBrief(p: Props) {
         {learnerCard}
         {qaCard}
       </div>
+        </>,
+      )}
 
       {showSignalFlow && (
         <SignalFlowExplainer signal={showSignalFlow} of={buys.length} onClose={() => setShowSignalFlow(null)} />

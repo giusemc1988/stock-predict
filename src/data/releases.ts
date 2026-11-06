@@ -2,7 +2,7 @@
  * Version and "What's new". Bump APP_VERSION and add an entry to the top of RELEASES
  * with each update. The banner shows once per version, then stays dismissed.
  */
-export const APP_VERSION = '2.0.16'
+export const APP_VERSION = '2.0.17'
 
 export interface Release {
   version: string
@@ -13,6 +13,12 @@ export interface Release {
 }
 
 export const RELEASES: Release[] = [
+  {
+    version: '2.0.17',
+    date: '2026-11-06',
+    changes: ['Atlas page is shorter: the control panel showed twice by mistake, now once. Under it only today\'s signals stay open; every other card (where Atlas is, what it learns, idea factory, Leaders, why it trades, Neo picks, movers, learner, recent activity) is folded into "More detail", one tap to open. Nothing removed; the Hub card buttons open the fold for you.'],
+    changesVi: ['Trang Atlas ngắn lại: bảng điều khiển bị hiện 2 lần do lỗi, giờ chỉ còn 1. Bên dưới chỉ để mở thẻ Tín hiệu hôm nay; các thẻ khác (Atlas đang ở đâu, đang học gì, xưởng ý tưởng, Dẫn đầu, vì sao vào lệnh, tín hiệu Neo, biến động, tự học, hoạt động gần đây) gom vào "Xem chi tiết", bấm một lần là mở. Không xóa gì; nút trên thẻ Hub tự mở mục này.'],
+  },
   {
     version: '2.0.16',
     date: '2026-11-06',
