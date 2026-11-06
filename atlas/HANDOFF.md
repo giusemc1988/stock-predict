@@ -232,3 +232,12 @@ Chanh suspected the lab itself was broken because ~400 lab ideas + 800 factory r
 - **Checked, OK:** costs (1.5-11 bps a side, not double-counted), next-open entry, random control matched by symbol + year, p-values, annualization. Known and left: universe is today's survivors (helps longs, does not cause failures); daily overnight idea decides on the close (slight look-ahead, already noted).
 - **Re-scored (nothing passes, now for real reasons):** overnight winners DSR 0.89 but only +0.06%/trade (negative at 2x) without the 14 high-vol names; ETF momentum 0.68, stock momentum 0.84 (needs ETF twin); insider DSR 0.28, p 0.07 (63 trades); pairs p 0.015, DSR 0.22; PUT-write 0.83 (book fails); all-sleeve portfolio 0.87; factory finalists lose to random in the vault (excess about -2.8%, p 1); shorts all lose.
 - **Next:** no new idea rounds; wait for the L1-L4 shadow review on 16/11.
+
+## 17. Review skills + E-LATE check (05/11, Desktop session in C:\Users\chanh\Projects\trading-lab)
+- **Skills added (docs only, no app code):** `.claude/skills/post-trade-debrief`, `post-trade-review`, `journal-pattern-analyzer`, `risk-reward-sanity-check`. Source: marian2js/trading-skills, MIT (`.claude/skills/LICENSE-marian2js`), commit f1ae7d4, vetted: Markdown only, no network, no orders. Its `live-trade/etoro` skill (real orders, broker keys) was rejected. Use them for the post-mortem in the Daily Health Check: debrief a closed trade, find repeated QUY TRINH causes across trades, and check whether a plan's stop/target fits its holding time.
+- **E-LATE (lab only, read-only on backups/backup-2026-11-06/practice.json):** question: are day-trade entries at or after 15:30 ET (forced exit 15:55) worse? Trigger: ARDT bought 15:35 ET on 05/11 with target +7.2% and 20 minutes left.
+  - LATE (>=15:30 ET): n=9, mean -0.90%/trade (95% bootstrap CI -1.85 to -0.08), WR 11%, 8 of 9 exited at the close, -$16.10.
+  - EARLY: n=398, mean -0.16%/trade (CI -0.37 to +0.06), WR 41%, PF 0.77.
+  - **Verdict: FAIL on sample size (needs n>=30), not a dead end.** Direction supports the idea. Re-run when LATE reaches 30 trades: `python3 atlas/elate.py <backup>/practice.json` (standard library only). No live change.
+  - By entry hour, only 09:xx ET had PF > 1 (1.19, n=86). Post-hoc, 8 hours looked at: hypothesis only, do not act on it.
+- Count E-LATE as 1 trial if it is ever added to `TRIAL_LEDGER`.
