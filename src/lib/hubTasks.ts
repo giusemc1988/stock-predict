@@ -12,7 +12,7 @@ export const TASK_WORKFLOW = 'agent-task.yml'
 export const TASK_LABEL = 'agent-task'
 /** set by the Claude session once it has opened a pull request for the issue */
 export const TASK_PR_LABEL = 'agent-pr'
-const MAX_TEXT = 1500
+const MAX_TEXT = 4000
 
 const clean = (s: string) => ` ${fold(s).replace(/['’]/g, '').replace(/[^a-z0-9 ]+/g, ' ').replace(/\s+/g, ' ').trim()} `
 const ASK = / (sua loi|sua code|sua giup|fix|bug|loi o|tao app|tao mot app|lam app|lam mot app|make an app|build an app|create an app|them tinh nang|add a feature|them nut|add a button|doi giao dien|change the design|nang cap|upgrade the) /

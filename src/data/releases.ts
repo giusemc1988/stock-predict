@@ -2,7 +2,7 @@
  * Version and "What's new". Bump APP_VERSION and add an entry to the top of RELEASES
  * with each update. The banner shows once per version, then stays dismissed.
  */
-export const APP_VERSION = '2.0.14'
+export const APP_VERSION = '2.0.15'
 
 export interface Release {
   version: string
@@ -13,6 +13,16 @@ export interface Release {
 }
 
 export const RELEASES: Release[] = [
+  {
+    version: '2.0.15',
+    date: '2026-11-06',
+    changes: [
+      'New control panel at the top of the Atlas page. One big "Check the system" button lights up every part (nightly scan, 5-minute cycle, learning, profit factor, idea factory, grading, shadow tests, promotion) green, yellow or red, with a one-line verdict. Below: key numbers with goals, a "To do" list in plain words, upgrade ideas and suggested free tools, the new Leaders paper slot included, (plus "Find new on GitHub"), the 6-step map with a "?" explanation, and a leaderboard of every learner against the same pass bar. Every to-do and idea has a ready-written prompt: "Do this" puts it in Claude\'s queue, and Claude works the queue when you say "làm hàng chờ Atlas". Nothing trades differently.',
+    ],
+    changesVi: [
+      'Bảng điều khiển mới ở đầu trang Atlas. Một nút lớn "Kiểm tra hệ thống" bật đèn xanh/vàng/đỏ cho từng bộ phận (quét tối, vòng 5 phút, học, PF, xưởng ý tưởng, chấm điểm, chạy bóng, lên chức) kèm một câu kết luận. Bên dưới: chỉ số chính có mục tiêu, "Cần xử lý" bằng lời dễ hiểu, gợi ý nâng cấp và công cụ miễn phí (có nút "Tìm mới trên GitHub"), bản đồ 6 bước có nút "?" giải thích, và bảng xếp hạng mọi học viên theo cùng một vạch đậu. Mỗi việc và mỗi gợi ý có prompt viết sẵn: bấm "Làm cái này" là vào hàng chờ cho Claude, và Claude làm khi anh nhắn "làm hàng chờ Atlas". Cách giao dịch không đổi.',
+    ],
+  },
   {
     version: '2.0.14',
     date: '2026-11-06',
