@@ -2,7 +2,7 @@
  * Version and "What's new". Bump APP_VERSION and add an entry to the top of RELEASES
  * with each update. The banner shows once per version, then stays dismissed.
  */
-export const APP_VERSION = '2.0.21'
+export const APP_VERSION = '2.0.22'
 
 export interface Release {
   version: string
@@ -13,6 +13,12 @@ export interface Release {
 }
 
 export const RELEASES: Release[] = [
+  {
+    version: '2.0.22',
+    date: '2026-11-06',
+    changes: ['Atlas practice, three small fixes (paper only, each with its own switch in AI rules): (1) no buys on stocks under $10 (cheap stocks slipped past their stop); (2) the "half size in high volatility" rule is off, because long trades are already half size; (3) when slots are short, stocks from the nightly Leaders top 100 get them first.'],
+    changesVi: ['Atlas luyện tập, 3 chỉnh nhỏ (chỉ giấy, mỗi cái có công tắc riêng trong Luật AI): (1) không mua cổ phiếu dưới $10 (mã rẻ hay trượt qua cắt lỗ); (2) tắt luật "biến động cao giảm nửa khối lượng" vì lệnh dài hạn đã giảm nửa; (3) khi thiếu lượt mua, mã trong top 100 "Dẫn đầu" được ưu tiên trước.'],
+  },
   {
     version: '2.0.21',
     date: '2026-11-06',

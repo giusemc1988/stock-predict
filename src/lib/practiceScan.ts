@@ -49,6 +49,8 @@ export interface ScanInput {
   dayEnd?: number
   /** Feed name for a market's bars, e.g. "Binance" or "Yahoo Finance"; labels the data real-time, delayed or mock. */
   sourceFor: (m: ScanMarket) => string
+  /** Symbols on the nightly Leaders top 100: they get the day's slots first when practiceLeadersFirst is on. */
+  leaders?: string[]
   /** Approved skills, recorded on each decision. */
   skills?: string[]
   /** True when rolling win rate < 40%; pause learning to avoid overfitting to unproven signals. */
@@ -173,6 +175,12 @@ export async function scanCycle(input: ScanInput): Promise<ScanResult> {
     lastBars[x.symbol] = x.barTime
     return seen == null ? now < (x.barTime + 2 * BAR_SEC) * 1000 : seen < x.barTime
   })
+  // slots are first come first served, so Leaders stocks go first (stable: the pick order is kept inside each group)
+  if (rules.practiceLeadersFirst && input.leaders?.length) {
+    const lead = new Set(input.leaders)
+    const isLead = (x: { symbol: string; asset: string }) => x.asset === 'stock' && lead.has(x.symbol)
+    fresh.splice(0, fresh.length, ...fresh.filter(isLead), ...fresh.filter((x) => !isLead(x)))
+  }
 
   const apply = (prev: PracticeState) => {
     let s = prev

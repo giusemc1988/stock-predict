@@ -143,6 +143,9 @@ export interface AiRules {
   practiceVolFilter: boolean // practice buys only when the 15m volume is at least 1x normal (was a shadow rule: below it won 10%)
   practiceNoWatchlistDay: boolean // no practice day trades picked from the watchlist (was a shadow rule: won 21-29%)
   practiceLetWinnersRun: boolean // practice: stop moves to the entry price once a trade is up 1R, and trades in profit skip the 12-bar time exit
+  practiceMinPrice10: boolean // practice never buys a stock under $10 (cheap stocks slip past their stop)
+  practiceVolatilityHalf: boolean // practice halves the size in high volatility (off: long trades are already half size)
+  practiceLeadersFirst: boolean // when slots are short, stocks on the nightly Leaders top 100 get them first
   practiceLongHalf: boolean // practice long-term trades open at half size (overnight gaps can jump past the stop)
   voltFlasher: boolean // Volt page: flash any ESP32 board from a GitHub repo link or a dropped .bin file, checked against the chip before writing
   echoRoomWatch: boolean // Echo page: read one ESP32-S3 running RuView firmware over USB (Web Serial) and show presence, motion, breathing; no home PC, nothing leaves the phone
@@ -290,6 +293,9 @@ export const DEFAULT_AI_RULES: AiRules = {
   practiceVolFilter: true,
   practiceNoWatchlistDay: true,
   practiceLetWinnersRun: true,
+  practiceMinPrice10: true,
+  practiceVolatilityHalf: false,
+  practiceLeadersFirst: true,
   practiceLongHalf: true,
   voltFlasher: true,
   echoRoomWatch: true,
@@ -454,6 +460,9 @@ export const RULE_FIELDS: RuleField[] = [
   { group: 'modules', key: 'practiceVolFilter', en: 'Practice buys only on normal or higher volume (15m volume at least 1x its average)', vi: 'Luyện tập chỉ mua khi khối lượng bình thường trở lên (khối lượng 15 phút ít nhất 1 lần trung bình)' },
   { group: 'modules', key: 'practiceNoWatchlistDay', en: 'No practice day trades picked from the watchlist (they kept losing)', vi: 'Không mở lệnh trong ngày từ danh sách theo dõi (nhóm này thua nhiều)' },
   { group: 'modules', key: 'practiceLetWinnersRun', en: 'Practice lets winners run: stop moves to the entry price once a trade is up 1R, and a trade in profit is not closed by the 12-bar time limit', vi: 'Luyện tập để lệnh thắng chạy: lãi bằng 1R thì dời cắt lỗ về giá vào, lệnh đang lãi không bị đóng sau 12 nến' },
+  { group: 'modules', key: 'practiceMinPrice10', en: 'Practice never buys a stock under $10 (cheap stocks slip past their stop)', vi: 'Luyện tập không mua cổ phiếu dưới $10 (mã rẻ hay trượt qua cắt lỗ)' },
+  { group: 'modules', key: 'practiceVolatilityHalf', en: 'Practice halves the size in high volatility (off: long trades are already half size)', vi: 'Luyện tập giảm nửa khối lượng khi biến động cao (tắt: lệnh dài hạn đã giảm nửa)' },
+  { group: 'modules', key: 'practiceLeadersFirst', en: 'When trade slots are short, stocks from the nightly Leaders top 100 get them first', vi: 'Khi thiếu lượt mua, mã trong top 100 "Dẫn đầu" được ưu tiên trước' },
   { group: 'modules', key: 'practiceLongHalf', en: 'Practice long-term trades at half size (overnight gaps can jump past the stop)', vi: 'Lệnh luyện tập dài hạn vào nửa khối lượng (giá có thể nhảy qua cắt lỗ qua đêm)' },
   { group: 'modules', key: 'potentialListOn', en: 'Show "Potential" list (stocks with good BUY signals from the scanner)', vi: 'Hiện danh sách "Tiềm năng" (cổ phiếu có tín hiệu MUA tốt từ máy quét)' },
 ]
@@ -581,6 +590,8 @@ export function practiceLimits(r: AiRules) {
     volFilter: r.practiceVolFilter,
     noWatchlistDay: r.practiceNoWatchlistDay,
     letWinnersRun: r.practiceLetWinnersRun,
+    minPrice10: r.practiceMinPrice10,
+    volatilityHalf: r.practiceVolatilityHalf,
     longSizeMult: r.practiceLongHalf ? LONG_SIZE_MULT : 1,
   }
 }

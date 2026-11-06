@@ -257,3 +257,15 @@ console.log('practice tests passed')
   assert.equal(old.trades[0].exitReason, 'time', 'switch off: old time exit')
 }
 console.log('practice v1.3.3 exits ok')
+
+// ---------- v1.3.7: min price $10, high-volatility half size off ----------
+{
+  const cheap = planAt(8, 5)
+  const lowP = onBarClose(emptyPractice(), ctx({ minPrice10: true, price: 8, analysis: cheap }))
+  assert.equal(lowP.open.length, 0, 'stock under $10 skipped')
+  assert.match(lowP.events[0].en, /under \$10/)
+  assert.equal(onBarClose(emptyPractice(), ctx({ minPrice10: true, price: 12, analysis: planAt(12, 5) })).open.length, 1, 'over $10 passes')
+  assert.equal(onBarClose(emptyPractice(), ctx({ minPrice10: false, price: 8, analysis: cheap })).open.length, 1, 'switch off: old behaviour')
+  assert.equal(onBarClose(emptyPractice(), ctx({ minPrice10: true, asset: 'crypto', price: 8, analysis: cheap })).open.length, 1, 'crypto not affected')
+}
+console.log('practice v1.3.7 min price ok')

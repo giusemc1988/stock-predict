@@ -275,6 +275,17 @@ export async function practiceCycle(env: WorkerEnv): Promise<{ state: PracticeSt
     }
   }
 
+  // the nightly Leaders top 100 (public/leaders.json): their buys get the day's slots first
+  let leaders: string[] = []
+  if (env.ASSETS) {
+    try {
+      const res = await env.ASSETS.fetch(new Request('https://assets.local/leaders.json'))
+      if (res.ok) leaders = ((await res.json()) as { leaders?: { symbol: string }[] }).leaders?.map((l) => l.symbol) ?? []
+    } catch {
+      /* no Leaders file: pick order stays as it is */
+    }
+  }
+
   const rules = DEFAULT_AI_RULES
   const now = Date.now()
   const markets: ScanMarket[] = scanMarkets(
@@ -322,6 +333,7 @@ export async function practiceCycle(env: WorkerEnv): Promise<{ state: PracticeSt
     drawdownBrakeMultiplier: brakeMult,
     kellyMultiplier: kellyMult,
     kronosPct,
+    leaders,
   })
 
   if (Object.keys(r.prices).length === 0) {
