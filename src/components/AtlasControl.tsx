@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { headline, kpis, learners, repoUpgrade, steps, systemCheck, todos, UPGRADES, PASS, type Check, type ControlInput, type FoundRepo, type Level, type Upgrade } from '../lib/atlasControl'
+import { headline, kpis, learners, repoUpgrade, steps, systemCheck, taskGoal, todos, UPGRADES, PASS, type Check, type ControlInput, type FoundRepo, type Level, type Upgrade } from '../lib/atlasControl'
 import type { FactoryReport } from '../lib/ideaFactoryView'
 import type { TaskInfo } from '../lib/hubTasks'
 import { useLang } from '../lib/i18n'
@@ -120,12 +120,18 @@ export function AtlasControl({ practice }: { practice: PracticeState }) {
   // one row with "Do this" + "See prompt"
   const actions = (id: string, prompt: string, label: Bi) => {
     const st = sent[id]
+    // already in the queue (waiting or PR ready): no second copy of the same task
+    const queued = (tasks ?? []).find((t) => (t.state === 'waiting' || t.state === 'pr') && prompt.includes(taskGoal(t.title)))
     return (
       <div className="ac-act">
         <div className="ac-btns">
-          <button className="ac-btn ac-pri" disabled={st === 'busy' || st === 'ok'} onClick={() => void send(id, prompt)}>
-            {st === 'busy' ? '…' : st === 'ok' ? (vi ? '✓ Đã gửi' : '✓ Sent') : L(label)}
-          </button>
+          {queued ? (
+            <a className="ac-btn ac-pri" href={queued.url} target="_blank" rel="noreferrer">{vi ? `✓ Đã ở hàng chờ #${queued.number}` : `✓ In the queue #${queued.number}`}</a>
+          ) : (
+            <button className="ac-btn ac-pri" disabled={st === 'busy' || st === 'ok'} onClick={() => void send(id, prompt)}>
+              {st === 'busy' ? '…' : st === 'ok' ? (vi ? '✓ Đã gửi' : '✓ Sent') : L(label)}
+            </button>
+          )}
           <button className="ac-btn" onClick={() => setOpen(open === id ? null : id)}>{vi ? (open === id ? 'Ẩn prompt' : 'Xem prompt') : open === id ? 'Hide prompt' : 'See prompt'}</button>
         </div>
         {st && st !== 'busy' && <p className={`ac-sent ${st === 'ok' ? 'up' : 'down'}`}>{L(SENT[st])}</p>}
@@ -166,7 +172,7 @@ export function AtlasControl({ practice }: { practice: PracticeState }) {
           <span><i className="ac-dot ok" />{vi ? 'Ổn' : 'OK'}</span>
           <span><i className="ac-dot warn" />{vi ? 'Cần để ý / chờ duyệt' : 'Look / approve'}</span>
           <span><i className="ac-dot bad" />{vi ? 'Có vấn đề' : 'Problem'}</span>
-          <span><i className="ac-dot off" />{vi ? 'Chưa xây / cố vấn' : 'Not built / advisor'}</span>
+          <span><i className="ac-dot off" />{vi ? 'Chưa xây / đã sửa, chờ kết quả' : 'Not built / fixed, waiting for results'}</span>
         </div>
       </section>
 

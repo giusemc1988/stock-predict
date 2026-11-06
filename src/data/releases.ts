@@ -2,7 +2,7 @@
  * Version and "What's new". Bump APP_VERSION and add an entry to the top of RELEASES
  * with each update. The banner shows once per version, then stays dismissed.
  */
-export const APP_VERSION = '2.0.18'
+export const APP_VERSION = '2.0.19'
 
 export interface Release {
   version: string
@@ -13,6 +13,12 @@ export interface Release {
 }
 
 export const RELEASES: Release[] = [
+  {
+    version: '2.0.19',
+    date: '2026-11-06',
+    changes: ['Atlas control panel: after a fix ships (2.0.18), the Learning and Profit-factor lights stop showing red for old trades. They turn grey "fixed, waiting 0/30 new trades" and judge again on the 30 trades after the fix. A task already in the queue shows "In the queue #N" instead of a second "Do this" button.'],
+    changesVi: ['Bảng điều khiển Atlas: sau khi đã sửa (bản 2.0.18), đèn "Ghi sổ, học" và "Lãi/lỗ (PF)" không còn báo đỏ vì lệnh cũ. Đèn chuyển xám "đã sửa, chờ 0/30 lệnh mới" và chỉ chấm lại trên 30 lệnh sau khi sửa. Việc đã có trong hàng chờ hiện "Đã ở hàng chờ #N" thay vì nút "Làm cái này" thứ hai.'],
+  },
   {
     version: '2.0.18',
     date: '2026-11-06',
