@@ -28,6 +28,7 @@ import { SkRows } from './Skeleton'
 import { ActivityFeed, type FeedItem } from './ActivityFeed'
 import { AgentShell } from './AgentShell'
 import { AtlasSignalBoard } from './AtlasSignalBoard'
+import { AtlasControl } from './AtlasControl'
 
 interface Props {
   rules: AiRules
@@ -330,6 +331,7 @@ export function JarvisBrief(p: Props) {
   const openPick = (b: PickRow) => p.onSymbol(b.symbol, b.symbol.includes('/') ? 'crypto' : 'stock')
 
   // signal board on top: honest verdict, learning progress, signals with TP/SL and real win rate (AI rule atlasSignals)
+  const control = p.rules.atlasControl ? <AtlasControl practice={p.practice} /> : null
   const signalBoard = p.rules.atlasSignals ? <AtlasSignalBoard practice={p.practice} onSymbol={p.onSymbol} ideas={p.rules.ideaFactory} /> : null
 
   if (hub) {
@@ -352,7 +354,9 @@ export function JarvisBrief(p: Props) {
       )
     return frame(
       <>
-        {signalBoard}
+        {control}
+        {control}
+      {signalBoard}
         <section className="bf-hero hub-hero">
         <BrainCore nodes={nodes} memory={memory} thinking={p.scan.busy || brief.writing} motion={p.rules.jarvisMotion} onNode={p.onNode} />
           {tools ? (
