@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict'
-import { headline, kpis, learners, marketOpen, repoUpgrade, stepFor, steps, systemCheck, taskGoal, taskPrompt, todos, UPGRADES } from '../src/lib/atlasControl'
+import { batchPrompt, MAX_BATCH, headline, kpis, learners, marketOpen, repoUpgrade, stepFor, steps, systemCheck, taskGoal, taskPrompt, todos, UPGRADES } from '../src/lib/atlasControl'
 import { emptyPractice, type PracticeTrade } from '../src/lib/practice'
 
 let id = 0
@@ -83,3 +83,14 @@ console.log('atlascontrol paper: ok')
   assert.ok(after.find((x) => x.id === 'pf')!.prompt!.includes(taskGoal('Atlas task: Find why Atlas losing trades are bigger than winners (PF under 1)…')))
 }
 console.log('atlascontrol fix-wait ok')
+
+// several picked upgrades go as ONE task, with the rules once and under the 4,000-character issue limit
+{
+  const many = [...UPGRADES, ...UPGRADES].map((u, i) => ({ ...u, id: `${u.id}-${i}` }))
+  const b = batchPrompt(many)
+  assert.ok(b.length <= 4000)
+  assert.ok(b.startsWith(`Atlas task: Do ${MAX_BATCH} upgrades together`))
+  assert.equal(b.split('PUBLIC').length - 1, 1, 'rules appear once')
+  assert.ok(UPGRADES.slice(0, 2).every((u) => b.includes(u.goal)))
+}
+console.log('atlascontrol batch ok')

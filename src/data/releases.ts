@@ -2,7 +2,7 @@
  * Version and "What's new". Bump APP_VERSION and add an entry to the top of RELEASES
  * with each update. The banner shows once per version, then stays dismissed.
  */
-export const APP_VERSION = '2.0.19'
+export const APP_VERSION = '2.0.20'
 
 export interface Release {
   version: string
@@ -13,6 +13,12 @@ export interface Release {
 }
 
 export const RELEASES: Release[] = [
+  {
+    version: '2.0.20',
+    date: '2026-11-06',
+    changes: ['Atlas control panel, Upgrade tab: each idea and each GitHub repo has a tick box. Tick up to 6 and press "Do the picked ones": they go to Claude as ONE task (one read of the code, one PR), which uses fewer tokens than one task each. The single "Do this" buttons still work.'],
+    changesVi: ['Bảng điều khiển Atlas, tab Nâng cấp: mỗi gợi ý và mỗi repo GitHub có ô vuông để tích. Tích tối đa 6 mục rồi bấm "Làm các mục đã chọn": tất cả gửi cho Claude thành MỘT việc (đọc code một lần, một PR), đỡ tốn token hơn gửi từng cái. Nút "Làm cái này" từng mục vẫn dùng được.'],
+  },
   {
     version: '2.0.19',
     date: '2026-11-06',

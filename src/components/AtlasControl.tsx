@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { headline, kpis, learners, repoUpgrade, steps, systemCheck, taskGoal, todos, UPGRADES, PASS, type Check, type ControlInput, type FoundRepo, type Level, type Upgrade } from '../lib/atlasControl'
+import { batchPrompt, headline, kpis, learners, MAX_BATCH, repoUpgrade, steps, systemCheck, taskGoal, todos, UPGRADES, PASS, type Check, type ControlInput, type FoundRepo, type Level, type Upgrade } from '../lib/atlasControl'
 import type { FactoryReport } from '../lib/ideaFactoryView'
 import type { TaskInfo } from '../lib/hubTasks'
 import { useLang } from '../lib/i18n'
@@ -53,6 +53,7 @@ export function AtlasControl({ practice }: { practice: PracticeState }) {
   const [found, setFound] = useState<Upgrade[] | null>(null)
   const [finding, setFinding] = useState(false)
   const [allUps, setAllUps] = useState(false)
+  const [picked, setPicked] = useState<Record<string, Upgrade>>({})
   const [tab, setTab] = useState<'fix' | 'up' | 'queue'>('fix')
   const [allLb, setAllLb] = useState(false)
   const [tasks, setTasks] = useState<TaskInfo[] | null>(null)
@@ -140,9 +141,25 @@ export function AtlasControl({ practice }: { practice: PracticeState }) {
     )
   }
 
+  const nPicked = Object.keys(picked).length
+  const togglePick = (u: Upgrade) =>
+    setPicked((m) => {
+      const n = { ...m }
+      if (n[u.id]) delete n[u.id]
+      else if (Object.keys(n).length < MAX_BATCH) n[u.id] = u
+      return n
+    })
+  const sendBatch = async () => {
+    await send('batch', batchPrompt(Object.values(picked)))
+    setPicked({})
+  }
+
   const upCard = (u: Upgrade) => (
-    <li key={u.id} className="ac-up">
+    <li key={u.id} className={`ac-up${picked[u.id] ? ' picked' : ''}`}>
       <div className="ac-up-top">
+        <label className="ac-pick" title={vi ? 'Chọn để làm chung' : 'Pick to do together'}>
+          <input type="checkbox" checked={!!picked[u.id]} disabled={!picked[u.id] && nPicked >= MAX_BATCH} onChange={() => togglePick(u)} />
+        </label>
         <div>
           <b>{u.url ? <a href={u.url} target="_blank" rel="noreferrer">{L(u.title)}</a> : L(u.title)}</b>
           <span>{L(u.why)}</span>
@@ -228,11 +245,22 @@ export function AtlasControl({ practice }: { practice: PracticeState }) {
         )}
         {tab === 'up' && (
           <>
+        <p className="ac-note">{vi ? `Tích ô vuông ở nhiều mục (tối đa ${MAX_BATCH}) rồi bấm "Làm các mục đã chọn": Claude làm chung một lần, đỡ tốn token hơn làm từng cái.` : `Tick several items (up to ${MAX_BATCH}) and press "Do the picked ones": Claude does them in one go, using fewer tokens.`}</p>
         <ul className="ac-list ac-uplist">{(allUps ? UPGRADES : UPGRADES.slice(0, 4)).map(upCard)}</ul>
         {!allUps && <button className="ac-btn ac-find" onClick={() => setAllUps(true)}>{vi ? `Xem thêm ${UPGRADES.length - 4} gợi ý` : `${UPGRADES.length - 4} more ideas`}</button>}
         <button className="ac-btn ac-find" disabled={finding} onClick={() => void findNew()}>{finding ? (vi ? 'Đang tìm…' : 'Searching…') : vi ? '🔎 Tìm mới trên GitHub' : '🔎 Find new on GitHub'}</button>
         {finding && <div className="ac-progress"><i /></div>}
         {found && (found.length ? <ul className="ac-list ac-uplist">{found.map(upCard)}</ul> : <p className="ac-empty">{vi ? 'Chưa tìm được (GitHub giới hạn lượt tìm, thử lại sau 1 phút).' : 'Nothing found (GitHub rate limit, try again in a minute).'}</p>)}
+        {(nPicked > 0 || sent.batch) && (
+          <div className="ac-batch">
+            <span>{nPicked > 0 ? (vi ? `Đã chọn ${nPicked}/${MAX_BATCH}` : `${nPicked}/${MAX_BATCH} picked`) : ''}</span>
+            <div className="ac-btns">
+              {nPicked > 0 && <button className="ac-btn ac-pri" disabled={sent.batch === 'busy'} onClick={() => void sendBatch()}>{sent.batch === 'busy' ? '…' : vi ? `Làm ${nPicked} mục đã chọn` : `Do the ${nPicked} picked`}</button>}
+              {nPicked > 0 && <button className="ac-btn" onClick={() => setPicked({})}>{vi ? 'Bỏ chọn' : 'Clear'}</button>}
+            </div>
+            {sent.batch && sent.batch !== 'busy' && <p className={`ac-sent ${sent.batch === 'ok' ? 'up' : 'down'}`}>{L(SENT[sent.batch])}</p>}
+          </div>
+        )}
           </>
         )}
         {tab === 'queue' && (

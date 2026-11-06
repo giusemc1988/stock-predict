@@ -57,6 +57,13 @@
 .ac-item span, .ac-up-top span { display: block; font-size: 11.5px; color: var(--muted); }
 .ac-up-top { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px; align-items: start; }
 .ac-up a { color: inherit; text-decoration: underline dotted; }
+.ac-up-top:has(.ac-pick) { grid-template-columns: auto minmax(0, 1fr) auto; }
+.ac-pick { display: flex; padding-top: 1px; cursor: pointer; }
+.ac-pick input { width: 18px; height: 18px; margin: 0; accent-color: var(--robot); cursor: pointer; }
+.ac-up.picked { border-color: var(--robot); }
+.ac-batch { position: sticky; bottom: calc(80px + env(safe-area-inset-bottom, 0px)); z-index: 2; display: flex; flex-wrap: wrap; gap: 8px; align-items: center; padding: 10px 12px; border-radius: 12px; border: 1px solid var(--robot); background: color-mix(in srgb, var(--panel-2) 94%, transparent); backdrop-filter: blur(8px); }
+.ac-batch > span { flex: 1 1 auto; white-space: nowrap; font-size: 12.5px; font-weight: 600; }
+.ac-batch .ac-sent { flex-basis: 100%; }
 .ac-how { margin: 0; font-size: 11.5px; color: var(--muted); }
 .ac-imp { display: flex; gap: 2px; }
 .ac-imp i { width: 6px; height: 14px; border-radius: 2px; background: var(--line-2); }
