@@ -2,7 +2,7 @@
  * Version and "What's new". Bump APP_VERSION and add an entry to the top of RELEASES
  * with each update. The banner shows once per version, then stays dismissed.
  */
-export const APP_VERSION = '2.0.13'
+export const APP_VERSION = '2.0.14'
 
 export interface Release {
   version: string
@@ -13,6 +13,16 @@ export interface Release {
 }
 
 export const RELEASES: Release[] = [
+  {
+    version: '2.0.14',
+    date: '2026-11-06',
+    changes: [
+      'Leaders now trade on paper: each night Atlas looks at the ~100 leaders for a tight base (narrow range, higher lows, quiet volume), buys when the price breaks through the top of the base on big volume, stops under the base (never more than about one daily range) and holds for days until the trend breaks. It has its own scoreboard on the Leaders card; after 20 finished trades it is marked working or failing, like the idea-factory slots. The main account and the end-of-day closes are not touched. Setups are rare, so expect the first results in a few weeks.',
+    ],
+    changesVi: [
+      'Danh sách Dẫn đầu giờ chạy giấy: mỗi đêm Atlas xem ~100 mã dẫn đầu để tìm vùng đi ngang chặt (biên độ hẹp, đáy sau cao hơn, volume yếu), mua khi giá phá lên đỉnh vùng đó với volume lớn, cắt lỗ dưới vùng đi ngang (không quá khoảng một biên độ ngày) và giữ nhiều ngày đến khi xu hướng gãy. Có bảng điểm riêng trên thẻ Dẫn đầu; sau 20 lệnh đóng sẽ gắn "đáng tin" hoặc "loại" như các ô của xưởng ý tưởng. Tài khoản chính và việc đóng lệnh cuối ngày không bị đụng. Điểm vào hiếm, nên vài tuần mới có kết quả đầu tiên.',
+    ],
+  },
   {
     version: '2.0.13',
     date: '2026-11-05',
