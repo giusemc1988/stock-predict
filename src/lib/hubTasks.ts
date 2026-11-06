@@ -16,7 +16,7 @@ const MAX_TEXT = 4000
 
 const clean = (s: string) => ` ${fold(s).replace(/['’]/g, '').replace(/[^a-z0-9 ]+/g, ' ').replace(/\s+/g, ' ').trim()} `
 const ASK = / (sua loi|sua code|sua giup|fix|bug|loi o|tao app|tao mot app|lam app|lam mot app|make an app|build an app|create an app|them tinh nang|add a feature|them nut|add a button|doi giao dien|change the design|nang cap|upgrade the) /
-const LIST = / (viec code|code task|code tasks|cac viec code|task code|pr nao|pull request|claude dang lam|viec sua code) /
+const LIST = / (viec code|code task|code tasks|cac viec code|task code|pr nao|pull request|claude dang lam|viec sua code|hang cho|the queue|work the queue) /
 
 /** True when the sentence asks for a code change (bug fix, new feature or new app). */
 export const asksCodeChange = (text: string) => text.trim().length >= 8 && ASK.test(clean(text))
@@ -46,7 +46,15 @@ export function describeTasks(tasks: TaskInfo[]): Bi[] {
     done: { en: 'done', vi: 'xong' },
     closed: { en: 'closed', vi: 'đã đóng' },
   }
-  return tasks.slice(0, 5).map((t) => ({ en: `#${t.number} ${t.title}: ${word[t.state].en}.`, vi: `#${t.number} ${t.title}: ${word[t.state].vi}.` }))
+  const lines = tasks.slice(0, 5).map((t) => ({ en: `#${t.number} ${t.title}: ${word[t.state].en}.`, vi: `#${t.number} ${t.title}: ${word[t.state].vi}.` }))
+  if (tasks.some((t) => t.state === 'waiting')) lines.push(HOW_TO_RUN)
+  return lines
+}
+
+/** Neo only files and lists tasks; Claude does them when asked in the Claude app, not in this chat. */
+export const HOW_TO_RUN: Bi = {
+  en: 'To have Claude do the waiting ones: open the Claude app, project Neo Hub, and type "làm hàng chờ Atlas" there (this chat in the app can only list them).',
+  vi: 'Để Claude làm các việc đang chờ: mở app Claude, vào dự án Neo Hub, gõ "làm hàng chờ Atlas" ở đó (ô chat trong app này chỉ xem được danh sách).',
 }
 
 // ---- browser side ----

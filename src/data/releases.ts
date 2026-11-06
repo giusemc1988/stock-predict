@@ -2,7 +2,7 @@
  * Version and "What's new". Bump APP_VERSION and add an entry to the top of RELEASES
  * with each update. The banner shows once per version, then stays dismissed.
  */
-export const APP_VERSION = '2.0.20'
+export const APP_VERSION = '2.0.21'
 
 export interface Release {
   version: string
@@ -13,6 +13,12 @@ export interface Release {
 }
 
 export const RELEASES: Release[] = [
+  {
+    version: '2.0.21',
+    date: '2026-11-06',
+    changes: ['Clearer queue help: tasks you send wait for Claude in the Claude app (project Neo Hub), where you type "làm hàng chờ Atlas"; the Neo chat inside this app only lists them. Typing "làm hàng chờ" in the Neo chat now shows the queue and says where to send it.'],
+    changesVi: ['Hướng dẫn hàng chờ rõ hơn: việc anh gửi sẽ chờ Claude trong app Claude (dự án Neo Hub), anh gõ "làm hàng chờ Atlas" ở đó; ô chat Neo trong app này chỉ xem danh sách. Gõ "làm hàng chờ" vào chat Neo giờ hiện hàng chờ và chỉ chỗ để gửi.'],
+  },
   {
     version: '2.0.20',
     date: '2026-11-06',
