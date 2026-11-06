@@ -140,6 +140,10 @@ export interface AiRules {
   telegramToken: string // Telegram bot token (stored on server, never in browser)
   walkForwardValidatorOn: boolean // validate signals on data the ranking was not tuned on; mark as "Proven" only when win rate > 50% out-of-sample
   potentialListOn: boolean // show a "Potential" list of stocks with good BUY signals in the watchlist
+  practiceVolFilter: boolean // practice buys only when the 15m volume is at least 1x normal (was a shadow rule: below it won 10%)
+  practiceNoWatchlistDay: boolean // no practice day trades picked from the watchlist (was a shadow rule: won 21-29%)
+  practiceLetWinnersRun: boolean // practice: stop moves to the entry price once a trade is up 1R, and trades in profit skip the 12-bar time exit
+  practiceLongHalf: boolean // practice long-term trades open at half size (overnight gaps can jump past the stop)
   voltFlasher: boolean // Volt page: flash any ESP32 board from a GitHub repo link or a dropped .bin file, checked against the chip before writing
   echoRoomWatch: boolean // Echo page: read one ESP32-S3 running RuView firmware over USB (Web Serial) and show presence, motion, breathing; no home PC, nothing leaves the phone
   lumiTools: boolean // Lumi tabs beside Listen: two-way talk, offline phrasebook, money to VND, trip words, etiquette tips
@@ -283,6 +287,10 @@ export const DEFAULT_AI_RULES: AiRules = {
   telegramToken: '',
   walkForwardValidatorOn: true,
   potentialListOn: true,
+  practiceVolFilter: true,
+  practiceNoWatchlistDay: true,
+  practiceLetWinnersRun: true,
+  practiceLongHalf: true,
   voltFlasher: true,
   echoRoomWatch: true,
   lumiTranslator: true,
@@ -443,6 +451,10 @@ export const RULE_FIELDS: RuleField[] = [
   { group: 'modules', key: 'orderFlowEstimate', en: 'Show estimated order flow when live data unavailable', vi: 'Hiện dòng lệnh ước tính khi không có dữ liệu trực tiếp' },
   { group: 'modules', key: 'practiceTradeNotifications', en: 'Notify before placing a practice trade (symbol, side, entry, stop, target, reason)', vi: 'Báo trước khi đặt lệnh luyện tập (mã, mua/bán, vào, cắt lỗ, chốt lời, lý do)' },
   { group: 'jarvis', key: 'telegramNotifications', en: 'Send practice trades to Telegram bot (instant notifications, requires token)', vi: 'Gửi giao dịch luyện tập vào Telegram (thông báo ngay lập tức, cần token)' },
+  { group: 'modules', key: 'practiceVolFilter', en: 'Practice buys only on normal or higher volume (15m volume at least 1x its average)', vi: 'Luyện tập chỉ mua khi khối lượng bình thường trở lên (khối lượng 15 phút ít nhất 1 lần trung bình)' },
+  { group: 'modules', key: 'practiceNoWatchlistDay', en: 'No practice day trades picked from the watchlist (they kept losing)', vi: 'Không mở lệnh trong ngày từ danh sách theo dõi (nhóm này thua nhiều)' },
+  { group: 'modules', key: 'practiceLetWinnersRun', en: 'Practice lets winners run: stop moves to the entry price once a trade is up 1R, and a trade in profit is not closed by the 12-bar time limit', vi: 'Luyện tập để lệnh thắng chạy: lãi bằng 1R thì dời cắt lỗ về giá vào, lệnh đang lãi không bị đóng sau 12 nến' },
+  { group: 'modules', key: 'practiceLongHalf', en: 'Practice long-term trades at half size (overnight gaps can jump past the stop)', vi: 'Lệnh luyện tập dài hạn vào nửa khối lượng (giá có thể nhảy qua cắt lỗ qua đêm)' },
   { group: 'modules', key: 'potentialListOn', en: 'Show "Potential" list (stocks with good BUY signals from the scanner)', vi: 'Hiện danh sách "Tiềm năng" (cổ phiếu có tín hiệu MUA tốt từ máy quét)' },
 ]
 
@@ -557,11 +569,18 @@ export function useAiRules(): AiRules {
   }, getAiRules)
 }
 
+/** Long-term practice trades open at this fraction of the normal size when practiceLongHalf is on. */
+export const LONG_SIZE_MULT = 0.5
+
 /** Trade-count and loss limits for practice entries, from the rules (shared by the browser and the server). */
 export function practiceLimits(r: AiRules) {
   return {
     unlimited: r.practiceUnlimited,
     dayLossLimitPct: r.practiceDayLossOn ? r.practiceDayLossPct : 0,
     maxOpenPositions: r.practiceUnlimited ? r.practiceMaxOpen : r.maxOpenPositions,
+    volFilter: r.practiceVolFilter,
+    noWatchlistDay: r.practiceNoWatchlistDay,
+    letWinnersRun: r.practiceLetWinnersRun,
+    longSizeMult: r.practiceLongHalf ? LONG_SIZE_MULT : 1,
   }
 }

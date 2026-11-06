@@ -200,3 +200,60 @@ console.log('practice tests passed')
   assert.deepEqual(lifted.curve.map((c) => c.equity), [100_000, 99_921])
   assert.deepEqual(parsePractice(lifted)!.curve.map((c) => c.equity), [100_000, 99_921], 'idempotent')
 }
+
+// ---------- v1.3.3: volume filter, no watchlist day trades, let winners run, half-size long trades ----------
+{
+  // volume under 1x normal is skipped when the filter is on; missing volume passes; off = old behaviour
+  const low = onBarClose(emptyPractice(), ctx({ volFilter: true, volVsAvg: 0.6 }))
+  assert.equal(low.open.length, 0)
+  assert.match(low.events[0].en, /volume is only 0\.60x/)
+  assert.equal(onBarClose(emptyPractice(), ctx({ volFilter: true, volVsAvg: 1.2 })).open.length, 1)
+  assert.equal(onBarClose(emptyPractice(), ctx({ volFilter: true, volVsAvg: null })).open.length, 1)
+  assert.equal(onBarClose(emptyPractice(), ctx({ volFilter: false, volVsAvg: 0.6 })).open.length, 1)
+
+  // watchlist picks: no day trade, but the long-term slot still may take one
+  assert.equal(onBarClose(emptyPractice(), ctx({ noWatchlistDay: true, source: 'watchlist' })).open.length, 0)
+  assert.equal(onBarClose(emptyPractice(), ctx({ noWatchlistDay: true, source: 'movers' })).open.length, 1)
+  const wl = onBarClose(emptyPractice(), ctx({ noWatchlistDay: true, source: 'watchlist', longOn: true }))
+  assert.equal(wl.open.length, 1)
+  assert.equal(wl.open[0].kind, 'long')
+
+  // long-term trades at half size
+  const fullLong = onBarClose(emptyPractice(), ctx({ longOn: true })).open[0]
+  const halfLong = onBarClose(emptyPractice(), ctx({ longOn: true, longSizeMult: 0.5 })).open[0]
+  assert.ok(Math.abs(halfLong.qty - fullLong.qty / 2) < 1e-9, 'long trade at half size')
+  const day = onBarClose(emptyPractice(), ctx({ longSizeMult: 0.5 })).open[0]
+  assert.ok(Math.abs(day.qty * 100 - 1000) < 1e-9, 'day trades keep their size')
+
+  // let winners run: 1R = 5 (entry 100, stop 95). At 105 the stop moves to the entry
+  const run = onBarClose(emptyPractice(), ctx({ letWinnersRun: true }))
+  assert.equal(run.open[0].run?.r, 5)
+  assert.equal(onPrice(run, 'AAPL', 103, 1000, 0), null, 'under 1R: nothing changes')
+  const be = onPrice(run, 'AAPL', 105, 1100, 1)!
+  assert.equal(be.open[0].stop, 100)
+  assert.equal(be.open[0].run?.be, true)
+  assert.equal(be.trades.length, 0)
+  // back to the entry: closed at breakeven, the record keeps the first stop
+  const out = onPrice(be, 'AAPL', 100, 1200, 2)!
+  assert.equal(out.trades[0].exitReason, 'stop')
+  assert.equal(out.trades[0].stop, 95)
+  assert.ok(Math.abs(out.trades[0].pnl) < 1e-9)
+  // a bar whose high reaches 1R lifts the stop too; a bar that hits the stop first closes instead
+  const lifted = onBars(run, 'AAPL', [{ time: 1100, open: 101, high: 106, low: 100.5, close: 104, volume: 1 }], 1)!
+  assert.equal(lifted.open[0].stop, 100)
+  const stopped = onBars(run, 'AAPL', [{ time: 1100, open: 101, high: 106, low: 94, close: 96, volume: 1 }], 1)!
+  assert.equal(stopped.trades[0].exitReason, 'stop')
+  // old trades (no run) are never lifted
+  assert.equal(onPrice(s, 'AAPL', 105, 1100, 1), null)
+
+  // the 12-bar time exit waits while the trade is in profit, and still closes a flat or losing one
+  let w = run
+  for (let i = 1; i <= 12; i++) w = onBarClose(w, ctx({ letWinnersRun: true, analysis: null, barTime: 1000 + i, price: 102 }))
+  assert.equal(w.open.length, 1, 'in profit after 12 bars: still open')
+  w = onBarClose(w, ctx({ letWinnersRun: true, analysis: null, barTime: 1013, price: 99.5 }))
+  assert.equal(w.trades[0].exitReason, 'time')
+  let old = onBarClose(emptyPractice(), ctx())
+  for (let i = 1; i <= 12; i++) old = onBarClose(old, ctx({ analysis: null, barTime: 1000 + i, price: 102 }))
+  assert.equal(old.trades[0].exitReason, 'time', 'switch off: old time exit')
+}
+console.log('practice v1.3.3 exits ok')
