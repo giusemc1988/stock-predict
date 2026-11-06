@@ -16,8 +16,8 @@ export const RELEASES: Release[] = [
   {
     version: '2.0.16',
     date: '2026-11-06',
-    changes: ['Atlas control panel: new "Queue for Claude" card right under "To do" lists every task you sent with "Do this" and where it stands (waiting, PR ready, done). If the GitHub key is missing it shows the 4 steps with a prefilled link to make one.'],
-    changesVi: ['Bảng điều khiển Atlas: thẻ mới "Hàng chờ cho Claude" ngay dưới "Cần xử lý", hiện mọi việc anh đã bấm "Làm cái này" và trạng thái (đang chờ, có PR, xong). Nếu thiếu key GitHub thì hiện 4 bước kèm link tạo key đã điền sẵn.'],
+    changes: ['Atlas control panel tidied: the problems list, the upgrade ideas and a new queue are now one "Work list" card with three tabs (Fix / Upgrade / Queue), and the leaderboard shows the top 5 with "All learners". The queue lists every task you sent with "Do this" and where it stands (waiting, PR ready, done). If the GitHub key is missing it shows the 4 steps with a prefilled link to make one.'],
+    changesVi: ['Bảng điều khiển Atlas gọn hơn: danh sách lỗi, gợi ý nâng cấp và hàng chờ mới gộp thành một thẻ "Việc cần làm" có 3 tab (Cần sửa / Nâng cấp / Hàng chờ), bảng xếp hạng hiện 5 dòng đầu kèm nút "Xem tất cả". Hàng chờ hiện mọi việc anh đã bấm "Làm cái này" và trạng thái (đang chờ, có PR, xong). Nếu thiếu key GitHub thì hiện 4 bước kèm link tạo key đã điền sẵn.'],
   },
   {
     version: '2.0.15',
