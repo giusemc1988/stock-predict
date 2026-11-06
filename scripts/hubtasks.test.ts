@@ -71,3 +71,13 @@ assert.equal(chatReply('sửa lỗi nút Gửi trong Nova', { ...deps, canTask: 
 assert.equal(DEFAULT_AI_RULES.hubTasks, true)
 
 console.log('hub tasks tests passed')
+
+// "làm hàng chờ Atlas" typed in the app's Neo chat lists the queue and says where Claude does them
+{
+  const { HOW_TO_RUN } = await import('../src/lib/hubTasks')
+  assert.ok(asksTasks('làm hàng chờ Atlas') && asksTasks('lam hang cho'))
+  const lines = describeTasks([{ number: 9, title: 'x', state: 'waiting', url: '#' }])
+  assert.deepEqual(lines.at(-1), HOW_TO_RUN)
+  assert.ok(!describeTasks([{ number: 9, title: 'x', state: 'done', url: '#' }]).includes(HOW_TO_RUN))
+}
+console.log('hubtasks queue ok')

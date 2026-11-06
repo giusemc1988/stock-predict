@@ -18,7 +18,7 @@ async function queue(prompt: string): Promise<'ok' | 'nokey' | 'refused' | 'erro
 }
 
 const SENT: Record<string, Bi> = {
-  ok: { en: 'Queued for Claude. When you have time, say "làm hàng chờ Atlas" in Neo Hub chat.', vi: 'Đã vào hàng chờ (xem ở "Hàng chờ cho Claude" bên dưới). Khi rảnh anh nhắn "làm hàng chờ Atlas" trong chat Neo Hub.' },
+  ok: { en: 'Queued for Claude. When you have time, open the Claude app (project Neo Hub) and type "làm hàng chờ Atlas" there.', vi: 'Đã vào hàng chờ (xem ở "Hàng chờ cho Claude" bên dưới). Khi rảnh anh mở app Claude, dự án Neo Hub, gõ "làm hàng chờ Atlas".' },
   nokey: { en: 'Needs the GitHub key: Nova, step 5, "GitHub key".', vi: 'Cần key GitHub: mở Nova, bước 5, ô "Key GitHub".' },
   refused: { en: 'GitHub refused: the saved key may have expired.', vi: 'GitHub từ chối: key đã lưu có thể hết hạn.' },
   error: { en: "Couldn't reach the server. Try again.", vi: 'Không gọi được máy chủ. Thử lại nhé.' },
@@ -217,7 +217,7 @@ export function AtlasControl({ practice }: { practice: PracticeState }) {
           <button className={tab === 'up' ? 'on' : ''} onClick={() => setTab('up')}>{vi ? 'Nâng cấp' : 'Upgrade'} <span className="ac-tag">{UPGRADES.length}</span></button>
           <button className={tab === 'queue' ? 'on' : ''} onClick={() => setTab('queue')}>{vi ? 'Hàng chờ' : 'Queue'} <span className="ac-tag">{(tasks ?? []).filter((t) => t.state === 'waiting' || t.state === 'pr').length}</span></button>
         </div>
-        <p className="ac-note">{tab === 'fix' ? (vi ? 'Lỗi và cảnh báo hệ thống tìm ra, đỏ trên cùng.' : 'Problems the check found, red first.') : tab === 'up' ? (vi ? 'Việc nên làm thêm, xếp theo lợi ích (vạch).' : 'Things worth adding, best first (bars = benefit).') : (vi ? 'Việc anh đã bấm "Làm cái này". Nhắn "làm hàng chờ Atlas" trong chat Neo Hub để Claude làm.' : 'Tasks you sent. Say "làm hàng chờ Atlas" in Neo Hub chat.')} {tab !== 'queue' && (vi ? 'Bấm "Làm cái này" là anh đã duyệt, việc vào Hàng chờ.' : 'Pressing "Do this" approves it and adds it to the queue.')}</p>
+        <p className="ac-note">{tab === 'fix' ? (vi ? 'Lỗi và cảnh báo hệ thống tìm ra, đỏ trên cùng.' : 'Problems the check found, red first.') : tab === 'up' ? (vi ? 'Việc nên làm thêm, xếp theo lợi ích (vạch).' : 'Things worth adding, best first (bars = benefit).') : (vi ? 'Việc anh đã bấm "Làm cái này". Để Claude làm: mở app Claude (không phải ô chat Neo trong app này), vào dự án Neo Hub, gõ "làm hàng chờ Atlas".' : 'Tasks you sent. To have Claude do them: open the Claude app (not the Neo chat here), project Neo Hub, and type "làm hàng chờ Atlas".')} {tab !== 'queue' && (vi ? 'Bấm "Làm cái này" là anh đã duyệt, việc vào Hàng chờ.' : 'Pressing "Do this" approves it and adds it to the queue.')}</p>
         {hasKey === false && (
           <div className="ac-keywarn">
             <b>🔑 {vi ? 'Chưa có key GitHub, nên nút "Làm cái này" chưa gửi được' : 'No GitHub key yet, so "Do this" cannot send'}</b>
