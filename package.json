@@ -1,7 +1,7 @@
 {
   "name": "stock-predict",
   "private": true,
-  "version": "2.0.16",
+  "version": "2.0.17",
   "type": "module",
   "scripts": {
     "replay": "vite build --ssr scripts/replay-lab.ts --outDir .learn/replay --emptyOutDir --logLevel warn && node .learn/replay/replay-lab.js",

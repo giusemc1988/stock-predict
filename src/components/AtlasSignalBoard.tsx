@@ -90,7 +90,10 @@ function LearnRing({ v, top, sub }: { v: number; top: string; sub: string }) {
  * learning and how far toward the review day, each signal with entry/TP/SL and the real win rate of its
  * kind, and why it traded or not. Display only: it never places, changes or blocks a trade.
  */
-export function AtlasSignalBoard({ practice, onSymbol, ideas = true }: { practice: PracticeState; onSymbol?: (symbol: string, asset: 'stock' | 'crypto') => void; ideas?: boolean }) {
+/** part: 'signals' = only today's signals (under the control panel), 'rest' = every other card (folded into "Xem chi tiết"). */
+export function AtlasSignalBoard({ practice, onSymbol, ideas = true, part = 'all' }: { practice: PracticeState; onSymbol?: (symbol: string, asset: 'stock' | 'crypto') => void; ideas?: boolean; part?: 'all' | 'signals' | 'rest' }) {
+  const top = part !== 'rest'
+  const rest = part !== 'signals'
   const vi = useLang() === 'vi'
   const L = (b: Bi) => (vi ? b.vi : b.en)
   const G = (k: TKey, vars?: Record<string, string | number>) => Object.entries(vars ?? {}).reduce<string>((s, [a, b]) => s.replaceAll(`{${a}}`, String(b)), L(T[k]))
@@ -183,8 +186,8 @@ export function AtlasSignalBoard({ practice, onSymbol, ideas = true }: { practic
   }
 
   return (
-    <div className="asb" id="atlas-signals">
-      <section className="bf-card asb-where">
+    <div className="asb" id={part === 'signals' ? 'atlas-today' : 'atlas-signals'}>
+      {rest && <section className="bf-card asb-where">
         <header>
           <h3>{G('whereTitle')}</h3>
         </header>
@@ -209,9 +212,9 @@ export function AtlasSignalBoard({ practice, onSymbol, ideas = true }: { practic
           </p>
           <p>{G('practice')}</p>
         </details>
-      </section>
+      </section>}
 
-      <section className="bf-card asb-learn" id="atlas-learn">
+      {rest && <section className="bf-card asb-learn" id="atlas-learn">
         <header>
           <h3>🎓 {G('learnTitle')}</h3>
         </header>
@@ -248,9 +251,9 @@ export function AtlasSignalBoard({ practice, onSymbol, ideas = true }: { practic
           <p>{G('labLine', { t: LAB.trials, p: LAB.passed, b: L(LAB.best), d: LAB.bestDsr, need: LAB.needDsr, r: ddmm(prog.reviewDay) })}</p>
           {leads?.vi?.length ? <p className="mono small">{leads.vi.join(' · ')}</p> : null}
         </details>
-      </section>
+      </section>}
 
-      <section className="bf-card asb-sigs">
+      {top && <section className="bf-card asb-sigs">
         <header>
           <h3>📡 {G('sigTitle')}</h3>
           <span className="muted small">{ddmm(sigDay)}</span>
@@ -258,13 +261,13 @@ export function AtlasSignalBoard({ practice, onSymbol, ideas = true }: { practic
         <p className="bf-source">{G('sigHow')}</p>
         {sigs.length ? <div className="asb-siglist">{shown.map(sigCard)}</div> : <p className="muted">{G('noSig', { d: ddmm(sigDay) })}</p>}
         {sigs.length > shown.length && <p className="asb-note">{G('more', { n: sigs.length - shown.length, d: ddmm(sigDay) })}</p>}
-      </section>
+      </section>}
 
       {/* the idea factory next to the book signals: same layout, its own record (AI rule ideaFactory) */}
-      {ideas && <AtlasIdeaFactory trades={s.trades} onSymbol={onSymbol} />}
-      {ideas && <AtlasLeaders onSymbol={onSymbol} />}
+      {rest && ideas && <AtlasIdeaFactory trades={s.trades} onSymbol={onSymbol} />}
+      {rest && ideas && <AtlasLeaders onSymbol={onSymbol} />}
 
-      <section className="bf-card asb-why">
+      {rest && <section className="bf-card asb-why">
         <header>
           <h3>❓ {G('whyTitle')}</h3>
         </header>
@@ -289,7 +292,7 @@ export function AtlasSignalBoard({ practice, onSymbol, ideas = true }: { practic
         ) : (
           <p className="muted">{G('noWhy')}</p>
         )}
-      </section>
+      </section>}
     </div>
   )
 }
