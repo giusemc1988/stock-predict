@@ -1,6 +1,6 @@
 {
  "source": "tradingview-screener",
- "generated": "2026-11-05T23:45:16.348Z",
+ "generated": "2026-11-06T00:39:21.356Z",
  "universe": 1771,
  "listA": 120,
  "listB": 111,
@@ -699,7 +699,7 @@
     "A"
    ],
    "offHigh": 4.7,
-   "rvol": 1.4
+   "rvol": 1.41
   },
   {
    "symbol": "GCT",
@@ -1378,7 +1378,7 @@
     "B"
    ],
    "offHigh": 3.6,
-   "rvol": 0.85
+   "rvol": 0.86
   },
   {
    "symbol": "PVLA",
@@ -1458,7 +1458,7 @@
     "A"
    ],
    "offHigh": 8.5,
-   "rvol": 0.8
+   "rvol": 0.81
   },
   {
    "symbol": "RHI",
