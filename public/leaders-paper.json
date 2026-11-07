@@ -1,5 +1,5 @@
 {
- "generated": "2026-11-06T00:39:29.989Z",
+ "generated": "2026-11-07T01:12:40.123Z",
  "asOf": "2026-11-05",
  "strategy": "leaders-tight-base",
  "score": {
@@ -19,6 +19,14 @@
    "entry": 100.42,
    "stop": 95.33,
    "adr": 5.07,
+   "age": 0
+  },
+  {
+   "symbol": "LION",
+   "setupDay": "2026-11-05",
+   "entry": 13.17,
+   "stop": 12.58,
+   "adr": 4.5,
    "age": 0
   }
  ],
