@@ -1,0 +1,327 @@
+{
+ "source": "tradingview-screener",
+ "generatedAt": 1794009720908,
+ "matched": 138,
+ "rows": [
+  {
+   "symbol": "ARDT",
+   "price": 17.3,
+   "marketCap": 2440094264,
+   "rvol": 5.27,
+   "changePct": 8.81,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "FLY",
+   "price": 20.76,
+   "marketCap": 3475320457,
+   "rvol": 4.52,
+   "changePct": 36.8,
+   "exchange": "NASDAQ"
+  },
+  {
+   "symbol": "LION",
+   "price": 14.24,
+   "marketCap": 4237250108,
+   "rvol": 4.28,
+   "changePct": 13.38,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "CGON",
+   "price": 75.99,
+   "marketCap": 6735781870,
+   "rvol": 3.82,
+   "changePct": 17.27,
+   "exchange": "NASDAQ"
+  },
+  {
+   "symbol": "TMDX",
+   "price": 88.24,
+   "marketCap": 3059734608,
+   "rvol": 3.56,
+   "changePct": 27.92,
+   "exchange": "NASDAQ"
+  },
+  {
+   "symbol": "FROG",
+   "price": 100.98,
+   "marketCap": 12450966291,
+   "rvol": 3.37,
+   "changePct": 35.33,
+   "exchange": "NASDAQ"
+  },
+  {
+   "symbol": "KRMN",
+   "price": 45.61,
+   "marketCap": 6044862036,
+   "rvol": 3.26,
+   "changePct": 42.13,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "ETON",
+   "price": 56.46,
+   "marketCap": 1613803875,
+   "rvol": 3.11,
+   "changePct": 19.75,
+   "exchange": "NASDAQ"
+  },
+  {
+   "symbol": "ABNB",
+   "price": 189.99,
+   "marketCap": 113763291524,
+   "rvol": 3.06,
+   "changePct": 11.67,
+   "exchange": "NASDAQ"
+  },
+  {
+   "symbol": "VNT",
+   "price": 42.23,
+   "marketCap": 5709496149,
+   "rvol": 2.76,
+   "changePct": 5.84,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "SG",
+   "price": 12.01,
+   "marketCap": 1429686233,
+   "rvol": 2.73,
+   "changePct": 3.98,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "QNT",
+   "price": 37.57,
+   "marketCap": 9892486858,
+   "rvol": 2.7,
+   "changePct": 25.99,
+   "exchange": "NASDAQ"
+  },
+  {
+   "symbol": "LASR",
+   "price": 38.02,
+   "marketCap": 2193381401,
+   "rvol": 2.69,
+   "changePct": 29.58,
+   "exchange": "NASDAQ"
+  },
+  {
+   "symbol": "LYNX",
+   "price": 14.59,
+   "marketCap": 1691701612,
+   "rvol": 2.61,
+   "changePct": 28.66,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "PAR",
+   "price": 20.55,
+   "marketCap": 850003592,
+   "rvol": 2.6,
+   "changePct": 7.14,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "OKLO",
+   "price": 23.55,
+   "marketCap": 4380715927,
+   "rvol": 2.57,
+   "changePct": 22.66,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "CHYM",
+   "price": 31.33,
+   "marketCap": 11861071372,
+   "rvol": 2.52,
+   "changePct": 3.81,
+   "exchange": "NASDAQ"
+  },
+  {
+   "symbol": "BIP",
+   "price": 39.45,
+   "marketCap": 25564175400,
+   "rvol": 2.49,
+   "changePct": 4.34,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "XERS",
+   "price": 15.2,
+   "marketCap": 2771268760,
+   "rvol": 2.48,
+   "changePct": 16.21,
+   "exchange": "NASDAQ"
+  },
+  {
+   "symbol": "CEVA",
+   "price": 27.1,
+   "marketCap": 762975358,
+   "rvol": 2.45,
+   "changePct": 10.34,
+   "exchange": "NASDAQ"
+  },
+  {
+   "symbol": "EXTR",
+   "price": 24.03,
+   "marketCap": 3152517046,
+   "rvol": 2.44,
+   "changePct": 14.16,
+   "exchange": "NASDAQ"
+  },
+  {
+   "symbol": "STEP",
+   "price": 47.45,
+   "marketCap": 5726108222,
+   "rvol": 2.4,
+   "changePct": 10.84,
+   "exchange": "NASDAQ"
+  },
+  {
+   "symbol": "NET",
+   "price": 268.75,
+   "marketCap": 95696418428,
+   "rvol": 2.37,
+   "changePct": 9.91,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "AIP",
+   "price": 17.8,
+   "marketCap": 874907459,
+   "rvol": 2.35,
+   "changePct": 11.74,
+   "exchange": "NASDAQ"
+  },
+  {
+   "symbol": "EWTX",
+   "price": 45.04,
+   "marketCap": 4891530018,
+   "rvol": 2.33,
+   "changePct": 15.87,
+   "exchange": "NASDAQ"
+  },
+  {
+   "symbol": "IMVT",
+   "price": 30.53,
+   "marketCap": 6306053502,
+   "rvol": 2.32,
+   "changePct": 7.54,
+   "exchange": "NASDAQ"
+  },
+  {
+   "symbol": "ATEN",
+   "price": 24.76,
+   "marketCap": 1797799395,
+   "rvol": 2.29,
+   "changePct": 9.56,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "SOLV",
+   "price": 90.38,
+   "marketCap": 15384821324,
+   "rvol": 2.27,
+   "changePct": 3.67,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "APLE",
+   "price": 18.88,
+   "marketCap": 4457241353,
+   "rvol": 2.26,
+   "changePct": 4.02,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "PRDO",
+   "price": 26.88,
+   "marketCap": 1682071173,
+   "rvol": 2.26,
+   "changePct": 1.24,
+   "exchange": "NASDAQ"
+  },
+  {
+   "symbol": "ARHS",
+   "price": 14.19,
+   "marketCap": 2011457008,
+   "rvol": 2.22,
+   "changePct": 9.66,
+   "exchange": "NASDAQ"
+  },
+  {
+   "symbol": "HUM",
+   "price": 433.74,
+   "marketCap": 52083634036,
+   "rvol": 2.21,
+   "changePct": 5.33,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "ELAN",
+   "price": 25.74,
+   "marketCap": 12860266319,
+   "rvol": 2.2,
+   "changePct": 8.7,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "AOSL",
+   "price": 23.61,
+   "marketCap": 715502726,
+   "rvol": 2.2,
+   "changePct": 27.76,
+   "exchange": "NASDAQ"
+  },
+  {
+   "symbol": "ESAB",
+   "price": 82.83,
+   "marketCap": 5149359621,
+   "rvol": 2.19,
+   "changePct": 4.69,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "IONQ",
+   "price": 32.62,
+   "marketCap": 14007279096,
+   "rvol": 2.19,
+   "changePct": 23.42,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "MBLY",
+   "price": 5.73,
+   "marketCap": 4871484863,
+   "rvol": 2.18,
+   "changePct": 11.7,
+   "exchange": "NASDAQ"
+  },
+  {
+   "symbol": "AKAM",
+   "price": 83.09,
+   "marketCap": 11941413480,
+   "rvol": 2.17,
+   "changePct": 6.74,
+   "exchange": "NASDAQ"
+  },
+  {
+   "symbol": "LPG",
+   "price": 46.55,
+   "marketCap": 1991533790,
+   "rvol": 2.16,
+   "changePct": 1.02,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "RVMD",
+   "price": 192.28,
+   "marketCap": 41212607319,
+   "rvol": 2.14,
+   "changePct": 8.24,
+   "exchange": "NASDAQ"
+  }
+ ]
+}
