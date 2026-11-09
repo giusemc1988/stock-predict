@@ -111,3 +111,30 @@ If you do not understand something (unclear code, a decision that is Chanh's, mi
 3. Tell Chanh in one Vietnamese line: "Em ghi câu hỏi #N vào QUESTIONS-FOR-CLAUDE.md, anh đưa Claude đoạn prompt trong đó giúp em".
 4. When Chanh brings Claude's answer, apply it, mark the entry `ANSWERED` with the answer summary, and if it's a lasting rule, add it to this file's section 10.
 Never put secrets in a question prompt.
+
+## 13. Hermes capability check (2026-11-09)
+
+| Capability | Evidence / status |
+|---|---|
+| Local sync | `main` at `1c03485`, matching `origin/main`; `git fetch origin` ran. `graphify-out/` remains untracked and is intentionally retained. |
+| GitHub auth | `gh auth status` reports `giusemc1988` logged in; token masked. `gh pr list --state open` returned none. |
+| Push rights | `git push --dry-run` printed a successful-looking new-branch result, but safety approval flagged the command and `git ls-remote` did not confirm the ref. Rights not independently verified. |
+| Deploy workflow | `gh run list` shows latest Deploy Worker run #42661314438 completed successfully on 2026-11-09; this does not prove current live version. |
+| Lint | `npm run lint` emitted warnings. Pipeline exit status was not preserved; pass/fail not verified. |
+| UI capture | Playwright package and `$LOCALAPPDATA/ms-playwright` absent. Browser screenshot at 360/390/820 not verified. Do not install without Chanh's approval. |
+| Android | Java and adb not found; `ANDROID_HOME` unset. Local Android build not available on evidence collected. |
+| Atlas public status | HTTP 200; returned `diag.lastRun=2026-11-09T18:40:04.482Z`, `diag.cronLast.ok=true`. This is a point-in-time observation only; metrics not checked. |
+| Graphify | Report says built from `9464dc78`, stale relative to checkout `1c034857d704b5e558fa63c285bd39295489e3e1`; use source files instead. |
+| Versions | package.json and `APP_VERSION` are 2.0.22; agentVersions lists Atlas 1.3.7, Lumi 1.4.0, Echo 1.1.0, Nexus 1.3.0, Volt 1.3.1. |
+| Merge policy | `AGENTS.md` says Chanh merges every PR; handoff section 11 says Hermes merges its own PR. Do not merge until Chanh resolves this conflict. |
+
+## 14. Repo map (source inspection, 2026-11-09)
+
+- **App shell:** React 19 + Vite + TypeScript. `src/lib/projects.ts` defines project cards and routes; `src/components/JarvisHub.tsx`/`HubPanels.tsx` render the hub; `JarvisFab.tsx` and `useJarvisRouter.ts` cover chat/navigation. Labels/localization live in `src/lib/*Text.ts` and are tested.
+- **Worker:** `src/worker.ts` is the API router, static asset fallback, market-data endpoints, and scheduled entrypoint. It delegates to `src/worker/{hub,lumi,nova,volt,practiceCycle,shadowLeads}.ts`. `wrangler.jsonc` binds ASSETS, KV names `PRACTICE`/`SETTINGS`, Workers AI `AI`, and a weekday 5-minute cron. Names only; no secret values.
+- **Paper Atlas:** UI (`AtlasControl`, `AtlasSignalBoard`, `AtlasLeaders`) and logic/data (`src/lib/practice*.ts`, `src/worker/practiceCycle.ts`). Worker cron invokes `practiceCycle`; its implementation explicitly says paper-only. Atlas sources and `atlas/HANDOFF.md`/`LESSONS.md` were read only. No Atlas logic changed.
+- **Other agents:** Lumi (`LumiPage`, `useLumiListen`, `lumiTranslate`, worker/lumi`); Nova video studio (`VideoStudioPage`, Studio components, `studio*` libraries, worker/nova`, `nova-render.yml`); Echo/RuView (`RuViewPage`, `ruview*`); Nexus network tools/scout (`NetPage`, `nexus*`, passive-only firmware at `firmware/nexus-scout/`); Volt ESP32 flasher (`VoltPage`, `voltFlash*`, worker/volt`); Iris (`GodsEyePage`, internal argus paths/workflows); Max (`MaxPage`); Viraltech (`ViralTechPage`). This is an entry map, not a line-by-line audit of every agent.
+- **Android:** Capacitor app under `android/` (54 tracked files); `android.yml` workflow and `android/HUONG-DAN.md` describe the APK path. Local Android toolchain was absent in this check, so no local build was verified.
+- **Automation/deploy:** `.github/workflows/` includes `deploy-worker.yml`, `android.yml`, agent-task, Atlas scanner/diagnose/learning/replay jobs, Nova render, and ESP32-related workflows. `deploy-worker.yml` deploys both stock-predict and atlas-status after main push/workflow dispatch. Local fetch succeeded; `gh` lists no open PRs; recent run is green. Live app build/version remains unverified behind Access.
+- **Version cross-check:** package.json = `2.0.22`; `APP_VERSION` and top RELEASES entry = `2.0.22`; agentVersions matches handoff for Atlas `1.3.7`, Lumi `1.4.0`, Echo `1.1.0`, Nexus `1.3.0`, Volt `1.3.1`. Handoff's other rollout/status notes are historical and not treated as current without fresh evidence.
+- **Discrepancies/limits:** AGENTS.md says Chanh merges PRs, while handoff grants Hermes own-PR merge; unresolved, so no merge without confirmation. Graphify artifact is stale. Open item list and old Atlas metric snapshots in handoff are not confirmed current. UI capture, Android local build, and live app version were not verified.
