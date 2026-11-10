@@ -1,14 +1,14 @@
 {
- "generated": "2026-11-07T01:12:40.123Z",
- "asOf": "2026-11-05",
+ "generated": "2026-11-10T03:49:04.025Z",
+ "asOf": "2026-11-09",
  "strategy": "leaders-tight-base",
  "score": {
-  "graded": 0,
+  "graded": 1,
   "wins": 0,
-  "winRate": null,
-  "avgPct": null,
-  "avgR": null,
-  "profitFactor": null,
+  "winRate": 0,
+  "avgPct": -4.78,
+  "avgR": -1.07,
+  "profitFactor": 0,
   "status": "testing",
   "need": 20
  },
@@ -19,17 +19,29 @@
    "entry": 100.42,
    "stop": 95.33,
    "adr": 5.07,
-   "age": 0
+   "age": 2
   },
   {
-   "symbol": "LION",
-   "setupDay": "2026-11-05",
-   "entry": 13.17,
-   "stop": 12.58,
-   "adr": 4.5,
+   "symbol": "TRAX",
+   "setupDay": "2026-11-09",
+   "entry": 50.41,
+   "stop": 46.48,
+   "adr": 7.8,
    "age": 0
   }
  ],
  "open": [],
- "closed": []
+ "closed": [
+  {
+   "symbol": "LION",
+   "entryDay": "2026-11-06",
+   "exitDay": "2026-11-06",
+   "entry": 13.17,
+   "exit": 12.58,
+   "retPct": -4.78,
+   "r": -1.07,
+   "days": 1,
+   "reason": "stop"
+  }
+ ]
 }
