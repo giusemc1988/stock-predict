@@ -2,7 +2,7 @@
  * Version and "What's new". Bump APP_VERSION and add an entry to the top of RELEASES
  * with each update. The banner shows once per version, then stays dismissed.
  */
-export const APP_VERSION = '2.0.22'
+export const APP_VERSION = '2.0.23'
 
 export interface Release {
   version: string
@@ -13,6 +13,12 @@ export interface Release {
 }
 
 export const RELEASES: Release[] = [
+  {
+    version: '2.0.23',
+    date: '2026-11-10',
+    changes: ['Atlas #271 shadow test: volume filter 1.5x + stop filter 2% (shadow only, no live trading change)'],
+    changesVi: ['Atlas #271 thử nghiệm shadow: lọc volume 1.5x + lọc stop 2% (chỉ shadow, không đổi live)'],
+  },
   {
     version: '2.0.22',
     date: '2026-11-06',

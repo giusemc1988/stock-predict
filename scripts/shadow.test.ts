@@ -5,9 +5,10 @@ import { scanCycle } from '../src/lib/practiceScan'
 import { DEFAULT_AI_RULES } from '../src/lib/aiRules'
 import { emptyPractice } from '../src/lib/practice'
 
-// rule 1: volume below 1x normal is skipped; unknown volume is not
+// rule 1 (#271): volume below 1.5x normal is skipped in shadow; unknown volume is not
 assert.equal(shadowTag({ kind: 'day', source: 'gainer', volVsAvg: 0.4 }).pass, false)
-assert.equal(shadowTag({ kind: 'day', source: 'gainer', volVsAvg: 1 }).pass, true)
+assert.equal(shadowTag({ kind: 'day', source: 'gainer', volVsAvg: 1 }).pass, false)
+assert.equal(shadowTag({ kind: 'day', source: 'gainer', volVsAvg: 1.5 }).pass, true)
 assert.equal(shadowTag({ kind: 'day', source: 'gainer', volVsAvg: null }).pass, true)
 // rule 2: watchlist day trades are skipped, watchlist long trades are not
 assert.equal(shadowTag({ kind: 'day', source: 'watchlist', volVsAvg: 3 }).srcOk, false)
@@ -20,6 +21,13 @@ assert.equal(shadowTag({ kind: 'day', source: 'gainer', volVsAvg: 2, kronosPct: 
 assert.equal(shadowTag({ kind: 'day', source: 'gainer', volVsAvg: 2, kronosPct: -0.4 }).kronos, 'ok')
 assert.equal(shadowTag({ kind: 'day', source: 'gainer', volVsAvg: 2 }).kronos, 'n/a')
 
+// rule 5 (#271 (2)): a planned stop under 2% away is skipped in shadow; 2% or more passes; unknown passes
+assert.equal(shadowTag({ kind: 'day', source: 'gainer', volVsAvg: 2, stopPct: 1.9 }).stopOk, false)
+assert.equal(shadowTag({ kind: 'day', source: 'gainer', volVsAvg: 2, stopPct: 1.9 }).pass, false)
+assert.equal(shadowTag({ kind: 'day', source: 'gainer', volVsAvg: 2, stopPct: 2 }).stopOk, true)
+assert.equal(shadowTag({ kind: 'day', source: 'gainer', volVsAvg: 2, stopPct: 2 }).pass, true)
+assert.equal(shadowTag({ kind: 'day', source: 'gainer', volVsAvg: 2, stopPct: null }).stopOk, true)
+
 const info = (pick: { source: string; volVsAvg: number | null }, shadow?: ReturnType<typeof shadowTag>) =>
   ({ verdict: 'BUY', score: 0, grade: null, tradeScore: null, regime: null, learner: 'n/a', reason: '', pick: { place: 1, of: 1, gainPct: 0, en: '', vi: '', ...pick }, ...(shadow ? { shadow } : {}) }) as never
 const trades = [
@@ -29,12 +37,24 @@ const trades = [
   // a live-tagged trade: its own tag wins over the pick info
   { pnl: 1, kind: 'day' as const, info: info({ source: 'gainer', volVsAvg: 0.1 }, shadowTag({ kind: 'day', source: 'gainer', volVsAvg: 1.2 }, 'HOLD')) },
 ]
-assert.equal(tagOf(trades[3]).pass, true)
+assert.equal(tagOf(trades[3]).pass, false) // stored tag graded vol at 1.2x: below the new 1.5x floor
+assert.equal(tagOf(trades[3]).learner, 'HOLD') // the stored learner call survives
+// a tag written before #271 has no stopOk and graded volume at 1.0x: it is rebuilt from the
+// trade's entry/stop, keeping its learner call and Kronos verdict
+const oldTag = shadowTag({ kind: 'day', source: 'gainer', volVsAvg: 2 }, 'BUY') as unknown as Record<string, unknown>
+delete oldTag.stopOk
+delete oldTag.stopPct
+const stale = { pnl: -2, kind: 'day' as const, entry: 100, stop: 99, info: info({ source: 'gainer', volVsAvg: 2 }, oldTag as never) }
+assert.equal(tagOf(stale).stopOk, false)
+assert.equal(tagOf(stale).pass, false)
+assert.equal(tagOf(stale).learner, 'BUY')
+assert.equal(shadowReport([stale]).tightStop.n, 1)
+assert.equal(shadowReport([stale]).tightStop.net, -2)
 const r = shadowReport(trades)
-assert.deepEqual([r.keep.n, r.keep.net, r.skip.n, r.skip.net], [2, 6, 2, -5])
-assert.deepEqual([r.lowVolume.n, r.watchlistDay.n, r.live, r.learnerHold.n], [1, 1, 1, 1])
-// one live-tagged trade: the verdict uses only it (kept, nothing skipped yet)
-assert.match(r.vi, /^Lệnh mới \(1\): giữ 1 lệnh .*chưa có lệnh nào bị lọc/)
+assert.deepEqual([r.keep.n, r.keep.net, r.skip.n, r.skip.net], [1, 5, 3, -4])
+assert.deepEqual([r.lowVolume.n, r.watchlistDay.n, r.tightStop.n, r.live, r.learnerHold.n], [2, 1, 0, 1, 1])
+// one live-tagged trade: the verdict uses only it (skipped by the new volume floor, and it won)
+assert.match(r.vi, /^Lệnh mới \(1\): giữ 0 lệnh .*bỏ 1 lệnh .*chưa có ích/)
 assert.match(shadowReport(trades.slice(0, 3)).vi, /^Lệnh cũ, chưa kiểm chứng: .*bỏ 2 lệnh .*có ích/)
 assert.match(shadowReport([]).vi, /chưa có lệnh nào bị lọc/)
 
