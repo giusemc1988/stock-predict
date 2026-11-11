@@ -11,7 +11,11 @@ Neo (formerly Jarvis) / Arc Analyst: a personal hub for Chanh. The Hub page (one
 
 ## Hard rules (never break)
 1. **Paper trading only.** Never add real-money trading or a live brokerage.
-2. **Never push to `main`.** Work on a branch. Chanh reviews and merges every pull request himself.
+2. **Never push to `main`.** Work on a branch and open a pull request.
+   - Claude merges PRs Claude opened, once `npm test` and `npm run build` pass and the deploy is checked (Chanh's OK, 2026-11-02).
+   - Milo (Muse) merges only PRs Milo opened, with `npm test` and `npm run build` green, no conflict, and the Deploy Worker run checked after the merge (Chanh's order, 2026-11-10). Hermes agents never merge.
+   - Nobody merges another agent's PR without asking Chanh.
+   - Needs Chanh's OK first: Atlas live trading rules, cron/schedules, secrets, Cloudflare, `.github/` workflows, removing a feature.
 3. **Never deploy by hand.** No `wrangler deploy` from a PC. The site deploys only through GitHub Actions after a merge to main.
 4. **No secrets in code, commits or logs.** API keys live in Cloudflare KV or the dashboard.
 5. **Network tools are for Chanh's own networks and devices only.** No cracking, deauth, sniffing other people, jamming or spoofing. Ping and port checks go to private IPs only. The `nexus-scout` firmware (`firmware/nexus-scout/`) must stay passive-only: it may scan and report Wi-Fi/BLE it sees nearby, never transmit deauth, beacon spam, evil-portal, injection or any other frame meant to affect someone else's device or network.
@@ -54,3 +58,11 @@ Chanh asks Neo in the app ("fix the X button", "make an app that..."); `.github/
 3. Open a pull request with `Closes #<number>`, comment the PR link on the issue in Vietnamese, add the label `agent-pr`. Never merge.
 4. Unclear ask: comment one short question on the issue in Vietnamese and add `agent-pr` so it isn't retried; Chanh answers there.
 5. A new app = a page component in `src/components/`, its project entry in `src/lib/projects.ts` (card on the Hub, agent name), a Tool Hub entry if it has tools, and an AI-rules switch.
+
+## Handoff between Claude and Muse/Hermes
+Claude can run out of limit; Muse (Milo) and the Hermes agents keep the work moving, and Claude takes over again on return. Details: `docs/handoff/README.md`.
+- Read and write `docs/handoff/LOG.md` before and after each task. Add a `CLAIM` line before you start.
+- One task = one branch = one agent. A task that names a machine runs only there.
+- Bump the version only right before merge, after rebasing on the latest `main`. Hermes does not bump.
+- No local-only commits. Delete the branch after the merge.
+- Claude out of limit: add an `OUT` line. Claude back: read the LOG and `git log`, then add `CLAUDE-BACK`.
