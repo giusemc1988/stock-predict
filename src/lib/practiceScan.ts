@@ -244,7 +244,15 @@ export async function scanCycle(input: ScanInput): Promise<ScanResult> {
       if (opened && !opened.info.shadow) {
         const sj = input.shadowJournal ?? journal
         const shadowLearner = x.probUp != null && baseRate(sj) ? (decide(sj, x.probUp, 0.55, rules.learnEdgeMarginPct / 100).signal === 'BUY' ? 'BUY' : 'HOLD') : 'n/a'
-        const tag = shadowTag({ kind: opened.kind ?? 'day', source: x.source, volVsAvg: x.volVsAvg, kronosPct: rules.shadowKronos ? (input.kronosPct?.[baseSymbol(opened.symbol)] ?? null) : null }, shadowLearner)
+        const tag = shadowTag({
+          kind: opened.kind ?? 'day',
+          source: x.source,
+          volVsAvg: x.volVsAvg,
+          // #271 (2), shadow-only: planned stop distance from the fill, in % of entry.
+          // Recorded only — the live entry gates in practice.ts are untouched.
+          stopPct: opened.entry > 0 ? ((opened.entry - opened.stop) / opened.entry) * 100 : null,
+          kronosPct: rules.shadowKronos ? (input.kronosPct?.[baseSymbol(opened.symbol)] ?? null) : null,
+        }, shadowLearner)
         s = { ...s, open: s.open.map((p) => (p.id === opened.id ? { ...p, info: { ...p.info, shadow: tag } } : p)) }
       }
     }
