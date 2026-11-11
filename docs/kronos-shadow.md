@@ -2,12 +2,12 @@
 
 Kronos-small forecasts the next daily candles for Atlas's symbols after each US close. It is only logged and graded here; it never touches Atlas or any order (paper or real).
 
-Updated 2026-11-10T03:49Z · 182 forecasts logged · verdict needs 20+ graded per horizon.
+Updated 2026-11-11T01:29Z · 189 forecasts logged · verdict needs 20+ graded per horizon.
 
 | Horizon | Graded | Kronos direction right | Always-up baseline | Kronos avg miss | No-change avg miss | Verdict |
 |---|---|---|---|---|---|---|
-| 1 day | 162 | 52% | 54% | 4.88% | 4.43% | no edge |
-| 5 day | 106 | 51% | 35% | 7.44% | 4.75% | no edge |
+| 1 day | 166 | 53% | 55% | 4.79% | 4.34% | no edge |
+| 5 day | 110 | 53% | 34% | 7.38% | 4.86% | no edge |
 
 ## Latest forecasts
 
@@ -19,10 +19,10 @@ Updated 2026-11-10T03:49Z · 182 forecasts logged · verdict needs 20+ graded pe
 | TSLA | 2026-11-09 | 378.05 | 383.29 (+1.4%) | 377.66 (-0.1%) |
 | MSFT | 2026-11-09 | 545.18 | 546.99 (+0.3%) | 534.76 (-1.9%) |
 | AMZN | 2026-11-09 | 266.93 | 265.30 (-0.6%) | 249.91 (-6.4%) |
-| BTC-USD | 2026-11-08 | 74,584.65 | 74,992.47 (+0.5%) | 73,075.39 (-2.0%) |
-| ETH-USD | 2026-11-08 | 2,120.98 | 2,147.24 (+1.2%) | 2,087.07 (-1.6%) |
-| SOL-USD | 2026-11-08 | 86.24 | 88.04 (+2.1%) | 88.28 (+2.4%) |
-| BNB-USD | 2026-11-08 | 683.29 | 677.70 (-0.8%) | 664.15 (-2.8%) |
+| BTC-USD | 2026-11-09 | 75,223.15 | 73,789.92 (-1.9%) | 70,936.68 (-5.7%) |
+| ETH-USD | 2026-11-09 | 2,131.50 | 2,068.52 (-3.0%) | 2,016.62 (-5.4%) |
+| SOL-USD | 2026-11-09 | 86.55 | 84.82 (-2.0%) | 84.30 (-2.6%) |
+| BNB-USD | 2026-11-09 | 690.08 | 681.55 (-1.2%) | 689.74 (-0.0%) |
 | RYTM | 2026-11-09 | 113.94 | 110.89 (-2.7%) | 105.85 (-7.1%) |
 | ARDT | 2026-11-05 | 15.90 | 14.66 (-7.8%) | 11.03 (-30.6%) |
 | FWONK | 2026-11-05 | 106.52 | 103.88 (-2.5%) | 103.27 (-3.1%) |
@@ -41,5 +41,8 @@ Updated 2026-11-10T03:49Z · 182 forecasts logged · verdict needs 20+ graded pe
 | VSEC | 2026-11-09 | 189.61 | 190.34 (+0.4%) | 183.23 (-3.4%) |
 | ETON | 2026-11-09 | 64.35 | 58.52 (-9.1%) | 50.42 (-21.6%) |
 | ZLAB | 2026-11-09 | 26.86 | 25.58 (-4.8%) | 24.29 (-9.6%) |
+| PRAX | 2026-11-09 | 332.97 | 321.41 (-3.5%) | 321.47 (-3.5%) |
+| CLX | 2026-11-09 | 105.53 | 102.14 (-3.2%) | 99.93 (-5.3%) |
+| FG | 2026-11-09 | 25.55 | 24.99 (-2.2%) | 24.58 (-3.8%) |
 
 Pass rule: direction right at least 3 points above the better of 50% and always-up, and average miss below 98% of the no-change guess. Not financial advice.
