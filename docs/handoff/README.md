@@ -22,3 +22,20 @@ Goal: when Claude is out of limit, Milo and the Hermes agents keep working and e
 2. `git log` since that commit; list open branches and PRs.
 3. Run `npm test` and `npm run build` on `main`; check the latest Deploy Worker run.
 4. Add `CLAUDE-BACK` and take back any open task.
+
+## Failover (added 2026-11-11)
+**Command and work are separate.** The driver commands and is the only one who merges: Claude while it has limit, otherwise Milo. Hermes (Windows first, Ubuntu as fallback) only works under the driver and never commands or merges. If both Claude and Milo are away, Hermes may do green tasks only, no merges; red tasks wait for Chanh.
+
+**Live files** are on the branch `handoff-log` (append-only, one small commit per line, never merged into `main`): `docs/handoff/LOG.md` (first line `driver: X since T`) and `docs/handoff/QUEUE.md`. The `LOG.md` on `main` is frozen history.
+
+**Handover**
+- Claude to Milo: Claude writes `OUT` and sets `driver: Milo`. If Claude stops suddenly, Chanh tells Milo "Claude hết limit". Milo also asks Chanh after 3 hours of Claude silence in the LOG. Milo writes a `DRIVER` line.
+- Milo to Claude: Claude writes `CLAUDE-BACK` and `driver: Claude`. Milo finishes the task in progress, then yields.
+
+**Queue and lease**
+- A claimed task carries `lease_until` (claim time + 30 min). Hermes extends it while alive (heartbeat kept in `milo-shared`, read by Milo).
+- Silent past the lease: the driver sets the task back to `todo` and gives it to the other machine. Half-done work stays on its own branch.
+- Both machines off: the task waits and Milo tells Chanh.
+- One task = one branch = one machine. Tasks with the same `touches` run one after another.
+- Green tasks: agents may do them. Red tasks (live Atlas rules, cron, secrets, Cloudflare, `.github/`, removing a feature, turning a shadow filter live) need Chanh's OK.
+

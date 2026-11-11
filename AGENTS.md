@@ -60,7 +60,8 @@ Chanh asks Neo in the app ("fix the X button", "make an app that..."); `.github/
 5. A new app = a page component in `src/components/`, its project entry in `src/lib/projects.ts` (card on the Hub, agent name), a Tool Hub entry if it has tools, and an AI-rules switch.
 
 ## Handoff between Claude and Muse/Hermes
-Claude can run out of limit; Muse (Milo) and the Hermes agents keep the work moving, and Claude takes over again on return. Details: `docs/handoff/README.md`.
+Claude can run out of limit; Muse (Milo) and the Hermes agents keep the work moving, and Claude takes over again on return. Details and the failover rules: `docs/handoff/README.md`. The live log and task queue are on the branch `handoff-log`.
+- Only the current driver (first line of the live `LOG.md`) merges. Hermes never commands and never merges.
 - Read and write `docs/handoff/LOG.md` before and after each task. Add a `CLAIM` line before you start.
 - One task = one branch = one agent. A task that names a machine runs only there.
 - Bump the version only right before merge, after rebasing on the latest `main`. Hermes does not bump.
