@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict'
-import { SHADOW_KRONOS_PCT, shadowReport, shadowTag, tagOf } from '../src/lib/shadowFilters'
+import { SHADOW_KRONOS_PCT, isMidday, shadowReport, shadowTag, tagOf } from '../src/lib/shadowFilters'
 import { summaryText } from '../src/lib/telegramText'
 import { scanCycle } from '../src/lib/practiceScan'
 import { DEFAULT_AI_RULES } from '../src/lib/aiRules'
@@ -48,6 +48,11 @@ const stale = { pnl: -2, kind: 'day' as const, entry: 100, stop: 99, info: info(
 assert.equal(tagOf(stale).stopOk, false)
 assert.equal(tagOf(stale).pass, false)
 assert.equal(tagOf(stale).learner, 'BUY')
+// midday tag (record only): 11:00-14:59 New York time, never part of pass
+assert.equal(isMidday(Date.UTC(2026, 10, 11, 17, 0)), true) // 12:00 ET
+assert.equal(isMidday(Date.UTC(2026, 10, 11, 14, 35)), false) // 09:35 ET
+assert.equal(isMidday(Date.UTC(2026, 10, 11, 20, 30)), false) // 15:30 ET
+assert.equal(isMidday(null), false)
 assert.equal(shadowReport([stale]).tightStop.n, 1)
 assert.equal(shadowReport([stale]).tightStop.net, -2)
 const r = shadowReport(trades)

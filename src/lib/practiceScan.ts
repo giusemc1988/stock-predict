@@ -248,6 +248,7 @@ export async function scanCycle(input: ScanInput): Promise<ScanResult> {
           kind: opened.kind ?? 'day',
           source: x.source,
           volVsAvg: x.volVsAvg,
+          openedAt: opened.openedAt,
           // #271 (2), shadow-only: planned stop distance from the fill, in % of entry.
           // Recorded only — the live entry gates in practice.ts are untouched.
           stopPct: opened.entry > 0 ? ((opened.entry - opened.stop) / opened.entry) * 100 : null,
