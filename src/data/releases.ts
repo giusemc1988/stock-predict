@@ -16,6 +16,12 @@ export const RELEASES: Release[] = [
   {
     version: '2.0.29',
     date: '2026-11-12',
+    changes: ['Atlas: new record-only "midday" test. Each new trade is tagged when it opens between 11:00 and 14:59 New York time (the ledger shows 486 past trades lose in those hours and win in 09:00-10:59). It blocks nothing; the atlas-status shadow report now has a midday bucket so the live result can be read after about 50 tagged trades.'],
+    changesVi: ['Atlas: bài thử "giữa trưa" chỉ ghi lại. Mỗi lệnh mới được gắn thẻ nếu mở từ 11:00 đến 14:59 giờ New York (sổ cái cho thấy 486 lệnh cũ lỗ ở giờ này và lời lúc 09:00-10:59). Không chặn lệnh nào; báo cáo chạy bóng của atlas-status có thêm nhóm giữa trưa để đọc kết quả thật sau khoảng 50 lệnh.'],
+  },
+  {
+    version: '2.0.29',
+    date: '2026-11-12',
     changes: ['Team library: one shared place (docs/library in the repo) that Claude, Muse and the Hermes agents all read and write. It holds the rules from Chanh, step-by-step playbooks with a self-check before saying done, lessons learned (problem, cause, fix) so nobody debugs the same thing twice, and an inbox for questions and feedback from agents. AGENTS.md now tells every agent to read it first.'],
     changesVi: ['Thư viện chung của đội: một chỗ duy nhất (docs/library trong repo) mà Claude, Muse và các Hermes đều đọc và ghi. Có luật của anh Chanh, playbook từng bước kèm bước tự kiểm trước khi báo xong, bài học (vấn đề, nguyên nhân, cách sửa) để không ai sửa lại cùng một lỗi, và hộp thư cho agent hỏi hoặc góp ý. AGENTS.md giờ bắt mọi agent đọc nó trước.'],
   },

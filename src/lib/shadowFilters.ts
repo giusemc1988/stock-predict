@@ -31,6 +31,13 @@ export const SHADOW_MIN_STOP_PCT = 2
 /** Kronos objects when its 5-day forecast is at least this many percent below the price (a negative number). */
 export const SHADOW_KRONOS_PCT = -1
 
+/** Record-only: the entry was between 11:00 and 14:59 New York time (the ledger shows these lose). Never gates, not part of `pass`. */
+export function isMidday(openedAt: number | null | undefined): boolean {
+  if (!openedAt) return false
+  const h = Number(new Intl.DateTimeFormat('en-US', { timeZone: 'America/New_York', hour: '2-digit', hour12: false }).format(new Date(openedAt))) % 24
+  return h >= 11 && h < 15
+}
+
 export interface ShadowTag {
   volOk: boolean
   srcOk: boolean
@@ -39,20 +46,22 @@ export interface ShadowTag {
   /** Planned stop distance in % of entry at the buy (null when the entry/stop are unknown — old trades). */
   stopPct?: number | null
   learner: 'BUY' | 'HOLD' | 'n/a'
+  /** Opened between 11:00 and 14:59 ET. Recorded only; absent on older tags (the report works it out from the entry time). */
+  midday?: boolean
   /** Kronos's 5-day forecast at the buy: 'against' = a drop of SHADOW_KRONOS_PCT or more, 'n/a' = no forecast for the symbol. Absent on older trades. */
   kronos?: 'against' | 'ok' | 'n/a'
   /** volOk, srcOk and stopOk: the trade the #271 (1)+(2) pair would still take. */
   pass: boolean
 }
 
-export function shadowTag(x: { kind: PracticeKind; source?: string | null; volVsAvg?: number | null; kronosPct?: number | null; stopPct?: number | null }, learner: ShadowTag['learner'] = 'n/a'): ShadowTag {
+export function shadowTag(x: { kind: PracticeKind; source?: string | null; volVsAvg?: number | null; kronosPct?: number | null; stopPct?: number | null; openedAt?: number | null }, learner: ShadowTag['learner'] = 'n/a'): ShadowTag {
   // unknown volume counts as passing: the rule only skips trades it can see are thin
   const volOk = x.volVsAvg == null || x.volVsAvg >= SHADOW_MIN_VOL
   const srcOk = !(x.kind === 'day' && x.source === 'watchlist')
   // unknown stop distance counts as passing, same convention as unknown volume
   const stopOk = x.stopPct == null || x.stopPct >= SHADOW_MIN_STOP_PCT
   const kronos = x.kronosPct == null ? 'n/a' : x.kronosPct <= SHADOW_KRONOS_PCT ? 'against' : 'ok'
-  return { volOk, srcOk, stopOk, stopPct: x.stopPct ?? null, learner, kronos, pass: volOk && srcOk && stopOk }
+  return { volOk, srcOk, stopOk, stopPct: x.stopPct ?? null, learner, kronos, midday: isMidday(x.openedAt), pass: volOk && srcOk && stopOk }
 }
 
 /** The tag a trade carries, or one rebuilt from its pick info for trades closed before tags existed. */
@@ -96,6 +105,8 @@ export interface ShadowReport {
   watchlistDay: ShadowBucket
   /** #271 (2): skipped because the planned stop was under SHADOW_MIN_STOP_PCT % away. */
   tightStop: ShadowBucket
+  /** Entered 11:00-14:59 ET (record only, never gates). */
+  midday: ShadowBucket
   /** Learner calls, only on trades tagged live (it is not rebuilt for older trades). */
   learnerBuy: ShadowBucket
   learnerHold: ShadowBucket
@@ -119,7 +130,7 @@ const money = (x: number) => `${x >= 0 ? '+' : '−'}$${Math.abs(x).toFixed(2)}`
 const wr = (b: ShadowBucket) => (b.n ? `${Math.round((b.wins / b.n) * 100)}%` : '–')
 const pf = (b: ShadowBucket) => (b.pf == null ? '–' : b.pf.toFixed(2))
 
-export function shadowReport(trades: Pick<PracticeTrade, 'pnl' | 'info' | 'kind' | 'entry' | 'stop'>[]): ShadowReport {
+export function shadowReport(trades: (Pick<PracticeTrade, 'pnl' | 'info' | 'kind' | 'entry' | 'stop'> & { openedAt?: number })[]): ShadowReport {
   const tagged = trades.map((t) => ({ t, tag: tagOf(t) }))
   const keep = bucket(tagged.filter((x) => x.tag.pass).map((x) => x.t))
   const skip = bucket(tagged.filter((x) => !x.tag.pass).map((x) => x.t))
@@ -130,6 +141,7 @@ export function shadowReport(trades: Pick<PracticeTrade, 'pnl' | 'info' | 'kind'
     lowVolume: bucket(tagged.filter((x) => !x.tag.volOk).map((x) => x.t)),
     watchlistDay: bucket(tagged.filter((x) => !x.tag.srcOk).map((x) => x.t)),
     tightStop: bucket(tagged.filter((x) => !x.tag.stopOk).map((x) => x.t)),
+    midday: bucket(tagged.filter((x) => (x.tag.midday ?? isMidday((x.t as { openedAt?: number }).openedAt))).map((x) => x.t)),
     learnerBuy: bucket(live.filter((x) => x.tag.learner === 'BUY').map((x) => x.t)),
     learnerHold: bucket(live.filter((x) => x.tag.learner === 'HOLD').map((x) => x.t)),
     live: live.length,
