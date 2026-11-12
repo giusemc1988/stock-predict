@@ -10,4 +10,4 @@ Driver: **claude**.
 | T3 | Flip Atlas #271 shadow filters live after >= 30 live-tagged trades (old Q-004) | atlas | claude | needs-ok | 2026-11-12 00:29 |  |
 | T4 | BayReady v2.63 (TRANG NGUYEN fix): package and move into private repo giusemc1988/bayready (old Q-006; Chanh: no shop test needed) | bayready | claude | todo | 2026-11-12 00:29 |  |
 | T5 | Call scripts/team-bridge.mjs from watcher.ps1 / watcher.sh so machines show On and run scripts | neohub | claude | todo | 2026-11-12 00:29 |  |
-| T6 | job: status | neohub | windows | todo | 2026-11-12 00:30 |  |
+| T6 | job: status | neohub | windows | running | 2026-11-12 00:44 |  |

@@ -23,3 +23,4 @@ The copy of this file on `main` is frozen history up to 2026-11-11.
 | 2026-11-12 00:29 | claude | ADD | T4 BayReady v2.63 (TRANG NGUYEN fix): package and move into private repo giusemc1988/bayready (old Q-006; Chanh: no shop test needed) → claude | bayready | — |
 | 2026-11-12 00:29 | claude | ADD | T5 Call scripts/team-bridge.mjs from watcher.ps1 / watcher.sh so machines show On and run scripts → claude | neohub | — |
 | 2026-11-12 00:30 | claude | ADD | T6 job: status → windows | neohub | — |
+| 2026-11-12 00:44 | hermes-win | CLAIM | T6 job: status | neohub | — |
