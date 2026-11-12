@@ -29,6 +29,15 @@ export interface TeamTask {
   brief?: string
   /** Set when a machine wrote the TASK file into Milo's folder. */
   handed?: { at: string; machine: 'windows' | 'ubuntu' }
+  /** When Milo's first PROGRESS note arrived: the task was picked up. */
+  started?: string
+  /** Where the work is (last line of Milo's PROGRESS file). */
+  progress?: string
+  /** What Milo needs from Chanh (a "NEED:" line). */
+  need?: string
+  /** A "LESSON:" line from the result, also appended to LESSONS.md. */
+  lesson?: string
+  updatedBy?: string
 }
 export interface TeamState {
   v: 1
@@ -36,6 +45,8 @@ export interface TeamState {
   machines: Partial<Record<'windows' | 'ubuntu', { seen: string; note?: string }>>
   tasks: TeamTask[]
   next: number
+  /** Last time Claude changed or read the board. */
+  claudeSeen?: string
 }
 export interface LogLine {
   time: string
@@ -57,6 +68,10 @@ export const miloStage = core.miloStage as (t: TeamTask) => 1 | 2 | 3 | 4
 export const isStuck = core.isStuck as (t: TeamTask, nowMs: number) => boolean
 /** A full prompt for Milo from fixed text (no AI): what Chanh pastes when Claude is out of limit. */
 export const miloPrompt = core.miloPrompt as (tasks: TeamTask[], pictures?: number) => string
+/** Tasks changed by someone else after Claude last looked. */
+export const sinceClaude = core.sinceClaude as (s: TeamState) => TeamTask[]
+/** Red tasks, Milo asking for something, a fresh failure, or a hand-off nobody opened. */
+export const needsChanh = core.needsChanh as (s: TeamState, nowMs: number) => TeamTask[]
 /** Apply an action locally (checks it the same way the workflow will). */
 export const applyAction = core.applyAction as (s: TeamState, a: TeamAction, now: string, by: string) => { state: TeamState; log: unknown }
 

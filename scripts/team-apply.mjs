@@ -3,7 +3,7 @@
 // Used by .github/workflows/team-update.yml (dir = the handoff-log checkout) and team-bridge.mjs.
 import { existsSync, readFileSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
-import { applyAction, emptyTeam, logRow, renderQueue, updateLog } from './team-core.mjs'
+import { applyAction, emptyTeam, lessonRow, LESSONS_HEAD, logRow, renderQueue, updateLog } from './team-core.mjs'
 
 export function applyInDir(dir, action, who, now = new Date().toISOString()) {
   const p = (f) => join(dir, 'docs/handoff', f)
@@ -13,6 +13,7 @@ export function applyInDir(dir, action, who, now = new Date().toISOString()) {
   writeFileSync(p('QUEUE.md'), renderQueue(next))
   const logMd = existsSync(p('LOG.md')) ? readFileSync(p('LOG.md'), 'utf8') : ''
   writeFileSync(p('LOG.md'), updateLog(logMd, next, log ? logRow(now, log) : null))
+  if (log?.lesson) writeFileSync(p('LESSONS.md'), (existsSync(p('LESSONS.md')) ? readFileSync(p('LESSONS.md'), 'utf8') : LESSONS_HEAD).replace(/\n*$/, '\n') + lessonRow(now, log) + '\n')
   return { next, log }
 }
 

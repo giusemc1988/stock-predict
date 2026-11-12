@@ -2,12 +2,12 @@
 // watcher every 5 minutes: heartbeat, then run at most one whitelisted job assigned to this machine.
 // No AI model involved: jobs are fixed scripts (Chanh 2026-11-12). Never deploys, never merges.
 // Usage: node team-bridge.mjs --machine windows|ubuntu --home <folder for clones> [--neohub <clone>] [--bayready <clone>] [--bayready-src <folder>] [--out <zip folder>] [--milo-dir <Milo's task folder>]
-// With --milo-dir it also carries board tasks for Milo: writes TASK-board-<id>.md there and reads RESULT-board-<id>.md back (plain files, no AI).
+// With --milo-dir it also carries board tasks for Milo: writes TASK-board-<id>.md there and reads PROGRESS-board-<id>.md and RESULT-board-<id>.md back (plain files, no AI).
 // Each run also keeps the two newest BayReady versions zipped on the Desktop (bayready-backup.mjs).
 import { execFileSync } from 'node:child_process'
 import { existsSync, mkdirSync, readFileSync, statfsSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
-import { handedOpen, isOnline, JOBS, MACHINES, nextJob, ONLINE_MS, resultFileName, taskFile, taskFileName, toHandOff } from './team-core.mjs'
+import { handedOpen, isOnline, JOBS, MACHINES, nextJob, ONLINE_MS, progressFileName, readProgress, resultFileName, taskFile, taskFileName, toHandOff } from './team-core.mjs'
 import { applyInDir } from './team-apply.mjs'
 import { backupBayReady } from './bayready-backup.mjs'
 
@@ -114,6 +114,19 @@ if (miloDir && existsSync(miloDir)) {
   }
   for (const t of handedOpen(state(), machine)) {
     const f = join(miloDir, resultFileName(t.id))
+    // Milo's PROGRESS file: picked up, where the work is, what Milo needs from Chanh (sent only when it changed)
+    const pf = join(miloDir, progressFileName(t.id))
+    if (!existsSync(f) && existsSync(pf)) {
+      try {
+        const n = readProgress(readFileSync(pf, 'utf8'))
+        if ((n.text || n.need) && (t.status !== 'running' || (t.progress ?? '') !== n.text || (t.need ?? '') !== n.need)) {
+          act({ type: 'note', id: t.id, text: n.text, need: n.need })
+          console.log(`${t.id} progress read`)
+        }
+      } catch (e) {
+        console.log(`progress ${t.id} skipped: ${tail(e.message)}`)
+      }
+    }
     if (!existsSync(f)) continue
     try {
       const txt = readFileSync(f, 'utf8').trim()
