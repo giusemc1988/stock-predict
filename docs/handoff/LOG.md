@@ -24,3 +24,4 @@ The copy of this file on `main` is frozen history up to 2026-11-11.
 | 2026-11-12 00:29 | claude | ADD | T5 Call scripts/team-bridge.mjs from watcher.ps1 / watcher.sh so machines show On and run scripts → claude | neohub | — |
 | 2026-11-12 00:30 | claude | ADD | T6 job: status → windows | neohub | — |
 | 2026-11-12 00:44 | hermes-win | CLAIM | T6 job: status | neohub | — |
+| 2026-11-12 00:44 | hermes-win | DONE | T6 job: status: node v24.14.1, disk free 1649.9 GB, git 2.53.0.windows.2 | neohub | — |
