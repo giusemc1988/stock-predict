@@ -112,8 +112,12 @@
       "owner": "milo",
       "status": "todo",
       "created": "2026-11-12T19:34:38.240Z",
-      "updated": "2026-11-12T19:34:38.240Z",
-      "by": "chanh"
+      "updated": "2026-11-12T19:35:02.132Z",
+      "by": "chanh",
+      "handed": {
+        "at": "2026-11-12T19:35:02.132Z",
+        "machine": "ubuntu"
+      }
     }
   ],
   "next": 9
