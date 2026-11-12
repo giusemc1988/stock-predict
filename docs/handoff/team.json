@@ -60,7 +60,19 @@
       "created": "2026-11-12T00:29:46.532Z",
       "updated": "2026-11-12T00:29:46.532Z",
       "by": "claude"
+    },
+    {
+      "id": "T6",
+      "title": "job: status",
+      "project": "neohub",
+      "kind": "job",
+      "owner": "windows",
+      "job": "status",
+      "status": "todo",
+      "created": "2026-11-12T00:30:47.710Z",
+      "updated": "2026-11-12T00:30:47.710Z",
+      "by": "claude"
     }
   ],
-  "next": 6
+  "next": 7
 }
