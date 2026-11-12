@@ -8,6 +8,10 @@
     "windows": {
       "seen": "2026-11-12T03:04:45.833Z",
       "note": "idle"
+    },
+    "ubuntu": {
+      "seen": "2026-11-12T03:43:20.363Z",
+      "note": "idle"
     }
   },
   "tasks": [
