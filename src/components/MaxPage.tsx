@@ -6,6 +6,7 @@ import { useLang } from '../lib/i18n'
 import { AgentShell } from './AgentShell'
 import { StatRow, type Stat } from './StatCard'
 import { TeamPanel } from './TeamPanel'
+import { OfficeView } from './OfficeView'
 import { VoiceRequest } from './VoiceRequest'
 
 const REPO = 'https://github.com/giusemc1988/stock-predict'
@@ -91,6 +92,8 @@ export function MaxPage({ onBack, glass = true }: { onBack: () => void; glass?: 
       <StatRow items={stats} />
 
       <VoiceRequest />
+
+      <OfficeView />
 
       <TeamPanel />
 
