@@ -211,6 +211,11 @@ console.log('practice tests passed')
   assert.equal(onBarClose(emptyPractice(), ctx({ volFilter: true, volVsAvg: null })).open.length, 1)
   assert.equal(onBarClose(emptyPractice(), ctx({ volFilter: false, volVsAvg: 0.6 })).open.length, 1)
 
+  // 2.0.27: stricter live floor from the forward test (volume 1.5x, stop 2%)
+  assert.equal(onBarClose(emptyPractice(), ctx({ volFilter: true, minVolMult: 1.5, volVsAvg: 1.2 })).open.length, 0)
+  assert.equal(onBarClose(emptyPractice(), ctx({ volFilter: true, minVolMult: 1.5, volVsAvg: 1.6 })).open.length, 1)
+  assert.equal(onBarClose(emptyPractice(), ctx({ minStopPct: 99 })).open.length, 0)
+
   // watchlist picks: no day trade, but the long-term slot still may take one
   assert.equal(onBarClose(emptyPractice(), ctx({ noWatchlistDay: true, source: 'watchlist' })).open.length, 0)
   assert.equal(onBarClose(emptyPractice(), ctx({ noWatchlistDay: true, source: 'movers' })).open.length, 1)

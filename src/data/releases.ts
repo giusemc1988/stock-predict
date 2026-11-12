@@ -2,7 +2,7 @@
  * Version and "What's new". Bump APP_VERSION and add an entry to the top of RELEASES
  * with each update. The banner shows once per version, then stays dismissed.
  */
-export const APP_VERSION = '2.0.26'
+export const APP_VERSION = '2.0.27'
 
 export interface Release {
   version: string
@@ -13,6 +13,12 @@ export interface Release {
 }
 
 export const RELEASES: Release[] = [
+  {
+    version: '2.0.27',
+    date: '2026-11-12',
+    changes: ['Atlas practice: two live filters are now on, taken from the forward test of 170 live-tagged trades. Buys need 15m volume at least 1.5x normal and a planned stop at least 2% away. Kept trades: 61, won 48%, profit factor 1.56, +$270. Skipped trades: 109, won 34%, profit factor 0.74, -$231. Two switches in AI rules (practiceVolFloor15, practiceMinStop2) turn each off. Re-grade after 50 trades with the filters on.'],
+    changesVi: ['Atlas luyện tập: bật thật hai bộ lọc rút ra từ 170 lệnh chạy bóng. Chỉ mua khi khối lượng 15 phút ít nhất 1,5 lần bình thường và cắt lỗ dự kiến cách giá vào ít nhất 2%. Nhóm giữ: 61 lệnh, thắng 48%, PF 1,56, +$270. Nhóm bỏ: 109 lệnh, thắng 34%, PF 0,74, −$231. Hai công tắc trong AI rules (practiceVolFloor15, practiceMinStop2) tắt từng cái được. Chấm lại sau 50 lệnh có lọc.'],
+  },
   {
     version: '2.0.26',
     date: '2026-11-12',

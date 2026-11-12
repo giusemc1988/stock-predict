@@ -375,6 +375,10 @@ export interface EntryContext {
   source?: string
   /** Block buys with volume under MIN_VOL_MULT x normal (missing volume passes). */
   volFilter?: boolean
+  /** Higher volume floor than MIN_VOL_MULT (e.g. 1.5), applied with volFilter. */
+  minVolMult?: number
+  /** Skip buys whose planned stop is closer than this % (e.g. 2), on top of MIN_STOP_PCT. */
+  minStopPct?: number
   /** Block day trades whose pick came from the watchlist. */
   noWatchlistDay?: boolean
   /** Breakeven stop at +1R and no time exit while in profit. */
@@ -453,8 +457,9 @@ export function onBarClose(prev: PracticeState, ctx: EntryContext): PracticeStat
   if (ctx.qualityBlock) return skip(ctx.qualityBlock.check, ctx.qualityBlock.en, ctx.qualityBlock.vi)
   pass('Quality')
   if (ctx.volFilter) {
-    if (ctx.volVsAvg != null && ctx.volVsAvg < MIN_VOL_MULT)
-      return skip('Volume', `volume is only ${ctx.volVsAvg.toFixed(2)}x normal (need ${MIN_VOL_MULT}x)`, `khối lượng chỉ bằng ${ctx.volVsAvg.toFixed(2)} lần bình thường (cần ${MIN_VOL_MULT} lần)`)
+    const need = Math.max(MIN_VOL_MULT, ctx.minVolMult ?? 0)
+    if (ctx.volVsAvg != null && ctx.volVsAvg < need)
+      return skip('Volume', `volume is only ${ctx.volVsAvg.toFixed(2)}x normal (need ${need}x)`, `khối lượng chỉ bằng ${ctx.volVsAvg.toFixed(2)} lần bình thường (cần ${need} lần)`)
     pass('Volume')
   }
   if (ctx.noWatchlistDay && kind === 'day' && ctx.source === 'watchlist')
@@ -502,6 +507,7 @@ export function onBarClose(prev: PracticeState, ctx: EntryContext): PracticeStat
   if (!(plan.stop > 0)) return skip('Exit plan', 'no valid stop and target', 'không có cắt lỗ và chốt lời hợp lệ')
   const stopPct = ((ctx.price - plan.stop) / ctx.price) * 100
   if (stopPct < MIN_STOP_PCT) return skip('Stop too tight', `stop is only ${stopPct.toFixed(2)}% away (need ${MIN_STOP_PCT}%): normal noise would hit it`, `cắt lỗ chỉ cách ${stopPct.toFixed(2)}% (cần ${MIN_STOP_PCT}%): dao động bình thường cũng chạm`)
+  if (ctx.minStopPct && stopPct < ctx.minStopPct) return skip('Stop too tight', `stop is only ${stopPct.toFixed(2)}% away (need ${ctx.minStopPct}%): live trades with a tighter stop kept losing`, `cắt lỗ chỉ cách ${stopPct.toFixed(2)}% (cần ${ctx.minStopPct}%): lệnh thật có cắt lỗ sát thường thua`)
   pass('Exit plan')
 
   // small, fixed practice size; halved in high volatility; reduced by drawdown brakes and Kelly sizing
