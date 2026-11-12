@@ -1,0 +1,54 @@
+# Neo Hub "Văn phòng" board: the Worker (/api/team/act) starts this with one action (add a task, approve,
+# cancel, switch driver). It applies the action to docs/handoff/team.json on the branch handoff-log and
+# re-renders QUEUE.md and LOG.md. Uses only the workflow token; never touches main or deploys.
+name: Team update
+
+on:
+  workflow_dispatch:
+    inputs:
+      action:
+        description: One team action as JSON
+        required: true
+      who:
+        description: Who asked (chanh, claude, milo)
+        required: false
+        default: chanh
+
+permissions:
+  contents: write
+
+concurrency:
+  group: team-update
+  cancel-in-progress: false
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: main
+      - uses: actions/checkout@v4
+        with:
+          ref: handoff-log
+          path: hand
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Apply and push
+        env:
+          ACTION: ${{ inputs.action }}
+          WHO: ${{ inputs.who }}
+        run: |
+          cd hand
+          git config user.name "neo-hub-team"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          for i in 1 2 3 4; do
+            git fetch --quiet origin handoff-log && git reset --quiet --hard origin/handoff-log
+            node ../main/scripts/team-apply.mjs "$ACTION" "$WHO" .
+            git add docs/handoff
+            git commit --quiet -m "team: action from $WHO" || exit 0
+            git push --quiet origin HEAD:handoff-log && exit 0
+            sleep $((i * 3))
+          done
+          exit 1
