@@ -1,6 +1,6 @@
 {
- "generated": "2026-11-11T01:29:06.665Z",
- "asOf": "2026-11-09",
+ "generated": "2026-11-12T02:31:10.577Z",
+ "asOf": "2026-11-10",
  "strategy": "leaders-tight-base",
  "score": {
   "graded": 1,
@@ -19,7 +19,7 @@
    "entry": 100.42,
    "stop": 95.33,
    "adr": 5.07,
-   "age": 2
+   "age": 3
   },
   {
    "symbol": "TRAX",
@@ -27,7 +27,7 @@
    "entry": 50.41,
    "stop": 46.48,
    "adr": 7.8,
-   "age": 0
+   "age": 1
   }
  ],
  "open": [],
