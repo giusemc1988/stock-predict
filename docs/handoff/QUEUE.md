@@ -12,5 +12,5 @@ Default machine for repo work: windows. Fallback: ubuntu.
 | Q-002 | Decide: reset or drop stuck TASKs cyberdeck-v2-screen-info and ro-verify-work-done-here | milo | todo | | | milo-shared | green |
 | Q-003 | Delete 19 merged remote branches (list: neo/branches-merged-to-delete-2026-11-11.txt) | milo | blocked | | | git branches | red (Chanh OK) |
 | Q-004 | Flip shadow filters (#271) live | - | blocked | | | src/lib/practice.ts | red (Chanh OK, wait for >= 30 live-tagged trades) |
-| Q-005 | Apply failover to Windows: watcher.ps1 skips TASKs whose machine: is not windows; team-playbook 1.4.0; sync combo v5 | windows | todo | | | milo-shared, ~/.hermes | green |
+| Q-005 | Apply failover to Windows: watcher.ps1 skips TASKs whose machine: is not windows; team-playbook 1.4.0; sync combo v5 | windows | done except combo v5 (Milo) | | | milo-shared, ~/.hermes | green |
 | Q-006 | BayReady: TRANG NGUYEN card shows no RO (name match) | claude | code done, needs shop test | | local bayready v2.63 | routes.js carsLive | green |
