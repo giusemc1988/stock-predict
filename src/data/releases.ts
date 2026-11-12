@@ -2,7 +2,7 @@
  * Version and "What's new". Bump APP_VERSION and add an entry to the top of RELEASES
  * with each update. The banner shows once per version, then stays dismissed.
  */
-export const APP_VERSION = '2.0.28'
+export const APP_VERSION = '2.0.29'
 
 export interface Release {
   version: string
@@ -14,16 +14,16 @@ export interface Release {
 
 export const RELEASES: Release[] = [
   {
-    version: '2.0.28',
+    version: '2.0.29',
     date: '2026-11-12',
-    changes: ['Atlas practice: setup brake. A setup (day or long + scanner source) whose last 30 closed trades have a profit factor under 0.8 now trades at half size until it recovers, so learning finally changes behaviour (switch practiceSetupBrake). Also new: a daily no-AI ledger on the backups branch showing where trades win or lose, a go-live gate (real money stays off until 200 trades, PF 1.3, bootstrap PF above 1, 90 days), and fixed keep/kill rules for every shadow sleeve (atlas/SLEEVES.md).'],
-    changesVi: ['Atlas luyện tập: phanh theo nhóm lệnh. Nhóm lệnh (trong ngày hoặc dài hạn + nguồn quét) có PF dưới 0,8 trong 30 lệnh gần nhất sẽ vào nửa khối lượng đến khi hồi phục, nên việc học cuối cùng đã đổi được hành vi (công tắc practiceSetupBrake). Mới nữa: sổ cái hằng ngày không dùng AI trên nhánh backups cho biết lệnh thắng thua ở đâu, cổng tiền thật (chưa bật cho đến khi đủ 200 lệnh, PF 1,3, PF cận dưới trên 1, 90 ngày), và luật giữ/tắt cố định cho mọi nhánh chạy bóng (atlas/SLEEVES.md).'],
+    changes: ['Team library: one shared place (docs/library in the repo) that Claude, Muse and the Hermes agents all read and write. It holds the rules from Chanh, step-by-step playbooks with a self-check before saying done, lessons learned (problem, cause, fix) so nobody debugs the same thing twice, and an inbox for questions and feedback from agents. AGENTS.md now tells every agent to read it first.'],
+    changesVi: ['Thư viện chung của đội: một chỗ duy nhất (docs/library trong repo) mà Claude, Muse và các Hermes đều đọc và ghi. Có luật của anh Chanh, playbook từng bước kèm bước tự kiểm trước khi báo xong, bài học (vấn đề, nguyên nhân, cách sửa) để không ai sửa lại cùng một lỗi, và hộp thư cho agent hỏi hoặc góp ý. AGENTS.md giờ bắt mọi agent đọc nó trước.'],
   },
   {
     version: '2.0.28',
     date: '2026-11-12',
-    changes: ['Team library: one shared place (docs/library in the repo) that Claude, Muse and the Hermes agents all read and write. It holds the rules from Chanh, step-by-step playbooks with a self-check before saying done, lessons learned (problem, cause, fix) so nobody debugs the same thing twice, and an inbox for questions and feedback from agents. AGENTS.md now tells every agent to read it first.'],
-    changesVi: ['Thư viện chung của đội: một chỗ duy nhất (docs/library trong repo) mà Claude, Muse và các Hermes đều đọc và ghi. Có luật của anh Chanh, playbook từng bước kèm bước tự kiểm trước khi báo xong, bài học (vấn đề, nguyên nhân, cách sửa) để không ai sửa lại cùng một lỗi, và hộp thư cho agent hỏi hoặc góp ý. AGENTS.md giờ bắt mọi agent đọc nó trước.'],
+    changes: ['Atlas practice: setup brake. A setup (day or long + scanner source) whose last 30 closed trades have a profit factor under 0.8 now trades at half size until it recovers, so learning finally changes behaviour (switch practiceSetupBrake). Also new: a daily no-AI ledger on the backups branch showing where trades win or lose, a go-live gate (real money stays off until 200 trades, PF 1.3, bootstrap PF above 1, 90 days), and fixed keep/kill rules for every shadow sleeve (atlas/SLEEVES.md).'],
+    changesVi: ['Atlas luyện tập: phanh theo nhóm lệnh. Nhóm lệnh (trong ngày hoặc dài hạn + nguồn quét) có PF dưới 0,8 trong 30 lệnh gần nhất sẽ vào nửa khối lượng đến khi hồi phục, nên việc học cuối cùng đã đổi được hành vi (công tắc practiceSetupBrake). Mới nữa: sổ cái hằng ngày không dùng AI trên nhánh backups cho biết lệnh thắng thua ở đâu, cổng tiền thật (chưa bật cho đến khi đủ 200 lệnh, PF 1,3, PF cận dưới trên 1, 90 ngày), và luật giữ/tắt cố định cho mọi nhánh chạy bóng (atlas/SLEEVES.md).'],
   },
   {
     version: '2.0.27',
