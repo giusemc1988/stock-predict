@@ -2,7 +2,7 @@
  * Version and "What's new". Bump APP_VERSION and add an entry to the top of RELEASES
  * with each update. The banner shows once per version, then stays dismissed.
  */
-export const APP_VERSION = '2.0.31'
+export const APP_VERSION = '2.0.32'
 
 export interface Release {
   version: string
@@ -13,6 +13,12 @@ export interface Release {
 }
 
 export const RELEASES: Release[] = [
+  {
+    version: '2.0.32',
+    date: '2026-11-12',
+    changes: ['Team library: new playbook on which model combo to use. Free combos for everyday work, and the new review-hard combo only for hard steps and final reviews.'],
+    changesVi: ['Thư viện đội: thêm playbook chọn combo model. Combo miễn phí cho việc thường, combo review-hard mới chỉ dùng cho bước khó và duyệt cuối.'],
+  },
   {
     version: '2.0.31',
     date: '2026-11-12',

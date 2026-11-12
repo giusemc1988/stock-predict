@@ -21,6 +21,7 @@ For Claude, Muse (Milo), Hermes Windows and Hermes Ubuntu. Goal: anyone can do a
 | Fix a bug (find the cause before editing) | `playbooks/fix-a-bug.md` |
 | Write or receive a prompt for Muse / Hermes | `playbooks/prompt-handoff.md` |
 | Build and release BayReady | `playbooks/bayready-release.md` |
+| Which model combo to use (free vs `review-hard`) | `playbooks/model-routing.md` |
 
 ## Lessons (problem, cause, fix)
 In `lessons/`, one file each, date in the filename. Seeded 2026-11-12.
