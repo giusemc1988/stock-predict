@@ -27,3 +27,4 @@ The copy of this file on `main` is frozen history up to 2026-11-11.
 | 2026-11-12 00:44 | hermes-win | DONE | T6 job: status: node v24.14.1, disk free 1649.9 GB, git 2.53.0.windows.2 | neohub | — |
 | 2026-11-12 02:19 | chanh | OK | T2 approved: Delete 19 merged remote branches (list: neo/branches-merged-to-delete-2026-11-11.txt) (old Q-003) | neohub | — |
 | 2026-11-12 02:19 | chanh | OK | T3 approved: Flip Atlas #271 shadow filters live after >= 30 live-tagged trades (old Q-004) | atlas | — |
+| 2026-11-12 03:44 | claude | DONE | T5 Call scripts/team-bridge.mjs from watcher.ps1 / watcher.sh so machines show On and run scripts: Windows + Ubuntu bridges live: both machines send heartbeats (Ubuntu first beat 03:43 UTC). BayReady Desktop backups run | neohub | — |

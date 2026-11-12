@@ -65,10 +65,11 @@
       "project": "neohub",
       "kind": "code",
       "owner": "claude",
-      "status": "todo",
+      "status": "done",
       "created": "2026-11-12T00:29:46.532Z",
-      "updated": "2026-11-12T00:29:46.532Z",
-      "by": "claude"
+      "updated": "2026-11-12T03:44:37.316Z",
+      "by": "claude",
+      "result": "Windows + Ubuntu bridges live: both machines send heartbeats (Ubuntu first beat 03:43 UTC). BayReady Desktop backups run each pass."
     },
     {
       "id": "T6",
