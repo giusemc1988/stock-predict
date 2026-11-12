@@ -59,6 +59,9 @@ Chanh asks Neo in the app ("fix the X button", "make an app that..."); `.github/
 4. Unclear ask: comment one short question on the issue in Vietnamese and add `agent-pr` so it isn't retried; Chanh answers there.
 5. A new app = a page component in `src/components/`, its project entry in `src/lib/projects.ts` (card on the Hub, agent name), a Tool Hub entry if it has tools, and an AI-rules switch.
 
+## Team library (read before every job)
+Before any job read `docs/library/INDEX.md` (one page): Chanh's rules, the playbook for your job, and past lessons. Run `docs/library/playbooks/self-check.md` before saying "done". After a job, add a lesson if anything went wrong, and use `docs/library/inbox/` for questions and feedback.
+
 ## Handoff between Claude and Muse/Hermes
 Claude can run out of limit; Muse (Milo) and the Hermes agents keep the work moving, and Claude takes over again on return. Details and the failover rules: `docs/handoff/README.md`. The live log and task queue are on the branch `handoff-log`.
 - Only the current driver (first line of the live `LOG.md`) merges. Hermes never commands and never merges.
