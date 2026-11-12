@@ -7,6 +7,9 @@ import { applyAction, emptyTeam, isOnline, nextJob, renderQueue, updateLog, logR
 // @ts-expect-error plain JS modules
 import { applyInDir } from './team-apply.mjs'
 import { checkAction, parseLog, readTeam, sendAction } from '../src/lib/team'
+// @ts-expect-error plain JS modules
+import { backupBayReady, cmpVersion, toPrune } from './bayready-backup.mjs'
+import { readdirSync } from 'node:fs'
 
 const NOW = '2026-11-12T01:00:00.000Z'
 let s = emptyTeam()
@@ -96,5 +99,19 @@ const read = await readTeam('k', fake)
 assert.equal(read?.team.tasks.length, s.tasks.length)
 assert.equal(read?.log[0].type, 'OUT')
 assert.ok(calls.some((c) => c.url.includes('ref=handoff-log')))
+
+// BayReady Desktop backups: two newest versions, never other files
+assert.ok(cmpVersion('2.63', '2.9') > 0 && cmpVersion('2.48', '2.48') === 0)
+assert.deepEqual(toPrune(['bayready-v2.48.zip', 'notes.txt', 'bayready-v2.63.zip', 'bayready-v2.9.zip']), ['bayready-v2.9.zip'])
+const src = mkdtempSync(join(tmpdir(), 'br-src-'))
+const bk = mkdtempSync(join(tmpdir(), 'br-bk-'))
+writeFileSync(join(bk, 'keep-me.txt'), 'x')
+for (const v of ['2.61', '2.62', '2.63']) {
+  writeFileSync(join(src, 'manifest.json'), JSON.stringify({ version: v }))
+  assert.match(backupBayReady(src, bk), new RegExp(`saved bayready-v${v}`))
+}
+assert.equal(backupBayReady(src, bk), null) // same version: nothing to do
+assert.deepEqual(readdirSync(bk).sort(), ['bayready-v2.62.zip', 'bayready-v2.63.zip', 'keep-me.txt'])
+assert.equal(backupBayReady(join(src, 'nope'), bk), null)
 
 console.log('team: ok')

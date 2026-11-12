@@ -1,12 +1,14 @@
 // Machine bridge for the Neo Hub "Văn phòng" (team) board. Runs on Hermes Windows / Hermes Ubuntu from the
 // watcher every 5 minutes: heartbeat, then run at most one whitelisted job assigned to this machine.
 // No AI model involved: jobs are fixed scripts (Chanh 2026-11-12). Never deploys, never merges.
-// Usage: node team-bridge.mjs --machine windows|ubuntu --home <folder for clones> [--neohub <clone>] [--bayready <clone>] [--out <zip folder>]
+// Usage: node team-bridge.mjs --machine windows|ubuntu --home <folder for clones> [--neohub <clone>] [--bayready <clone>] [--bayready-src <folder>] [--out <zip folder>]
+// Each run also keeps the two newest BayReady versions zipped on the Desktop (bayready-backup.mjs).
 import { execFileSync } from 'node:child_process'
 import { existsSync, mkdirSync, readFileSync, statfsSync } from 'node:fs'
 import { join } from 'node:path'
 import { isOnline, JOBS, MACHINES, nextJob, ONLINE_MS } from './team-core.mjs'
 import { applyInDir } from './team-apply.mjs'
+import { backupBayReady } from './bayready-backup.mjs'
 
 const arg = (k, d) => {
   const i = process.argv.indexOf(`--${k}`)
@@ -21,7 +23,7 @@ const neohub = arg('neohub', join(home, 'neohub-repo'))
 const bayready = arg('bayready', join(home, 'bayready-repo'))
 const out = arg('out', join(home, 'dist'))
 // Only npm needs a shell on Windows (npm.cmd); git runs directly so its arguments (commit message) stay intact.
-const run = (cmd, args, cwd, timeout = 120000) => execFileSync(cmd, args, { cwd, timeout, encoding: 'utf8', shell: process.platform === 'win32' && cmd === 'npm', stdio: ['ignore', 'pipe', 'pipe'] })
+const run = (cmd, args, cwd, timeout = 120000) => execFileSync(cmd, args, { cwd, timeout, encoding: 'utf8', shell: process.platform === 'win32' && cmd === 'npm', stdio: ['ignore', 'pipe', 'pipe'], windowsHide: true })
 const git = (args, cwd = hand) => run('git', args, cwd)
 const tail = (s) => String(s ?? '').trim().split('\n').slice(-6).join(' / ').slice(-600)
 
@@ -89,6 +91,13 @@ process.on('uncaughtException', (e) => {
   console.log(`bridge failed: ${tail(e.stderr || e.message)}`)
   process.exit(1)
 })
+try {
+  // the BayReady repo clone when it exists, else a local copy given with --bayready-src
+  const saved = backupBayReady(existsSync(join(bayready, '.git')) ? bayready : arg('bayready-src'))
+  if (saved) console.log(`backup: ${saved}`)
+} catch (e) {
+  console.log(`backup failed: ${tail(e.message)}`)
+}
 sync()
 const s = state()
 const job = nextJob(s, machine)
