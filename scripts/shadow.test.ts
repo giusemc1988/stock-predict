@@ -77,7 +77,7 @@ for (let seed = 1; seed < 40 && !opened; seed++) {
   let x = seed * 7919, p = 100
   const rnd = () => ((x = (x * 48271) % 2147483647) / 2147483647)
   const bars = Array.from({ length: 200 }, (_, i) => { const o = p; p = p * (1 + (rnd() - 0.47) * 0.01); return { time: Math.floor(now / 1000) - (199 - i) * 900, open: o, high: Math.max(o, p) * 1.002, low: Math.min(o, p) * 0.998, close: p, volume: 1e6 * (0.5 + rnd() * 2) } })
-  const r = await scanCycle({ markets: [{ symbol: 'TEST', asset: 'stock', source: 'gainer' } as never], fetchBars: async () => bars, rules: { ...DEFAULT_AI_RULES, dataGuardOn: false }, journal: [], killSwitch: false, maxTradesPerDay: 50, lastBars: {}, now, dayEnd: now + 3 * 3600_000, sourceFor: () => 'Yahoo Finance', skills: [], kronosPct: { TEST: -3 } } as never)
+  const r = await scanCycle({ markets: [{ symbol: 'TEST', asset: 'stock', source: 'gainer' } as never], fetchBars: async () => bars, rules: { ...DEFAULT_AI_RULES, dataGuardOn: false, practiceMinStop2: false, practiceVolFloor15: false }, journal: [], killSwitch: false, maxTradesPerDay: 50, lastBars: {}, now, dayEnd: now + 3 * 3600_000, sourceFor: () => 'Yahoo Finance', skills: [], kronosPct: { TEST: -3 } } as never)
   const s = r.apply(emptyPractice())
   opened += s.open.length; tagged += s.open.filter((q) => q.info.shadow).length
   against += s.open.filter((q) => q.info.shadow?.kronos === 'against').length
