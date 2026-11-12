@@ -387,8 +387,22 @@ export interface EntryContext {
   minPrice10?: boolean
   /** Halve the size in high volatility. */
   volatilityHalf?: boolean
+  /** Halve the size of a setup (kind + scanner source) whose last SETUP_BRAKE_N closed trades have a profit factor under SETUP_BRAKE_PF. */
+  setupBrake?: boolean
   /** Size multiplier for long-term trades (0.5 = half size). */
   longSizeMult?: number
+}
+
+/** Setup brake: a setup (kind + source) with this many recent closed trades and a profit factor under the limit trades at half size until it recovers. */
+export const SETUP_BRAKE_N = 30
+export const SETUP_BRAKE_PF = 0.8
+export function setupBrakeMult(trades: PracticeTrade[], kind: string, source: string | undefined): number {
+  const recent = trades.filter((t) => t.kind === kind && (t.info?.pick?.source ?? 'unknown') === (source ?? 'unknown')).slice(-SETUP_BRAKE_N)
+  if (recent.length < SETUP_BRAKE_N) return 1
+  let gw = 0
+  let gl = 0
+  for (const t of recent) t.pnl > 0 ? (gw += t.pnl) : (gl -= t.pnl)
+  return gl > 0 && gw / gl < SETUP_BRAKE_PF ? 0.5 : 1
 }
 
 /** Buys need at least this much of the market's normal 15m volume when volFilter is on. */
@@ -516,7 +530,8 @@ export function onBarClose(prev: PracticeState, ctx: EntryContext): PracticeStat
   const kellyMult = ctx.kellyMultiplier ?? 1
   // size so that hitting the stop loses riskPct of the account, never more than maxSizeMult x the flat size
   const longMult = kind === 'long' ? (ctx.longSizeMult ?? 1) : 1
-  const sizeMult = volatilityMult * brakeMult * kellyMult * longMult * (penny ? PENNY_SIZE_MULT : 1)
+  const setupMult = ctx.setupBrake ? setupBrakeMult(s.trades, kind, ctx.source) : 1
+  const sizeMult = volatilityMult * brakeMult * kellyMult * longMult * setupMult * (penny ? PENNY_SIZE_MULT : 1)
   const capPct = (ctx.sizePct / 100) * (ctx.maxSizeMult ?? MAX_SIZE_MULT)
   const pct = Math.min((ctx.riskPct ?? RISK_PCT) / 100 / (stopPct / 100), capPct) * sizeMult
   const costs = penny && ctx.costs ? { ...ctx.costs, spreadBps: ctx.costs.spreadBps * PENNY_COST_MULT, slippageBps: ctx.costs.slippageBps * PENNY_COST_MULT } : ctx.costs

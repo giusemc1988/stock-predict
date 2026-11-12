@@ -148,6 +148,7 @@ export interface AiRules {
   practiceLeadersFirst: boolean // when slots are short, stocks on the nightly Leaders top 100 get them first
   practiceVolFloor15: boolean // practice buys need 15m volume at least 1.5x normal (live-tagged: 1.5x+ and stop 2%+ won 48%, PF 1.56; the rest PF 0.74)
   practiceMinStop2: boolean // practice skips a buy whose planned stop is under 2% from the entry (inside normal 15m noise)
+  practiceSetupBrake: boolean // a setup (kind + source) with PF under 0.8 over its last 30 closed trades trades at half size until it recovers
   practiceLongHalf: boolean // practice long-term trades open at half size (overnight gaps can jump past the stop)
   voltFlasher: boolean // Volt page: flash any ESP32 board from a GitHub repo link or a dropped .bin file, checked against the chip before writing
   echoRoomWatch: boolean // Echo page: read one ESP32-S3 running RuView firmware over USB (Web Serial) and show presence, motion, breathing; no home PC, nothing leaves the phone
@@ -300,6 +301,7 @@ export const DEFAULT_AI_RULES: AiRules = {
   practiceLeadersFirst: true,
   practiceVolFloor15: true,
   practiceMinStop2: true,
+  practiceSetupBrake: true,
   practiceLongHalf: true,
   voltFlasher: true,
   echoRoomWatch: true,
@@ -469,6 +471,7 @@ export const RULE_FIELDS: RuleField[] = [
   { group: 'modules', key: 'practiceLeadersFirst', en: 'When trade slots are short, stocks from the nightly Leaders top 100 get them first', vi: 'Khi thiếu lượt mua, mã trong top 100 "Dẫn đầu" được ưu tiên trước' },
   { group: 'modules', key: 'practiceVolFloor15', en: 'Practice buys only when 15m volume is at least 1.5x normal (live results: 1.5x+ with a 2%+ stop kept PF 1.56, the rest PF 0.74)', vi: 'Luyện tập chỉ mua khi khối lượng 15 phút ít nhất 1,5 lần bình thường (kết quả thật: nhóm này PF 1,56, phần còn lại PF 0,74)' },
   { group: 'modules', key: 'practiceMinStop2', en: 'Practice skips a buy when the planned stop is under 2% from the entry (normal noise hits it)', vi: 'Luyện tập bỏ lệnh khi cắt lỗ dự kiến cách giá vào dưới 2% (dao động bình thường cũng chạm)' },
+  { group: 'modules', key: 'practiceSetupBrake', en: 'Practice halves the size of a setup (day/long + scanner source) whose last 30 closed trades have profit factor under 0.8, until it recovers', vi: 'Luyện tập giảm một nửa khối lượng của nhóm lệnh (trong ngày/dài hạn + nguồn quét) có PF dưới 0,8 trong 30 lệnh gần nhất, đến khi hồi phục' },
   { group: 'modules', key: 'practiceLongHalf', en: 'Practice long-term trades at half size (overnight gaps can jump past the stop)', vi: 'Lệnh luyện tập dài hạn vào nửa khối lượng (giá có thể nhảy qua cắt lỗ qua đêm)' },
   { group: 'modules', key: 'potentialListOn', en: 'Show "Potential" list (stocks with good BUY signals from the scanner)', vi: 'Hiện danh sách "Tiềm năng" (cổ phiếu có tín hiệu MUA tốt từ máy quét)' },
 ]
@@ -594,6 +597,7 @@ export function practiceLimits(r: AiRules) {
     dayLossLimitPct: r.practiceDayLossOn ? r.practiceDayLossPct : 0,
     maxOpenPositions: r.practiceUnlimited ? r.practiceMaxOpen : r.maxOpenPositions,
     volFilter: r.practiceVolFilter,
+    setupBrake: r.practiceSetupBrake,
     minVolMult: r.practiceVolFloor15 ? 1.5 : undefined,
     minStopPct: r.practiceMinStop2 ? 2 : undefined,
     noWatchlistDay: r.practiceNoWatchlistDay,

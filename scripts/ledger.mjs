@@ -76,8 +76,31 @@ for (const [name, f] of Object.entries(dims)) {
   out.dims[name] = [...g].map(([k, l]) => ({ key: k, ...agg(l) })).sort((a, b) => a.net - b.net)
 }
 
+// Go-live gate (paper -> real money is never allowed unless ALL pass). Bootstrap = 2000 seeded resamples of the trades.
+function pfOf(l) { let a = 0; let b = 0; for (const t of l) { const p = num(t.pnl) ?? 0; p > 0 ? (a += p) : (b -= p) } return b ? a / b : a ? 99 : 0 }
+let seed = 12345
+const rnd = () => ((seed = (seed * 1664525 + 1013904223) % 4294967296) / 4294967296)
+const boots = []
+if (trades.length) for (let i = 0; i < 2000; i++) boots.push(pfOf(Array.from({ length: trades.length }, () => trades[Math.floor(rnd() * trades.length)])))
+boots.sort((a, b) => a - b)
+const pfLow = boots.length ? +boots[Math.floor(boots.length * 0.05)].toFixed(2) : 0
+let eq = 0
+let peak = 0
+let maxDd = 0
+for (const t of trades) { eq += num(t.pnl) ?? 0; peak = Math.max(peak, eq); maxDd = Math.max(maxDd, peak - eq) }
+const days = trades.length ? (trades.at(-1).closedAt - trades[0].openedAt) / 86400000 : 0
+out.gate = [
+  { test: 'at least 200 trades under the current rules', value: trades.length, ok: trades.length >= 200 },
+  { test: 'profit factor at least 1.3', value: out.all.pf, ok: out.all.pf >= 1.3 },
+  { test: 'profit factor lower bound (5% bootstrap) above 1', value: pfLow, ok: pfLow > 1 },
+  { test: 'at least 90 days of history', value: Math.round(days), ok: days >= 90 },
+  { test: 'max drawdown under $3,000', value: +maxDd.toFixed(0), ok: maxDd < 3000 },
+]
+out.gatePass = out.gate.every((g) => g.ok)
+
 const row = (r) => `| ${r.key} | ${r.n} | ${r.wr}% | ${r.pf} | ${r.net} | ${r.cost} |`
 let md = `# Atlas ledger (auto, no AI)\n\nAs of ${out.asOf}. All: ${out.all.n} trades, WR ${out.all.wr}%, PF ${out.all.pf}, net $${out.all.net}, costs $${out.all.cost}. Last 50: WR ${out.last50.wr}%, PF ${out.last50.pf}, net $${out.last50.net}.\n\nBuckets under 30 trades are noise. Sorted worst net first.\n`
+md += `\n## Go-live gate: ${out.gatePass ? 'PASS' : 'NOT READY'} (real money stays off unless every line is ok; trades counted are all-time, so re-baseline when rules change)\n${out.gate.map((g) => `- ${g.ok ? 'OK ' : 'NO '} ${g.test}: ${g.value}`).join('\n')}\n`
 for (const [name, rows] of Object.entries(out.dims)) {
   md += `\n## ${name}\n| bucket | n | WR | PF | net $ | costs $ |\n|---|---|---|---|---|---|\n${rows.map(row).join('\n')}\n`
 }
