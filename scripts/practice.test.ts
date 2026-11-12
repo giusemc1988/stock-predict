@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict'
-import { dayKey, emptyPractice, kindOf, lessons, onBarClose, onBars, onPrice, practiceEquity, practiceReport, sessionEnd, type EntryContext, nextBaseline, scoreboardNumbers, parsePractice } from '../src/lib/practice'
+import { dayKey, emptyPractice, kindOf, lessons, onBarClose, onBars, onPrice, practiceEquity, practiceReport, sessionEnd, type EntryContext, nextBaseline, scoreboardNumbers, parsePractice, setupBrakeMult } from '../src/lib/practice'
 import { atrPercent, qualityBlock } from '../src/lib/practiceQuality'
 import { practiceRows } from '../src/lib/practiceRows'
 import type { Analysis } from '../src/types'
@@ -215,6 +215,16 @@ console.log('practice tests passed')
   assert.equal(onBarClose(emptyPractice(), ctx({ volFilter: true, minVolMult: 1.5, volVsAvg: 1.2 })).open.length, 0)
   assert.equal(onBarClose(emptyPractice(), ctx({ volFilter: true, minVolMult: 1.5, volVsAvg: 1.6 })).open.length, 1)
   assert.equal(onBarClose(emptyPractice(), ctx({ minStopPct: 99 })).open.length, 0)
+
+  // 2.0.28 setup brake: 30 losing trades from one source halve the next size; other sources and fewer trades do not
+  {
+    const bad = emptyPractice()
+    const mk = (src: string, pnl: number) => ({ kind: 'day', pnl, info: { pick: { source: src } } }) as never
+    bad.trades = [...Array.from({ length: 30 }, () => mk('active', -10)), mk('active', 5)].slice(-30)
+    assert.equal(setupBrakeMult(bad.trades, 'day', 'active'), 0.5)
+    assert.equal(setupBrakeMult(bad.trades, 'day', 'gainer'), 1)
+    assert.equal(setupBrakeMult(bad.trades.slice(-10), 'day', 'active'), 1)
+  }
 
   // watchlist picks: no day trade, but the long-term slot still may take one
   assert.equal(onBarClose(emptyPractice(), ctx({ noWatchlistDay: true, source: 'watchlist' })).open.length, 0)
