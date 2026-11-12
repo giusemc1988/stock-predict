@@ -5,6 +5,7 @@ import { requestTask, type TaskInfo } from '../lib/hubTasks'
 import { useLang } from '../lib/i18n'
 import { AgentShell } from './AgentShell'
 import { StatRow, type Stat } from './StatCard'
+import { TeamPanel } from './TeamPanel'
 
 const REPO = 'https://github.com/giusemc1988/stock-predict'
 const MAX_HUE = '#f2c46d'
@@ -87,6 +88,8 @@ export function MaxPage({ onBack, glass = true }: { onBack: () => void; glass?: 
   return (
     <AgentShell id="forge" className="mx-page" glass={glass} onBack={onBack} backLabel={L('back')} title={L('title')} sub={L('sub')}>
       <StatRow items={stats} />
+
+      <TeamPanel />
 
       <div className="mx-grid">
         <section className="bf-card mx-ask">
