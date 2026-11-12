@@ -93,6 +93,25 @@
   .ag-status > span:not(.net-dot) { display: none; }
 }
 
+/* Max voice request box (VoiceRequest.tsx) */
+.vr { display: grid; gap: 12px; min-width: 0; }
+.vr textarea { width: 100%; box-sizing: border-box; resize: vertical; min-height: 84px; }
+.vr-mic { display: flex; align-items: center; justify-content: center; gap: 10px; width: 100%; min-height: 64px; border-radius: 20px; border: 1px solid var(--line); background: var(--panel-2); color: var(--ink, var(--text)); font: 600 16px var(--sans, inherit); cursor: pointer; transition: border-color 0.2s ease, background 0.2s ease; }
+.vr-mic:hover:not(:disabled) { border-color: color-mix(in srgb, var(--acc, var(--robot)) 60%, var(--line)); }
+.vr-mic:disabled { opacity: 0.5; cursor: not-allowed; }
+.vr-mic.on { border-color: var(--acc, var(--robot)); background: color-mix(in srgb, var(--acc, var(--robot)) 14%, var(--panel-2)); }
+.vr-dot { width: 14px; height: 14px; border-radius: 50%; background: var(--acc, var(--robot)); flex: none; }
+.vr-mic.on .vr-dot { animation: vr-pulse 1.1s ease-in-out infinite; }
+@keyframes vr-pulse { 50% { transform: scale(1.5); opacity: 0.45; } }
+@media (prefers-reduced-motion: reduce) { .vr-mic.on .vr-dot { animation: none; } }
+.vr-lang { display: flex; gap: 8px; flex-wrap: wrap; }
+.vr-err { color: var(--down, #ff8a8a); margin: 0; }
+.vr-big { min-height: 48px; padding-inline: 28px; font-size: 15px; }
+.vr-prompt { font: 13px/1.5 var(--mono, monospace); }
+.vr-det summary { cursor: pointer; font-size: 13px; color: var(--muted); }
+.vr-muse { display: grid; gap: 8px; padding-top: 12px; border-top: 1px solid var(--line); }
+.vr-muse h4 { margin: 0; font-size: 14px; }
+
 /* Max (MaxPage.tsx) */
 .mx-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr); gap: 16px; align-items: start; min-width: 0; }
 .mx-ask textarea { width: 100%; box-sizing: border-box; resize: vertical; min-height: 84px; }
