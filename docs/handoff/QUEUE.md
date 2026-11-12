@@ -1,16 +1,12 @@
-# Task queue (LIVE copy, branch `handoff-log`)
+# Task queue (rendered from team.json, branch `handoff-log`)
 
-Only the current driver (see top line of LOG.md) adds, assigns or closes tasks. Hermes agents claim and report.
-Status: todo, claimed, done, blocked. Colour: green = agents may do it; red = needs Chanh's OK first
-(Atlas live trading rules, cron, secrets, Cloudflare, `.github/`, removing a feature, turning a shadow filter live).
-Lease: a claimed task has `lease_until` (UTC). Silent past it = Milo sets it back to todo and gives it to the other machine.
-Default machine for repo work: windows. Fallback: ubuntu.
+Do not edit by hand. Add, approve or cancel tasks on the Neo Hub Max page (Đội card), or in team.json through scripts/team-apply.mjs.
+Driver: **claude**.
 
-| id | task | machine | status | lease_until | branch | touches | colour |
-|---|---|---|---|---|---|---|---|
-| Q-001 | Open PR for branch milo/answer-q2-q3 (docs: Q2/Q3 answers) | milo | done (PR #275) | | milo/answer-q2-q3 | docs/hermes/, docs/handoff/ | green |
-| Q-002 | Decide: reset or drop stuck TASKs cyberdeck-v2-screen-info and ro-verify-work-done-here | milo | todo | | | milo-shared | green |
-| Q-003 | Delete 19 merged remote branches (list: neo/branches-merged-to-delete-2026-11-11.txt) | milo | blocked | | | git branches | red (Chanh OK) |
-| Q-004 | Flip shadow filters (#271) live | - | blocked | | | src/lib/practice.ts | red (Chanh OK, wait for >= 30 live-tagged trades) |
-| Q-005 | Apply failover to Windows: watcher.ps1 skips TASKs whose machine: is not windows; team-playbook 1.4.0; sync combo v5 | windows | done except combo v5 (Milo) | | | milo-shared, ~/.hermes | green |
-| Q-006 | BayReady: TRANG NGUYEN card shows no RO (name match) | claude | code done, needs shop test | | local bayready v2.63 | routes.js carsLive | green |
+| id | task | project | owner | status | updated (UTC) | result |
+|---|---|---|---|---|---|---|
+| T1 | Decide: reset or drop stuck TASKs cyberdeck-v2-screen-info and ro-verify-work-done-here (old Q-002) | other | milo | todo | 2026-11-12 00:29 |  |
+| T2 | Delete 19 merged remote branches (list: neo/branches-merged-to-delete-2026-11-11.txt) (old Q-003) | neohub | milo | needs-ok | 2026-11-12 00:29 |  |
+| T3 | Flip Atlas #271 shadow filters live after >= 30 live-tagged trades (old Q-004) | atlas | claude | needs-ok | 2026-11-12 00:29 |  |
+| T4 | BayReady v2.63 (TRANG NGUYEN fix): package and move into private repo giusemc1988/bayready (old Q-006; Chanh: no shop test needed) | bayready | claude | todo | 2026-11-12 00:29 |  |
+| T5 | Call scripts/team-bridge.mjs from watcher.ps1 / watcher.sh so machines show On and run scripts | neohub | claude | todo | 2026-11-12 00:29 |  |

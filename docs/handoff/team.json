@@ -1,0 +1,66 @@
+{
+  "v": 1,
+  "driver": {
+    "who": "claude",
+    "since": null
+  },
+  "machines": {},
+  "tasks": [
+    {
+      "id": "T1",
+      "title": "Decide: reset or drop stuck TASKs cyberdeck-v2-screen-info and ro-verify-work-done-here (old Q-002)",
+      "project": "other",
+      "kind": "code",
+      "owner": "milo",
+      "status": "todo",
+      "created": "2026-11-12T00:29:46.527Z",
+      "updated": "2026-11-12T00:29:46.527Z",
+      "by": "claude"
+    },
+    {
+      "id": "T2",
+      "title": "Delete 19 merged remote branches (list: neo/branches-merged-to-delete-2026-11-11.txt) (old Q-003)",
+      "project": "neohub",
+      "kind": "code",
+      "owner": "milo",
+      "status": "needs-ok",
+      "created": "2026-11-12T00:29:46.530Z",
+      "updated": "2026-11-12T00:29:46.530Z",
+      "by": "claude"
+    },
+    {
+      "id": "T3",
+      "title": "Flip Atlas #271 shadow filters live after >= 30 live-tagged trades (old Q-004)",
+      "project": "atlas",
+      "kind": "code",
+      "owner": "claude",
+      "status": "needs-ok",
+      "created": "2026-11-12T00:29:46.531Z",
+      "updated": "2026-11-12T00:29:46.531Z",
+      "by": "claude"
+    },
+    {
+      "id": "T4",
+      "title": "BayReady v2.63 (TRANG NGUYEN fix): package and move into private repo giusemc1988/bayready (old Q-006; Chanh: no shop test needed)",
+      "project": "bayready",
+      "kind": "code",
+      "owner": "claude",
+      "status": "todo",
+      "created": "2026-11-12T00:29:46.531Z",
+      "updated": "2026-11-12T00:29:46.531Z",
+      "by": "claude"
+    },
+    {
+      "id": "T5",
+      "title": "Call scripts/team-bridge.mjs from watcher.ps1 / watcher.sh so machines show On and run scripts",
+      "project": "neohub",
+      "kind": "code",
+      "owner": "claude",
+      "status": "todo",
+      "created": "2026-11-12T00:29:46.532Z",
+      "updated": "2026-11-12T00:29:46.532Z",
+      "by": "claude"
+    }
+  ],
+  "next": 6
+}
