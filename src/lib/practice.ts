@@ -12,6 +12,7 @@ import { maxAgeSec, staleReason, type DataStamp } from './dataGuard'
 import { reviewTrade, type TradeReview } from './review'
 import { buildDailyReport, type DailyReport } from './dailyReport'
 import { provenRuleBroken } from './playbook'
+import { isMidday } from './shadowFilters'
 
 export const PRACTICE_START = 100_000
 /**
@@ -381,6 +382,8 @@ export interface EntryContext {
   minStopPct?: number
   /** Block day trades whose pick came from the watchlist. */
   noWatchlistDay?: boolean
+  /** Block day trades opened 11:00-14:59 New York time (ledger: 274 trades, PF about 0.6; 09:00-10:59 ET PF 1.27). */
+  noMiddayDay?: boolean
   /** Breakeven stop at +1R and no time exit while in profit. */
   letWinnersRun?: boolean
   /** Never buy a stock under MIN_STOCK_PRICE. */
@@ -478,6 +481,8 @@ export function onBarClose(prev: PracticeState, ctx: EntryContext): PracticeStat
   }
   if (ctx.noWatchlistDay && kind === 'day' && ctx.source === 'watchlist')
     return skip('Watchlist day trade', 'day trades from the watchlist are off (they kept losing)', 'lệnh trong ngày từ danh sách theo dõi đang tắt (nhóm này thua nhiều)')
+  if (ctx.noMiddayDay && kind === 'day' && ctx.asset === 'stock' && isMidday(ctx.now))
+    return skip('Midday', 'day trades between 11:00 and 15:00 New York time are off (the quiet hours kept losing)', 'lệnh trong ngày từ 11:00 đến 15:00 giờ New York đang tắt (giờ yên ắng thua nhiều)')
   if (ctx.minPrice10 && ctx.asset === 'stock' && ctx.price < MIN_STOCK_PRICE)
     return skip('Penny stock', `${fmt(ctx.price)} is under $${MIN_STOCK_PRICE}: cheap stocks slip past their stop`, `${fmt(ctx.price)} dưới $${MIN_STOCK_PRICE}: mã rẻ hay trượt qua cắt lỗ`)
   const penny = isPenny(ctx.asset, ctx.price)

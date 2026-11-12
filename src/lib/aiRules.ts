@@ -141,6 +141,7 @@ export interface AiRules {
   walkForwardValidatorOn: boolean // validate signals on data the ranking was not tuned on; mark as "Proven" only when win rate > 50% out-of-sample
   potentialListOn: boolean // show a "Potential" list of stocks with good BUY signals in the watchlist
   practiceVolFilter: boolean // practice buys only when the 15m volume is at least 1x normal (was a shadow rule: below it won 10%)
+  practiceNoMiddayDay: boolean // no practice stock day trades opened 11:00-14:59 New York time (ledger 486 trades: those hours PF ~0.6, 09:00-10:59 PF 1.27; in-sample, re-check after 50 trades)
   practiceNoWatchlistDay: boolean // no practice day trades picked from the watchlist (was a shadow rule: won 21-29%)
   practiceLetWinnersRun: boolean // practice: stop moves to the entry price once a trade is up 1R, and trades in profit skip the 12-bar time exit
   practiceMinPrice10: boolean // practice never buys a stock under $10 (cheap stocks slip past their stop)
@@ -296,6 +297,7 @@ export const DEFAULT_AI_RULES: AiRules = {
   potentialListOn: true,
   practiceVolFilter: true,
   practiceNoWatchlistDay: true,
+  practiceNoMiddayDay: true,
   practiceLetWinnersRun: true,
   practiceMinPrice10: true,
   practiceVolatilityHalf: false,
@@ -466,6 +468,7 @@ export const RULE_FIELDS: RuleField[] = [
   { group: 'modules', key: 'practiceTradeNotifications', en: 'Notify before placing a practice trade (symbol, side, entry, stop, target, reason)', vi: 'Báo trước khi đặt lệnh luyện tập (mã, mua/bán, vào, cắt lỗ, chốt lời, lý do)' },
   { group: 'jarvis', key: 'telegramNotifications', en: 'Send practice trades to Telegram bot (instant notifications, requires token)', vi: 'Gửi giao dịch luyện tập vào Telegram (thông báo ngay lập tức, cần token)' },
   { group: 'modules', key: 'practiceVolFilter', en: 'Practice buys only on normal or higher volume (15m volume at least 1x its average)', vi: 'Luyện tập chỉ mua khi khối lượng bình thường trở lên (khối lượng 15 phút ít nhất 1 lần trung bình)' },
+  { group: 'modules', key: 'practiceNoMiddayDay', en: 'No practice stock day trades between 11:00 and 15:00 New York time (those hours lost money in the ledger)', vi: 'Không mở lệnh cổ phiếu trong ngày từ 11:00 đến 15:00 giờ New York (khung giờ này thua trong sổ lệnh)' },
   { group: 'modules', key: 'practiceNoWatchlistDay', en: 'No practice day trades picked from the watchlist (they kept losing)', vi: 'Không mở lệnh trong ngày từ danh sách theo dõi (nhóm này thua nhiều)' },
   { group: 'modules', key: 'practiceLetWinnersRun', en: 'Practice lets winners run: stop moves to the entry price once a trade is up 1R, and a trade in profit is not closed by the 12-bar time limit', vi: 'Luyện tập để lệnh thắng chạy: lãi bằng 1R thì dời cắt lỗ về giá vào, lệnh đang lãi không bị đóng sau 12 nến' },
   { group: 'modules', key: 'practiceMinPrice10', en: 'Practice never buys a stock under $10 (cheap stocks slip past their stop)', vi: 'Luyện tập không mua cổ phiếu dưới $10 (mã rẻ hay trượt qua cắt lỗ)' },
@@ -604,6 +607,7 @@ export function practiceLimits(r: AiRules) {
     minVolMult: r.practiceVolFloor15 ? 1.5 : undefined,
     minStopPct: r.practiceMinStop2 ? 2 : undefined,
     noWatchlistDay: r.practiceNoWatchlistDay,
+    noMiddayDay: r.practiceNoMiddayDay,
     letWinnersRun: r.practiceLetWinnersRun,
     minPrice10: r.practiceMinPrice10,
     volatilityHalf: r.practiceVolatilityHalf,

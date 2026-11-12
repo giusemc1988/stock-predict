@@ -226,6 +226,12 @@ console.log('practice tests passed')
     assert.equal(setupBrakeMult(bad.trades.slice(-10), 'day', 'active'), 1)
   }
 
+  // 2.0.33 midday gate: 11:00-14:59 New York day trades are skipped; 10:00 ET and long trades are not
+  assert.equal(onBarClose(emptyPractice(), ctx({ noMiddayDay: true })).open.length, 0) // default ctx = 11:00 ET
+  assert.equal(onBarClose(emptyPractice(), ctx({ noMiddayDay: true, now: Date.UTC(2026, 9, 9, 14) })).open.length, 1) // 10:00 ET
+  assert.equal(onBarClose(emptyPractice(), ctx({ noMiddayDay: false })).open.length, 1)
+  assert.equal(onBarClose(emptyPractice(), ctx({ noMiddayDay: true, dayOn: false, longOn: true })).open.length, 1)
+
   // watchlist picks: no day trade, but the long-term slot still may take one
   assert.equal(onBarClose(emptyPractice(), ctx({ noWatchlistDay: true, source: 'watchlist' })).open.length, 0)
   assert.equal(onBarClose(emptyPractice(), ctx({ noWatchlistDay: true, source: 'movers' })).open.length, 1)
