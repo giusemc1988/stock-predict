@@ -295,13 +295,13 @@ const HALLUCINATIONS = [/^thank(s| you)( so much)?( for watching)?[.!]*$/i, /^(p
  * Cleans one Whisper answer: empty when the model itself says it is probably not speech
  * (avg no_speech_prob > 0.6) or the text is a known silence hallucination.
  */
-export function cleanHeard(j: { text?: unknown; language?: unknown; segments?: { no_speech_prob?: number }[] }): { text: string; lang: string } {
+export function cleanHeard(j: { text?: unknown; language?: unknown; segments?: { no_speech_prob?: number }[] }, max = 600): { text: string; lang: string } {
   const text = typeof j.text === 'string' ? j.text.trim() : ''
   const lang = langCode(j.language)
   const segs = Array.isArray(j.segments) ? j.segments.filter((s) => typeof s?.no_speech_prob === 'number') : []
   const silence = segs.length > 0 && segs.reduce((a, s) => a + (s.no_speech_prob as number), 0) / segs.length > 0.6
   if (!text || silence || HALLUCINATIONS.some((re) => re.test(text))) return { text: '', lang }
-  return { text: text.slice(0, 600), lang }
+  return { text: text.slice(0, max), lang }
 }
 
 /** Prompt to translate one live caption into Vietnamese, from any language. */
