@@ -2,7 +2,7 @@
  * Version and "What's new". Bump APP_VERSION and add an entry to the top of RELEASES
  * with each update. The banner shows once per version, then stays dismissed.
  */
-export const APP_VERSION = '2.0.27'
+export const APP_VERSION = '2.0.28'
 
 export interface Release {
   version: string
@@ -13,6 +13,12 @@ export interface Release {
 }
 
 export const RELEASES: Release[] = [
+  {
+    version: '2.0.28',
+    date: '2026-11-12',
+    changes: ['Team library: one shared place (docs/library in the repo) that Claude, Muse and the Hermes agents all read and write. It holds the rules from Chanh, step-by-step playbooks with a self-check before saying done, lessons learned (problem, cause, fix) so nobody debugs the same thing twice, and an inbox for questions and feedback from agents. AGENTS.md now tells every agent to read it first.'],
+    changesVi: ['Thư viện chung của đội: một chỗ duy nhất (docs/library trong repo) mà Claude, Muse và các Hermes đều đọc và ghi. Có luật của anh Chanh, playbook từng bước kèm bước tự kiểm trước khi báo xong, bài học (vấn đề, nguyên nhân, cách sửa) để không ai sửa lại cùng một lỗi, và hộp thư cho agent hỏi hoặc góp ý. AGENTS.md giờ bắt mọi agent đọc nó trước.'],
+  },
   {
     version: '2.0.27',
     date: '2026-11-12',
