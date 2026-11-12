@@ -35,3 +35,4 @@ The copy of this file on `main` is frozen history up to 2026-11-11.
 | 2026-11-12 05:45 | milo | DONE | T2 deleted 19 branches, skipped: none | neohub | — |
 | 2026-11-12 05:45 | milo | DONE | T1 Decide: reset or drop stuck TASKs cyberdeck-v2-screen-info and ro-verify-work-done-here (old Q-002): Both TASKs have RESULTs (Ubuntu: cyberdeck + ro-verify; Windows: cyberdeck). Archived: none. | other | — |
 | 2026-11-12 05:45 | milo | DONE | T2 Delete 19 merged remote branches (list: neo/branches-merged-to-delete-2026-11-11.txt) (old Q-003): Deleted 19 merged branches, skipped: none. | neohub | — |
+| 2026-11-12 16:22 | claude | ADD | T7 Flow test: write the RESULT file only → milo | other | — |
