@@ -1,12 +1,13 @@
 // Machine bridge for the Neo Hub "Văn phòng" (team) board. Runs on Hermes Windows / Hermes Ubuntu from the
 // watcher every 5 minutes: heartbeat, then run at most one whitelisted job assigned to this machine.
 // No AI model involved: jobs are fixed scripts (Chanh 2026-11-12). Never deploys, never merges.
-// Usage: node team-bridge.mjs --machine windows|ubuntu --home <folder for clones> [--neohub <clone>] [--bayready <clone>] [--bayready-src <folder>] [--out <zip folder>]
+// Usage: node team-bridge.mjs --machine windows|ubuntu --home <folder for clones> [--neohub <clone>] [--bayready <clone>] [--bayready-src <folder>] [--out <zip folder>] [--milo-dir <Milo's task folder>]
+// With --milo-dir it also carries board tasks for Milo: writes TASK-board-<id>.md there and reads RESULT-board-<id>.md back (plain files, no AI).
 // Each run also keeps the two newest BayReady versions zipped on the Desktop (bayready-backup.mjs).
 import { execFileSync } from 'node:child_process'
-import { existsSync, mkdirSync, readFileSync, statfsSync } from 'node:fs'
+import { existsSync, mkdirSync, readFileSync, statfsSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
-import { isOnline, JOBS, MACHINES, nextJob, ONLINE_MS } from './team-core.mjs'
+import { handedOpen, isOnline, JOBS, MACHINES, nextJob, ONLINE_MS, resultFileName, taskFile, taskFileName, toHandOff } from './team-core.mjs'
 import { applyInDir } from './team-apply.mjs'
 import { backupBayReady } from './bayready-backup.mjs'
 
@@ -99,6 +100,30 @@ try {
   console.log(`backup failed: ${tail(e.message)}`)
 }
 sync()
+// Milo tasks from the board: write the TASK file, then pick up the RESULT file when Milo has written it.
+const miloDir = arg('milo-dir')
+if (miloDir && existsSync(miloDir)) {
+  for (const t of toHandOff(state()).slice(0, 3)) {
+    try {
+      writeFileSync(join(miloDir, taskFileName(t.id)), taskFile(t))
+      act({ type: 'handoff', id: t.id, machine })
+      console.log(`${t.id} handed to Milo`)
+    } catch (e) {
+      console.log(`handoff ${t.id} skipped: ${tail(e.message)}`) // the other machine got there first
+    }
+  }
+  for (const t of handedOpen(state(), machine)) {
+    const f = join(miloDir, resultFileName(t.id))
+    if (!existsSync(f)) continue
+    try {
+      const txt = readFileSync(f, 'utf8').trim()
+      act({ type: 'finish', id: t.id, ok: !/^\W*FAILED/i.test(txt), result: txt })
+      console.log(`${t.id} result read`)
+    } catch (e) {
+      console.log(`result ${t.id} skipped: ${tail(e.message)}`)
+    }
+  }
+}
 const s = state()
 const job = nextJob(s, machine)
 if (!job && isOnline(s.machines[machine], Date.now() + ONLINE_MS - 30 * 60 * 1000)) process.exit(0) // beat at most every 30 min when idle

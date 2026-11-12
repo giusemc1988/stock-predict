@@ -32,6 +32,10 @@ const T = {
   nokey: { en: 'Save the GitHub key in Nova first.', vi: 'Cần lưu key GitHub trong Nova trước.' },
   failed: { en: "GitHub didn't take it. Try again.", vi: 'GitHub chưa nhận. Thử lại nhé.' },
   details: { en: 'details', vi: 'chi tiết' },
+  brief: { en: 'Steps and limits for Milo (optional). No passwords or keys here.', vi: 'Các bước và giới hạn cho Milo (không bắt buộc). Không ghi mật khẩu hay key ở đây.' },
+  handed: { en: 'Given to Milo on', vi: 'Đã đưa cho Milo trên máy' },
+  notHanded: { en: 'Not given to Milo yet (waiting for a machine)', vi: 'Chưa đưa cho Milo (chờ máy bật)' },
+  briefShow: { en: 'brief', vi: 'lời dặn' },
 } satisfies Record<string, Bi>
 
 const OWNER_NAME: Record<Owner, Bi> = {
@@ -69,6 +73,7 @@ export function TeamPanel() {
   const [owner, setOwner] = useState<Owner>('claude')
   const [job, setJob] = useState<Job>('status')
   const [red, setRed] = useState(false)
+  const [brief, setBrief] = useState('')
   const [busy, setBusy] = useState(false)
   const [note, setNote] = useState<keyof typeof T | null>(null)
 
@@ -86,13 +91,13 @@ export function TeamPanel() {
       .then((x) => x.json() as Promise<{ result?: string }>)
       .catch(() => ({ result: 'refused' }))
     setNote(r.result === 'ok' ? 'sent' : r.result === 'nokey' ? 'nokey' : 'failed')
-    if (r.result === 'ok') setTitle('')
+    if (r.result === 'ok') { setTitle(''); setBrief('') }
     setBusy(false)
   }
 
   const machine = owner === 'windows' || owner === 'ubuntu'
   const canGive = machine || title.trim().length >= 3
-  const give = () => void act(machine ? { type: 'add', project, owner, job } : { type: 'add', title: title.trim(), project, owner, red })
+  const give = () => void act(machine ? { type: 'add', project, owner, job } : { type: 'add', title: title.trim(), project, owner, red, ...(owner === 'milo' && brief.trim() ? { brief: brief.trim() } : {}) })
   const now = Date.now()
   const team = data && data !== 'error' ? data.team : null
   const open = team ? team.tasks.filter((t) => t.status !== 'done' && t.status !== 'cancelled' && t.status !== 'failed') : []
@@ -151,6 +156,7 @@ export function TeamPanel() {
             ) : (
               <>
                 <textarea rows={2} placeholder={L('what')} value={title} maxLength={300} onChange={(e) => setTitle(e.target.value)} />
+                {owner === 'milo' && <textarea rows={4} placeholder={L('brief')} value={brief} maxLength={4000} onChange={(e) => setBrief(e.target.value)} />}
                 <label className="small tp-red"><input type="checkbox" checked={red} onChange={(e) => setRed(e.target.checked)} /> {L('red')}</label>
               </>
             )}
@@ -172,6 +178,10 @@ export function TeamPanel() {
                       <div>
                         <b>{t.id}</b> {t.title}
                         <div className="small muted">{t.project} · {OWNER_NAME[t.owner][lang]} · <span className="tp-st">{STATUS[t.status][lang]}</span></div>
+                        {t.owner === 'milo' && t.kind === 'code' && (t.status === 'todo' || t.status === 'running') && (
+                          <div className="small muted">{t.handed ? `${L('handed')} ${t.handed.machine === 'windows' ? 'Windows' : 'Ubuntu'} · ${ago(t.handed.at, now)}` : L('notHanded')}</div>
+                        )}
+                        {t.brief && <details className="small"><summary>{L('briefShow')}</summary><span style={{ whiteSpace: 'pre-wrap' }}>{t.brief}</span></details>}
                         {t.result && <details className="small"><summary>{L('details')}</summary>{t.result}</details>}
                       </div>
                       <div className="ag-acts">

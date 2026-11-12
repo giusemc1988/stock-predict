@@ -3,7 +3,7 @@ import { mkdirSync, mkdtempSync, readFileSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 // @ts-expect-error plain JS modules
-import { applyAction, emptyTeam, isOnline, nextJob, renderQueue, updateLog, logRow } from './team-core.mjs'
+import { applyAction, emptyTeam, isOnline, nextJob, renderQueue, updateLog, logRow, toHandOff, handedOpen, taskFile, taskFileName, resultFileName } from './team-core.mjs'
 // @ts-expect-error plain JS modules
 import { applyInDir } from './team-apply.mjs'
 import { checkAction, parseLog, readTeam, sendAction } from '../src/lib/team'
@@ -115,3 +115,40 @@ assert.deepEqual(readdirSync(bk).sort(), ['bayready-v2.62.zip', 'bayready-v2.63.
 assert.equal(backupBayReady(join(src, 'nope'), bk), null)
 
 console.log('team: ok')
+
+// ---- board tasks for Milo: brief, hand-off by a machine, result read back ----
+{
+  let m = emptyTeam()
+  m = applyAction(m, { type: 'add', title: 'Add autostart for the serve script', project: 'bayready', owner: 'milo', brief: 'Step 1: check.\n\n\n\nStep 2:   register   task.\r\nDo not touch watcher.' }, NOW, 'chanh').state
+  const t = m.tasks[0]
+  assert.equal(t.brief, 'Step 1: check.\n\nStep 2: register task.\nDo not touch watcher.')
+  assert.equal(toHandOff(m).length, 1)
+  assert.match(taskFile(t), /Goal: Add autostart/)
+  assert.match(taskFile(t), /RESULT-board-T1\.md/)
+  assert.equal(taskFileName('T1'), 'TASK-board-T1.md')
+  assert.equal(resultFileName('T1'), 'RESULT-board-T1.md')
+  // a machine job never carries a brief; a Claude task is never handed off
+  const j = applyAction(m, { type: 'add', project: 'neohub', owner: 'windows', job: 'status', brief: 'x' }, NOW, 'chanh').state
+  assert.equal(j.tasks[1].brief, undefined)
+  const c2 = applyAction(m, { type: 'add', title: 'Claude work', project: 'neohub', owner: 'claude' }, NOW, 'chanh').state
+  assert.throws(() => applyAction(c2, { type: 'handoff', id: 'T2', machine: 'windows' }, NOW, 'hermes-win'))
+  assert.throws(() => applyAction(m, { type: 'handoff', id: 'T1', machine: 'mac' }, NOW, 'hermes-win'))
+  const h = applyAction(m, { type: 'handoff', id: 'T1', machine: 'ubuntu' }, NOW, 'hermes-ubuntu')
+  assert.equal(h.log.type, 'HANDOFF')
+  assert.deepEqual(h.state.tasks[0].handed, { at: NOW, machine: 'ubuntu' })
+  assert.equal(toHandOff(h.state).length, 0)
+  assert.throws(() => applyAction(h.state, { type: 'handoff', id: 'T1', machine: 'windows' }, NOW, 'hermes-win')) // only once
+  assert.equal(handedOpen(h.state, 'ubuntu').length, 1)
+  assert.equal(handedOpen(h.state, 'windows').length, 0)
+  const d = applyAction(h.state, { type: 'finish', id: 'T1', ok: true, result: 'DONE task registered' }, NOW, 'hermes-ubuntu').state
+  assert.equal(d.tasks[0].status, 'done')
+  assert.equal(handedOpen(d, 'ubuntu').length, 0)
+  // red Milo task is not handed off until Chanh approves
+  const rd = applyAction(emptyTeam(), { type: 'add', title: 'Change live rule', project: 'atlas', owner: 'milo', red: true }, NOW, 'chanh').state
+  assert.equal(toHandOff(rd).length, 0)
+  // the browser may send a brief; it may not send handoff
+  assert.equal(checkAction({ type: 'add', title: 'Do it', project: 'neohub', owner: 'milo', brief: 'steps' })?.type, 'add')
+  assert.equal((checkAction({ type: 'add', title: 'Do it', project: 'neohub', owner: 'milo', brief: 'steps' }) as { brief?: string }).brief, 'steps')
+  assert.equal(checkAction({ type: 'handoff', id: 'T1', machine: 'windows' }), null)
+}
+console.log('team board: Milo hand-off ok')

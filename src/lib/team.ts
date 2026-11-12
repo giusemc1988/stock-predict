@@ -25,6 +25,10 @@ export interface TeamTask {
   updated: string
   by?: string
   result?: string
+  /** Steps and limits for the worker (Milo). Public repo: no secrets. */
+  brief?: string
+  /** Set when a machine wrote the TASK file into Milo's folder. */
+  handed?: { at: string; machine: 'windows' | 'ubuntu' }
 }
 export interface TeamState {
   v: 1
@@ -40,7 +44,7 @@ export interface LogLine {
   what: string
 }
 export type TeamAction =
-  | { type: 'add'; title?: string; project: Project; owner: Owner; kind?: 'code' | 'idea'; job?: Job; red?: boolean }
+  | { type: 'add'; title?: string; project: Project; owner: Owner; kind?: 'code' | 'idea'; job?: Job; red?: boolean; brief?: string }
   | { type: 'approve' | 'cancel'; id: string }
   | { type: 'driver'; who: 'claude' | 'milo' }
 
@@ -71,6 +75,7 @@ export function checkAction(a: unknown): TeamAction | null {
     kind: x.kind === 'idea' ? 'idea' : 'code',
     job: typeof x.job === 'string' ? (x.job as Job) : undefined,
     red: x.red === true,
+    ...(typeof x.brief === 'string' && x.brief.trim() ? { brief: x.brief.slice(0, 4000) } : {}),
   }
 }
 
