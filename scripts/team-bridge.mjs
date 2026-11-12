@@ -20,7 +20,8 @@ const hand = join(home, 'handoff-repo')
 const neohub = arg('neohub', join(home, 'neohub-repo'))
 const bayready = arg('bayready', join(home, 'bayready-repo'))
 const out = arg('out', join(home, 'dist'))
-const run = (cmd, args, cwd, timeout = 120000) => execFileSync(cmd, args, { cwd, timeout, encoding: 'utf8', shell: process.platform === 'win32', stdio: ['ignore', 'pipe', 'pipe'] })
+// Only npm needs a shell on Windows (npm.cmd); git runs directly so its arguments (commit message) stay intact.
+const run = (cmd, args, cwd, timeout = 120000) => execFileSync(cmd, args, { cwd, timeout, encoding: 'utf8', shell: process.platform === 'win32' && cmd === 'npm', stdio: ['ignore', 'pipe', 'pipe'] })
 const git = (args, cwd = hand) => run('git', args, cwd)
 const tail = (s) => String(s ?? '').trim().split('\n').slice(-6).join(' / ').slice(-600)
 
@@ -37,7 +38,8 @@ function act(action) {
     sync()
     const { log } = applyInDir(hand, action, `hermes-${machine === 'windows' ? 'win' : 'ubuntu'}`)
     git(['add', 'docs/handoff'])
-    git(['-c', `user.name=hermes-${machine}`, '-c', 'user.email=hermes@neo-hub.local', 'commit', '--quiet', '-m', `team: ${log ? `${log.type} ${log.what}`.slice(0, 70) : `beat ${machine}`}\n\nagent: hermes-${machine === 'windows' ? 'win' : 'ubuntu'}`])
+    const subject = `team: ${log ? `${log.type} ${log.what}`.slice(0, 70) : `beat ${machine}`}`.replace(/["\r\n]/g, ' ')
+    git(['-c', `user.name=hermes-${machine}`, '-c', 'user.email=hermes@neo-hub.local', 'commit', '--quiet', '-m', subject, '-m', `agent: hermes-${machine === 'windows' ? 'win' : 'ubuntu'}`])
     try {
       git(['push', '--quiet', 'origin', 'HEAD:handoff-log'])
       return
@@ -83,6 +85,10 @@ try {
 } catch {
   /* not fatal */
 }
+process.on('uncaughtException', (e) => {
+  console.log(`bridge failed: ${tail(e.stderr || e.message)}`)
+  process.exit(1)
+})
 sync()
 const s = state()
 const job = nextJob(s, machine)
