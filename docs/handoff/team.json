@@ -96,8 +96,12 @@
       "brief": "This is a test of the Max board hand-off. Do ONLY this: write RESULT-board file as the task file says, with first line DONE and second line: picked up <UTC time> on <machine name>. Change nothing else.",
       "status": "todo",
       "created": "2026-11-12T16:22:28.827Z",
-      "updated": "2026-11-12T16:22:28.827Z",
-      "by": "claude"
+      "updated": "2026-11-12T16:22:33.399Z",
+      "by": "claude",
+      "handed": {
+        "at": "2026-11-12T16:22:33.399Z",
+        "machine": "windows"
+      }
     }
   ],
   "next": 8
