@@ -2,7 +2,7 @@
  * Version and "What's new". Bump APP_VERSION and add an entry to the top of RELEASES
  * with each update. The banner shows once per version, then stays dismissed.
  */
-export const APP_VERSION = '2.0.32'
+export const APP_VERSION = '2.0.33'
 
 export interface Release {
   version: string
@@ -13,6 +13,12 @@ export interface Release {
 }
 
 export const RELEASES: Release[] = [
+  {
+    version: '2.0.33',
+    date: '2026-11-12',
+    changes: ['Office board: work given to Milo can carry steps and limits. A machine writes the task file into Milo\'s folder with no AI, and the board shows when it was handed over and the result Milo wrote back.'],
+    changesVi: ['Bảng Văn phòng: việc giao cho Milo có thêm ô lời dặn (các bước, giới hạn). Máy tự ghi file việc vào thư mục của Milo, không dùng AI, và bảng hiện lúc đã đưa việc cùng kết quả Milo ghi lại.'],
+  },
   {
     version: '2.0.32',
     date: '2026-11-12',
