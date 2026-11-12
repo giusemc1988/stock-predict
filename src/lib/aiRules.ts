@@ -150,6 +150,7 @@ export interface AiRules {
   practiceMinStop2: boolean // practice skips a buy whose planned stop is under 2% from the entry (inside normal 15m noise)
   practiceSetupBrake: boolean // a setup (kind + source) with PF under 0.8 over its last 30 closed trades trades at half size until it recovers
   practiceLongHalf: boolean // practice long-term trades open at half size (overnight gaps can jump past the stop)
+  officeView: boolean // Max page: the little animated office (Muse, both Hermes, the Ubuntu machine)
   voltFlasher: boolean // Volt page: flash any ESP32 board from a GitHub repo link or a dropped .bin file, checked against the chip before writing
   echoRoomWatch: boolean // Echo page: read one ESP32-S3 running RuView firmware over USB (Web Serial) and show presence, motion, breathing; no home PC, nothing leaves the phone
   lumiTools: boolean // Lumi tabs beside Listen: two-way talk, offline phrasebook, money to VND, trip words, etiquette tips
@@ -303,6 +304,7 @@ export const DEFAULT_AI_RULES: AiRules = {
   practiceMinStop2: true,
   practiceSetupBrake: true,
   practiceLongHalf: true,
+  officeView: true,
   voltFlasher: true,
   echoRoomWatch: true,
   lumiTranslator: true,
@@ -473,6 +475,7 @@ export const RULE_FIELDS: RuleField[] = [
   { group: 'modules', key: 'practiceMinStop2', en: 'Practice skips a buy when the planned stop is under 2% from the entry (normal noise hits it)', vi: 'Luyện tập bỏ lệnh khi cắt lỗ dự kiến cách giá vào dưới 2% (dao động bình thường cũng chạm)' },
   { group: 'modules', key: 'practiceSetupBrake', en: 'Practice halves the size of a setup (day/long + scanner source) whose last 30 closed trades have profit factor under 0.8, until it recovers', vi: 'Luyện tập giảm một nửa khối lượng của nhóm lệnh (trong ngày/dài hạn + nguồn quét) có PF dưới 0,8 trong 30 lệnh gần nhất, đến khi hồi phục' },
   { group: 'modules', key: 'practiceLongHalf', en: 'Practice long-term trades at half size (overnight gaps can jump past the stop)', vi: 'Lệnh luyện tập dài hạn vào nửa khối lượng (giá có thể nhảy qua cắt lỗ qua đêm)' },
+  { group: 'modules', key: 'officeView', en: 'Max page: little animated office (Muse, Hermes, Ubuntu machine)', vi: 'Trang Max: văn phòng nhỏ có hoạt hình (Muse, Hermes, máy Ubuntu)' },
   { group: 'modules', key: 'potentialListOn', en: 'Show "Potential" list (stocks with good BUY signals from the scanner)', vi: 'Hiện danh sách "Tiềm năng" (cổ phiếu có tín hiệu MUA tốt từ máy quét)' },
 ]
 

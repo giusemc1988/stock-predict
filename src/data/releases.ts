@@ -2,7 +2,7 @@
  * Version and "What's new". Bump APP_VERSION and add an entry to the top of RELEASES
  * with each update. The banner shows once per version, then stays dismissed.
  */
-export const APP_VERSION = '2.0.29'
+export const APP_VERSION = '2.0.30'
 
 export interface Release {
   version: string
@@ -13,6 +13,12 @@ export interface Release {
 }
 
 export const RELEASES: Release[] = [
+  {
+    version: '2.0.30',
+    date: '2026-11-12',
+    changes: ['Max page: new "Little office". Four small windows (Muse, Hermes on Windows, Hermes on Ubuntu, the Ubuntu machine) move with the real state from the team board: typing when working, steam when resting, bouncing dots when waiting, a shake when something failed, dark when the machine is off. Tap a window for its current task and latest work. It refreshes by itself every 30 seconds with no AI cost, and can be switched off in Settings > AI rules.'],
+    changesVi: ['Trang Max: thêm "Văn phòng nhỏ". Bốn cửa sổ nhỏ (Muse, Hermes Windows, Hermes Ubuntu, máy Ubuntu) chuyển động theo trạng thái thật từ bảng của đội: gõ chữ khi đang làm, hơi nóng khi rảnh, ba chấm nảy khi chờ, rung khi có lỗi, tối khi máy tắt. Chạm vào cửa sổ để xem việc đang làm và việc gần đây. Tự cập nhật mỗi 30 giây, không tốn AI, và tắt được ở Cài đặt > Luật AI.'],
+  },
   {
     version: '2.0.29',
     date: '2026-11-12',
