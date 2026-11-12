@@ -48,3 +48,16 @@ export function appendSpeech(prev: string, add: string): string {
   if (!a) return prev
   return prev.trim() ? `${prev.trim()} ${a}` : a
 }
+
+/** Words Whisper should expect: Chanh mixes Vietnamese with English and these names. */
+export const WHISPER_HINT =
+  'Anh Chanh nói tiếng Việt xen lẫn tiếng Anh. Neo Hub, Atlas, Muse, Milo, Hermes, Max, Claude, BayReady, Telegram, GitHub, prompt, red item, work list, bot, deploy, pull request.'
+
+/** Language choice for the box: "auto" lets Whisper decide (best for mixed speech). */
+export type VoiceMode = 'auto' | 'vi' | 'en'
+
+/** Browser live-caption language for a mode (auto uses Vietnamese, which also catches English words). */
+export const captionLang = (m: VoiceMode): VoiceLang => (m === 'en' ? 'en-US' : 'vi-VN')
+
+/** Longest recording, so the upload stays under the server limit (4 MB). */
+export const MAX_RECORD_MS = 150_000

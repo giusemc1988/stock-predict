@@ -90,6 +90,11 @@ export async function lumiRoute(req: Request, pathname: string, env: BrainEnv, s
     out.append('file', audio, audioFileName(audio.type || 'audio/webm'))
     out.append('model', 'whisper-large-v3-turbo')
     out.append('response_format', 'verbose_json')
+    // optional hints (the Max voice box): vocabulary for mixed Vietnamese + English, and a forced language
+    const hint = form?.get('prompt')
+    if (typeof hint === 'string' && hint.trim()) out.append('prompt', hint.trim().slice(0, 400))
+    const forced = form?.get('language')
+    if (typeof forced === 'string' && /^[a-z]{2}$/.test(forced)) out.append('language', forced)
     const r = await fetch('https://api.groq.com/openai/v1/audio/transcriptions', {
       method: 'POST',
       headers: { authorization: `Bearer ${groqKey}` },
@@ -100,7 +105,7 @@ export async function lumiRoute(req: Request, pathname: string, env: BrainEnv, s
       const detail = r ? (await r.text().catch(() => '')).slice(0, 160) : ''
       return json({ error: `Groq Whisper lỗi (${r?.status ?? 'mạng'})${r?.status === 429 ? ': hết lượt miễn phí, chờ 1 phút' : r?.status === 401 ? ': key Groq sai' : ''}`, detail }, 502)
     }
-    const heard = cleanHeard((await r.json().catch(() => ({}))) as Parameters<typeof cleanHeard>[0])
+    const heard = cleanHeard((await r.json().catch(() => ({}))) as Parameters<typeof cleanHeard>[0], form?.get('long') === '1' ? 3000 : 600)
     if (!heard.text) return json({ text: '', lang: heard.lang, vi: '' })
     if (heard.lang === 'vi') return json({ ...heard, vi: heard.text })
     // the page may only want the text (its instant browser captions already show a translation)

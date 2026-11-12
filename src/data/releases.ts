@@ -2,7 +2,7 @@
  * Version and "What's new". Bump APP_VERSION and add an entry to the top of RELEASES
  * with each update. The banner shows once per version, then stays dismissed.
  */
-export const APP_VERSION = '2.0.25'
+export const APP_VERSION = '2.0.26'
 
 export interface Release {
   version: string
@@ -13,6 +13,12 @@ export interface Release {
 }
 
 export const RELEASES: Release[] = [
+  {
+    version: '2.0.26',
+    date: '2026-11-12',
+    changes: ['Max voice box: typing no longer lags (live words are shown under the box instead of being pushed into it, spell-check off), and the voice is now recorded and written down by Whisper with a Vietnamese + English word hint, so mixed sentences come out right. The browser recognizer only shows live words and is the backup. Language: Auto (mixed) / Vietnamese / English.'],
+    changesVi: ['Ô giọng nói trên Max: gõ không còn bị chậm (chữ đang nghe hiện bên dưới ô, không đẩy vào ô nữa, tắt kiểm tra chính tả), và giọng nói giờ được ghi âm rồi Whisper chép lại kèm gợi ý từ Việt + Anh nên câu trộn hai tiếng ra đúng hơn. Nhận dạng của trình duyệt chỉ hiện chữ tạm và làm dự phòng. Ngôn ngữ: Tự nhận (trộn) / Tiếng Việt / English.'],
+  },
   {
     version: '2.0.25',
     date: '2026-11-12',
