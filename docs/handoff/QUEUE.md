@@ -5,8 +5,8 @@ Driver: **claude**.
 
 | id | task | project | owner | status | updated (UTC) | result |
 |---|---|---|---|---|---|---|
-| T1 | Decide: reset or drop stuck TASKs cyberdeck-v2-screen-info and ro-verify-work-done-here (old Q-002) | other | milo | todo | 2026-11-12 00:29 |  |
-| T2 | Delete 19 merged remote branches (list: neo/branches-merged-to-delete-2026-11-11.txt) (old Q-003) | neohub | milo | todo | 2026-11-12 02:19 |  |
+| T1 | Decide: reset or drop stuck TASKs cyberdeck-v2-screen-info and ro-verify-work-done-here (old Q-002) | other | milo | done | 2026-11-12 05:45 | Both TASKs have RESULTs (Ubuntu: cyberdeck + ro-verify; Windows: cyberdeck). Archived: none. |
+| T2 | Delete 19 merged remote branches (list: neo/branches-merged-to-delete-2026-11-11.txt) (old Q-003) | neohub | milo | done | 2026-11-12 05:45 | Deleted 19 merged branches, skipped: none. |
 | T3 | Flip Atlas #271 shadow filters live after >= 30 live-tagged trades (old Q-004) | atlas | claude | todo | 2026-11-12 02:19 |  |
 | T4 | BayReady v2.63 (TRANG NGUYEN fix): package and move into private repo giusemc1988/bayready (old Q-006; Chanh: no shop test needed) | bayready | claude | done | 2026-11-12 05:13 | BayReady v2.64 pushed to private repo giusemc1988/bayready main (eedbcd6), see LOG 03:53 |
 | T5 | Call scripts/team-bridge.mjs from watcher.ps1 / watcher.sh so machines show On and run scripts | neohub | claude | done | 2026-11-12 03:44 | Windows + Ubuntu bridges live: both machines send heartbeats (Ubuntu first beat 03:43 UTC). BayReady Desktop backups run each pass. |

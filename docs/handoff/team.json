@@ -21,10 +21,11 @@
       "project": "other",
       "kind": "code",
       "owner": "milo",
-      "status": "todo",
+      "status": "done",
       "created": "2026-11-12T00:29:46.527Z",
-      "updated": "2026-11-12T00:29:46.527Z",
-      "by": "claude"
+      "updated": "2026-11-12T05:45:04.158Z",
+      "by": "claude",
+      "result": "Both TASKs have RESULTs (Ubuntu: cyberdeck + ro-verify; Windows: cyberdeck). Archived: none."
     },
     {
       "id": "T2",
@@ -32,10 +33,11 @@
       "project": "neohub",
       "kind": "code",
       "owner": "milo",
-      "status": "todo",
+      "status": "done",
       "created": "2026-11-12T00:29:46.530Z",
-      "updated": "2026-11-12T02:19:40.862Z",
-      "by": "claude"
+      "updated": "2026-11-12T05:45:04.257Z",
+      "by": "claude",
+      "result": "Deleted 19 merged branches, skipped: none."
     },
     {
       "id": "T3",
