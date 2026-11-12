@@ -15,6 +15,8 @@ export const ONLINE_MS = 45 * 60 * 1000
 const MAX_TITLE = 300
 const MAX_RESULT = 1500
 const MAX_BRIEF = 4000
+const MAX_NOTE = 300
+const MAX_LESSON = 400
 const KEEP_DONE = 40
 
 export const emptyTeam = () => ({ v: 1, driver: { who: 'claude', since: null }, machines: {}, tasks: [], next: 1 })
@@ -33,8 +35,17 @@ const find = (s, id) => {
  * Throws on anything invalid, so a bad request never writes.
  */
 export function applyAction(state, a, now, by) {
-  const s = structuredClone(state ?? emptyTeam())
   const who = text(by, 20) || 'chanh'
+  const out = applyOne(state, a, now, who)
+  // every changed task remembers who touched it last; anything Claude does counts as "Claude has looked"
+  const before = new Map((state?.tasks ?? []).map((t) => [t.id, t.updated]))
+  for (const t of out.state.tasks) if (before.get(t.id) !== t.updated) t.updatedBy = who
+  if (who === 'claude') out.state.claudeSeen = now
+  return out
+}
+
+function applyOne(state, a, now, who) {
+  const s = structuredClone(state ?? emptyTeam())
   if (!a || typeof a !== 'object') throw new Error('no action')
   switch (a.type) {
     case 'add': {
@@ -78,11 +89,34 @@ export function applyAction(state, a, now, by) {
       Object.assign(t, { handed: { at: now, machine: a.machine }, updated: now })
       return { state: s, log: { who, type: 'HANDOFF', what: `${t.id} file written for Milo on ${a.machine}`, ref: t.project } }
     }
+    case 'note': {
+      // Milo wrote PROGRESS-board-<id>.md: the task is picked up; `text` = where the work is, `need` = what Milo needs from Chanh
+      const t = find(s, a.id)
+      if (t.owner !== 'milo' || t.kind !== 'code') throw new Error('only Milo code tasks take notes')
+      if (t.status !== 'running' && t.status !== 'todo') throw new Error('not open')
+      const progress = text(a.text, MAX_NOTE)
+      const need = text(a.need, MAX_NOTE)
+      if (!progress && !need) throw new Error('empty note')
+      if (t.status === 'running' && (t.progress ?? '') === progress && (t.need ?? '') === need) throw new Error('nothing new')
+      const first = t.status === 'todo'
+      Object.assign(t, { status: 'running', updated: now, ...(first ? { started: now } : {}), progress })
+      if (need) t.need = need
+      else delete t.need
+      return { state: s, log: { who, type: need ? 'NEED' : first ? 'START' : 'PROGRESS', what: `${t.id} ${need ? `Milo needs: ${need}` : progress}`.slice(0, 200), ref: t.project } }
+    }
+    case 'seen': {
+      // Claude is back and has read the board: "new since Claude last looked" starts again from now
+      if (who !== 'claude') throw new Error('only Claude marks the board as read')
+      return { state: s, log: { who, type: 'CLAUDE-READ', what: 'Claude read the board', ref: '' } }
+    }
     case 'finish': {
       const t = find(s, a.id)
       if (t.status !== 'running' && t.status !== 'todo') throw new Error('not open')
-      Object.assign(t, { status: a.ok ? 'done' : 'failed', updated: now, result: text(a.result, MAX_RESULT) })
-      return { state: trim(s), log: { who, type: a.ok ? 'DONE' : 'FAILED', what: `${t.id} ${t.title}${t.result ? `: ${t.result.slice(0, 120)}` : ''}`, ref: t.project } }
+      // a line "LESSON: ..." in the result goes to LESSONS.md so the whole team learns from it
+      const lesson = text((typeof a.result === 'string' ? a.result : '').match(/^\W*LESSON:\s*(.+)$/im)?.[1], MAX_LESSON)
+      Object.assign(t, { status: a.ok ? 'done' : 'failed', updated: now, result: text(a.result, MAX_RESULT), ...(lesson ? { lesson } : {}) })
+      delete t.need
+      return { state: trim(s), log: { who, type: a.ok ? 'DONE' : 'FAILED', what: `${t.id} ${t.title}${t.result ? `: ${t.result.slice(0, 120)}` : ''}`, ref: t.project, ...(lesson ? { lesson, id: t.id } : {}) } }
     }
     case 'driver': {
       if (a.who !== 'claude' && a.who !== 'milo') throw new Error('driver is claude or milo')
@@ -120,6 +154,22 @@ export const toHandOff = (s) => s.tasks.filter((t) => t.owner === 'milo' && t.ki
 export const handedOpen = (s, machine) => s.tasks.filter((t) => t.owner === 'milo' && t.handed?.machine === machine && (t.status === 'todo' || t.status === 'running'))
 export const taskFileName = (id) => `TASK-board-${id}.md`
 export const resultFileName = (id) => `RESULT-board-${id}.md`
+export const progressFileName = (id) => `PROGRESS-board-${id}.md`
+/** What Milo's PROGRESS file says: first plain line = where the work is, a line "NEED: ..." = what Milo needs from Chanh. */
+export function readProgress(txt) {
+  const lines = String(txt ?? '').split('\n').map((l) => l.replace(/^[#>*\-\s]+/, '').trim()).filter(Boolean)
+  const need = lines.find((l) => /^NEED:/i.test(l))?.replace(/^NEED:\s*/i, '') ?? ''
+  return { text: (lines.filter((l) => !/^NEED:/i.test(l)).pop() ?? '').slice(0, MAX_NOTE), need: need.slice(0, MAX_NOTE) }
+}
+/** Tasks someone else changed after Claude last looked: what Claude reads first when back. */
+export const sinceClaude = (s) => s.tasks.filter((t) => t.updatedBy !== 'claude' && (!s.claudeSeen || t.updated > s.claudeSeen) && (s.claudeSeen || !['done', 'cancelled'].includes(t.status)))
+/** What needs Chanh now: red tasks, Milo asking for something, a failure, or a hand-off nobody opened. */
+export const needsChanh = (s, nowMs) => s.tasks.filter((t) => t.status === 'needs-ok' || !!t.need || isStuck(t, nowMs) || (t.status === 'failed' && nowMs - Date.parse(t.updated) < 24 * 3600 * 1000))
+const HOW = (id) => [
+  'Before you start: read docs/library/INDEX.md (stock-predict repo) and docs/handoff/LESSONS.md (branch handoff-log), then the one playbook that fits.',
+  `When you start, write ${progressFileName(id)} in milo-shared: one line saying what you are doing now. Rewrite it at each new step (newest step on the last line). If you need something from Chanh, add a line starting "NEED:". The board shows these to Chanh, so he knows the task was picked up.`,
+  `When finished write ${resultFileName(id)} in milo-shared: first line DONE or FAILED, then what changed, the version, and the exact checks you ran with their real output. If you learned something the team should know, add one line starting "LESSON:". Short and plain.`,
+]
 /** The TASK file a machine writes for Milo. Fixed shape so Milo does not have to investigate. */
 export function taskFile(t) {
   return [
@@ -132,7 +182,7 @@ export function taskFile(t) {
     t.brief ? `Steps and limits:\n${t.brief}` : 'No extra brief: do exactly the goal above and nothing else.',
     '',
     'Rules: delete nothing, no secrets in files or chat, never remove a feature, free tools only, do not merge or deploy.',
-    `When finished write ${resultFileName(t.id)} in this same folder: first line DONE or FAILED, then what changed, the version, and the exact checks you ran with their real output. Short and plain.`,
+    ...HOW(t.id),
     '',
   ].join('\n')
 }
@@ -156,7 +206,7 @@ export function miloPrompt(tasks, pictures = 0) {
       `Goal: ${t.title}`,
       t.brief ? `Steps and limits:\n${t.brief}` : 'No extra brief: do exactly the goal above and nothing else.',
       t.handed ? `The file ${taskFileName(t.id)} is already in milo-shared on the ${t.handed.machine} machine.` : '',
-      `When finished write ${resultFileName(t.id)} in milo-shared: first line DONE or FAILED, then what changed, the version, and the exact checks you ran with their real output.`,
+      ...HOW(t.id).slice(1),
     ]
       .filter(Boolean)
       .join('\n')
@@ -164,6 +214,7 @@ export function miloPrompt(tasks, pictures = 0) {
     `Milo, this is work from the Neo Hub Max board (${tasks.length} task${tasks.length > 1 ? 's' : ''}). Do them in order, one at a time.`,
     pictures > 0 ? `Chanh pastes ${pictures} picture${pictures > 1 ? 's' : ''} with this message: look at them first, they show what he means.` : '',
     'Rules: delete nothing, no secrets in files or chat, never remove a feature, free tools only, do not merge or deploy. If a step is unclear, stop and ask Chanh instead of guessing.',
+    HOW('')[0],
     '',
     tasks.map(one).join('\n\n'),
     '',
@@ -187,8 +238,20 @@ export function renderQueue(s) {
     '|---|---|---|---|---|---|---|',
     ...rows,
     '',
+    `## New since Claude last looked${s.claudeSeen ? ` (${s.claudeSeen.slice(0, 16).replace('T', ' ')} UTC)` : ''}`,
+    '',
+    'Claude: read this first when back, check each one against real files, then run the `seen` action (team-update.yml, who=claude).',
+    '',
+    ...(sinceClaude(s).length
+      ? sinceClaude(s).map((t) => `- ${t.id} **${t.status}** by ${t.updatedBy ?? t.by ?? '?'} at ${t.updated.slice(0, 16).replace('T', ' ')}: ${cell(t.title).slice(0, 120)}${t.need ? ` | NEEDS: ${cell(t.need)}` : ''}${t.progress ? ` | at: ${cell(t.progress)}` : ''}${t.result ? ` | result: ${cell(t.result).slice(0, 200)}` : ''}`)
+      : ['- nothing']),
+    '',
   ].join('\n')
 }
+
+/** One row for LESSONS.md (append-only, on handoff-log). */
+export const lessonRow = (now, l) => `| ${now.slice(0, 10)} | ${cell(l.id)} | ${cell(l.ref)} | ${cell(l.who)} | ${cell(l.lesson)} |`
+export const LESSONS_HEAD = ['# Lessons from finished board tasks', '', 'Written by itself when a RESULT has a line starting `LESSON:`. Read before a job on the same project. Longer write-ups live in docs/library/lessons/ on main.', '', '| date | task | project | who | lesson |', '|---|---|---|---|---|', ''].join('\n')
 
 /** One LOG.md table row. */
 export const logRow = (now, l) => `| ${now.slice(0, 16).replace('T', ' ')} | ${cell(l.who)} | ${l.type} | ${cell(l.what)} | ${cell(l.ref)} | — |`

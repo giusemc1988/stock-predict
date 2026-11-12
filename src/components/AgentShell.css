@@ -150,6 +150,9 @@
 .tp-bigbtn { min-height: 48px; font-size: 16px; width: 100%; }
 .tp-milo { border-color: var(--acc, var(--gold)); }
 .tp-pre { white-space: pre-wrap; overflow-wrap: anywhere; user-select: all; margin: 8px 0 0; font: inherit; }
+.tp-urgent { border-color: var(--down, #ff6b6b); }
+.tp-plain { list-style: none; padding: 0; margin: 4px 0 0; display: grid; gap: 4px; overflow-wrap: anywhere; }
+.tp-side { display: grid; gap: 12px; min-width: 0; }
 .tp-warn { color: var(--down, #ff6b6b); }
 .tp-imgs { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 8px; }
 .tp-img { margin: 0; display: grid; gap: 6px; }

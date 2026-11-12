@@ -3,7 +3,7 @@ import { mkdirSync, mkdtempSync, readFileSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 // @ts-expect-error plain JS modules
-import { applyAction, emptyTeam, isOnline, nextJob, renderQueue, updateLog, logRow, toHandOff, handedOpen, taskFile, taskFileName, resultFileName, miloOpen, miloStage, isStuck, miloPrompt } from './team-core.mjs'
+import { applyAction, emptyTeam, isOnline, nextJob, renderQueue, updateLog, logRow, toHandOff, handedOpen, taskFile, taskFileName, resultFileName, miloOpen, miloStage, isStuck, miloPrompt, readProgress, sinceClaude, needsChanh, progressFileName } from './team-core.mjs'
 // @ts-expect-error plain JS modules
 import { applyInDir } from './team-apply.mjs'
 import { checkAction, parseLog, readTeam, sendAction } from '../src/lib/team'
@@ -173,4 +173,42 @@ console.log('team board: Milo hand-off ok')
   s = applyAction(s, { type: 'finish', id: 'T1', ok: true, result: 'DONE' }, '2026-11-12T10:40:00.000Z', 'hermes-win').state
   assert.equal(miloStage(s.tasks[0]), 4)
   assert.equal(miloOpen(s).length, 0)
+}
+
+// progress notes, what needs Chanh, catch-up for Claude, lessons
+{
+  let s = applyAction(emptyTeam(), { type: 'add', title: 'Fix the tiles', project: 'bayready', owner: 'milo' }, '2026-11-12T10:00:00.000Z', 'claude').state
+  assert.equal(s.claudeSeen, '2026-11-12T10:00:00.000Z')
+  assert.equal(sinceClaude(s).length, 0)
+  s = applyAction(s, { type: 'handoff', id: 'T1', machine: 'windows' }, '2026-11-12T10:01:00.000Z', 'hermes-win').state
+  assert.match(taskFile(s.tasks[0]), /PROGRESS-board-T1\.md/)
+  assert.match(taskFile(s.tasks[0]), /LESSON:/)
+  assert.equal(progressFileName('T1'), 'PROGRESS-board-T1.md')
+  assert.deepEqual(readProgress('# reading content.js\n- editing kpis()\nNEED: which tiles count as main?\n'), { text: 'editing kpis()', need: 'which tiles count as main?' })
+  assert.equal(needsChanh(s, Date.parse('2026-11-12T10:30:00.000Z')).length, 1) // handed 29 min ago, nobody opened it
+  let r = applyAction(s, { type: 'note', id: 'T1', text: 'editing kpis()', need: 'which tiles count as main?' }, '2026-11-12T10:31:00.000Z', 'hermes-win')
+  s = r.state
+  assert.equal(r.log.type, 'NEED')
+  assert.equal(s.tasks[0].status, 'running')
+  assert.equal(s.tasks[0].started, '2026-11-12T10:31:00.000Z')
+  assert.equal(miloStage(s.tasks[0]), 3)
+  assert.equal(needsChanh(s, Date.parse('2026-11-12T10:32:00.000Z'))[0].need, 'which tiles count as main?')
+  assert.throws(() => applyAction(s, { type: 'note', id: 'T1', text: 'editing kpis()', need: 'which tiles count as main?' }, '2026-11-12T10:33:00.000Z', 'hermes-win'), /nothing new/)
+  s = applyAction(s, { type: 'note', id: 'T1', text: 'testing' }, '2026-11-12T10:35:00.000Z', 'hermes-win').state
+  assert.equal(s.tasks[0].need, undefined)
+  assert.deepEqual(sinceClaude(s).map((t: { id: string }) => t.id), ['T1'])
+  assert.match(renderQueue(s), /New since Claude last looked[\s\S]*T1 \*\*running\*\* by hermes-win/)
+  assert.throws(() => applyAction(s, { type: 'seen' }, '2026-11-12T10:36:00.000Z', 'chanh'), /only Claude/)
+  r = applyAction(s, { type: 'finish', id: 'T1', ok: true, result: 'DONE\nchanged kpis()\nLESSON: check the label list before hiding a tile' }, '2026-11-12T10:40:00.000Z', 'hermes-win')
+  assert.equal(r.state.tasks[0].lesson, 'check the label list before hiding a tile')
+  assert.equal(r.log.lesson, 'check the label list before hiding a tile')
+  s = applyAction(r.state, { type: 'seen' }, '2026-11-12T11:00:00.000Z', 'claude').state
+  assert.equal(sinceClaude(s).length, 0)
+  // LESSONS.md is appended by the apply step
+  const d = mkdtempSync(join(tmpdir(), 'team-lesson-'))
+  mkdirSync(join(d, 'docs/handoff'), { recursive: true })
+  applyInDir(d, { type: 'add', title: 'Lesson flow', project: 'neohub', owner: 'milo' }, 'chanh', '2026-11-12T10:00:00.000Z')
+  applyInDir(d, { type: 'finish', id: 'T1', ok: false, result: 'FAILED\nLESSON: run the helper, never unzip by hand' }, 'hermes-win', '2026-11-12T10:05:00.000Z')
+  assert.match(readFileSync(join(d, 'docs/handoff/LESSONS.md'), 'utf8'), /\| 2026-11-12 \| T1 \| neohub \| hermes-win \| run the helper, never unzip by hand \|/)
+  console.log('team board: progress, catch-up, lessons ok')
 }

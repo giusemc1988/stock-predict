@@ -19,12 +19,16 @@ For Claude, Muse (Milo), Hermes Windows and Hermes Ubuntu. Goal: anyone can do a
 | Self-check before saying done | `playbooks/self-check.md` |
 | Change code in stock-predict (branch, test, version, PR, merge) | `playbooks/code-change.md` |
 | Fix a bug (find the cause before editing) | `playbooks/fix-a-bug.md` |
+| Find the fault the way Claude does (worked cases) | `playbooks/find-the-fault.md` |
+| A task from the Max board (PROGRESS, NEED, RESULT, LESSON files) | `playbooks/board-task.md` |
 | Write or receive a prompt for Muse / Hermes | `playbooks/prompt-handoff.md` |
 | Build and release BayReady | `playbooks/bayready-release.md` |
 | Which model combo to use (free vs `review-hard`) | `playbooks/model-routing.md` |
 
 ## Lessons (problem, cause, fix)
 In `lessons/`, one file each, date in the filename. Seeded 2026-11-12.
+
+Short lessons write themselves: a line starting `LESSON:` in a board task's RESULT file is added to `docs/handoff/LESSONS.md` on branch `handoff-log` (no AI). Read that file before a job on the same project. When Claude gives or checks a task, Claude adds the lesson the same way, so each task teaches the next one.
 
 ## Team name
 **Max Team** = Claude + Muse (Milo) + Hermes Windows + Hermes Ubuntu, working with Chanh. Claude plans, checks and writes hard code; Milo does machine work on both PCs; Hermes only runs fixed scripts; Chanh decides and presses Update/Reload. Some days Chanh has only one machine (for example only the Ubuntu shop PC): every step for him must work from that machine or his phone. A change is done only when it is on BOTH machines and he just has to Reload (see `lessons/2026-11-12-bayready-update-path-two-machines.md`).

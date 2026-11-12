@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import type { Bi } from '../lib/hubText'
 import { useLang } from '../lib/i18n'
-import { isOnline, isStuck, JOBS, miloOpen, miloPrompt, miloStage, PROJECTS, type Job, type LogLine, type Owner, type Project, type TeamAction, type TeamState, type TeamTask } from '../lib/team'
+import { isOnline, isStuck, JOBS, miloOpen, miloPrompt, miloStage, needsChanh, PROJECTS, sinceClaude, type Job, type LogLine, type Owner, type Project, type TeamAction, type TeamState, type TeamTask } from '../lib/team'
 
 const T = {
   title: { en: 'Office · team board', vi: 'Văn phòng · bảng điều khiển đội' },
@@ -22,6 +22,27 @@ const T = {
   copyFail: { en: "Couldn't copy. Open \"see the prompt\" and copy by hand.", vi: 'Chưa sao chép được. Mở "xem lời nhắc" rồi tự copy.' },
   seePrompt: { en: 'see the prompt', vi: 'xem lời nhắc' },
   writing: { en: 'Writing to the board…', vi: 'Đang ghi lên bảng…' },
+  needYou: { en: 'Needs you now', vi: 'Cần anh ngay' },
+  rRed: { en: 'waits for your OK', vi: 'chờ anh duyệt' },
+  rNeed: { en: 'Milo asks', vi: 'Milo hỏi' },
+  rStuck: { en: 'nobody has picked it up: paste the prompt to Milo', vi: 'chưa ai nhận: dán lời nhắc cho Milo' },
+  rFail: { en: 'failed', vi: 'bị lỗi' },
+  dSent: { en: 'Sent', vi: 'Gửi' },
+  dBy: { en: 'by', vi: 'bởi' },
+  dFile: { en: 'File given', vi: 'Đưa file' },
+  dFileNo: { en: 'not yet (waits for a machine that is on)', vi: 'chưa (chờ máy đang bật)' },
+  dTook: { en: 'Picked up', vi: 'Nhận việc' },
+  dTookNo: { en: 'nobody yet', vi: 'chưa ai nhận' },
+  dNow: { en: 'Working on', vi: 'Đang làm tới' },
+  dNeed: { en: 'Needs from you', vi: 'Cần anh' },
+  dRes: { en: 'Result', vi: 'Kết quả' },
+  dErr: { en: 'What went wrong', vi: 'Bị gì' },
+  dLesson: { en: 'Lesson for the team', vi: 'Bài học cho đội' },
+  dLast: { en: 'Last change', vi: 'Thay đổi cuối' },
+  dClaude: { en: 'waits for Claude (when Claude has limit)', vi: 'chờ Claude (khi Claude còn limit)' },
+  away: { en: 'Changed since Claude last looked', vi: 'Thay đổi từ lần cuối Claude xem' },
+  awayHow: { en: 'Claude reads this list first when back, checks each one, then marks it read.', vi: 'Khi quay lại Claude đọc danh sách này trước, kiểm tra từng việc rồi đánh dấu đã xem.' },
+  awayNone: { en: 'Nothing new.', vi: 'Không có gì mới.' },
   st1: { en: 'On board', vi: 'Lên bảng' },
   st2: { en: 'File given', vi: 'Đã đưa file' },
   st3: { en: 'Milo working', vi: 'Milo làm' },
@@ -80,6 +101,7 @@ const STATUS: Record<TeamTask['status'], Bi> = {
   failed: { en: 'Failed', vi: 'Lỗi' },
   cancelled: { en: 'Dropped', vi: 'Đã bỏ' },
 }
+const hm = (iso: string) => new Date(iso).toLocaleString([], { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' })
 const ago = (iso: string, now: number) => {
   const m = Math.max(0, Math.round((now - Date.parse(iso)) / 60000))
   return m < 60 ? `${m}m` : m < 2880 ? `${Math.round(m / 60)}h` : `${Math.round(m / 1440)}d`
@@ -178,6 +200,9 @@ export function TeamPanel() {
   const pending = sentTask && team && team.next <= sentTask.next && now < sentTask.until ? sentTask : null
   const waiting = team ? miloOpen(team) : []
   const allPrompt = miloPrompt(waiting, imgs.length)
+  const urgent = team ? needsChanh(team, now) : []
+  const news = team ? sinceClaude(team) : []
+  const why = (t: TeamTask) => (t.status === 'needs-ok' ? L('rRed') : t.need ? `${L('rNeed')}: ${t.need}` : t.status === 'failed' ? `${L('rFail')}: ${(t.result ?? '').slice(0, 140)}` : L('rStuck'))
   const open = team ? team.tasks.filter((t) => t.status !== 'done' && t.status !== 'cancelled' && t.status !== 'failed') : []
   const closed = team ? team.tasks.filter((t) => !open.includes(t)).slice(-5).reverse() : []
 
@@ -217,6 +242,15 @@ export function TeamPanel() {
               )
             })}
           </div>
+
+          {urgent.length > 0 && (
+            <div className="tp-box tp-urgent">
+              <b>{L('needYou')} ({urgent.length})</b>
+              <ul className="tp-plain">
+                {urgent.map((t) => <li key={t.id} className="small"><b>{t.id}</b> {t.title.slice(0, 60)} · <span className="tp-warn">{why(t)}</span></li>)}
+              </ul>
+            </div>
+          )}
 
           {waiting.length > 0 && (
             <div className="tp-box tp-milo">
@@ -315,8 +349,23 @@ export function TeamPanel() {
                           <div className="small muted">{t.handed ? `${L('handed')} ${t.handed.machine === 'windows' ? 'Windows' : 'Ubuntu'} · ${ago(t.handed.at, now)}` : L('notHanded')}</div>
                         )}
                         {t.owner === 'milo' && t.kind === 'code' && isStuck(t, now) && <div className="small tp-warn">{L('stuck')}</div>}
+                        {t.need && <div className="small tp-warn"><b>{L('dNeed')}:</b> {t.need}</div>}
+                        {t.progress && t.status === 'running' && <div className="small"><b>{L('dNow')}:</b> {t.progress}</div>}
+                        <details className="small">
+                          <summary>{L('details')}</summary>
+                          <ul className="tp-plain">
+                            <li>{L('dSent')}: {hm(t.created)} {L('dBy')} {t.by ?? 'chanh'}</li>
+                            {t.owner === 'milo' && t.kind === 'code' && <li>{L('dFile')}: {t.handed ? `${hm(t.handed.at)} · ${t.handed.machine === 'windows' ? 'Windows' : 'Ubuntu'}` : L('dFileNo')}</li>}
+                            {t.owner === 'milo' && t.kind === 'code' && <li>{L('dTook')}: {t.started ? `Milo · ${hm(t.started)}` : t.status === 'done' || t.status === 'failed' ? 'Milo' : L('dTookNo')}</li>}
+                            {t.owner === 'claude' && (t.status === 'todo' || t.status === 'running') && <li>{L('dTook')}: {L('dClaude')}</li>}
+                            {t.progress && <li>{L('dNow')}: {t.progress}</li>}
+                            {t.need && <li className="tp-warn">{L('dNeed')}: {t.need}</li>}
+                            {t.result && <li className={t.status === 'failed' ? 'tp-warn' : ''} style={{ whiteSpace: 'pre-wrap' }}>{t.status === 'failed' ? L('dErr') : L('dRes')}: {t.result}</li>}
+                            {t.lesson && <li>{L('dLesson')}: {t.lesson}</li>}
+                            <li className="muted">{L('dLast')}: {hm(t.updated)} ({ago(t.updated, now)}){t.updatedBy ? ` · ${t.updatedBy}` : ''}</li>
+                          </ul>
+                        </details>
                         {t.brief && <details className="small"><summary>{L('briefShow')}</summary><span style={{ whiteSpace: 'pre-wrap' }}>{t.brief}</span></details>}
-                        {t.result && <details className="small"><summary>{L('details')}</summary>{t.result}</details>}
                       </div>
                       <div className="ag-acts">
                         {t.status === 'needs-ok' && <button className="btn primary" disabled={busy} onClick={() => void act({ type: 'approve', id: t.id })}>{L('ok')}</button>}
@@ -328,6 +377,16 @@ export function TeamPanel() {
                 </ul>
               )}
             </div>
+            <div className="tp-side">
+            <details className="tp-log" open={news.length > 0}>
+              <summary><b>{L('away')} ({news.length})</b></summary>
+              <p className="muted small">{L('awayHow')}{team.claudeSeen ? ` · ${hm(team.claudeSeen)}` : ''}</p>
+              {news.length ? (
+                <ul className="tp-plain">
+                  {news.map((t) => <li key={t.id} className="small"><b>{t.id}</b> {STATUS[t.status][lang]} · {t.updatedBy ?? t.by ?? '?'} · {hm(t.updated)} · {t.title.slice(0, 60)}</li>)}
+                </ul>
+              ) : <p className="muted small">{L('awayNone')}</p>}
+            </details>
             <details className="tp-log">
               <summary><b>{L('log')}</b></summary>
               <ul className="vt-list">
@@ -338,6 +397,7 @@ export function TeamPanel() {
                 ))}
               </ul>
             </details>
+            </div>
           </div>
         </>
       )}
