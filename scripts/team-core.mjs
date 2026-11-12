@@ -137,6 +137,42 @@ export function taskFile(t) {
   ].join('\n')
 }
 
+/** Milo tasks still open (waiting or working), oldest first. */
+export const miloOpen = (s) => s.tasks.filter((t) => t.owner === 'milo' && t.kind === 'code' && (t.status === 'todo' || t.status === 'running'))
+/** How far a Milo task is: 1 on the board, 2 file handed to Milo, 3 Milo working, 4 closed. */
+export const miloStage = (t) => (['done', 'failed', 'cancelled'].includes(t.status) ? 4 : t.status === 'running' ? 3 : t.handed ? 2 : 1)
+/** Handed to Milo this long ago with no result: the board tells Chanh to paste the ready prompt. */
+export const STUCK_MS = 20 * 60 * 1000
+export const isStuck = (t, nowMs) => miloStage(t) === 2 && nowMs - Date.parse(t.handed.at) > STUCK_MS
+/**
+ * A complete prompt for Milo, built from the board with fixed text (no AI), for Chanh to paste into
+ * Milo's chat when nothing wakes Milo or Claude is out of limit. `pictures` = how many images Chanh pastes with it.
+ */
+export function miloPrompt(tasks, pictures = 0) {
+  if (!tasks.length) return ''
+  const one = (t) =>
+    [
+      `## ${t.id} (${t.project})`,
+      `Goal: ${t.title}`,
+      t.brief ? `Steps and limits:\n${t.brief}` : 'No extra brief: do exactly the goal above and nothing else.',
+      t.handed ? `The file ${taskFileName(t.id)} is already in milo-shared on the ${t.handed.machine} machine.` : '',
+      `When finished write ${resultFileName(t.id)} in milo-shared: first line DONE or FAILED, then what changed, the version, and the exact checks you ran with their real output.`,
+    ]
+      .filter(Boolean)
+      .join('\n')
+  return [
+    `Milo, this is work from the Neo Hub Max board (${tasks.length} task${tasks.length > 1 ? 's' : ''}). Do them in order, one at a time.`,
+    pictures > 0 ? `Chanh pastes ${pictures} picture${pictures > 1 ? 's' : ''} with this message: look at them first, they show what he means.` : '',
+    'Rules: delete nothing, no secrets in files or chat, never remove a feature, free tools only, do not merge or deploy. If a step is unclear, stop and ask Chanh instead of guessing.',
+    '',
+    tasks.map(one).join('\n\n'),
+    '',
+    'Answer Chanh in short plain Vietnamese: what is done, what failed, what he must press.',
+  ]
+    .filter((l, i) => l !== '' || i > 1)
+    .join('\n')
+}
+
 const cell = (x) => String(x ?? '').replace(/\|/g, '/').replace(/\n/g, ' ')
 /** QUEUE.md, rendered from team.json (do not edit by hand: use the Neo Hub Đội card). */
 export function renderQueue(s) {

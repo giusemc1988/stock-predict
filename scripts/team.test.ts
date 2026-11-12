@@ -3,7 +3,7 @@ import { mkdirSync, mkdtempSync, readFileSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 // @ts-expect-error plain JS modules
-import { applyAction, emptyTeam, isOnline, nextJob, renderQueue, updateLog, logRow, toHandOff, handedOpen, taskFile, taskFileName, resultFileName } from './team-core.mjs'
+import { applyAction, emptyTeam, isOnline, nextJob, renderQueue, updateLog, logRow, toHandOff, handedOpen, taskFile, taskFileName, resultFileName, miloOpen, miloStage, isStuck, miloPrompt } from './team-core.mjs'
 // @ts-expect-error plain JS modules
 import { applyInDir } from './team-apply.mjs'
 import { checkAction, parseLog, readTeam, sendAction } from '../src/lib/team'
@@ -152,3 +152,25 @@ console.log('team: ok')
   assert.equal(checkAction({ type: 'handoff', id: 'T1', machine: 'windows' }), null)
 }
 console.log('team board: Milo hand-off ok')
+
+// Milo prompt is built from the board with no AI, and stages follow the task
+{
+  let s = applyAction(emptyTeam(), { type: 'add', title: 'Fix the status tiles', project: 'bayready', owner: 'milo', brief: 'Step 1: open content.js' }, '2026-11-12T10:00:00.000Z', 'chanh').state
+  s = applyAction(s, { type: 'add', title: 'Other work', project: 'neohub', owner: 'claude' }, '2026-11-12T10:00:00.000Z', 'chanh').state
+  assert.deepEqual(miloOpen(s).map((t: { id: string }) => t.id), ['T1'])
+  assert.equal(miloStage(s.tasks[0]), 1)
+  s = applyAction(s, { type: 'handoff', id: 'T1', machine: 'windows' }, '2026-11-12T10:01:00.000Z', 'hermes-win').state
+  assert.equal(miloStage(s.tasks[0]), 2)
+  assert.equal(isStuck(s.tasks[0], Date.parse('2026-11-12T10:10:00.000Z')), false)
+  assert.equal(isStuck(s.tasks[0], Date.parse('2026-11-12T10:30:00.000Z')), true)
+  const p = miloPrompt(miloOpen(s), 2)
+  assert.match(p, /Goal: Fix the status tiles/)
+  assert.match(p, /Step 1: open content\.js/)
+  assert.match(p, /2 pictures/)
+  assert.match(p, /RESULT-board-T1\.md/)
+  assert.match(p, /TASK-board-T1\.md is already in milo-shared on the windows machine/)
+  assert.equal(miloPrompt([]), '')
+  s = applyAction(s, { type: 'finish', id: 'T1', ok: true, result: 'DONE' }, '2026-11-12T10:40:00.000Z', 'hermes-win').state
+  assert.equal(miloStage(s.tasks[0]), 4)
+  assert.equal(miloOpen(s).length, 0)
+}

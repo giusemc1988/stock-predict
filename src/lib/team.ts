@@ -51,6 +51,12 @@ export type TeamAction =
 export const PROJECTS = core.PROJECTS as Project[]
 export const JOBS = core.JOBS as Job[]
 export const isOnline = core.isOnline as (m: { seen: string } | undefined, nowMs: number) => boolean
+export const miloOpen = core.miloOpen as (s: TeamState) => TeamTask[]
+/** 1 on the board, 2 file handed to Milo, 3 Milo working, 4 closed. */
+export const miloStage = core.miloStage as (t: TeamTask) => 1 | 2 | 3 | 4
+export const isStuck = core.isStuck as (t: TeamTask, nowMs: number) => boolean
+/** A full prompt for Milo from fixed text (no AI): what Chanh pastes when Claude is out of limit. */
+export const miloPrompt = core.miloPrompt as (tasks: TeamTask[], pictures?: number) => string
 /** Apply an action locally (checks it the same way the workflow will). */
 export const applyAction = core.applyAction as (s: TeamState, a: TeamAction, now: string, by: string) => { state: TeamState; log: unknown }
 

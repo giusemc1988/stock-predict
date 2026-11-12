@@ -2,7 +2,7 @@
  * Version and "What's new". Bump APP_VERSION and add an entry to the top of RELEASES
  * with each update. The banner shows once per version, then stays dismissed.
  */
-export const APP_VERSION = '2.0.34'
+export const APP_VERSION = '2.0.35'
 
 export interface Release {
   version: string
@@ -13,6 +13,12 @@ export interface Release {
 }
 
 export const RELEASES: Release[] = [
+  {
+    version: '2.0.35',
+    date: '2026-11-12',
+    changes: ['Office board redone: one box and one big Give button (goes to Milo unless you change it in Options). The board updates by itself and shows 4 steps for each Milo task. You can add pictures. New "Copy prompt for Milo" button builds the full prompt with no AI, so work still moves when Claude is out of limit.'],
+    changesVi: ['Bảng Văn phòng làm lại: một ô gõ và một nút Giao việc lớn (mặc định giao Milo, đổi trong Tuỳ chọn). Bảng tự cập nhật và hiện 4 bước cho từng việc của Milo. Thêm được ảnh. Nút mới "Sao chép lời nhắc cho Milo" tự ghép đủ lời nhắc, không dùng AI, nên Claude hết limit vẫn giao việc được.'],
+  },
   {
     version: '2.0.34',
     date: '2026-11-12',
