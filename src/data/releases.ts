@@ -2,7 +2,7 @@
  * Version and "What's new". Bump APP_VERSION and add an entry to the top of RELEASES
  * with each update. The banner shows once per version, then stays dismissed.
  */
-export const APP_VERSION = '2.0.24'
+export const APP_VERSION = '2.0.25'
 
 export interface Release {
   version: string
@@ -13,6 +13,12 @@ export interface Release {
 }
 
 export const RELEASES: Release[] = [
+  {
+    version: '2.0.25',
+    date: '2026-11-12',
+    changes: ['Max page: new "Tell Claude by voice" box. Press the mic and talk (Vietnamese or English) or type, press Done, check the prompt it writes, then Send: it copies the prompt and opens the Neo Hub project in the Claude app so you paste once. There is also a box to keep the ready prompt Claude gives back, with a Copy button for Muse.'],
+    changesVi: ['Trang Max: thêm ô "Nói cho Claude". Bấm mic nói (tiếng Việt hoặc English) hoặc gõ, bấm Xong, xem lại prompt em viết, rồi bấm Gửi: nó copy prompt và mở dự án Neo Hub trong app Claude để anh dán một lần. Có thêm ô giữ prompt sẵn Claude trả về, kèm nút Copy để đưa cho Muse.'],
+  },
   {
     version: '2.0.24',
     date: '2026-11-12',
