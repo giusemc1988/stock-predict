@@ -110,14 +110,15 @@
       "project": "neohub",
       "kind": "code",
       "owner": "milo",
-      "status": "todo",
+      "status": "done",
       "created": "2026-11-12T19:34:38.240Z",
-      "updated": "2026-11-12T19:35:02.132Z",
+      "updated": "2026-11-12T20:54:22.947Z",
       "by": "chanh",
       "handed": {
         "at": "2026-11-12T19:35:02.132Z",
         "machine": "ubuntu"
-      }
+      },
+      "result": "Claude did it (BayReady 2.80): status tiles that show 0 are hidden, the 5 main stages always stay, tiles share the row, a small line names the hidden ones. Not run in Chrome yet."
     }
   ],
   "next": 9
