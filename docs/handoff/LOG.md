@@ -38,3 +38,4 @@ The copy of this file on `main` is frozen history up to 2026-11-11.
 | 2026-11-12 16:22 | claude | ADD | T7 Flow test: write the RESULT file only → milo | other | — |
 | 2026-11-12 16:22 | hermes-win | HANDOFF | T7 file written for Milo on windows | other | — |
 | 2026-11-12 16:37 | hermes-win | DONE | T7 Flow test: write the RESULT file only: DONE picked up 2026-11-12T16:34:36Z on muse Flow test only: wrote this RESULT file, changed nothing else. Version: n/a ( | other | — |
+| 2026-11-12 19:34 | chanh | ADD | T8 Yêu cầu từ trang Max (Neo Hub): Ở trong cái phần Appointment status mấy cái chỗ mà show total date not arrived servicing, inspecting gì đó không mấy cái như là ad dealer với whole for part nó lúc nào show zero hết á nếu mà nó show zero always thì bỏ lượt bỏ cái đó đi rồi sắp xếp lại mấy cái ô nhìn → milo | neohub | — |
