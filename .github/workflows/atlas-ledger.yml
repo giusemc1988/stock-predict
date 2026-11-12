@@ -1,0 +1,33 @@
+name: Atlas ledger
+
+# Where do Atlas's closed practice trades win or lose? A script (no AI, no tokens) reads the newest KV backup on
+# the `backups` branch and writes ledger/LEDGER.md + ledger/ledger.json back to that branch. Never touches main,
+# so it never triggers a deploy.
+on:
+  schedule:
+    - cron: "30 20 * * 1-5" # 30 min after the daily KV backup (20:00 UTC)
+  workflow_dispatch:
+
+jobs:
+  ledger:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write # push to the `backups` branch
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Build the ledger from the newest backup
+        run: |
+          git config user.email "backup@stock-predict"
+          git config user.name "Backup Bot"
+          git fetch origin backups:backups
+          git worktree add bk backups
+          latest=$(ls -d bk/backups/backup-* | sort | tail -1)
+          echo "using $latest"
+          node scripts/ledger.mjs "$latest/practice.json" bk/ledger
+          cd bk
+          git add ledger/
+          git diff --cached --quiet || git commit -m "ledger: Atlas trade ledger $(date -u +%Y-%m-%d)"
+          git push origin backups
