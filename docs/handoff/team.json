@@ -4,7 +4,12 @@
     "who": "claude",
     "since": null
   },
-  "machines": {},
+  "machines": {
+    "windows": {
+      "seen": "2026-11-12T00:44:49.709Z",
+      "note": "running status"
+    }
+  },
   "tasks": [
     {
       "id": "T1",
