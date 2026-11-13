@@ -212,3 +212,18 @@ console.log('team board: Milo hand-off ok')
   assert.match(readFileSync(join(d, 'docs/handoff/LESSONS.md'), 'utf8'), /\| 2026-11-12 \| T1 \| neohub \| hermes-win \| run the helper, never unzip by hand \|/)
   console.log('team board: progress, catch-up, lessons ok')
 }
+
+// a long pasted request keeps all of its text (T9 on 2026-11-13 lost everything after 300 characters)
+{
+  const longText = 'Fix two sign-in errors. ' + 'Step detail number one is here. '.repeat(30) + 'LAST-WORD'
+  const s = applyAction(emptyTeam(), { type: 'add', title: longText, project: 'neohub', owner: 'milo', brief: 'extra note' }, NOW, 'chanh').state
+  assert.ok(s.tasks[0].title.length < 200)
+  assert.match(s.tasks[0].title, /full text in the brief/)
+  assert.match(s.tasks[0].brief, /LAST-WORD/)
+  assert.match(s.tasks[0].brief, /extra note$/)
+  assert.match(taskFile(s.tasks[0]), /LAST-WORD/)
+  assert.equal(checkAction({ type: 'add', title: longText, project: 'neohub', owner: 'milo' })?.type === 'add' && checkAction({ type: 'add', title: longText, project: 'neohub', owner: 'milo' })!.title, longText)
+  const short = applyAction(emptyTeam(), { type: 'add', title: 'Short one', project: 'neohub', owner: 'milo' }, NOW, 'chanh').state
+  assert.equal(short.tasks[0].brief, undefined)
+  console.log('team board: long request kept whole ok')
+}

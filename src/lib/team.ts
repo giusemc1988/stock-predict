@@ -90,7 +90,7 @@ export function checkAction(a: unknown): TeamAction | null {
   }
   return {
     type: 'add',
-    title: typeof x.title === 'string' ? x.title.slice(0, 300) : undefined,
+    title: typeof x.title === 'string' ? x.title.slice(0, 4000) : undefined,
     project: x.project as Project,
     owner: x.owner as Owner,
     kind: x.kind === 'idea' ? 'idea' : 'code',
