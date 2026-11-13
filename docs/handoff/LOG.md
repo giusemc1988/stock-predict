@@ -50,3 +50,4 @@ The copy of this file on `main` is frozen history up to 2026-11-11.
 | 2026-11-13 01:57 | hermes-win | FAILED | T10 Flow test 2.0.36: progress file (Claude runs this test, Milo does nothing): FAILED Milo did nothing, as the task instructs: "Claude runs this test, Milo does nothing." No files changed, no version | other | — |
 | 2026-11-13 02:01 | claude | CLAUDE-READ | Claude read the board |  | — |
 | 2026-11-13 04:37 | hermes-win | REOPEN | T9 Milo is working on it again (try 2) | neohub | — |
+| 2026-11-13 04:37 | hermes-win | DONE | T9 Bạn là kỹ sư tự động hóa (Python / Playwright / Selenium). Hãy kiểm tra và sửa 2 lỗi đăng nhập của Telegram bot trên Windows theo đúng các yêu cầu sau: MÔ TẢ LỖI HIỆN TẠI: 1. Ở trang đăng nhập Xtime: Bot điền thông tin nhưng không bấm được nút "Sign in" cuối cùng. 2. Sau đó bot tự động chuyển sang: DONE (bug 1 + bug 2 fixed in v3.05; helper restarted; 15-min lock removed) What changed: - Helper restarted: bayready-se | neohub | — |

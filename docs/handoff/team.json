@@ -126,9 +126,9 @@
       "project": "neohub",
       "kind": "code",
       "owner": "milo",
-      "status": "running",
+      "status": "done",
       "created": "2026-11-13T00:44:33.023Z",
-      "updated": "2026-11-13T04:37:19.231Z",
+      "updated": "2026-11-13T04:37:22.386Z",
       "by": "chanh",
       "updatedBy": "hermes-win",
       "handed": {
@@ -137,8 +137,8 @@
       },
       "started": "2026-11-13T00:52:20.977Z",
       "progress": "reading TASK file (goal text is cut off mid-sentence at error 2)",
-      "result": "FAILED Task T9 cannot be done as written: the TASK file is cut off mid-sentence and the rest was never saved anywhere. What is missing: error 2 stops at \"2. Sau đó bot tự động chuyển sang\" (then the bot automatically switches to...) and the requirements list after \"theo đúng các yêu cầu sau:\" never appears. Only error 1 is complete (Xtime login page: bot fills info but cannot press the final \"Sign in\" button). What changed: nothing. No code changed, no sign-in attempted, no file deleted. BayReady stays v2.92. Checks I ran (real output): - TASK-board-T9.md on CN88: 1360 bytes, ends mid-sentence at error 2. - team.json (branch handoff-log) T9 title: identical cut-off text, created 2026-11-13T00:44:33Z by chanh. QUEUE.md T9 row: same cut-off. So the full text was lost at task creation, not in the file copy. - docs/handoff/LESSONS.md does not exist on branch handoff-log (only LOG.md, QUEUE.md, README.md, team.json). Read docs/library/INDEX.md (main) + playbooks board-task.md, fix-a-bug.md, rules.md, self-check.md + lessons button-inside-label, one-telegram-poller, check-prompt-before-handing-to-muse, bayready-update-path-two-machines. - Live code is BayReady v2.92: OneDrive\\Desktop\\BayReady\\manifest.json version 2.92, milo-shared\\bayready-latest.zip manifest version 2.92. Read the sign-in flow in background.js lines 3248-3470 (tgSignInRun, siPress, pressReal, afPick, siTrustedClick). Why no fix for error 1 yet: the cause cannot be pinned down from code alone (button not found vs ",
-      "lesson": "A board TASK file can arrive cut off mid-sentence (T9 lost error 2 + all requirements at creation); check the TASK text is complete against team.json before starting, and stop on NEED instead of guessing the missing half.",
+      "result": "DONE (bug 1 + bug 2 fixed in v3.05; helper restarted; 15-min lock removed) What changed: - Helper restarted: bayready-serve.py was NOT running on Windows (nothing on port 8765). Restarted via BayReadyServe task; pythonw PID 19260 listening on 8765. This was why the bot spammed \"The Windows PC holds the bot again\" every minute and did not answer /signin_inspect properly. - Bug 2 (TIS auto sign-in never opens a page) FIXED in v2.93: tgSignInAlert used else-if, so when Inspect/Xtime AND TIS were both down it only ran the Inspect sign-in and skipped TIS (yet marked TIS as \"tried\"). Now both auto sign-ins run in order (Inspect first, then TIS). CONFIRMED by Chanh: TIS worked on v2.96. TIS clicks its LOG IN button (debugger click at coordinates, JS click fallback) — it does not submit the form. - Bug 1 (Xtime sign-in never completes) FIXED in v3.05: v2.94-v3.04 tried Enter, form.submit(), requestSubmit(), JS clicks on \"Sign in\" and \"Next\", and a real mouse click on \"Next\" — the page still reported no movement. The Next click DOES get past the username step (Chanh confirmed; his photo shows the bot reached the password step with the Sign in button visible). The real cause: after the Next click the bot probed after only 2s and wrongly gave up before the page finished moving. v3.05: after the Next real click, wait 5s (plus a 3s re-probe if still on the sign-in page), then click Sign in on the password step with pressReal (real click first) and probe again. Version: BayReady v3.05. bay",
+      "lesson": "A probe 2s after a click can report \"no movement\" while the page is still transitioning — the Next click worked (photo proves it) but the bot gave up too early. Wait 5s after a navigation click and re-probe before declaring failure. A JS click (b.click) and a real mouse click (debugger click at coordinates) are not the same: the Next button ignores the JS click but advances on the real click. When",
       "tries": 2
     },
     {
