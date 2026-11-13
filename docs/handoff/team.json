@@ -128,9 +128,13 @@
       "owner": "milo",
       "status": "todo",
       "created": "2026-11-13T00:44:33.023Z",
-      "updated": "2026-11-13T00:44:33.023Z",
+      "updated": "2026-11-13T00:47:19.173Z",
       "by": "chanh",
-      "updatedBy": "chanh"
+      "updatedBy": "hermes-win",
+      "handed": {
+        "at": "2026-11-13T00:47:19.173Z",
+        "machine": "windows"
+      }
     }
   ],
   "next": 10
