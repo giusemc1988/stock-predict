@@ -119,7 +119,19 @@
         "machine": "ubuntu"
       },
       "result": "Claude did it (BayReady 2.80): status tiles that show 0 are hidden, the 5 main stages always stay, tiles share the row, a small line names the hidden ones. Not run in Chrome yet."
+    },
+    {
+      "id": "T9",
+      "title": "Bạn là kỹ sư tự động hóa (Python / Playwright / Selenium). Hãy kiểm tra và sửa 2 lỗi đăng nhập của Telegram bot trên Windows theo đúng các yêu cầu sau: MÔ TẢ LỖI HIỆN TẠI: 1. Ở trang đăng nhập Xtime: Bot điền thông tin nhưng không bấm được nút \"Sign in\" cuối cùng. 2. Sau đó bot tự động chuyển sang",
+      "project": "neohub",
+      "kind": "code",
+      "owner": "milo",
+      "status": "todo",
+      "created": "2026-11-13T00:44:33.023Z",
+      "updated": "2026-11-13T00:44:33.023Z",
+      "by": "chanh",
+      "updatedBy": "chanh"
     }
   ],
-  "next": 9
+  "next": 10
 }
