@@ -159,8 +159,21 @@
       },
       "result": "FAILED Milo did nothing, as the task instructs: \"Claude runs this test, Milo does nothing.\" No files changed, no version, nothing merged or deployed. Check run: listed C:\\Users\\chanh\\milo-shared\\*T10* via SSH at 2026-11-13 ~01:56 UTC - only TASK-board-T10.md exists (1109 bytes, 2026-11-13 01:52:18Z). No PROGRESS-board-T10.md exists, so Claude's flow test of the PROGRESS file path has not been demonstrated yet. LESSON: Milo must not write PROGRESS-board-T10.md himself - that would fake Claude's flow test. Only Claude writes the PROGRESS file.",
       "lesson": "Milo must not write PROGRESS-board-T10.md himself - that would fake Claude's flow test. Only Claude writes the PROGRESS file."
+    },
+    {
+      "id": "T11",
+      "title": "Mục tiêu: Kiểm tra nguyên nhân trang Max (Neo Hub) vẫn chưa đăng nhập được sau các thay đổi của Claude, khắc phục dứt điểm và xác nhận hệ th… (full text in the brief)",
+      "project": "neohub",
+      "kind": "code",
+      "owner": "milo",
+      "brief": "Full request from chanh:\nMục tiêu: Kiểm tra nguyên nhân trang Max (Neo Hub) vẫn chưa đăng nhập được sau các thay đổi của Claude, khắc phục dứt điểm và xác nhận hệ thống hoạt động bình thường.\n\nQuy tắc bắt buộc:\n- Chỉ dùng công cụ/giải pháp miễn phí có sẵn trên máy.\n- TUYỆT ĐỐI KHÔNG in ra, ghi log, hay làm lộ bất kỳ API key, token, password, cookie hay secret nào (che bằng *** nếu cần nhắc tới).\n- KHÔNG xóa file, không tắt hay cắt bỏ bất kỳ tính năng nào đang có nếu chưa được phép.\n- Trả lời ngắn gọn, giải thích dễ hiểu bằng tiếng Việt.\n\nCác bước thực hiện trên máy:\n1. Kiểm tra những gì Claude đã làm:\n - Tìm thư mục dự án Neo Hub / Max đang chạy.\n - Chạy `git status`, `git diff`, và `git log -n 5` (hoặc kiểm tra timestamp các file vừa sửa gần đây) để liệt kê chính xác các file cấu hình, script, hoặc code mà Claude đã thay đổi.\n2. Chẩn đoán lỗi chưa đăng nhập (Not logged in):\n - Kiểm tra các tiến trình/service/Docker container liên quan xem có đang chạy đúng port không.\n - Đọc log lỗi gần nhất (backend, frontend, proxy, auth service) liên quan đến session, cookie, CORS, hoặc OAuth/token.\n - Kiểm tra cấu trúc file `.env` (chỉ kiểm tra tên biến và trạng thái có/không, tuyệt đối không đọc giá trị secret) xem có lệch tên biến hoặc sai URL/port so với code Claude vừa sửa không.\n3. Khắc phục & Cấu hình:\n - Backup nhanh các file cấu hình chuẩn bị sửa (ví dụ `.bak`).\n - Sửa đúng lỗi khiến phiên đăng nhập không lưu hoặc không nhận diện được trên Max (Neo Hub), đảm bảo không ảnh hưởng tính năng khác.\n - Khởi động lại service liên quan nếu cần.\n4. Kiểm tra & Ghi lại kết quả:\n - Kiểm tra lại endpoint/trạng thái đăng nhập xem đã nhận session thành công chưa.\n - Ghi lại tóm tắt kết quả gồm: (a) Claude đã sửa gì, (b) Nguyên nhân gây lỗi login, (c) Đã sửa/cấu hình lại những gì, (d) Trạng thái kiểm tra cuối cùng.\n\nChanh has 1 picture for this task. If they are not pasted in your chat, ask him for them before you start.",
+      "status": "todo",
+      "created": "2026-11-13T05:21:51.046Z",
+      "updated": "2026-11-13T05:21:51.046Z",
+      "by": "chanh",
+      "updatedBy": "chanh"
     }
   ],
-  "next": 11,
+  "next": 12,
   "claudeSeen": "2026-11-13T02:01:58.997Z"
 }
