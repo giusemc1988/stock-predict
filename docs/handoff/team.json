@@ -149,9 +149,13 @@
       "brief": "Test by Claude of the PROGRESS file path. Milo: do nothing, Claude writes the files.",
       "status": "todo",
       "created": "2026-11-13T01:51:40.034Z",
-      "updated": "2026-11-13T01:51:40.034Z",
+      "updated": "2026-11-13T01:52:18.999Z",
       "by": "claude",
-      "updatedBy": "claude"
+      "updatedBy": "hermes-win",
+      "handed": {
+        "at": "2026-11-13T01:52:18.999Z",
+        "machine": "windows"
+      }
     }
   ],
   "next": 11,

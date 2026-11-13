@@ -46,3 +46,4 @@ The copy of this file on `main` is frozen history up to 2026-11-11.
 | 2026-11-13 00:52 | hermes-win | START | T9 reading TASK file (goal text is cut off mid-sentence at error 2) | neohub | — |
 | 2026-11-13 00:57 | hermes-win | FAILED | T9 Bạn là kỹ sư tự động hóa (Python / Playwright / Selenium). Hãy kiểm tra và sửa 2 lỗi đăng nhập của Telegram bot trên Windows theo đúng các yêu cầu sau: MÔ TẢ LỖI HIỆN TẠI: 1. Ở trang đăng nhập Xtime: Bot điền thông tin nhưng không bấm được nút "Sign in" cuối cùng. 2. Sau đó bot tự động chuyển sang: FAILED Task T9 cannot be done as written: the TASK file is cut off mid-sentence and the rest was never saved anywhere. W | neohub | — |
 | 2026-11-13 01:51 | claude | ADD | T10 Flow test 2.0.36: progress file (Claude runs this test, Milo does nothing) → milo | other | — |
+| 2026-11-13 01:52 | hermes-win | HANDOFF | T10 file written for Milo on windows | other | — |
