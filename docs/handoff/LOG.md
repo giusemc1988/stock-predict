@@ -48,3 +48,4 @@ The copy of this file on `main` is frozen history up to 2026-11-11.
 | 2026-11-13 01:51 | claude | ADD | T10 Flow test 2.0.36: progress file (Claude runs this test, Milo does nothing) → milo | other | — |
 | 2026-11-13 01:52 | hermes-win | HANDOFF | T10 file written for Milo on windows | other | — |
 | 2026-11-13 01:57 | hermes-win | FAILED | T10 Flow test 2.0.36: progress file (Claude runs this test, Milo does nothing): FAILED Milo did nothing, as the task instructs: "Claude runs this test, Milo does nothing." No files changed, no version | other | — |
+| 2026-11-13 02:01 | claude | CLAUDE-READ | Claude read the board |  | — |
