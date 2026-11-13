@@ -5,7 +5,7 @@ import { appendSpeech, buildPrompt, captionLang, CLAUDE_PROJECT_URL, MAX_RECORD_
 
 const T = {
   title: { en: 'Tell Claude by voice', vi: 'Nói cho Claude' },
-  hint: { en: 'Press the mic and talk, or type. Press Done and I write the prompt for you to check.', vi: 'Bấm mic rồi nói, hoặc gõ. Nói xong bấm Xong, em viết prompt cho anh xem lại.' },
+  hint: { en: 'For Claude. Press the mic and talk, or type. Press Done and I write the prompt for you to check. To give work straight to Milo with no Claude, use “Give work” in the board below.', vi: 'Để nói với Claude. Bấm mic rồi nói, hoặc gõ. Nói xong bấm Xong, em viết prompt cho anh xem lại. Muốn giao thẳng cho Milo mà không cần Claude: dùng ô “Giao việc” ở bảng bên dưới.' },
   mic: { en: 'Talk', vi: 'Bấm để nói' },
   micOn: { en: 'Listening… press when you finish', vi: 'Đang nghe… nói xong anh bấm lại' },
   chep: { en: 'Writing down what you said…', vi: 'Đang chép lời anh nói…' },
@@ -20,6 +20,10 @@ const T = {
   review: { en: 'Check the prompt, edit if needed', vi: 'Xem lại prompt, sửa nếu cần' },
   back: { en: '← Back to my words', vi: '← Quay lại lời nói' },
   send: { en: 'Send to Claude', vi: 'Gửi cho Claude' },
+  step1: { en: '1. Copy the prompt', vi: '1. Sao chép lời nhắc' },
+  step2: { en: '2. Open Claude', vi: '2. Mở Claude' },
+  step1Done: { en: '✓ Copied. Next: tap “2. Open Claude”, then tap its message box, hold, Paste, Send.', vi: '✓ Đã sao chép. Bước tiếp: bấm “2. Mở Claude”, chạm ô nhắn tin, giữ, Dán, rồi Gửi.' },
+  step2Done: { en: 'Claude opened in a new tab. Tap the message box, hold, Paste, then Send.', vi: 'Đã mở Claude ở thẻ mới. Chạm ô nhắn tin, giữ, Dán, rồi Gửi.' },
   share: { en: 'Share…', vi: 'Chia sẻ…' },
   sent: { en: 'Prompt copied. The Claude project opened: tap the message box, hold, and Paste, then Send.', vi: 'Đã copy prompt. Dự án Claude vừa mở: anh chạm ô nhắn tin, giữ rồi Dán, rồi Gửi.' },
   copyFail: { en: "Couldn't copy by itself. Select the prompt and copy it by hand.", vi: 'Chưa copy tự động được. Anh bôi đen prompt rồi copy tay.' },
@@ -28,8 +32,11 @@ const T = {
     en: 'A web page cannot post into a Claude chat by itself, so Send does two things: copies the prompt and opens the Neo Hub project. You paste once. On a phone, Share… sends it through the share sheet (pick Claude). Voice is recorded and written down by Whisper (the free Groq key the Lumi translator already uses), which copes with Vietnamese mixed with English; the browser\'s own recognizer only shows live words and is the backup. The recording goes to Whisper only to be written down; the prompt leaves this device only when you paste it.',
     vi: 'Trang web không tự gõ vào khung chat Claude được, nên nút Gửi làm hai việc: copy prompt và mở dự án Neo Hub. Anh dán một lần là xong. Trên điện thoại, nút Chia sẻ… gửi qua bảng chia sẻ (chọn Claude). Giọng nói được ghi âm rồi Whisper chép lại (dùng key Groq miễn phí mà Lumi đã có), nghe được tiếng Việt xen tiếng Anh; nhận dạng của trình duyệt chỉ hiện chữ tạm khi nói và làm dự phòng. Đoạn ghi âm chỉ gửi cho Whisper để chép chữ; prompt chỉ rời khỏi máy khi anh dán.',
   },
-  museTitle: { en: 'Prompt for Muse', vi: 'Prompt cho Muse' },
-  museHint: { en: 'Claude answers with a plan and a ready prompt. Paste it here to keep it, then copy to Muse.', vi: 'Claude trả lời phương án và prompt sẵn. Dán vào đây để giữ, rồi copy cho Muse.' },
+  museTitle: { en: 'Old way: hand-made prompt for Muse (optional)', vi: 'Cách cũ: lời nhắc tay cho Muse (không bắt buộc)' },
+  museHint: { en: 'You do not need this any more: “Give work” in the board below sends work to Milo by itself. Kept in case you want to paste a prompt Claude wrote and copy it to Muse.', vi: 'Không cần dùng nữa: ô “Giao việc” ở bảng bên dưới tự đưa việc cho Milo. Giữ lại phòng khi anh muốn dán prompt Claude viết rồi copy cho Muse.' },
+  museSaved: { en: 'Saved', vi: 'Lưu lúc' },
+  museClear: { en: 'Clear', vi: 'Xoá' },
+  museCopied: { en: '✓ Copied. Now open Muse\'s chat, paste, send.', vi: '✓ Đã sao chép. Giờ mở chat Muse, dán, gửi.' },
   copy: { en: 'Copy', vi: 'Copy' },
   copied: { en: 'Copied ✓', vi: 'Đã copy ✓' },
   paste: { en: 'Paste', vi: 'Dán' },
@@ -88,6 +95,8 @@ export function VoiceRequest() {
   const [note, setNote] = useState('')
   const [muse, setMuse] = useState(() => store.get('neo.muse.prompt'))
   const [copied, setCopied] = useState(false)
+  const [step1, setStep1] = useState(false)
+  const [museAt, setMuseAt] = useState(() => Number(store.get('neo.muse.prompt.at')) || 0)
   const rec = useRef<Rec | null>(null)
   const want = useRef(false)
   const mr = useRef<MediaRecorder | null>(null)
@@ -103,6 +112,7 @@ export function VoiceRequest() {
     mr.current?.stream.getTracks().forEach((t) => t.stop())
   }, [])
   useEffect(() => store.set('neo.muse.prompt', muse), [muse])
+  const editMuse = (v: string) => { setMuse(v); const t = v.trim() ? Date.now() : 0; setMuseAt(t); store.set('neo.muse.prompt.at', String(t)) }
 
   /** Browser captions: only shown live and kept as a backup, never typed into the box while you talk. */
   const startCaptions = () => {
@@ -207,17 +217,18 @@ export function VoiceRequest() {
     if (p) { setPrompt(p); setNote('') }
   }
 
-  const send = async () => {
+  // two plain steps: the copy and the opening are separate taps, so a blocked pop-up can never hide the result
+  const copyPrompt = async () => {
     if (!prompt) return
     const ok = await copyText(prompt)
-    window.open(CLAUDE_PROJECT_URL, '_blank', 'noopener,noreferrer')
-    setNote(ok ? L('sent') : L('copyFail'))
+    setStep1(ok)
+    setNote(ok ? '' : L('copyFail'))
   }
   const share = () => { void navigator.share({ title: 'Neo Hub', text: prompt ?? '' }).catch(() => {}) }
   const copyMuse = async () => {
-    if (await copyText(muse)) { setCopied(true); setTimeout(() => setCopied(false), 1800) }
+    if (await copyText(muse)) { setCopied(true); setTimeout(() => setCopied(false), 6000) }
   }
-  const pasteMuse = () => { void navigator.clipboard.readText().then((t) => t && setMuse(t)).catch(() => {}) }
+  const pasteMuse = () => { void navigator.clipboard.readText().then((t) => t && editMuse(t)).catch(() => {}) }
   const canShare = typeof navigator !== 'undefined' && typeof navigator.share === 'function'
 
   return (
@@ -248,12 +259,16 @@ export function VoiceRequest() {
         <>
           <p className="muted small">{L('review')}</p>
           <textarea className="vr-prompt" rows={10} value={prompt} onChange={(e) => setPrompt(e.target.value)} spellCheck={false} maxLength={4000} />
-          <div className="ag-acts">
-            <button className="btn primary vr-big" disabled={!prompt.trim()} onClick={() => void send()}>{L('send')}</button>
-            {canShare && <button className="btn" onClick={share}>{L('share')}</button>}
-            <button className="btn" onClick={() => { setPrompt(null); setNote('') }}>{L('back')}</button>
+          <div className="vr-steps">
+            <button className="btn primary vr-big" disabled={!prompt.trim()} onClick={() => void copyPrompt()}>{L('step1')}</button>
+            {step1 && <p className="vr-ok" role="status">{L('step1Done')}</p>}
+            <a className={`btn${step1 ? ' primary' : ''} vr-big`} href={CLAUDE_PROJECT_URL} target="_blank" rel="noopener noreferrer" onClick={() => setNote(L('step2Done'))}>{L('step2')}</a>
           </div>
-          {note && <p className="small" role="status">{note}</p>}
+          <div className="ag-acts">
+            {canShare && <button className="btn" onClick={share}>{L('share')}</button>}
+            <button className="btn" onClick={() => { setPrompt(null); setNote(''); setStep1(false) }}>{L('back')}</button>
+          </div>
+          {note && <p className="vr-ok" role="status">{note}</p>}
         </>
       )}
       <details className="vr-det">
@@ -261,15 +276,18 @@ export function VoiceRequest() {
         <p className="muted small">{L('detailsText')}</p>
       </details>
 
-      <div className="vr-muse">
-        <h4>{L('museTitle')}</h4>
+      <details className="vr-muse">
+        <summary>{L('museTitle')}</summary>
         <p className="muted small">{L('museHint')}</p>
-        <textarea rows={5} value={muse} onChange={(e) => setMuse(e.target.value)} maxLength={20000} />
+        {muse.trim() && museAt > 0 && <p className="muted small">{L('museSaved')}: {new Date(museAt).toLocaleString([], { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</p>}
+        <textarea rows={5} value={muse} onChange={(e) => editMuse(e.target.value)} maxLength={20000} />
         <div className="ag-acts">
-          <button className="btn primary" disabled={!muse.trim()} onClick={() => void copyMuse()}>{copied ? L('copied') : L('copy')}</button>
+          <button className="btn primary" disabled={!muse.trim()} onClick={() => void copyMuse()}>{L('copy')}</button>
           <button className="btn" onClick={pasteMuse}>{L('paste')}</button>
+          <button className="btn" disabled={!muse.trim()} onClick={() => editMuse('')}>{L('museClear')}</button>
         </div>
-      </div>
+        {copied && <p className="vr-ok" role="status">{L('museCopied')}</p>}
+      </details>
     </section>
   )
 }

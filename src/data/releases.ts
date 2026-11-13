@@ -2,7 +2,7 @@
  * Version and "What's new". Bump APP_VERSION and add an entry to the top of RELEASES
  * with each update. The banner shows once per version, then stays dismissed.
  */
-export const APP_VERSION = '2.0.38'
+export const APP_VERSION = '2.0.39'
 
 export interface Release {
   version: string
@@ -13,6 +13,12 @@ export interface Release {
 }
 
 export const RELEASES: Release[] = [
+  {
+    version: '2.0.39',
+    date: '2026-11-13',
+    changes: ['Max page made simpler: the little office shows three windows (Muse, Windows PC, Ubuntu PC) instead of a duplicate Ubuntu one; Claude voice box now has two plain steps (1 Copy, 2 Open Claude) with a clear green "copied" message; the hand-made Muse prompt moved into a closed section with a Clear button and a saved time; the board explains the 3 steps and “Give” sends straight to Milo.'],
+    changesVi: ['Trang Max gọn hơn: văn phòng nhỏ còn 3 cửa sổ (Muse, máy Windows, máy Ubuntu), không còn cửa sổ Ubuntu bị lặp; ô nói cho Claude có 2 bước rõ (1 Sao chép, 2 Mở Claude) và báo xanh “đã sao chép”; lời nhắc tay cho Muse nằm trong mục đóng, có nút Xoá và giờ lưu; bảng việc ghi rõ 3 bước và nút Giao đi thẳng cho Milo.'],
+  },
   {
     version: '2.0.38',
     date: '2026-11-13',

@@ -110,6 +110,10 @@
 .vr-big { min-height: 48px; padding-inline: 28px; font-size: 15px; }
 .vr-prompt { font: 13px/1.5 var(--mono, monospace); }
 .vr-det summary { cursor: pointer; font-size: 13px; color: var(--muted); }
+.vr-ok { margin: 0; padding: 10px 14px; border-radius: 14px; border: 1px solid var(--up); background: color-mix(in srgb, var(--up) 14%, transparent); font-weight: 600; }
+.vr-steps { display: grid; gap: 8px; }
+.vr-steps .btn { min-height: 48px; font-size: 15px; width: 100%; }
+.vr-muse > summary { cursor: pointer; font-weight: 600; }
 .vr-muse { display: grid; gap: 8px; padding-top: 12px; border-top: 1px solid var(--line); }
 .vr-muse h4 { margin: 0; font-size: 14px; }
 
@@ -174,7 +178,7 @@
 
 /* Little office (OfficeView.tsx): four windows animated by live team state. Calm, CSS only. */
 .of-big { min-height: 48px; padding: 0 22px; font-size: 16px; }
-.of-room { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; margin-top: 4px; }
+.of-room { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin-top: 4px; }
 .of-win { all: unset; box-sizing: border-box; display: grid; gap: 8px; padding: 10px; border-radius: 16px; border: 1px solid var(--line); background: var(--panel-2); cursor: pointer; min-width: 0; --of: var(--muted); transition: border-color .2s, transform .2s; }
 .of-win:hover { transform: translateY(-1px); }
 .of-win:focus-visible { outline: 2px solid var(--acc, var(--gold)); outline-offset: 2px; }
@@ -221,6 +225,6 @@
 .of-tag { font-weight: 600; }
 .of-t-working { color: var(--acc, var(--gold)); } .of-t-idle { color: var(--up); } .of-t-waiting { color: var(--gold, #e0b050); } .of-t-error { color: var(--down, #ff6b6b); }
 .of-log { margin: 10px 0 0; }
-@media (max-width: 640px) { .of-room { grid-template-columns: repeat(2, minmax(0, 1fr)); } .of-bar i { display: none; } .of-bar b { margin-left: 0; } }
+@media (max-width: 640px) { .of-room { grid-template-columns: repeat(2, minmax(0, 1fr)); } .of-room > :first-child { grid-column: 1 / -1; } .of-bar i { display: none; } .of-bar b { margin-left: 0; } }
 @media (max-width: 380px) { .of-room { gap: 8px; } .of-screen { height: 64px; } }
 @media (prefers-reduced-motion: reduce) { .of-screen *, .of-screen { animation: none !important; } }

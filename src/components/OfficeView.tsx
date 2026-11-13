@@ -7,7 +7,8 @@ import type { LogLine, TeamState } from '../lib/team'
 
 const T = {
   title: { en: 'Little office', vi: 'Văn phòng nhỏ' },
-  how: { en: 'Who is working right now. Tap a window for details. It updates by itself every 30 seconds.', vi: 'Ai đang làm gì lúc này. Chạm vào cửa sổ để xem chi tiết. Tự cập nhật mỗi 30 giây.' },
+  how: { en: 'Who is working right now: Muse and the two machines (each runs its Hermes script). Tap a window for details. It updates by itself every 30 seconds.', vi: 'Ai đang làm gì lúc này: Muse và hai máy (mỗi máy có Hermes chạy script). Chạm vào cửa sổ để xem chi tiết. Tự cập nhật mỗi 30 giây.' },
+  tapWhy: { en: 'tap to see why', vi: 'chạm để xem lý do' },
   refresh: { en: 'Update now', vi: 'Cập nhật ngay' },
   loading: { en: 'Reading the board from GitHub…', vi: 'Đang đọc bảng từ GitHub…' },
   unread: { en: "Couldn't read the board right now.", vi: 'Chưa đọc được bảng.' },
@@ -23,9 +24,9 @@ const T = {
 
 const NAME: Record<OfficeWho, Bi> = {
   muse: { en: 'Muse (Milo)', vi: 'Muse (Milo)' },
-  hermesWin: { en: 'Hermes · Windows', vi: 'Hermes · Windows' },
-  hermesUbu: { en: 'Hermes · Ubuntu', vi: 'Hermes · Ubuntu' },
-  ubuntuPc: { en: 'Ubuntu machine', vi: 'Máy Ubuntu' },
+  hermesWin: { en: 'Windows PC (Hermes)', vi: 'Máy Windows (Hermes)' },
+  hermesUbu: { en: 'Ubuntu PC (Hermes)', vi: 'Máy Ubuntu (Hermes)' },
+  ubuntuPc: { en: 'Ubuntu PC', vi: 'Máy Ubuntu' },
 }
 const STATE: Record<OfficeState, Bi> = {
   working: { en: 'Working', vi: 'Đang làm' },
@@ -62,7 +63,7 @@ function Window({ seat, open, onTap, lang, now }: { seat: OfficeSeat; open: bool
       </span>
       <span className="of-state">
         <b>{STATE[seat.state][lang]}</b>
-        <small>{seat.queued > 0 ? `${seat.queued} ${T.queued[lang]}` : seat.seen ? `${T.seen[lang]} ${ago(seat.seen, now)}` : pc || seat.who !== 'muse' ? T.never[lang] : ''}</small>
+        <small>{seat.state === 'error' && seat.task ? `${seat.task.id} · ${T.tapWhy[lang]}` : seat.queued > 0 ? `${seat.queued} ${T.queued[lang]}` : seat.seen ? `${T.seen[lang]} ${ago(seat.seen, now)}` : pc || seat.who !== 'muse' ? T.never[lang] : ''}</small>
       </span>
     </button>
   )
@@ -90,7 +91,7 @@ function Details({ seat, lang, now, lead }: { seat: OfficeSeat; lang: 'en' | 'vi
   )
 }
 
-/** The little office on the Max page: Muse, both Hermes and the Ubuntu machine, animated from the live team board. */
+/** The little office on the Max page: Muse and the two machines (each with its Hermes), animated from the live team board. */
 export function OfficeView() {
   const lang = useLang()
   const rules = useAiRules()
@@ -131,7 +132,8 @@ export function OfficeView() {
       ) : (
         <>
           <div className="of-room">
-            {seats.map((s) => <Window key={s.who} seat={s} lang={lang} now={now} open={pick === s.who} onTap={() => setPick(pick === s.who ? null : s.who)} />)}
+            {/* the Ubuntu PC and Hermes Ubuntu are one thing on the board (same heartbeat, same tasks): show it once */}
+            {seats.filter((s) => s.who !== 'ubuntuPc').map((s) => <Window key={s.who} seat={s} lang={lang} now={now} open={pick === s.who} onTap={() => setPick(pick === s.who ? null : s.who)} />)}
           </div>
           {open && <Details seat={open} lang={lang} now={now} lead={team.driver.who === 'milo'} />}
           {data !== 'error' && data.log[0] && (
