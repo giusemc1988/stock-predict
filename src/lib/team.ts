@@ -38,6 +38,8 @@ export interface TeamTask {
   /** A "LESSON:" line from the result, also appended to LESSONS.md. */
   lesson?: string
   updatedBy?: string
+  /** 2+ when Milo went back to a task the board had closed as failed. */
+  tries?: number
 }
 export interface TeamState {
   v: 1

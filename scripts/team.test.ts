@@ -3,7 +3,7 @@ import { mkdirSync, mkdtempSync, readFileSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 // @ts-expect-error plain JS modules
-import { applyAction, emptyTeam, isOnline, nextJob, renderQueue, updateLog, logRow, toHandOff, handedOpen, taskFile, taskFileName, resultFileName, miloOpen, miloStage, isStuck, miloPrompt, readProgress, sinceClaude, needsChanh, progressFileName } from './team-core.mjs'
+import { applyAction, emptyTeam, isOnline, nextJob, renderQueue, updateLog, logRow, toHandOff, handedOpen, taskFile, taskFileName, resultFileName, miloOpen, miloStage, isStuck, miloPrompt, readProgress, sinceClaude, needsChanh, progressFileName, failedRecent, GO } from './team-core.mjs'
 // @ts-expect-error plain JS modules
 import { applyInDir } from './team-apply.mjs'
 import { checkAction, parseLog, readTeam, sendAction } from '../src/lib/team'
@@ -226,4 +226,25 @@ console.log('team board: Milo hand-off ok')
   const short = applyAction(emptyTeam(), { type: 'add', title: 'Short one', project: 'neohub', owner: 'milo' }, NOW, 'chanh').state
   assert.equal(short.tasks[0].brief, undefined)
   console.log('team board: long request kept whole ok')
+}
+
+// the task itself is the order to act (Milo's own rule is "prompt first, wait for Do this prompt"), and a failed task can reopen
+{
+  let s = applyAction(emptyTeam(), { type: 'add', title: 'Fix sign-in', project: 'bayready', owner: 'milo' }, '2026-11-13T00:44:00.000Z', 'chanh').state
+  assert.match(taskFile(s.tasks[0]), /already counts as his "Do this prompt"/)
+  assert.match(taskFile(s.tasks[0]), /Chanh himself with the Give button/)
+  assert.match(miloPrompt(miloOpen(s)), /Do NOT answer with another prompt/)
+  assert.match(GO('claude'), /standing order/)
+  s = applyAction(s, { type: 'handoff', id: 'T1', machine: 'windows' }, '2026-11-13T00:47:00.000Z', 'hermes-win').state
+  s = applyAction(s, { type: 'finish', id: 'T1', ok: false, result: 'FAILED text cut off' }, '2026-11-13T00:57:00.000Z', 'hermes-win').state
+  assert.equal(failedRecent(s, 'windows', Date.parse('2026-11-13T03:00:00.000Z')).length, 1)
+  assert.equal(failedRecent(s, 'ubuntu', Date.parse('2026-11-13T03:00:00.000Z')).length, 0)
+  const r = applyAction(s, { type: 'reopen', id: 'T1' }, '2026-11-13T03:00:00.000Z', 'hermes-win')
+  assert.equal(r.state.tasks[0].status, 'running')
+  assert.equal(r.state.tasks[0].tries, 2)
+  assert.equal(r.log.type, 'REOPEN')
+  s = applyAction(r.state, { type: 'finish', id: 'T1', ok: true, result: 'DONE' }, '2026-11-13T04:00:00.000Z', 'hermes-win').state
+  assert.equal(s.tasks[0].status, 'done')
+  assert.throws(() => applyAction(s, { type: 'reopen', id: 'T1' }, '2026-11-13T04:01:00.000Z', 'hermes-win'), /not failed/)
+  console.log('team board: GO line and reopen ok')
 }
