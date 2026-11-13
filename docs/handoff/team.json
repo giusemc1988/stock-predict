@@ -126,15 +126,17 @@
       "project": "neohub",
       "kind": "code",
       "owner": "milo",
-      "status": "todo",
+      "status": "running",
       "created": "2026-11-13T00:44:33.023Z",
-      "updated": "2026-11-13T00:47:19.173Z",
+      "updated": "2026-11-13T00:52:20.977Z",
       "by": "chanh",
       "updatedBy": "hermes-win",
       "handed": {
         "at": "2026-11-13T00:47:19.173Z",
         "machine": "windows"
-      }
+      },
+      "started": "2026-11-13T00:52:20.977Z",
+      "progress": "reading TASK file (goal text is cut off mid-sentence at error 2)"
     }
   ],
   "next": 10
