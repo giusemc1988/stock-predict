@@ -126,9 +126,9 @@
       "project": "neohub",
       "kind": "code",
       "owner": "milo",
-      "status": "failed",
+      "status": "running",
       "created": "2026-11-13T00:44:33.023Z",
-      "updated": "2026-11-13T00:57:19.579Z",
+      "updated": "2026-11-13T04:37:19.231Z",
       "by": "chanh",
       "updatedBy": "hermes-win",
       "handed": {
@@ -138,7 +138,8 @@
       "started": "2026-11-13T00:52:20.977Z",
       "progress": "reading TASK file (goal text is cut off mid-sentence at error 2)",
       "result": "FAILED Task T9 cannot be done as written: the TASK file is cut off mid-sentence and the rest was never saved anywhere. What is missing: error 2 stops at \"2. Sau đó bot tự động chuyển sang\" (then the bot automatically switches to...) and the requirements list after \"theo đúng các yêu cầu sau:\" never appears. Only error 1 is complete (Xtime login page: bot fills info but cannot press the final \"Sign in\" button). What changed: nothing. No code changed, no sign-in attempted, no file deleted. BayReady stays v2.92. Checks I ran (real output): - TASK-board-T9.md on CN88: 1360 bytes, ends mid-sentence at error 2. - team.json (branch handoff-log) T9 title: identical cut-off text, created 2026-11-13T00:44:33Z by chanh. QUEUE.md T9 row: same cut-off. So the full text was lost at task creation, not in the file copy. - docs/handoff/LESSONS.md does not exist on branch handoff-log (only LOG.md, QUEUE.md, README.md, team.json). Read docs/library/INDEX.md (main) + playbooks board-task.md, fix-a-bug.md, rules.md, self-check.md + lessons button-inside-label, one-telegram-poller, check-prompt-before-handing-to-muse, bayready-update-path-two-machines. - Live code is BayReady v2.92: OneDrive\\Desktop\\BayReady\\manifest.json version 2.92, milo-shared\\bayready-latest.zip manifest version 2.92. Read the sign-in flow in background.js lines 3248-3470 (tgSignInRun, siPress, pressReal, afPick, siTrustedClick). Why no fix for error 1 yet: the cause cannot be pinned down from code alone (button not found vs ",
-      "lesson": "A board TASK file can arrive cut off mid-sentence (T9 lost error 2 + all requirements at creation); check the TASK text is complete against team.json before starting, and stop on NEED instead of guessing the missing half."
+      "lesson": "A board TASK file can arrive cut off mid-sentence (T9 lost error 2 + all requirements at creation); check the TASK text is complete against team.json before starting, and stop on NEED instead of guessing the missing half.",
+      "tries": 2
     },
     {
       "id": "T10",
