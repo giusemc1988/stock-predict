@@ -108,6 +108,14 @@ function applyOne(state, a, now, who) {
       else delete t.need
       return { state: s, log: { who, type: need ? 'NEED' : first ? 'START' : 'PROGRESS', what: `${t.id} ${need ? `Milo needs: ${need}` : progress}`.slice(0, 200), ref: t.project } }
     }
+    case 'reopen': {
+      // Milo kept working after the board closed the task as failed (newer RESULT or PROGRESS file): open it again
+      const t = find(s, a.id)
+      if (t.owner !== 'milo' || t.kind !== 'code') throw new Error('only Milo code tasks reopen')
+      if (t.status !== 'failed') throw new Error('not failed')
+      Object.assign(t, { status: 'running', updated: now, tries: (t.tries ?? 1) + 1 })
+      return { state: s, log: { who, type: 'REOPEN', what: `${t.id} Milo is working on it again (try ${t.tries})`, ref: t.project } }
+    }
     case 'seen': {
       // Claude is back and has read the board: "new since Claude last looked" starts again from now
       if (who !== 'claude') throw new Error('only Claude marks the board as read')
@@ -156,6 +164,8 @@ export const nextJob = (s, machine) => s.tasks.find((t) => t.owner === machine &
 export const toHandOff = (s) => s.tasks.filter((t) => t.owner === 'milo' && t.kind === 'code' && t.status === 'todo' && !t.handed)
 /** Milo tasks already handed off on this machine and still open: the bridge looks for their RESULT file. */
 export const handedOpen = (s, machine) => s.tasks.filter((t) => t.owner === 'milo' && t.handed?.machine === machine && (t.status === 'todo' || t.status === 'running'))
+/** Milo tasks closed as failed on this machine in the last day: the bridge reopens one when Milo's files are newer than the close. */
+export const failedRecent = (s, machine, nowMs) => s.tasks.filter((t) => t.owner === 'milo' && t.handed?.machine === machine && t.status === 'failed' && nowMs - Date.parse(t.updated) < 24 * 3600 * 1000)
 export const taskFileName = (id) => `TASK-board-${id}.md`
 export const resultFileName = (id) => `RESULT-board-${id}.md`
 export const progressFileName = (id) => `PROGRESS-board-${id}.md`
@@ -169,6 +179,9 @@ export function readProgress(txt) {
 export const sinceClaude = (s) => s.tasks.filter((t) => t.updatedBy !== 'claude' && (!s.claudeSeen || t.updated > s.claudeSeen) && (s.claudeSeen || !['done', 'cancelled'].includes(t.status)))
 /** What needs Chanh now: red tasks, Milo asking for something, a failure, or a hand-off nobody opened. */
 export const needsChanh = (s, nowMs) => s.tasks.filter((t) => t.status === 'needs-ok' || !!t.need || isStuck(t, nowMs) || (t.status === 'failed' && nowMs - Date.parse(t.updated) < 24 * 3600 * 1000))
+/** Milo's own standing rule is "write a prompt first, then wait for 'Do this prompt'". A board task is already that order. */
+export const GO = (by) =>
+  `GO: this task is the order to act, ${by === 'claude' ? 'given by Claude on Chanh\'s standing order' : 'given by Chanh himself with the Give button on the Max board'}. It already counts as his "Do this prompt". Start the work now. Do NOT answer with another prompt, do NOT ask him to paste anything or to type "do this prompt". Stop only for a real question (write it as NEED:) or a step that cannot be undone.`
 const HOW = (id) => [
   'Before you start: read docs/library/INDEX.md (stock-predict repo) and docs/handoff/LESSONS.md (branch handoff-log), then the one playbook that fits.',
   `When you start, write ${progressFileName(id)} in milo-shared: one line saying what you are doing now. Rewrite it at each new step (newest step on the last line). If you need something from Chanh, add a line starting "NEED:". The board shows these to Chanh, so he knows the task was picked up.`,
@@ -180,6 +193,8 @@ export function taskFile(t) {
     `# TASK-board-${t.id} (from the Neo Hub Max board, ${t.created.slice(0, 16).replace('T', ' ')} UTC)`,
     `project: ${t.project}`,
     `given by: ${t.by ?? 'chanh'}`,
+    '',
+    GO(t.by),
     '',
     `Goal: ${t.title}`,
     '',
@@ -216,6 +231,7 @@ export function miloPrompt(tasks, pictures = 0) {
       .join('\n')
   return [
     `Milo, this is work from the Neo Hub Max board (${tasks.length} task${tasks.length > 1 ? 's' : ''}). Do them in order, one at a time.`,
+    GO('chanh'),
     pictures > 0 ? `Chanh pastes ${pictures} picture${pictures > 1 ? 's' : ''} with this message: look at them first, they show what he means.` : '',
     'Rules: delete nothing, no secrets in files or chat, never remove a feature, free tools only, do not merge or deploy. If a step is unclear, stop and ask Chanh instead of guessing.',
     HOW('')[0],
@@ -224,7 +240,7 @@ export function miloPrompt(tasks, pictures = 0) {
     '',
     'Answer Chanh in short plain Vietnamese: what is done, what failed, what he must press.',
   ]
-    .filter((l, i) => l !== '' || i > 1)
+    .filter((l, i) => l !== '' || i > 2)
     .join('\n')
 }
 

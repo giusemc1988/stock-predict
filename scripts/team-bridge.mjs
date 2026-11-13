@@ -5,9 +5,9 @@
 // With --milo-dir it also carries board tasks for Milo: writes TASK-board-<id>.md there and reads PROGRESS-board-<id>.md and RESULT-board-<id>.md back (plain files, no AI).
 // Each run also keeps the two newest BayReady versions zipped on the Desktop (bayready-backup.mjs).
 import { execFileSync } from 'node:child_process'
-import { existsSync, mkdirSync, readFileSync, statfsSync, writeFileSync } from 'node:fs'
+import { existsSync, mkdirSync, readFileSync, statfsSync, statSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
-import { handedOpen, isOnline, JOBS, MACHINES, nextJob, ONLINE_MS, progressFileName, readProgress, resultFileName, taskFile, taskFileName, toHandOff } from './team-core.mjs'
+import { failedRecent, handedOpen, isOnline, JOBS, MACHINES, nextJob, ONLINE_MS, progressFileName, readProgress, resultFileName, taskFile, taskFileName, toHandOff } from './team-core.mjs'
 import { applyInDir } from './team-apply.mjs'
 import { backupBayReady } from './bayready-backup.mjs'
 
@@ -112,6 +112,18 @@ if (miloDir && existsSync(miloDir)) {
       console.log(`handoff ${t.id} skipped: ${tail(e.message)}`) // the other machine got there first
     }
   }
+  // Milo kept going after a FAILED close (new PROGRESS or RESULT file written 2+ minutes later): open the task again
+  for (const t of failedRecent(state(), machine, Date.now())) {
+    try {
+      const newer = [progressFileName(t.id), resultFileName(t.id)].some((n) => existsSync(join(miloDir, n)) && statSync(join(miloDir, n)).mtimeMs > Date.parse(t.updated) + 120000)
+      if (newer) {
+        act({ type: 'reopen', id: t.id })
+        console.log(`${t.id} reopened`)
+      }
+    } catch (e) {
+      console.log(`reopen ${t.id} skipped: ${tail(e.message)}`)
+    }
+  }
   for (const t of handedOpen(state(), machine)) {
     const f = join(miloDir, resultFileName(t.id))
     // Milo's PROGRESS file: picked up, where the work is, what Milo needs from Chanh (sent only when it changed)
@@ -128,6 +140,8 @@ if (miloDir && existsSync(miloDir)) {
       }
     }
     if (!existsSync(f)) continue
+    // a reopened task still has its old RESULT file: wait until Milo's PROGRESS file stops being newer than it
+    if ((t.tries ?? 1) > 1 && existsSync(pf) && statSync(pf).mtimeMs > statSync(f).mtimeMs && Date.now() - statSync(pf).mtimeMs < 30 * 60 * 1000) continue
     try {
       const txt = readFileSync(f, 'utf8').trim()
       act({ type: 'finish', id: t.id, ok: !/^\W*FAILED/i.test(txt), result: txt })
