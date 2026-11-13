@@ -13,3 +13,9 @@ Driver: **claude**.
 | T6 | job: status | neohub | windows | done | 2026-11-12 00:44 | node v24.14.1, disk free 1649.9 GB, git 2.53.0.windows.2 |
 | T7 | Flow test: write the RESULT file only | other | milo | done | 2026-11-12 16:37 | DONE picked up 2026-11-12T16:34:36Z on muse Flow test only: wrote this RESULT file, changed nothing else. Version: n/a (no code change). Checks: read TASK-board-T7.md on CN88; hook dry-run detected it pending and returned wake for board-T7. |
 | T8 | Yêu cầu từ trang Max (Neo Hub): Ở trong cái phần Appointment status mấy cái chỗ mà show total date not arrived servicing, inspecting gì đó không mấy cái như là ad dealer với whole for part nó lúc nào show zero hết á nếu mà nó show zero always thì bỏ lượt bỏ cái đó đi rồi sắp xếp lại mấy cái ô nhìn | neohub | milo | done | 2026-11-12 20:54 | Claude did it (BayReady 2.80): status tiles that show 0 are hidden, the 5 main stages always stay, tiles share the row, a small line names the hidden ones. Not run in Chrome yet. |
+
+## New since Claude last looked
+
+Claude: read this first when back, check each one against real files, then run the `seen` action (team-update.yml, who=claude).
+
+- T3 **todo** by claude at 2026-11-12 02:19: Flip Atlas #271 shadow filters live after >= 30 live-tagged trades (old Q-004)
