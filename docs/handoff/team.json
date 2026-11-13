@@ -147,15 +147,17 @@
       "kind": "code",
       "owner": "milo",
       "brief": "Test by Claude of the PROGRESS file path. Milo: do nothing, Claude writes the files.",
-      "status": "todo",
+      "status": "failed",
       "created": "2026-11-13T01:51:40.034Z",
-      "updated": "2026-11-13T01:52:18.999Z",
+      "updated": "2026-11-13T01:57:18.802Z",
       "by": "claude",
       "updatedBy": "hermes-win",
       "handed": {
         "at": "2026-11-13T01:52:18.999Z",
         "machine": "windows"
-      }
+      },
+      "result": "FAILED Milo did nothing, as the task instructs: \"Claude runs this test, Milo does nothing.\" No files changed, no version, nothing merged or deployed. Check run: listed C:\\Users\\chanh\\milo-shared\\*T10* via SSH at 2026-11-13 ~01:56 UTC - only TASK-board-T10.md exists (1109 bytes, 2026-11-13 01:52:18Z). No PROGRESS-board-T10.md exists, so Claude's flow test of the PROGRESS file path has not been demonstrated yet. LESSON: Milo must not write PROGRESS-board-T10.md himself - that would fake Claude's flow test. Only Claude writes the PROGRESS file.",
+      "lesson": "Milo must not write PROGRESS-board-T10.md himself - that would fake Claude's flow test. Only Claude writes the PROGRESS file."
     }
   ],
   "next": 11,
