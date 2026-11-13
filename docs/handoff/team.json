@@ -167,15 +167,17 @@
       "kind": "code",
       "owner": "milo",
       "brief": "Full request from chanh:\nMục tiêu: Kiểm tra nguyên nhân trang Max (Neo Hub) vẫn chưa đăng nhập được sau các thay đổi của Claude, khắc phục dứt điểm và xác nhận hệ thống hoạt động bình thường.\n\nQuy tắc bắt buộc:\n- Chỉ dùng công cụ/giải pháp miễn phí có sẵn trên máy.\n- TUYỆT ĐỐI KHÔNG in ra, ghi log, hay làm lộ bất kỳ API key, token, password, cookie hay secret nào (che bằng *** nếu cần nhắc tới).\n- KHÔNG xóa file, không tắt hay cắt bỏ bất kỳ tính năng nào đang có nếu chưa được phép.\n- Trả lời ngắn gọn, giải thích dễ hiểu bằng tiếng Việt.\n\nCác bước thực hiện trên máy:\n1. Kiểm tra những gì Claude đã làm:\n - Tìm thư mục dự án Neo Hub / Max đang chạy.\n - Chạy `git status`, `git diff`, và `git log -n 5` (hoặc kiểm tra timestamp các file vừa sửa gần đây) để liệt kê chính xác các file cấu hình, script, hoặc code mà Claude đã thay đổi.\n2. Chẩn đoán lỗi chưa đăng nhập (Not logged in):\n - Kiểm tra các tiến trình/service/Docker container liên quan xem có đang chạy đúng port không.\n - Đọc log lỗi gần nhất (backend, frontend, proxy, auth service) liên quan đến session, cookie, CORS, hoặc OAuth/token.\n - Kiểm tra cấu trúc file `.env` (chỉ kiểm tra tên biến và trạng thái có/không, tuyệt đối không đọc giá trị secret) xem có lệch tên biến hoặc sai URL/port so với code Claude vừa sửa không.\n3. Khắc phục & Cấu hình:\n - Backup nhanh các file cấu hình chuẩn bị sửa (ví dụ `.bak`).\n - Sửa đúng lỗi khiến phiên đăng nhập không lưu hoặc không nhận diện được trên Max (Neo Hub), đảm bảo không ảnh hưởng tính năng khác.\n - Khởi động lại service liên quan nếu cần.\n4. Kiểm tra & Ghi lại kết quả:\n - Kiểm tra lại endpoint/trạng thái đăng nhập xem đã nhận session thành công chưa.\n - Ghi lại tóm tắt kết quả gồm: (a) Claude đã sửa gì, (b) Nguyên nhân gây lỗi login, (c) Đã sửa/cấu hình lại những gì, (d) Trạng thái kiểm tra cuối cùng.\n\nChanh has 1 picture for this task. If they are not pasted in your chat, ask him for them before you start.",
-      "status": "todo",
+      "status": "running",
       "created": "2026-11-13T05:21:51.046Z",
-      "updated": "2026-11-13T05:22:20.157Z",
+      "updated": "2026-11-13T05:27:19.265Z",
       "by": "chanh",
       "updatedBy": "hermes-win",
       "handed": {
         "at": "2026-11-13T05:22:20.157Z",
         "machine": "windows"
-      }
+      },
+      "started": "2026-11-13T05:27:19.265Z",
+      "progress": "Dang tim co che dang nhap cua trang Max va xem Claude vua doi gi (git log/diff tren CN88)."
     }
   ],
   "next": 12,
