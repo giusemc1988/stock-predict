@@ -53,11 +53,15 @@ function applyOne(state, a, now, who) {
       const project = PROJECTS.includes(a.project) ? a.project : 'other'
       const kind = MACHINES.includes(owner) ? 'job' : a.kind === 'idea' ? 'idea' : 'code'
       if (kind === 'job' && !JOBS.includes(a.job)) throw new Error('unknown job')
-      const title = kind === 'job' ? `job: ${a.job}` : kind === 'idea' ? text(a.title, MAX_TITLE) || `3 new ideas for ${project}` : text(a.title, MAX_TITLE)
+      const cut = (x) => (text(x, MAX_BRIEF).length > MAX_TITLE ? `${text(x, 140)}… (full text in the brief)` : text(x, MAX_TITLE))
+      const title = kind === 'job' ? `job: ${a.job}` : kind === 'idea' ? text(a.title, MAX_TITLE) || `3 new ideas for ${project}` : cut(a.title)
       if (title.length < 3) throw new Error('empty title')
       const id = `T${s.next++}`
       const red = kind === 'code' && a.red === true
-      const brief = kind === 'code' ? block(a.brief, MAX_BRIEF) : ''
+      // a long request (a pasted prompt) never loses text: the title keeps the start, the full text goes into the brief
+      const full = kind === 'code' ? block(a.title, MAX_BRIEF) : ''
+      const long = full.replace(/\s+/g, ' ').length > MAX_TITLE
+      const brief = kind === 'code' ? block([long ? `Full request from ${who}:\n${full}` : '', typeof a.brief === 'string' ? a.brief : ''].filter(Boolean).join('\n\n'), MAX_BRIEF + 600) : ''
       s.tasks.push({ id, title, project, kind, owner, ...(kind === 'job' ? { job: a.job } : {}), ...(brief ? { brief } : {}), status: red ? 'needs-ok' : 'todo', created: now, updated: now, by: who })
       return { state: trim(s), log: { who, type: 'ADD', what: `${id} ${title} → ${owner}${red ? ' (needs Chanh OK)' : ''}`, ref: project } }
     }

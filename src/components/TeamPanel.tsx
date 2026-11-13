@@ -269,7 +269,7 @@ export function TeamPanel() {
                   rows={3}
                   placeholder={L('what')}
                   value={title}
-                  maxLength={300}
+                  maxLength={4000}
                   onChange={(e) => setTitle(e.target.value)}
                   onPaste={(e) => { if (addImgs(e.clipboardData.files)) e.preventDefault() }}
                 />
