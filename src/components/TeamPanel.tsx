@@ -4,8 +4,8 @@ import { useLang } from '../lib/i18n'
 import { isOnline, isStuck, JOBS, miloOpen, miloPrompt, miloStage, needsChanh, PROJECTS, sinceClaude, type Job, type LogLine, type Owner, type Project, type TeamAction, type TeamState, type TeamTask } from '../lib/team'
 
 const T = {
-  title: { en: 'Office · team board', vi: 'Văn phòng · bảng điều khiển đội' },
-  how: { en: 'Type the work, add pictures if they help, tap Give. The board updates by itself. If Claude is out of limit, tap "Copy prompt for Milo" and paste it into Milo\'s chat.', vi: 'Gõ việc cần làm, thêm ảnh nếu cần, bấm Giao việc. Bảng tự cập nhật. Khi Claude hết limit: bấm "Sao chép lời nhắc cho Milo" rồi dán vào chat Milo.' },
+  title: { en: 'Give work · team board', vi: 'Giao việc · bảng việc của đội' },
+  how: { en: '1. Type the work. 2. Tap Give: it goes straight to Milo, no Claude needed. 3. Watch it in the list below; the board updates by itself. If Milo does not start, tap “Copy prompt for Milo” and paste it into Milo\'s chat.', vi: '1. Gõ việc vào ô. 2. Bấm Giao việc: việc đi thẳng cho Milo, không cần Claude. 3. Xem việc chạy ở danh sách bên dưới, bảng tự cập nhật. Nếu Milo chưa bắt đầu: bấm “Sao chép lời nhắc cho Milo” rồi dán vào chat Milo.' },
   auto: { en: 'Updates by itself · last', vi: 'Tự cập nhật · lần cuối' },
   opts: { en: 'Options (who, project, steps, red)', vi: 'Tuỳ chọn (ai làm, dự án, lời dặn, việc đỏ)' },
   addImg: { en: '📷 Add pictures', vi: '📷 Thêm ảnh' },
@@ -71,7 +71,7 @@ const T = {
   refresh: { en: 'Refresh', vi: 'Làm mới' },
   loading: { en: 'Reading the board from GitHub…', vi: 'Đang đọc bảng từ GitHub…' },
   unread: { en: "Couldn't read the board right now.", vi: 'Chưa đọc được bảng.' },
-  sent: { en: 'Sent. It shows here by itself in about 30 seconds.', vi: 'Đã gửi. Khoảng 30 giây nữa việc tự hiện ở dưới.' },
+  sent: { en: '✓ Given. It shows in the list below in about 30 seconds.', vi: '✓ Đã giao. Khoảng 30 giây nữa việc hiện ở danh sách bên dưới.' },
   nokey: { en: 'Save the GitHub key in Nova first.', vi: 'Cần lưu key GitHub trong Nova trước.' },
   failed: { en: "GitHub didn't take it. Try again.", vi: 'GitHub chưa nhận. Thử lại nhé.' },
   details: { en: 'details', vi: 'chi tiết' },
@@ -84,8 +84,8 @@ const T = {
 const OWNER_NAME: Record<Owner, Bi> = {
   claude: { en: 'Claude (code)', vi: 'Claude (code)' },
   milo: { en: 'Milo (code)', vi: 'Milo (code)' },
-  windows: { en: 'Windows machine (script)', vi: 'Máy Windows (script)' },
-  ubuntu: { en: 'Ubuntu machine (script)', vi: 'Máy Ubuntu (script)' },
+  windows: { en: 'Windows PC (Hermes script)', vi: 'Máy Windows (Hermes chạy script)' },
+  ubuntu: { en: 'Ubuntu PC (Hermes script)', vi: 'Máy Ubuntu (Hermes chạy script)' },
 }
 const JOB_NAME: Record<Job, Bi> = {
   status: { en: 'Check the machine', vi: 'Kiểm tra máy' },
