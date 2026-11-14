@@ -12,10 +12,10 @@ Driver: **claude** since 2026-11-14 00:25 UTC.
 | T22 | Review: BayReady repo: tests/enrich-pick.test.js cannot run (looks for src/routes.js, repo is flat) | bayready | milo | running | 2026-11-14 12:47 |  |
 | T23 | TEST of the wake-up script (harmless): comment-only change in giusemc1988/bayready | bayready | milo | running | 2026-11-14 12:22 |  |
 | T24 | TEST of the wake-up script (harmless): comment-only change in giusemc1988/bayready | bayready | milo | done | 2026-11-14 12:37 | DONE Changed: Added "// wake-up test, safe to ignore" comment line at top of README.md in giusemc1988/bayready Version: N/A (test PR, no version bump) Checks run: - Branch created: wake-test2 - Commit: wake-up test: add comment line - README.md first 3 lines verified: "// wake-up test, safe to ignore" is present - PR opened: https://github.com/giusemc1988/bayready/pull/8 LESSON: none |
-| T25 | BayReady repo: import the live newest version (3.21.8) so the repo is not behind | bayready | milo | todo | 2026-11-14 13:13 |  |
+| T25 | BayReady repo: import the live newest version (3.21.8) so the repo is not behind | bayready | milo | todo | 2026-11-14 13:17 |  |
 
 ## New since Claude last looked (2026-11-14 13:13 UTC)
 
 Claude: read this first when back, check each one against real files, then run the `seen` action (team-update.yml, who=claude).
 
-- nothing
+- T25 **todo** by hermes-win at 2026-11-14 13:17: BayReady repo: import the live newest version (3.21.8) so the repo is not behind

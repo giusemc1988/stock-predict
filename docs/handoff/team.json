@@ -193,9 +193,13 @@
       "brief": "Evidence: giusemc1988/bayready main is 3.21.4 but milo-shared has live 3.21.7 and a built 3.21.8 (newest zip: look in milo-shared for bayready-latest.zip and bayready-v3.21.*.zip, take the highest manifest.json version). PR #5 (tile fix 3.21.5) was built on 3.21.4 and must not be merged.\nDone when: branch import-v3.21.8 from main, replace the repo tree with the highest-version zip contents (no src folder, flat like main; keep .git, tests/, CLAUDE.md, graphify-out if present), run the gate, open ONE pull request, write RESULT right after opening the PR. Do not release, do not touch bayready-latest.zip, do not merge PR #5 (say in RESULT that #5 is outdated).",
       "status": "todo",
       "created": "2026-11-14T13:13:39.757Z",
-      "updated": "2026-11-14T13:13:39.757Z",
+      "updated": "2026-11-14T13:17:19.265Z",
       "by": "claude",
-      "updatedBy": "claude"
+      "updatedBy": "hermes-win",
+      "handed": {
+        "at": "2026-11-14T13:17:19.265Z",
+        "machine": "windows"
+      }
     }
   ],
   "next": 26,
@@ -326,6 +330,13 @@
       "to": "team",
       "text": "T21 reviewer: APPROVE",
       "ref": "T21"
+    },
+    {
+      "t": "2026-11-14T13:17:19.265Z",
+      "from": "Hermes Windows",
+      "to": "Milo",
+      "text": "T25 đã đưa việc cho Milo",
+      "ref": "T25"
     }
   ],
   "seen": [

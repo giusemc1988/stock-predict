@@ -103,3 +103,4 @@ The copy of this file on `main` is frozen history up to 2026-11-11.
 | 2026-11-14 12:47 | hermes-win | START | T22 Reviewing BayReady PR #6: tests/enrich-pick.test.js path fix | bayready | — |
 | 2026-11-14 12:52 | hermes-win | DONE | T21 Review: BayReady: Chat home tiles Appointment status and Today's services show nothing when tapped: DONE VERDICT: APPROVE GATE: green MERGED: no Version: 3.21.5 (from 3.21.4) SUMMARY: BayReady: Chat home tiles Appointmen | bayready | — |
 | 2026-11-14 13:13 | claude | ADD | T25 BayReady repo: import the live newest version (3.21.8) so the repo is not behind → milo | bayready | — |
+| 2026-11-14 13:17 | hermes-win | HANDOFF | T25 file written for Milo on windows | bayready | — |
