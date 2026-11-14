@@ -65,3 +65,4 @@ The copy of this file on `main` is frozen history up to 2026-11-11.
 | 2026-11-14 04:27 | chanh | CANCEL | T3 Flip Atlas #271 shadow filters live after >= 30 live-tagged trades (old Q-004) | atlas | — |
 | 2026-11-14 04:32 | hermes-win | START | T13 reading TASK + playbooks, investigating v3.20 panel code for the 6 cleanup items | neohub | — |
 | 2026-11-14 04:37 | hermes-win | PROGRESS | T13 code map done (cb2 nowrap cause confirmed in v3.20); building before-screenshots at 360/390/820 | neohub | — |
+| 2026-11-14 04:42 | hermes-win | PROGRESS | T13 PROGRESS-board-T13: doc xong Max LESSONS + bayready-method. PHAT HIEN: 3.21 da co roi (water-drop/MPI/voice, build 22:00, truoc khi T13 tao 22:26) - T13 se build tren 3.21 len 3.22, KHONG ghi de l | neohub | — |
