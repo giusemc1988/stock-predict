@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from 'react'
 import type { Bi } from '../lib/hubText'
+import { Help, WithHelp } from './Help'
 import { useLang } from '../lib/i18n'
-import { isOnline, isStuck, JOBS, miloOpen, miloPrompt, miloStage, needsChanh, PROJECTS, sinceClaude, type Job, type LogLine, type Owner, type Project, type TeamAction, type TeamState, type TeamTask } from '../lib/team'
+import { isStuck, JOBS, miloOpen, miloPrompt, miloStage, needsChanh, PROJECTS, sinceClaude, type Job, type LogLine, type Owner, type Project, type TeamAction, type TeamState, type TeamTask } from '../lib/team'
 
 const T = {
   title: { en: 'Give work · team board', vi: 'Giao việc · bảng việc của đội' },
@@ -70,7 +71,7 @@ const T = {
   queue: { en: 'Work queue', vi: 'Hàng việc' },
   empty: { en: 'Nothing in the queue.', vi: 'Chưa có việc nào.' },
   ok: { en: 'Approve', vi: 'Duyệt' },
-  cancel: { en: 'Drop', vi: 'Bỏ' },
+  cancel: { en: 'Cancel task', vi: 'Huỷ việc' },
   log: { en: 'Log', vi: 'Nhật ký' },
   refresh: { en: 'Refresh', vi: 'Làm mới' },
   loading: { en: 'Reading the board from GitHub…', vi: 'Đang đọc bảng từ GitHub…' },
@@ -218,6 +219,7 @@ export function TeamPanel() {
         <button className="btn" onClick={() => void load()}>{L('refresh')}</button>
       </header>
       <p className="muted small">{L('how')}</p>
+      <Help k="boardRefresh" />
       {at && <p className="muted small">{L('auto')} {new Date(at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}</p>}
       {note && <p className="small tp-note" role="status">{L(note)}</p>}
 
@@ -234,18 +236,8 @@ export function TeamPanel() {
               <button className="btn" disabled={busy} onClick={() => void act({ type: 'driver', who: team.driver.who === 'milo' ? 'claude' : 'milo' })}>
                 {team.driver.who === 'milo' ? L('back') : L('out')}
               </button>
+              <Help k={team.driver.who === 'milo' ? 'driverBack' : 'driverOut'} />
             </div>
-            {(['windows', 'ubuntu'] as const).map((m) => {
-              const st = team.machines[m]
-              const up = isOnline(st, now)
-              return (
-                <div key={m} className="tp-box">
-                  <small className="muted">{m === 'windows' ? 'Windows' : 'Ubuntu'}</small>
-                  <b className={`tp-big ${up ? 'tp-up' : 'tp-down'}`}>● {up ? L('on') : L('off')}</b>
-                  <small className="muted">{st ? `${L('seen')} ${ago(st.seen, now)}` : L('never')}</small>
-                </div>
-              )
-            })}
           </div>
 
           {urgent.length > 0 && (
@@ -262,6 +254,7 @@ export function TeamPanel() {
               <b>{L('miloWait')}: {waiting.map((t) => t.id).join(', ')}</b>
               <small className="muted">{L('miloHow')}</small>
               <button className="btn primary tp-bigbtn" onClick={() => void copyText(allPrompt)}>{L('copyAll')}</button>
+              <Help k="copyAll" />
               <details className="small"><summary>{L('seePrompt')}</summary><pre className="tp-pre">{allPrompt}</pre></details>
             </div>
           )}
@@ -280,7 +273,7 @@ export function TeamPanel() {
                 />
                 <input ref={pick} type="file" accept="image/*" multiple hidden onChange={(e) => { addImgs(e.target.files ?? []); e.target.value = '' }} />
                 <div className="ag-acts">
-                  <button className="btn" onClick={() => pick.current?.click()}>{L('addImg')}</button>
+                  <WithHelp k="addImg"><button className="btn" onClick={() => pick.current?.click()}>{L('addImg')}</button></WithHelp>
                 </div>
                 {imgs.length > 0 && (
                   <>
@@ -302,16 +295,23 @@ export function TeamPanel() {
             )}
             {owner === 'claude' && team.driver.who === 'milo' && <p className="small tp-warn">{L('claudeOut')}</p>}
             <button className="btn primary tp-bigbtn" disabled={busy || !canGive} onClick={give}>{L('send')} → {OWNER_NAME[owner][lang]}</button>
+            <Help k={owner === 'milo' ? 'giveMilo' : owner === 'claude' ? 'giveClaude' : 'giveMachine'} />
             <details className="tp-opts">
               <summary className="small">{L('opts')}</summary>
               <div className="tp-give">
                 <div className="tp-row">
+                  <div className="hp-item">
                   <select aria-label={L('who')} value={owner} onChange={(e) => setOwner(e.target.value as Owner)}>
                     {(Object.keys(OWNER_NAME) as Owner[]).map((o) => <option key={o} value={o}>{OWNER_NAME[o][lang]}</option>)}
                   </select>
+                  <Help k="who" />
+                  </div>
+                  <div className="hp-item">
                   <select aria-label="project" value={project} onChange={(e) => setProject(e.target.value as Project)}>
                     {PROJECTS.map((p) => <option key={p} value={p}>{p}</option>)}
                   </select>
+                  <Help k="project" />
+                  </div>
                 </div>
                 {machine ? (
                   <select aria-label={L('job')} value={job} onChange={(e) => setJob(e.target.value as Job)}>
@@ -321,10 +321,11 @@ export function TeamPanel() {
                   <>
                     {owner === 'milo' && <textarea rows={4} placeholder={L('brief')} value={brief} maxLength={3800} onChange={(e) => setBrief(e.target.value)} />}
                     <label className="small tp-red"><input type="checkbox" checked={red} onChange={(e) => setRed(e.target.checked)} /> {L('red')}</label>
+                    <Help k="red" />
                   </>
                 )}
                 <div className="ag-acts">
-                  <button className="btn" disabled={busy} onClick={() => void act({ type: 'add', kind: 'idea', project, owner: 'claude' })}>{L('idea')}</button>
+                  <WithHelp k="idea"><button className="btn" disabled={busy} onClick={() => void act({ type: 'add', kind: 'idea', project, owner: 'claude' })}>{L('idea')}</button></WithHelp>
                 </div>
               </div>
             </details>
@@ -371,6 +372,11 @@ export function TeamPanel() {
                           </ul>
                         </details>
                         {t.brief && <details className="small"><summary>{L('briefShow')}</summary><span style={{ whiteSpace: 'pre-wrap' }}>{t.brief}</span></details>}
+                        <ul className="tp-plain tp-legend">
+                          {t.status === 'needs-ok' && <li className="small"><b>{L('ok')}:</b> <Help k="approve" /></li>}
+                          {t.owner === 'milo' && t.kind === 'code' && (t.status === 'todo' || t.status === 'running') && <li className="small"><b>{L('copyOne')}:</b> <Help k="copyOne" /></li>}
+                          {(t.status === 'needs-ok' || t.status === 'todo') && <li className="small"><b>{L('cancel')}:</b> <Help k="drop" /></li>}
+                        </ul>
                       </div>
                       <div className="ag-acts">
                         {t.status === 'needs-ok' && <button className="btn primary" disabled={busy} onClick={() => void act({ type: 'approve', id: t.id })}>{L('ok')}</button>}
@@ -393,7 +399,7 @@ export function TeamPanel() {
               ) : <p className="muted small">{L('learnNone')}</p>}
               <p className="small"><a href="https://github.com/giusemc1988/stock-predict/blob/handoff-log/docs/handoff/LESSONS.md" target="_blank" rel="noopener noreferrer">{L('learnAll')}</a></p>
             </details>
-            <details className="tp-log" open={news.length > 0}>
+            <details className="tp-log">
               <summary><b>{L('away')} ({news.length})</b></summary>
               <p className="muted small">{L('awayHow')}{team.claudeSeen ? ` · ${hm(team.claudeSeen)}` : ''}</p>
               {news.length ? (

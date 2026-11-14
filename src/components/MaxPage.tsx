@@ -17,11 +17,8 @@ const T = {
   title: { en: 'Max · Build & app builder', vi: 'Max · Xây dựng & tạo app' },
   sub: { en: 'Max keeps the hub itself growing: every fix and new feature you ask for becomes a code task, Claude opens a pull request, and nothing changes until it is merged.', vi: 'Max lo cho chính cái hub này lớn lên: mỗi lỗi cần sửa hay tính năng mới anh nhờ thành một việc code, Claude mở PR, chưa merge thì chưa có gì thay đổi.' },
   app: { en: 'App version', vi: 'Phiên bản app' },
-  updates: { en: 'Updates', vi: 'Lần cập nhật' },
-  updatesSub: { en: 'since the start', vi: 'từ đầu tới giờ' },
   last: { en: 'Last update', vi: 'Cập nhật gần nhất' },
-  tasks: { en: 'Code tasks', vi: 'Việc code' },
-  tasksSub: { en: 'waiting or in review', vi: 'đang chờ hoặc chờ duyệt' },
+  moreTitle: { en: 'More (rarely used): ask Max on GitHub, code tasks, recent updates, tools', vi: 'Thêm (ít dùng): nhờ Max qua GitHub, việc code, cập nhật gần đây, công cụ' },
   askTitle: { en: 'Ask Max', vi: 'Nhờ Max' },
   askHint: { en: 'Say what to fix or build, e.g. "the Viraltech page needs a posts calendar".', vi: 'Ghi việc cần sửa hay làm, ví dụ "trang Viraltech cần lịch đăng bài".' },
   send: { en: 'Send to Claude', vi: 'Gửi cho Claude' },
@@ -73,12 +70,9 @@ export function MaxPage({ onBack, glass = true }: { onBack: () => void; glass?: 
   }
 
   const list = Array.isArray(tasks) ? tasks : []
-  const open = list.filter((x) => x.state === 'waiting' || x.state === 'pr').length
   const stats: Stat[] = [
     { key: 'app', label: L('app'), icon: 'code', accent: MAX_HUE, value: `v${APP_VERSION}` },
-    { key: 'upd', label: L('updates'), icon: 'cycle', accent: MAX_HUE, value: String(RELEASES.length), sub: L('updatesSub') },
     { key: 'last', label: L('last'), icon: 'clock', accent: MAX_HUE, value: RELEASES[0]?.date.slice(5).replace('-', '/') ?? '—' },
-    { key: 'tasks', label: L('tasks'), icon: 'list', accent: MAX_HUE, value: Array.isArray(tasks) ? String(open) : '—', sub: L('tasksSub') },
   ]
   const tools: { href: string; t: keyof typeof T; n: keyof typeof T }[] = [
     { href: `${REPO}/pulls`, t: 'prs', n: 'prsNote' },
@@ -97,6 +91,8 @@ export function MaxPage({ onBack, glass = true }: { onBack: () => void; glass?: 
 
       <TeamPanel />
 
+      <details className="bf-card mx-more">
+        <summary>{L('moreTitle')}</summary>
       <div className="mx-grid">
         <section className="bf-card mx-ask">
           <header><h3>{L('askTitle')}</h3></header>
@@ -152,6 +148,7 @@ export function MaxPage({ onBack, glass = true }: { onBack: () => void; glass?: 
           ))}
         </div>
       </section>
+      </details>
     </AgentShell>
   )
 }

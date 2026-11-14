@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { useAiRules } from '../lib/aiRules'
 import type { Bi } from '../lib/hubText'
 import { useLang } from '../lib/i18n'
+import { Help } from './Help'
 import { officeSeats, type OfficeSeat, type OfficeState, type OfficeWho } from '../lib/office'
 import type { LogLine, TeamState } from '../lib/team'
 
@@ -125,6 +126,7 @@ export function OfficeView() {
         <button type="button" className="btn primary of-big" onClick={() => { setData(null); void load() }}>{T.refresh[lang]}</button>
       </header>
       <p className="muted small">{T.how[lang]}</p>
+      <Help k="officeRefresh" />
       {data === null ? (
         <p className="muted small">{T.loading[lang]}</p>
       ) : !team ? (

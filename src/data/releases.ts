@@ -2,7 +2,7 @@
  * Version and "What's new". Bump APP_VERSION and add an entry to the top of RELEASES
  * with each update. The banner shows once per version, then stays dismissed.
  */
-export const APP_VERSION = '2.0.41'
+export const APP_VERSION = '2.0.42'
 
 export interface Release {
   version: string
@@ -13,6 +13,12 @@ export interface Release {
 }
 
 export const RELEASES: Release[] = [
+  {
+    version: '2.0.42',
+    date: '2026-11-14',
+    changes: ['Max page: every button of the voice box, the little office and the work board now has a one-line hint and a small “?” that explains it in full, including what “Cancel task” (was “Drop”) does. Tidied: removed the “Updates” and “Code tasks” tiles and the Windows/Ubuntu boxes in the board (the little office shows the machines); tucked “Ask Max”, the code task list, recent updates and tools into a closed “More” section and the “changed since Claude looked” list into a closed fold.'],
+    changesVi: ['Trang Max: mọi nút của ô nói cho Claude, văn phòng nhỏ và bảng việc giờ có một dòng gợi ý và nút “?” giải thích đầy đủ, kể cả nút “Huỷ việc” (trước là “Bỏ”) làm gì. Dọn gọn: bỏ 2 ô “Lần cập nhật” và “Việc code” cùng 2 ô Windows/Ubuntu trong bảng (văn phòng nhỏ đã hiện máy); cất “Nhờ Max”, danh sách việc code, cập nhật gần đây và công cụ vào mục “Thêm” đang đóng, cất danh sách “thay đổi từ lần cuối Claude xem” vào mục đóng.'],
+  },
   {
     version: '2.0.41',
     date: '2026-11-14',
