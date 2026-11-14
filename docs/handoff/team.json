@@ -248,10 +248,23 @@
       "updated": "2026-11-14T05:02:22.768Z",
       "by": "scout",
       "updatedBy": "hermes-win"
+    },
+    {
+      "id": "T16",
+      "title": "BayReady: Chat home tiles Appointment status and Today's services do nothing when tapped (no board, no message). Do this AFTER T13 (3.22) is released, on top of 3.22.",
+      "project": "bayready",
+      "kind": "code",
+      "owner": "milo",
+      "brief": "SYMPTOM (Chanh, real RO page 1490455, v3.21): tap the home tiles Appointment status or Today's services and nothing appears at all (no user line, no error). Find a car works (local view only).\n\nCODE PATH (read first): content.js home tile handler (search `w.querySelectorAll('.tile')`) -> runJob('builtin-xtime-status' | 'builtin-xtime-day') = post({type:'run_route', id}); background.js case 'run_route' -> runRouteTask(...).catch(() => {}) (silent); routes.js runRouteTaskInner has `if (!route) return;` (silent); runRouteTask/waitQuiet/withSched can wait before the first addLog, so the tap shows nothing meanwhile.\n\nSUSPECTS, check in this order and say which one it was: 1) port to background dead after the 3.21 auto-update (post() reconnect); 2) builtin routes missing from getRoutes() (storage `routes`), so silent return; 3) job queued behind withSched / waitQuiet.\n\nFIX: (a) a tap must show a line at once from the content side, e.g. 'Appointment status - working...'. (b) replace silent returns/catches on this path with an addLog error that names the reason. (c) if the builtin route is missing, add the built-ins (message builtin_add) and run it. (d) change nothing else.\n\nTEST TO PASS: Playwright harness with mocked chrome (as gl/shot20.js in /mnt/project-files/bayready-glass/build/): click both tiles; a visible line within 1 s when the background answers, when it never answers, and when builtin routes are missing (error text + auto-add). node --check all JS. Screenshots 360/390/820. Bump version +0.01 and add a changelog line. Do NOT release until Chanh writes the OK; after release run bayready-check-latest.py. Rules: delete nothing, no secrets, never touch OTP/password code. Write PROGRESS and RESULT files as usual; LESSON line = which suspect it was.",
+      "status": "todo",
+      "created": "2026-11-14T05:08:23.024Z",
+      "updated": "2026-11-14T05:08:23.024Z",
+      "by": "claude",
+      "updatedBy": "claude"
     }
   ],
-  "next": 16,
-  "claudeSeen": "2026-11-14T04:59:45.139Z",
+  "next": 17,
+  "claudeSeen": "2026-11-14T05:08:23.024Z",
   "feed": [
     {
       "t": "2026-11-14T04:59:45.139Z",

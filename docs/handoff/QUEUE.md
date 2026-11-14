@@ -20,10 +20,10 @@ Driver: **claude** since 2026-11-14 00:25 UTC.
 | T13 | BayReady 3.21 — dọn giao diện cho gọn, KHÔNG bỏ tính năng nào (trừ ô complaints, anh đã đồng ý bỏ): 1. Tab Chat: thu nhỏ chữ, nút, khoảng tr… (full text in the brief) | neohub | milo | running | 2026-11-14 05:07 |  |
 | T14 | Sync real BayReady source into the bayready repo (branch sync-stage74, PR, no release) | bayready | milo | cancelled | 2026-11-14 04:59 |  |
 | T15 | BayReady: kiểm tra tự động báo 1 lỗi trong code nguồn | bayready | milo | proposed | 2026-11-14 05:02 |  |
+| T16 | BayReady: Chat home tiles Appointment status and Today's services do nothing when tapped (no board, no message). Do this AFTER T13 (3.22) is released, on top of 3.22. | bayready | milo | todo | 2026-11-14 05:08 |  |
 
-## New since Claude last looked (2026-11-14 04:59 UTC)
+## New since Claude last looked (2026-11-14 05:08 UTC)
 
 Claude: read this first when back, check each one against real files, then run the `seen` action (team-update.yml, who=claude).
 
-- T13 **running** by hermes-win at 2026-11-14 05:07: BayReady 3.21 — dọn giao diện cho gọn, KHÔNG bỏ tính năng nào (trừ ô complaints, anh đã đồng ý bỏ): 1. Tab Chat: thu nhỏ | at: screenshots done (360/390/820 x chat/veh, 12 shots, headless Chromium): chip row wraps, no cutoff; clock 10:47 PM visible, title not cut; warr chip Basic X / PT check visible; complaints gone; no double border. FOUND + FIXED: font: ... inherit shorthand is invalid CSS (browser drops it) — clock was
-- T15 **proposed** by hermes-win at 2026-11-14 05:02: BayReady: kiểm tra tự động báo 1 lỗi trong code nguồn
+- nothing
