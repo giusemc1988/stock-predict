@@ -230,9 +230,13 @@
       "brief": "Full request from chanh:\nBayReady — sửa layout theo hình anh gửi (đang chạy v3.21.11). Chỉ sửa 3 chỗ dưới đây. Không đổi màu, không đổi style board, không bỏ tính năng nào, không đổi thứ tự gì khác.\n\n1. Chữ bị lấn ra khỏi ô (tab History):\nTrong tab History, ô Declined (màu đỏ) hiện mô tả công việc dài (ví dụ job phanh trước). Chữ chạm / lấn ra mép ô, và góc ô cong nhiều hơn các ô khác trên cùng màn hình. Làm cho chữ nằm gọn trong ô, có khoảng thở, và độ cong góc giống các ô còn lại (các ô cân đối). Kiểm tra luôn các ô khác: ô nào chữ chạm hay lấn ra mép thì sửa cho chữ nằm gọn trong ô. Chỉ sửa ô, không đổi nội dung chữ.\n\n2. MPI — chỉ còn 4 bánh:\nTab MPI hiện có 4 ô mỗi trục (trước + sau) cộng thêm lốp spare ở giữa. Đổi thành chỉ còn 4 bánh xe: 2 bánh trước, 2 bánh sau. Bỏ hẳn lốp spare. Bỏ hẳn các ô phanh (cả 2 trục). Mỗi trục chỉ hiện 2 bánh của nó, không còn gì khác. Nút \"Enter into Inspect\" và ô Recommend giữ nguyên như cũ.\n\n3. Bảng Appointment status — nhỏ lại, vừa màn hình, không cần scroll:\nBảng Appointment status (các ô: Total today, Not Arrived, With Advisor, Checked In, Inspecting, Servicing, Hold for Approval, Final Inspection) đang quá to — anh phải phóng to extension hoặc scroll lên xuống mới xem hết. Làm các ô và số nhỏ lại, cân đối, để cả bảng vừa trong panel, không cần scroll, không cần phóng to extension, nhưng số vẫn đọc được và mọi số/nhãn vẫn hiện đầy đủ (không bị cắt). Giữ nguyên bố cục, màu, thứ tự — chỉ gọn lại.\n\nXong thì đưa bản build lại cho Milo (milo-shared) để Milo kiểm tra trước khi lên máy.",
       "status": "todo",
       "created": "2026-11-14T20:40:37.297Z",
-      "updated": "2026-11-14T20:40:37.297Z",
+      "updated": "2026-11-14T20:42:19.109Z",
       "by": "chanh",
-      "updatedBy": "chanh"
+      "updatedBy": "hermes-win",
+      "handed": {
+        "at": "2026-11-14T20:42:19.109Z",
+        "machine": "windows"
+      }
     }
   ],
   "next": 28,
@@ -377,6 +381,13 @@
       "to": "Chanh",
       "text": "T26 Đề xuất: BayReady: put the tile fix (PR #5) on the newest build, next free version",
       "ref": "T26"
+    },
+    {
+      "t": "2026-11-14T20:42:19.109Z",
+      "from": "Hermes Windows",
+      "to": "Milo",
+      "text": "T27 đã đưa việc cho Milo",
+      "ref": "T27"
     }
   ],
   "seen": [

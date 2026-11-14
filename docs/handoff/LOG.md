@@ -108,3 +108,4 @@ The copy of this file on `main` is frozen history up to 2026-11-11.
 | 2026-11-14 13:27 | hermes-win | PROGRESS | T25 Step 5: Opening PR | bayready | — |
 | 2026-11-14 13:57 | claude | PROPOSE | T26 BayReady: put the tile fix (PR #5) on the newest build, next free version (high) | bayready | — |
 | 2026-11-14 20:40 | chanh | ADD | T27 BayReady — sửa layout theo hình anh gửi (đang chạy v3.21.11). Chỉ sửa 3 chỗ dưới đây. Không đổi màu, không đổi style board, không bỏ tính nă… (full text in the brief) → milo | neohub | — |
+| 2026-11-14 20:42 | hermes-win | HANDOFF | T27 file written for Milo on windows | neohub | — |
