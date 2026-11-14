@@ -1,15 +1,17 @@
 // Wake-up for Milo's board tasks (no AI in this script). Runs from a scheduled task every few minutes.
 // 1. Reads the board (docs/handoff/team.json on branch handoff-log, own read-only clone).
 // 2. A task for Milo that is open, already has its TASK file in --milo-dir and has no PROGRESS/RESULT file:
-//    send the same prompt as the board button "Sao chep loi nhac cho Milo", once per task, by starting
-//    `hermes chat --query-file <prompt> --oneshot` in the background (Hermes is the agent on this PC).
+//    send the same prompt as the board button "Sao chep loi nhac cho Milo", once per task, to the Hermes gateway
+//    (signed POST to its localhost webhook route neohub-wake; Hermes is the agent on this PC). If the gateway does
+//    not answer, fall back to `hermes chat --query-file <prompt> --oneshot` started in the background.
 // 3. Still unclaimed after --alert-min minutes (15): one Telegram message to Chanh (Bot API sendMessage with the
 //    token and chat Hermes already has in its .env; sending only, never getUpdates; the token is never printed)
 //    and one red line on the board ("say" action).
 // Never deploys, never merges, never polls Telegram. Usage:
-//   node team-wake.mjs --home <folder for the clone> --milo-dir <milo-shared> [--alert-min 15] [--dry]
+//   node team-wake.mjs --home <folder for the clone> --milo-dir <milo-shared> [--alert-min 15] [--dry] [--only T23,T24]
 import { execFileSync, spawn } from 'node:child_process'
 import { existsSync, mkdirSync, openSync, readFileSync, writeFileSync } from 'node:fs'
+import { createHmac } from 'node:crypto'
 import { homedir } from 'node:os'
 import { join } from 'node:path'
 import { applyInDir } from './team-apply.mjs'
@@ -65,6 +67,18 @@ async function telegram(text) {
   if (!r.ok) throw new Error(`Telegram answered ${r.status} ${String((await r.json().catch(() => ({}))).description ?? '').slice(0, 100)}`)
 }
 
+const via = arg('via', 'webhook') // webhook = the running Hermes gateway (route neohub-wake, localhost only); oneshot = a separate `hermes chat --oneshot` run
+const readEnv = () => Object.fromEntries(readFileSync(hermesEnv, 'utf8').split(/\r?\n/).map((l) => l.match(/^\s*([A-Z0-9_]+)\s*=\s*(.*?)\s*$/)).filter(Boolean).map((m) => [m[1], m[2].replace(/^["']|["']$/g, '')]))
+/** POST the prompt to the Hermes gateway webhook, signed with its secret (HMAC-SHA256, X-Hub-Signature-256). Throws unless accepted. */
+async function webhook(prompt) {
+  const env = readEnv()
+  if (!env.WEBHOOK_SECRET) throw new Error('no WEBHOOK_SECRET in the Hermes .env')
+  const body = JSON.stringify({ prompt })
+  const sig = `sha256=${createHmac('sha256', env.WEBHOOK_SECRET).update(body).digest('hex')}`
+  const r = await fetch(`http://127.0.0.1:${env.WEBHOOK_PORT || 8644}/webhooks/neohub-wake`, { method: 'POST', headers: { 'content-type': 'application/json', 'x-hub-signature-256': sig }, body, signal: AbortSignal.timeout(20000) })
+  if (r.status !== 202) throw new Error(`gateway answered ${r.status}`)
+}
+
 const load = () => {
   try {
     return JSON.parse(readFileSync(stateFile, 'utf8'))
@@ -86,7 +100,8 @@ const alive = (pid) => {
 sync()
 const st = load()
 const now = Date.now()
-const open = board().tasks.filter((t) => t.owner === 'milo' && t.kind === 'code' && (t.status === 'todo' || t.status === 'running'))
+const only = arg('only') // test switch: wake only these task ids, e.g. --only T23,T24
+const open = board().tasks.filter((t) => t.owner === 'milo' && t.kind === 'code' && (t.status === 'todo' || t.status === 'running') && (!only || only.split(',').includes(t.id)))
 for (const t of open) {
   const claimed = existsSync(join(miloDir, progressFileName(t.id))) || existsSync(join(miloDir, resultFileName(t.id)))
   const rec = st.tasks[t.id] ?? {}
@@ -104,17 +119,25 @@ for (const t of open) {
     if (Object.values(st.tasks).some((r) => r.pickedAt === undefined && alive(r.pid))) continue
     const prompt = `${miloPrompt([t])}\n\nThe full order file is ${join(miloDir, taskFileName(t.id))}. milo-shared is ${miloDir}.\n`
     const pf = join(miloDir, `wake-prompt-${t.id}.txt`)
-    writeFileSync(pf, prompt)
     if (dry) {
       log(`dry: would send ${t.id} (${prompt.length} chars)`)
       continue
     }
-    mkdirSync(join(miloDir, 'wake-logs'), { recursive: true })
-    const out = openSync(join(miloDir, 'wake-logs', `${t.id}.log`), 'a')
-    const child = spawn(hermes, ['chat', '--query-file', pf, '--oneshot', '-Q'], { cwd: miloDir, detached: true, stdio: ['ignore', out, out], windowsHide: true })
-    child.unref()
-    Object.assign(rec, { sentAt: now, pid: child.pid })
-    log(`${t.id} prompt sent to Hermes (pid ${child.pid})`)
+    try {
+      if (via !== 'webhook') throw new Error('oneshot requested')
+      await webhook(prompt)
+      Object.assign(rec, { sentAt: now, via: 'webhook' })
+      log(`${t.id} prompt sent to the Hermes gateway webhook`)
+    } catch (e) {
+      if (via === 'webhook') log(`${t.id} webhook failed (${String(e.message).slice(0, 120)}), using hermes chat --oneshot`)
+      writeFileSync(pf, prompt)
+      mkdirSync(join(miloDir, 'wake-logs'), { recursive: true })
+      const out = openSync(join(miloDir, 'wake-logs', `${t.id}.log`), 'a')
+      const child = spawn(hermes, ['chat', '--query-file', pf, '--oneshot', '-Q'], { cwd: miloDir, detached: true, stdio: ['ignore', out, out], windowsHide: true })
+      child.unref()
+      Object.assign(rec, { sentAt: now, pid: child.pid, via: 'oneshot' })
+      log(`${t.id} prompt sent to Hermes (pid ${child.pid})`)
+    }
   } else if (!rec.alertedAt && now - rec.sentAt > alertMs) {
     const mins = Math.round((now - rec.sentAt) / 60000)
     const msg = `Milo chưa nhận việc ${t.id} sau ${mins} phút: ${t.title}\nBấm "Sao chép lời nhắc cho Milo" trên bảng Max rồi dán vào chat Milo. File việc: ${taskFileName(t.id)}.`
