@@ -69,3 +69,4 @@ The copy of this file on `main` is frozen history up to 2026-11-11.
 | 2026-11-14 04:57 | hermes-win | PROGRESS | T13 v3.21 built (node --check OK, 18/18 tests pass); zip bayready-v3.21.zip in milo-shared (NOT latest.zip — awaiting Chanh photo approval); after-screenshots pending Chromium install | neohub | — |
 | 2026-11-14 04:57 | claude | ADD | T14 Sync real BayReady source into the bayready repo (branch sync-stage74, PR, no release) → milo | bayready | — |
 | 2026-11-14 04:59 | claude | CANCEL | T14 Sync real BayReady source into the bayready repo (branch sync-stage74, PR, no release) | bayready | — |
+| 2026-11-14 05:02 | hermes-win | PROGRESS | T13 REBASE: Desktop already on v3.21 (Claude, water-drop/MPI-axle/voice, built 22:00) — T13 rebased onto it as v3.22 (patch applied clean, 16/16 hunks; 18/18 tests pass; voice files copied). My earlie | neohub | — |
