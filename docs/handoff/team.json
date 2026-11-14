@@ -320,7 +320,7 @@
       "brief": "Review the pull request https://github.com/giusemc1988/bayready/pull/11 for BayReady — sửa layout theo hình anh gửi (đang chạy v3.21.11). Chỉ sửa 3 chỗ dưới đây. Không đổi màu, không đổi style board, không bỏ tính nă… (full text in the brief). You are the REVIEWER: use the other OmniRoute combo (review-hard), not the one the coder used.\nRead the diff and the task. Check: does it do what the task says, does it break anything else, is there a test or check that proves it, does it stay inside the limits (no secrets, nothing deleted, no feature removed).\nRun the gate again yourself. Then write in the RESULT file, in this order: first line DONE; \"VERDICT: APPROVE\" or \"VERDICT: CHANGES\"; \"NOTES: <what to fix, one line>\" when CHANGES; \"GATE: green\" or \"GATE: red\".\nThis is a HIGH-risk change: do NOT merge. Write \"MERGED: no\". Chanh decides.\nNever push the release zip: a release only happens when Chanh says \"phát hành X\".",
       "status": "running",
       "created": "2026-11-14T20:52:23.270Z",
-      "updated": "2026-11-14T21:57:23.809Z",
+      "updated": "2026-11-14T22:07:19.049Z",
       "by": "pipeline",
       "updatedBy": "hermes-win",
       "handed": {
@@ -328,7 +328,8 @@
         "machine": "windows"
       },
       "started": "2026-11-14T21:02:23.395Z",
-      "progress": "[Milo 2026-11-14 15:57 CST] Review paused per Chanh; no RESULT yet."
+      "progress": "PR https://github.com/giusemc1988/bayready/pull/11 trả về 404 - repo hoặc PR không tồn tại",
+      "need": "PR BayReady #11 URL đúng không? Link mới hoặc thông tin chi tiết?"
     }
   ],
   "next": 31,
