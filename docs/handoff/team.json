@@ -202,10 +202,28 @@
       },
       "started": "2026-11-14T13:22:19.966Z",
       "progress": "Step 5: Opening PR"
+    },
+    {
+      "id": "T26",
+      "title": "BayReady: put the tile fix (PR #5) on the newest build, next free version",
+      "project": "bayready",
+      "kind": "code",
+      "owner": "milo",
+      "role": "coder",
+      "round": 1,
+      "risk": "high",
+      "key": "tiles-fix-port-newest",
+      "from": "Claude",
+      "brief": "Evidence: PR #5 (3.21.5) fixes Appointment status / Today's services tiles that answer nothing on tap (route lookup + user line before waitQuiet in routes.js runRouteTaskInner; content.js runJob 5s timer fires on no-log alone even when state.running is true). It was built on old 3.21.4; live is 3.21.8, 3.21.9 is built, newest zip in milo-shared may be higher. Start only after the import PR (T25) is merged so the repo main is the newest.\nDone when this passes: Branch from the repo main after the import merge. Re-apply ONLY those two small changes by hand on the newest code (do not copy files from PR #5). Version = next free number above the highest zip in milo-shared (3.21.10 if 3.21.9 is the highest), changelog EN+VI. node --check on all js, gate green with --prev, one PR, RESULT right after opening it. Close PR #5 saying it was replaced. No release.",
+      "status": "proposed",
+      "created": "2026-11-14T13:57:56.251Z",
+      "updated": "2026-11-14T13:57:56.251Z",
+      "by": "claude",
+      "updatedBy": "claude"
     }
   ],
-  "next": 26,
-  "claudeSeen": "2026-11-14T13:13:39.757Z",
+  "next": 27,
+  "claudeSeen": "2026-11-14T13:57:56.251Z",
   "feed": [
     {
       "t": "2026-11-14T07:06:48.696Z",
@@ -339,12 +357,20 @@
       "to": "Milo",
       "text": "T25 đã đưa việc cho Milo",
       "ref": "T25"
+    },
+    {
+      "t": "2026-11-14T13:57:56.251Z",
+      "from": "Claude",
+      "to": "Chanh",
+      "text": "T26 Đề xuất: BayReady: put the tile fix (PR #5) on the newest build, next free version",
+      "ref": "T26"
     }
   ],
   "seen": [
     "bayready-gate:3b6f8610",
     "tiles-nothing-3214",
     "enrich-test-path-3214",
-    "stale-intervals-3214"
+    "stale-intervals-3214",
+    "tiles-fix-port-newest"
   ]
 }
