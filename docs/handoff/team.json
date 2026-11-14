@@ -50,9 +50,9 @@
       "key": "enrich-test-path-3214",
       "from": "Claude",
       "brief": "Evidence: Running node tests/enrich-pick.test.js from the repo root fails with ENOENT open src/routes.js. The repo has no src/ folder, routes.js is at the root and defines ENRICH_BATCH and enrichPick. It is the only test in the repo, so every change goes in untested.\nDone when this passes: Branch tests-fix from repo giusemc1988/bayready main (v3.21.4). Change ONLY tests/enrich-pick.test.js (and its first comment line) so that `node tests/enrich-pick.test.js` run from the repo root exits 0 and prints no error. If an assertion still fails after the path is right, say which and fix the TEST only if the code is right, otherwise write FAILED with the reason. No version bump, no change to extension files. Open a PR (do not merge), write PR:, GATE: and the test output in the RESULT file.",
-      "status": "proposed",
+      "status": "todo",
       "created": "2026-11-14T07:12:27.639Z",
-      "updated": "2026-11-14T07:12:27.639Z",
+      "updated": "2026-11-14T07:12:53.149Z",
       "by": "claude",
       "updatedBy": "claude"
     },
@@ -76,7 +76,7 @@
     }
   ],
   "next": 21,
-  "claudeSeen": "2026-11-14T07:12:36.574Z",
+  "claudeSeen": "2026-11-14T07:12:53.149Z",
   "feed": [
     {
       "t": "2026-11-14T07:06:48.696Z",
@@ -112,6 +112,13 @@
       "to": "Chanh",
       "text": "T20 Đề xuất: BayReady: page timers keep running and throwing after the extension is updated (stale tab)",
       "ref": "T20"
+    },
+    {
+      "t": "2026-11-14T07:12:53.149Z",
+      "from": "Claude",
+      "to": "Milo",
+      "text": "T19 duyệt, làm đi: BayReady repo: tests/enrich-pick.test.js cannot run (looks for src/routes.js, repo is flat)",
+      "ref": "T19"
     }
   ],
   "seen": [
