@@ -1,0 +1,324 @@
+{
+  "archivedAt": "2026-11-14T05:39:44.114Z",
+  "by": "claude",
+  "tasks": [
+    {
+      "id": "T1",
+      "title": "Decide: reset or drop stuck TASKs cyberdeck-v2-screen-info and ro-verify-work-done-here (old Q-002)",
+      "project": "other",
+      "kind": "code",
+      "owner": "milo",
+      "status": "done",
+      "created": "2026-11-12T00:29:46.527Z",
+      "updated": "2026-11-12T05:45:04.158Z",
+      "by": "claude",
+      "result": "Both TASKs have RESULTs (Ubuntu: cyberdeck + ro-verify; Windows: cyberdeck). Archived: none."
+    },
+    {
+      "id": "T2",
+      "title": "Delete 19 merged remote branches (list: neo/branches-merged-to-delete-2026-11-11.txt) (old Q-003)",
+      "project": "neohub",
+      "kind": "code",
+      "owner": "milo",
+      "status": "done",
+      "created": "2026-11-12T00:29:46.530Z",
+      "updated": "2026-11-12T05:45:04.257Z",
+      "by": "claude",
+      "result": "Deleted 19 merged branches, skipped: none."
+    },
+    {
+      "id": "T3",
+      "title": "Flip Atlas #271 shadow filters live after >= 30 live-tagged trades (old Q-004)",
+      "project": "atlas",
+      "kind": "code",
+      "owner": "claude",
+      "status": "cancelled",
+      "created": "2026-11-12T00:29:46.531Z",
+      "updated": "2026-11-14T04:27:38.627Z",
+      "by": "claude",
+      "updatedBy": "chanh"
+    },
+    {
+      "id": "T4",
+      "title": "BayReady v2.63 (TRANG NGUYEN fix): package and move into private repo giusemc1988/bayready (old Q-006; Chanh: no shop test needed)",
+      "project": "bayready",
+      "kind": "code",
+      "owner": "claude",
+      "status": "done",
+      "created": "2026-11-12T00:29:46.531Z",
+      "updated": "2026-11-12T05:13:56.507Z",
+      "by": "claude",
+      "result": "BayReady v2.64 pushed to private repo giusemc1988/bayready main (eedbcd6), see LOG 03:53"
+    },
+    {
+      "id": "T5",
+      "title": "Call scripts/team-bridge.mjs from watcher.ps1 / watcher.sh so machines show On and run scripts",
+      "project": "neohub",
+      "kind": "code",
+      "owner": "claude",
+      "status": "done",
+      "created": "2026-11-12T00:29:46.532Z",
+      "updated": "2026-11-12T03:44:37.316Z",
+      "by": "claude",
+      "result": "Windows + Ubuntu bridges live: both machines send heartbeats (Ubuntu first beat 03:43 UTC). BayReady Desktop backups run each pass."
+    },
+    {
+      "id": "T6",
+      "title": "job: status",
+      "project": "neohub",
+      "kind": "job",
+      "owner": "windows",
+      "job": "status",
+      "status": "done",
+      "created": "2026-11-12T00:30:47.710Z",
+      "updated": "2026-11-12T00:44:56.620Z",
+      "by": "hermes-win",
+      "result": "node v24.14.1, disk free 1649.9 GB, git 2.53.0.windows.2"
+    },
+    {
+      "id": "T7",
+      "title": "Flow test: write the RESULT file only",
+      "project": "other",
+      "kind": "code",
+      "owner": "milo",
+      "brief": "This is a test of the Max board hand-off. Do ONLY this: write RESULT-board file as the task file says, with first line DONE and second line: picked up <UTC time> on <machine name>. Change nothing else.",
+      "status": "done",
+      "created": "2026-11-12T16:22:28.827Z",
+      "updated": "2026-11-12T16:37:18.993Z",
+      "by": "claude",
+      "handed": {
+        "at": "2026-11-12T16:22:33.399Z",
+        "machine": "windows"
+      },
+      "result": "DONE picked up 2026-11-12T16:34:36Z on muse Flow test only: wrote this RESULT file, changed nothing else. Version: n/a (no code change). Checks: read TASK-board-T7.md on CN88; hook dry-run detected it pending and returned wake for board-T7."
+    },
+    {
+      "id": "T8",
+      "title": "Yêu cầu từ trang Max (Neo Hub): Ở trong cái phần Appointment status mấy cái chỗ mà show total date not arrived servicing, inspecting gì đó không mấy cái như là ad dealer với whole for part nó lúc nào show zero hết á nếu mà nó show zero always thì bỏ lượt bỏ cái đó đi rồi sắp xếp lại mấy cái ô nhìn",
+      "project": "neohub",
+      "kind": "code",
+      "owner": "milo",
+      "status": "done",
+      "created": "2026-11-12T19:34:38.240Z",
+      "updated": "2026-11-12T20:54:22.947Z",
+      "by": "chanh",
+      "handed": {
+        "at": "2026-11-12T19:35:02.132Z",
+        "machine": "ubuntu"
+      },
+      "result": "Claude did it (BayReady 2.80): status tiles that show 0 are hidden, the 5 main stages always stay, tiles share the row, a small line names the hidden ones. Not run in Chrome yet."
+    },
+    {
+      "id": "T9",
+      "title": "Bạn là kỹ sư tự động hóa (Python / Playwright / Selenium). Hãy kiểm tra và sửa 2 lỗi đăng nhập của Telegram bot trên Windows theo đúng các yêu cầu sau: MÔ TẢ LỖI HIỆN TẠI: 1. Ở trang đăng nhập Xtime: Bot điền thông tin nhưng không bấm được nút \"Sign in\" cuối cùng. 2. Sau đó bot tự động chuyển sang",
+      "project": "neohub",
+      "kind": "code",
+      "owner": "milo",
+      "status": "done",
+      "created": "2026-11-13T00:44:33.023Z",
+      "updated": "2026-11-13T04:37:22.386Z",
+      "by": "chanh",
+      "updatedBy": "hermes-win",
+      "handed": {
+        "at": "2026-11-13T00:47:19.173Z",
+        "machine": "windows"
+      },
+      "started": "2026-11-13T00:52:20.977Z",
+      "progress": "reading TASK file (goal text is cut off mid-sentence at error 2)",
+      "result": "DONE (bug 1 + bug 2 fixed in v3.05; helper restarted; 15-min lock removed) What changed: - Helper restarted: bayready-serve.py was NOT running on Windows (nothing on port 8765). Restarted via BayReadyServe task; pythonw PID 19260 listening on 8765. This was why the bot spammed \"The Windows PC holds the bot again\" every minute and did not answer /signin_inspect properly. - Bug 2 (TIS auto sign-in never opens a page) FIXED in v2.93: tgSignInAlert used else-if, so when Inspect/Xtime AND TIS were both down it only ran the Inspect sign-in and skipped TIS (yet marked TIS as \"tried\"). Now both auto sign-ins run in order (Inspect first, then TIS). CONFIRMED by Chanh: TIS worked on v2.96. TIS clicks its LOG IN button (debugger click at coordinates, JS click fallback) — it does not submit the form. - Bug 1 (Xtime sign-in never completes) FIXED in v3.05: v2.94-v3.04 tried Enter, form.submit(), requestSubmit(), JS clicks on \"Sign in\" and \"Next\", and a real mouse click on \"Next\" — the page still reported no movement. The Next click DOES get past the username step (Chanh confirmed; his photo shows the bot reached the password step with the Sign in button visible). The real cause: after the Next click the bot probed after only 2s and wrongly gave up before the page finished moving. v3.05: after the Next real click, wait 5s (plus a 3s re-probe if still on the sign-in page), then click Sign in on the password step with pressReal (real click first) and probe again. Version: BayReady v3.05. bay",
+      "lesson": "A probe 2s after a click can report \"no movement\" while the page is still transitioning — the Next click worked (photo proves it) but the bot gave up too early. Wait 5s after a navigation click and re-probe before declaring failure. A JS click (b.click) and a real mouse click (debugger click at coordinates) are not the same: the Next button ignores the JS click but advances on the real click. When",
+      "tries": 2
+    },
+    {
+      "id": "T10",
+      "title": "Flow test 2.0.36: progress file (Claude runs this test, Milo does nothing)",
+      "project": "other",
+      "kind": "code",
+      "owner": "milo",
+      "brief": "Test by Claude of the PROGRESS file path. Milo: do nothing, Claude writes the files.",
+      "status": "failed",
+      "created": "2026-11-13T01:51:40.034Z",
+      "updated": "2026-11-13T01:57:18.802Z",
+      "by": "claude",
+      "updatedBy": "hermes-win",
+      "handed": {
+        "at": "2026-11-13T01:52:18.999Z",
+        "machine": "windows"
+      },
+      "result": "FAILED Milo did nothing, as the task instructs: \"Claude runs this test, Milo does nothing.\" No files changed, no version, nothing merged or deployed. Check run: listed C:\\Users\\chanh\\milo-shared\\*T10* via SSH at 2026-11-13 ~01:56 UTC - only TASK-board-T10.md exists (1109 bytes, 2026-11-13 01:52:18Z). No PROGRESS-board-T10.md exists, so Claude's flow test of the PROGRESS file path has not been demonstrated yet. LESSON: Milo must not write PROGRESS-board-T10.md himself - that would fake Claude's flow test. Only Claude writes the PROGRESS file.",
+      "lesson": "Milo must not write PROGRESS-board-T10.md himself - that would fake Claude's flow test. Only Claude writes the PROGRESS file."
+    },
+    {
+      "id": "T11",
+      "title": "Mục tiêu: Kiểm tra nguyên nhân trang Max (Neo Hub) vẫn chưa đăng nhập được sau các thay đổi của Claude, khắc phục dứt điểm và xác nhận hệ th… (full text in the brief)",
+      "project": "neohub",
+      "kind": "code",
+      "owner": "milo",
+      "brief": "Full request from chanh:\nMục tiêu: Kiểm tra nguyên nhân trang Max (Neo Hub) vẫn chưa đăng nhập được sau các thay đổi của Claude, khắc phục dứt điểm và xác nhận hệ thống hoạt động bình thường.\n\nQuy tắc bắt buộc:\n- Chỉ dùng công cụ/giải pháp miễn phí có sẵn trên máy.\n- TUYỆT ĐỐI KHÔNG in ra, ghi log, hay làm lộ bất kỳ API key, token, password, cookie hay secret nào (che bằng *** nếu cần nhắc tới).\n- KHÔNG xóa file, không tắt hay cắt bỏ bất kỳ tính năng nào đang có nếu chưa được phép.\n- Trả lời ngắn gọn, giải thích dễ hiểu bằng tiếng Việt.\n\nCác bước thực hiện trên máy:\n1. Kiểm tra những gì Claude đã làm:\n - Tìm thư mục dự án Neo Hub / Max đang chạy.\n - Chạy `git status`, `git diff`, và `git log -n 5` (hoặc kiểm tra timestamp các file vừa sửa gần đây) để liệt kê chính xác các file cấu hình, script, hoặc code mà Claude đã thay đổi.\n2. Chẩn đoán lỗi chưa đăng nhập (Not logged in):\n - Kiểm tra các tiến trình/service/Docker container liên quan xem có đang chạy đúng port không.\n - Đọc log lỗi gần nhất (backend, frontend, proxy, auth service) liên quan đến session, cookie, CORS, hoặc OAuth/token.\n - Kiểm tra cấu trúc file `.env` (chỉ kiểm tra tên biến và trạng thái có/không, tuyệt đối không đọc giá trị secret) xem có lệch tên biến hoặc sai URL/port so với code Claude vừa sửa không.\n3. Khắc phục & Cấu hình:\n - Backup nhanh các file cấu hình chuẩn bị sửa (ví dụ `.bak`).\n - Sửa đúng lỗi khiến phiên đăng nhập không lưu hoặc không nhận diện được trên Max (Neo Hub), đảm bảo không ảnh hưởng tính năng khác.\n - Khởi động lại service liên quan nếu cần.\n4. Kiểm tra & Ghi lại kết quả:\n - Kiểm tra lại endpoint/trạng thái đăng nhập xem đã nhận session thành công chưa.\n - Ghi lại tóm tắt kết quả gồm: (a) Claude đã sửa gì, (b) Nguyên nhân gây lỗi login, (c) Đã sửa/cấu hình lại những gì, (d) Trạng thái kiểm tra cuối cùng.\n\nChanh has 1 picture for this task. If they are not pasted in your chat, ask him for them before you start.",
+      "status": "failed",
+      "created": "2026-11-13T05:21:51.046Z",
+      "updated": "2026-11-13T05:32:20.320Z",
+      "by": "chanh",
+      "updatedBy": "hermes-win",
+      "handed": {
+        "at": "2026-11-13T05:22:20.157Z",
+        "machine": "windows"
+      },
+      "started": "2026-11-13T05:27:19.265Z",
+      "progress": "Dang tim co che dang nhap cua trang Max va xem Claude vua doi gi (git log/diff tren CN88).",
+      "result": "FAILED Em chưa sửa được lỗi đăng nhập vì chưa thấy màn hình lỗi — ảnh anh đính kèm ở task T11 chỉ nằm trên máy anh, chưa được dán vào chat Milo nên em không xem được. (a) Claude đã sửa gì (git log/diff trên CN88 + origin/main, v2.0.30–v2.0.38, PR #287–#297): chỉ bảng Văn phòng/Office (TeamPanel, team-core, team-bridge), practice/Atlas, docs và file JSON dữ liệu. Không có file nào chạm tới đăng nhập, session, cookie, CORS, worker hay env. (b) Nguyên nhân: CHƯA XÁC ĐỊNH ĐƯỢC. Cổng đăng nhập duy nhất của trang Max là Cloudflare Access (nhập email, lấy mã trong email) — kiểm tra live lúc 05:30 UTC: GET / trả về trang \"Sign in · Cloudflare Access\" (200, 57KB), GET /api/team bị chuyển về trang đăng nhập Access (302). Worker không tự kiểm tra đăng nhập (lần sửa worker.ts gần nhất là #244, v2.0.11). Không rõ lỗi của anh nằm ở bước nào: không nhận được mã, mã bị từ chối, hay đăng nhập xong lại quay về trang đăng nhập. (c) Đã kiểm tra, không sửa gì, không xóa gì, không merge/deploy: - git log Windows main: HEAD c8d9ecc (#293, v2.0.34); origin/main mới nhất e6e3271 (#297, v2.0.38); diff 15 file (Windows) / 20 file (origin) — không có auth. - Live: curl https://stock-predict.chanhmn1011.workers.dev/ → 200 trang Access Sign in; /api/team → 302 về Access login. - Deploy Worker gần nhất (GitHub Actions, public API): 2026-11-13T04:29:23Z, head e6e3271, status completed, conclusion success. - Không có file .env nào trong repo; Neo Hub không chạy Docker/service/port local (Cloudflare Worker + ",
+      "lesson": "Anh tren board chi nam tren may anh, khong tu den Milo — task login khong co anh thi khong chan doan duoc, phai hoi anh dan anh truoc khi sua."
+    },
+    {
+      "id": "T12",
+      "title": "BayReady: hàng chip dưới tên xe bị cắt bên phải, chữ cảnh báo bị cụt. Sửa cho thấy đủ, ở cả 360, 390 và 820px.\" Thêm ảnh bằng nút thêm/dán ảnh",
+      "project": "neohub",
+      "kind": "code",
+      "owner": "milo",
+      "status": "cancelled",
+      "created": "2026-11-14T02:56:24.872Z",
+      "updated": "2026-11-14T02:58:42.347Z",
+      "by": "chanh",
+      "updatedBy": "chanh",
+      "handed": {
+        "at": "2026-11-14T02:57:19.480Z",
+        "machine": "windows"
+      }
+    },
+    {
+      "id": "T13",
+      "title": "BayReady 3.21 — dọn giao diện cho gọn, KHÔNG bỏ tính năng nào (trừ ô complaints, anh đã đồng ý bỏ): 1. Tab Chat: thu nhỏ chữ, nút, khoảng tr… (full text in the brief)",
+      "project": "neohub",
+      "kind": "code",
+      "owner": "milo",
+      "brief": "Full request from chanh:\nBayReady 3.21 — dọn giao diện cho gọn, KHÔNG bỏ tính năng nào (trừ ô complaints, anh đã đồng ý bỏ):\n1. Tab Chat: thu nhỏ chữ, nút, khoảng trống cho đỡ phí chỗ. Thêm đồng hồ (giờ hiện tại) nhỏ trên đầu panel.\n2. Thu nhỏ các box/thẻ trong mọi tab cho gọn hơn.\n3. Kiểm tra toàn bộ panel ở 360/390/820px: chỗ nào lệch, không cân đối, đè lên nhau (overlap) hay bị cắt thì sửa hết. Gồm cả hàng chip dưới tên xe bị cắt bên phải.\n4. Chỗ nào có 2 vòng viền lồng nhau (ví dụ chip số RO dưới banner xe trong Vehicle): bỏ vòng trong, cho ô đó phát sáng nhẹ (glow) thay vào.\n5. Bỏ chip \"complaints\" ở banner xe (không bấm được, không giúp gì).\n6. Factory warranty: làm bản nhỏ gọn (vd. 1 hàng chip/thanh nhỏ: Basic, Powertrain còn/hết) đặt trong banner xe; bấm vào mới mở bảng đầy đủ.\nTăng version + What's new. Chụp ảnh 360/390/820 trước và sau, gửi anh duyệt rồi mới phát hành. Cuối cùng ghi LESSON vào thư viện Max.",
+      "status": "running",
+      "created": "2026-11-14T04:26:44.005Z",
+      "updated": "2026-11-14T05:07:18.878Z",
+      "by": "chanh",
+      "updatedBy": "hermes-win",
+      "handed": {
+        "at": "2026-11-14T04:27:28.654Z",
+        "machine": "windows"
+      },
+      "started": "2026-11-14T04:32:20.872Z",
+      "progress": "screenshots done (360/390/820 x chat/veh, 12 shots, headless Chromium): chip row wraps, no cutoff; clock 10:47 PM visible, title not cut; warr chip Basic X / PT check visible; complaints gone; no double border. FOUND + FIXED: font: ... inherit shorthand is invalid CSS (browser drops it) — clock was"
+    },
+    {
+      "id": "T14",
+      "title": "Sync real BayReady source into the bayready repo (branch sync-stage74, PR, no release)",
+      "project": "bayready",
+      "kind": "code",
+      "owner": "milo",
+      "brief": "Read docs/library/playbooks/bayready-pipeline.md first. The repo giusemc1988/bayready main is behind the real source in milo-shared\\stage74\\src. 1) Clone the repo, create branch sync-stage74. 2) Copy the contents of stage74\\src into it (manifest.json at the repo root, same layout as now); delete nothing in milo-shared. 3) Run node bayready-gate.mjs on the checkout (script is scripts/bayready-gate.mjs in stock-predict) and fix only what blocks it. 4) Open a PR, do not merge it: Chanh or the reviewer decides. 5) Do NOT release or touch bayready-latest.zip. RESULT file: PR: <url>, GATE: green|red, what differs from the old main.",
+      "status": "cancelled",
+      "created": "2026-11-14T04:57:43.399Z",
+      "updated": "2026-11-14T04:59:45.139Z",
+      "by": "claude",
+      "updatedBy": "claude"
+    },
+    {
+      "id": "T15",
+      "title": "BayReady: kiểm tra tự động báo 1 lỗi trong code nguồn",
+      "project": "bayready",
+      "kind": "code",
+      "owner": "milo",
+      "role": "coder",
+      "round": 1,
+      "risk": "low",
+      "key": "bayready-gate:3b6f8610",
+      "from": "Scout",
+      "brief": "Evidence: com.bayready.updater.json: invalid JSON\nDone when this passes: node bayready-gate.mjs <source folder> prints \"GATE: green\"",
+      "status": "cancelled",
+      "created": "2026-11-14T05:02:22.768Z",
+      "updated": "2026-11-14T05:26:53.562Z",
+      "by": "scout",
+      "updatedBy": "claude"
+    },
+    {
+      "id": "T16",
+      "title": "BayReady: Chat home tiles Appointment status and Today's services do nothing when tapped (no board, no message). Do this AFTER T13 (3.22) is released, on top of 3.22.",
+      "project": "bayready",
+      "kind": "code",
+      "owner": "milo",
+      "brief": "SYMPTOM (Chanh, real RO page 1490455, v3.21): tap the home tiles Appointment status or Today's services and nothing appears at all (no user line, no error). Find a car works (local view only).\n\nCODE PATH (read first): content.js home tile handler (search `w.querySelectorAll('.tile')`) -> runJob('builtin-xtime-status' | 'builtin-xtime-day') = post({type:'run_route', id}); background.js case 'run_route' -> runRouteTask(...).catch(() => {}) (silent); routes.js runRouteTaskInner has `if (!route) return;` (silent); runRouteTask/waitQuiet/withSched can wait before the first addLog, so the tap shows nothing meanwhile.\n\nSUSPECTS, check in this order and say which one it was: 1) port to background dead after the 3.21 auto-update (post() reconnect); 2) builtin routes missing from getRoutes() (storage `routes`), so silent return; 3) job queued behind withSched / waitQuiet.\n\nFIX: (a) a tap must show a line at once from the content side, e.g. 'Appointment status - working...'. (b) replace silent returns/catches on this path with an addLog error that names the reason. (c) if the builtin route is missing, add the built-ins (message builtin_add) and run it. (d) change nothing else.\n\nTEST TO PASS: Playwright harness with mocked chrome (as gl/shot20.js in /mnt/project-files/bayready-glass/build/): click both tiles; a visible line within 1 s when the background answers, when it never answers, and when builtin routes are missing (error text + auto-add). node --check all JS. Screenshots 360/390/820. Bump version +0.01 and add a changelog line. Do NOT release until Chanh writes the OK; after release run bayready-check-latest.py. Rules: delete nothing, no secrets, never touch OTP/password code. Write PROGRESS and RESULT files as usual; LESSON line = which suspect it was.",
+      "status": "cancelled",
+      "created": "2026-11-14T05:08:23.024Z",
+      "updated": "2026-11-14T05:32:19.202Z",
+      "by": "claude",
+      "updatedBy": "claude",
+      "handed": {
+        "at": "2026-11-14T05:12:21.658Z",
+        "machine": "windows"
+      }
+    },
+    {
+      "id": "T17",
+      "title": "BayReady: after an auto-update, tabs that were already open (Scheduling, TIS, Inspect) keep the OLD content script; the schedule read then f… (full text in the brief)",
+      "project": "bayready",
+      "kind": "code",
+      "owner": "milo",
+      "brief": "Full request from claude:\nBayReady: after an auto-update, tabs that were already open (Scheduling, TIS, Inspect) keep the OLD content script; the schedule read then fails with 'A listener indicated an asynchronous response ... message channel closed'. Make the extension recover by itself. Same task as T16 if T16 root cause is this.\n\nEVIDENCE (Chanh 11-14 05:24Z, v3.21 just auto-updated): Cars tab hangs at 95% 'Checking the schedule' then shows that error; home tiles Appointment status / Today's services do nothing. Background code did not change in a way that explains it (3.20 vs 3.21 diff is only a speakReplies setting and a voice hint). Most likely cause: tabs open BEFORE the update still run the orphaned old content script, so background sendToPage / chrome.tabs.sendMessage to them rejects with 'message channel closed' or 'Receiving end does not exist'.\n\nFIX: in background (routes.js sendToPage and the Scheduling-tab helpers used by cars_refresh / withSched / statusViaApi): when that error appears, reload the target tab once (chrome.tabs.reload), wait for it to load, retry once; if it fails again return a clear message 'Reload the Xtime Scheduling tab (F5)'. Also on extension update (chrome.runtime.onInstalled reason 'update') inject or reload the open Xtime / TIS tabs once. Show a visible line in the panel instead of hanging at 95%.\n\nTEST TO PASS: mocked chrome where tabs.sendMessage rejects with that error on the first call and succeeds after reload: schedule read completes; second failure shows the clear message. node --check; version +0.01; changelog. Do NOT release until Chanh writes the OK. Release check after. No secrets, delete nothing, never touch OTP/password code. LESSON line = confirmed cause.",
+      "status": "cancelled",
+      "created": "2026-11-14T05:26:12.604Z",
+      "updated": "2026-11-14T05:32:30.098Z",
+      "by": "claude",
+      "updatedBy": "claude",
+      "handed": {
+        "at": "2026-11-14T05:27:54.622Z",
+        "machine": "windows"
+      }
+    }
+  ],
+  "feed": [
+    {
+      "t": "2026-11-14T04:59:45.139Z",
+      "from": "Claude",
+      "to": "team",
+      "text": "T14 huỷ: Sync real BayReady source into the bayready repo (branch sync-stage74, PR, no release)",
+      "ref": "T14"
+    },
+    {
+      "t": "2026-11-14T05:02:22.768Z",
+      "from": "Scout",
+      "to": "Chanh",
+      "text": "T15 Đề xuất: BayReady: kiểm tra tự động báo 1 lỗi trong code nguồn",
+      "ref": "T15"
+    },
+    {
+      "t": "2026-11-14T05:12:21.658Z",
+      "from": "Hermes Windows",
+      "to": "Milo",
+      "text": "T16 đã đưa việc cho Milo",
+      "ref": "T16"
+    },
+    {
+      "t": "2026-11-14T05:26:53.562Z",
+      "from": "Claude",
+      "to": "team",
+      "text": "T15 huỷ: BayReady: kiểm tra tự động báo 1 lỗi trong code nguồn",
+      "ref": "T15"
+    },
+    {
+      "t": "2026-11-14T05:27:54.622Z",
+      "from": "Hermes Windows",
+      "to": "Milo",
+      "text": "T17 đã đưa việc cho Milo",
+      "ref": "T17"
+    },
+    {
+      "t": "2026-11-14T05:32:19.202Z",
+      "from": "Claude",
+      "to": "team",
+      "text": "T16 huỷ: BayReady: Chat home tiles Appointment status and Today's services do nothing when tapped (no board, no message). Do this AFTER T13 (3.22) is released, on top of 3.22.",
+      "ref": "T16"
+    },
+    {
+      "t": "2026-11-14T05:32:30.098Z",
+      "from": "Claude",
+      "to": "team",
+      "text": "T17 huỷ: BayReady: after an auto-update, tabs that were already open (Scheduling, TIS, Inspect) keep the OLD content script; the schedule read then f… (full text in the brief)",
+      "ref": "T17"
+    }
+  ]
+}
