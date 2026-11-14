@@ -73,3 +73,4 @@ The copy of this file on `main` is frozen history up to 2026-11-11.
 | 2026-11-14 05:02 | hermes-win | PROPOSE | T15 BayReady: kiểm tra tự động báo 1 lỗi trong code nguồn (low) | bayready | — |
 | 2026-11-14 05:07 | hermes-win | PROGRESS | T13 screenshots done (360/390/820 x chat/veh, 12 shots, headless Chromium): chip row wraps, no cutoff; clock 10:47 PM visible, title not cut; warr chip Basic X / PT check visible; complaints gone; no  | neohub | — |
 | 2026-11-14 05:08 | claude | ADD | T16 BayReady: Chat home tiles Appointment status and Today's services do nothing when tapped (no board, no message). Do this AFTER T13 (3.22) is released, on top of 3.22. → milo | bayready | — |
+| 2026-11-14 05:12 | hermes-win | HANDOFF | T16 file written for Milo on windows | bayready | — |
