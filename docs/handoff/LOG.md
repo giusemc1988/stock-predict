@@ -62,3 +62,4 @@ The copy of this file on `main` is frozen history up to 2026-11-11.
 | 2026-11-14 02:58 | chanh | CANCEL | T12 BayReady: hàng chip dưới tên xe bị cắt bên phải, chữ cảnh báo bị cụt. Sửa cho thấy đủ, ở cả 360, 390 và 820px." Thêm ảnh bằng nút thêm/dán ảnh | neohub | — |
 | 2026-11-14 04:26 | chanh | ADD | T13 BayReady 3.21 — dọn giao diện cho gọn, KHÔNG bỏ tính năng nào (trừ ô complaints, anh đã đồng ý bỏ): 1. Tab Chat: thu nhỏ chữ, nút, khoảng tr… (full text in the brief) → milo | neohub | — |
 | 2026-11-14 04:27 | hermes-win | HANDOFF | T13 file written for Milo on windows | neohub | — |
+| 2026-11-14 04:27 | chanh | CANCEL | T3 Flip Atlas #271 shadow filters live after >= 30 live-tagged trades (old Q-004) | atlas | — |

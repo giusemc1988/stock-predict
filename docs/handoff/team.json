@@ -45,10 +45,11 @@
       "project": "atlas",
       "kind": "code",
       "owner": "claude",
-      "status": "todo",
+      "status": "cancelled",
       "created": "2026-11-12T00:29:46.531Z",
-      "updated": "2026-11-12T02:19:50.808Z",
-      "by": "claude"
+      "updated": "2026-11-14T04:27:38.627Z",
+      "by": "claude",
+      "updatedBy": "chanh"
     },
     {
       "id": "T4",

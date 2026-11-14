@@ -7,7 +7,7 @@ Driver: **claude** since 2026-11-14 00:25 UTC.
 |---|---|---|---|---|---|---|
 | T1 | Decide: reset or drop stuck TASKs cyberdeck-v2-screen-info and ro-verify-work-done-here (old Q-002) | other | milo | done | 2026-11-12 05:45 | Both TASKs have RESULTs (Ubuntu: cyberdeck + ro-verify; Windows: cyberdeck). Archived: none. |
 | T2 | Delete 19 merged remote branches (list: neo/branches-merged-to-delete-2026-11-11.txt) (old Q-003) | neohub | milo | done | 2026-11-12 05:45 | Deleted 19 merged branches, skipped: none. |
-| T3 | Flip Atlas #271 shadow filters live after >= 30 live-tagged trades (old Q-004) | atlas | claude | todo | 2026-11-12 02:19 |  |
+| T3 | Flip Atlas #271 shadow filters live after >= 30 live-tagged trades (old Q-004) | atlas | claude | cancelled | 2026-11-14 04:27 |  |
 | T4 | BayReady v2.63 (TRANG NGUYEN fix): package and move into private repo giusemc1988/bayready (old Q-006; Chanh: no shop test needed) | bayready | claude | done | 2026-11-12 05:13 | BayReady v2.64 pushed to private repo giusemc1988/bayready main (eedbcd6), see LOG 03:53 |
 | T5 | Call scripts/team-bridge.mjs from watcher.ps1 / watcher.sh so machines show On and run scripts | neohub | claude | done | 2026-11-12 03:44 | Windows + Ubuntu bridges live: both machines send heartbeats (Ubuntu first beat 03:43 UTC). BayReady Desktop backups run each pass. |
 | T6 | job: status | neohub | windows | done | 2026-11-12 00:44 | node v24.14.1, disk free 1649.9 GB, git 2.53.0.windows.2 |
@@ -23,6 +23,7 @@ Driver: **claude** since 2026-11-14 00:25 UTC.
 
 Claude: read this first when back, check each one against real files, then run the `seen` action (team-update.yml, who=claude).
 
+- T3 **cancelled** by chanh at 2026-11-14 04:27: Flip Atlas #271 shadow filters live after >= 30 live-tagged trades (old Q-004)
 - T9 **done** by hermes-win at 2026-11-13 04:37: Bạn là kỹ sư tự động hóa (Python / Playwright / Selenium). Hãy kiểm tra và sửa 2 lỗi đăng nhập của Telegram bot trên Win | at: reading TASK file (goal text is cut off mid-sentence at error 2) | result: DONE (bug 1 + bug 2 fixed in v3.05; helper restarted; 15-min lock removed) What changed: - Helper restarted: bayready-serve.py was NOT running on Windows (nothing on port 8765). Restarted via BayReady
 - T11 **failed** by hermes-win at 2026-11-13 05:32: Mục tiêu: Kiểm tra nguyên nhân trang Max (Neo Hub) vẫn chưa đăng nhập được sau các thay đổi của Claude, khắc phục dứt đi | at: Dang tim co che dang nhap cua trang Max va xem Claude vua doi gi (git log/diff tren CN88). | result: FAILED Em chưa sửa được lỗi đăng nhập vì chưa thấy màn hình lỗi — ảnh anh đính kèm ở task T11 chỉ nằm trên máy anh, chưa được dán vào chat Milo nên em không xem được. (a) Claude đã sửa gì (git log/dif
 - T12 **cancelled** by chanh at 2026-11-14 02:58: BayReady: hàng chip dưới tên xe bị cắt bên phải, chữ cảnh báo bị cụt. Sửa cho thấy đủ, ở cả 360, 390 và 820px." Thêm ảnh
