@@ -56,15 +56,19 @@
       "key": "enrich-test-path-3214",
       "from": "Claude",
       "brief": "Evidence: Running node tests/enrich-pick.test.js from the repo root fails with ENOENT open src/routes.js. The repo has no src/ folder, routes.js is at the root and defines ENRICH_BATCH and enrichPick. It is the only test in the repo, so every change goes in untested.\nDone when this passes: Branch tests-fix from repo giusemc1988/bayready main (v3.21.4). Change ONLY tests/enrich-pick.test.js (and its first comment line) so that `node tests/enrich-pick.test.js` run from the repo root exits 0 and prints no error. If an assertion still fails after the path is right, say which and fix the TEST only if the code is right, otherwise write FAILED with the reason. No version bump, no change to extension files. Open a PR (do not merge), write PR:, GATE: and the test output in the RESULT file.",
-      "status": "todo",
+      "status": "done",
       "created": "2026-11-14T07:12:27.639Z",
-      "updated": "2026-11-14T07:17:19.235Z",
+      "updated": "2026-11-14T11:57:21.073Z",
       "by": "claude",
       "updatedBy": "hermes-win",
       "handed": {
         "at": "2026-11-14T07:17:19.235Z",
         "machine": "windows"
-      }
+      },
+      "result": "DONE PR: https://github.com/giusemc1988/bayready/pull/6 GATE: green BayReady repo, branch tests-fix from main 3.21.4. tests/enrich-pick.test.js looked for src/routes.js but the repo is flat (routes.js at the root, no src/ folder), so it failed with ENOENT before any assertion ran. Changed only tests/enrich-pick.test.js (2 lines): path src/routes.js -> routes.js, and the first comment line now says run from the repo root. No code changed, no version bump, no extension file touched. Checks (real output): before — node tests/enrich-pick.test.js: Error: ENOENT: no such file or directory, open '.../src/routes.js'. After — node tests/enrich-pick.test.js exits 0 and prints 'enrichPick: all tests passed'. All 5 assertion groups pass, so the code is right and only the test path was wrong. node bayready-gate.mjs (no --prev, since no version bump): GATE: green. (With --prev it is red only on 'version 3.21.4 is not newer than the released 3.21.4', expected with no bump.) Not merged (reviewer merges per pipeline). LESSON: A test that cannot even load the code it tests is worse than no test — it silently lets every change go in untested. When a repo is flattened, fix the test's path in the same change, or the only test stays broken.",
+      "lesson": "A test that cannot even load the code it tests is worse than no test — it silently lets every change go in untested. When a repo is flattened, fix the test's path in the same change, or the only test stays broken.",
+      "pr": "https://github.com/giusemc1988/bayready/pull/6",
+      "gate": "green"
     },
     {
       "id": "T20",
@@ -101,9 +105,27 @@
       "updated": "2026-11-14T11:57:18.980Z",
       "by": "pipeline",
       "updatedBy": "hermes-win"
+    },
+    {
+      "id": "T22",
+      "title": "Review: BayReady repo: tests/enrich-pick.test.js cannot run (looks for src/routes.js, repo is flat)",
+      "project": "bayready",
+      "kind": "code",
+      "owner": "milo",
+      "role": "review",
+      "parent": "T19",
+      "pr": "https://github.com/giusemc1988/bayready/pull/6",
+      "risk": "low",
+      "round": 1,
+      "brief": "Review the pull request https://github.com/giusemc1988/bayready/pull/6 for BayReady repo: tests/enrich-pick.test.js cannot run (looks for src/routes.js, repo is flat). You are the REVIEWER: use the other OmniRoute combo (review-hard), not the one the coder used.\nRead the diff and the task. Check: does it do what the task says, does it break anything else, is there a test or check that proves it, does it stay inside the limits (no secrets, nothing deleted, no feature removed).\nRun the gate again yourself. Then write in the RESULT file, in this order: first line DONE; \"VERDICT: APPROVE\" or \"VERDICT: CHANGES\"; \"NOTES: <what to fix, one line>\" when CHANGES; \"GATE: green\" or \"GATE: red\".\nThis is a LOW-risk change. If VERDICT is APPROVE and the gate is green, merge the pull request yourself (squash), check that it is merged, and write \"MERGED: yes\". Otherwise write \"MERGED: no\" and merge nothing.\nNever push the release zip: a release only happens when Chanh says \"phát hành X\".",
+      "status": "todo",
+      "created": "2026-11-14T11:57:21.073Z",
+      "updated": "2026-11-14T11:57:21.073Z",
+      "by": "pipeline",
+      "updatedBy": "hermes-win"
     }
   ],
-  "next": 22,
+  "next": 23,
   "claudeSeen": "2026-11-14T07:12:53.149Z",
   "feed": [
     {
@@ -168,6 +190,20 @@
       "to": "reviewer",
       "text": "T18 coder xong, cổng green, PR https://github.com/giusemc1988/bayready/pull/5",
       "ref": "T18"
+    },
+    {
+      "t": "2026-11-14T11:57:21.073Z",
+      "from": "Milo",
+      "to": "reviewer",
+      "text": "T22 mời xem PR của T19",
+      "ref": "T22"
+    },
+    {
+      "t": "2026-11-14T11:57:21.073Z",
+      "from": "Milo",
+      "to": "reviewer",
+      "text": "T19 coder xong, cổng green, PR https://github.com/giusemc1988/bayready/pull/6",
+      "ref": "T19"
     }
   ],
   "seen": [
