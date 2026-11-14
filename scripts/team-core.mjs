@@ -251,6 +251,7 @@ const CODER_HOW = (t) => [
   `Open a new branch and a pull request in ${t.project === 'bayready' ? 'giusemc1988/bayready (private repo, the real source)' : 'giusemc1988/stock-predict'}. Never push to main.`,
   `Run the gate before you finish (${t.project === 'bayready' ? 'node milo-shared\\bayready-gate.mjs <your checkout>' : 'npm test and npm run build'}). Fix what it says until it is green, or say why you cannot.`,
   'In the RESULT file write, one per line: "PR: <url>", then "GATE: green" or "GATE: red", then what changed.',
+  'Write that RESULT file right after you open the pull request, not at the end of a long session: the board marks the task done and hands the PR to the reviewer only when it reads this file. Keep working on the details afterwards if you must.',
 ]
 const clip = (x, n = 600) => String(x ?? '').replace(/\s+/g, ' ').trim().slice(0, n)
 /** After a pipeline result: coder done → review task; review APPROVE → merged or waits for Chanh; CHANGES / red gate → coder again (3 rounds max). */
