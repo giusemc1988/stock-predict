@@ -200,9 +200,9 @@
       "kind": "code",
       "owner": "milo",
       "brief": "Evidence: giusemc1988/bayready main is 3.21.4 but milo-shared has live 3.21.7 and a built 3.21.8 (newest zip: look in milo-shared for bayready-latest.zip and bayready-v3.21.*.zip, take the highest manifest.json version). PR #5 (tile fix 3.21.5) was built on 3.21.4 and must not be merged.\nDone when: branch import-v3.21.8 from main, replace the repo tree with the highest-version zip contents (no src folder, flat like main; keep .git, tests/, CLAUDE.md, graphify-out if present), run the gate, open ONE pull request, write RESULT right after opening the PR. Do not release, do not touch bayready-latest.zip, do not merge PR #5 (say in RESULT that #5 is outdated).",
-      "status": "running",
+      "status": "done",
       "created": "2026-11-14T13:13:39.757Z",
-      "updated": "2026-11-14T13:27:19.186Z",
+      "updated": "2026-11-14T20:47:21.294Z",
       "by": "claude",
       "updatedBy": "hermes-win",
       "handed": {
@@ -210,7 +210,11 @@
         "machine": "windows"
       },
       "started": "2026-11-14T13:22:19.966Z",
-      "progress": "Step 5: Opening PR"
+      "progress": "Step 5: Opening PR",
+      "result": "DONE PR: https://github.com/giusemc1988/bayready/pull/10 GATE: green BayReady repo, branch import-v3.21.11 from main 3.21.4. Replaced the tree with bayready-v3.21.11.zip contents (the highest-version zip in milo-shared — the task said 3.21.8, but 3.21.11 is the live newest, manifest-verified, so I imported 3.21.11 per the task's own 'take the highest' rule). Flat, no src/. Kept .git, tests/, release-bayready.sh (repo-only). CLAUDE.md identical in both. 5 files changed: background.js, changelog.js, content.js, manifest.json, routes.js (73 insertions, 6 deletions). What 3.21.5-3.21.11 brought (from changelog.js): 3.21.6 Appointment status layout, 3.21.7 MPI moves into Vehicle, 3.21.8 square corner fix, 3.21.9 foldable warranty lines, 3.21.10 squarer text boxes + stuck-95% bar fix, 3.21.11 no repeated info. Checks (real output): node bayready-gate.mjs --prev manifest-3.21.4: GATE: green (3.21.11 > 3.21.4). node tests/enrich-pick.test.js: 'enrichPick: all tests passed', exit 0. PR #5 (tile fix 3.21.5, built on 3.21.4) is OUTDATED — do not merge it; its fix must be redone on the 3.21.11 tree if still needed. Not merged, not released, bayready-latest.zip untouched. LESSON: A task's version number goes stale fast — always take the highest manifest version from the actual zips, not the number written in the task title.",
+      "lesson": "A task's version number goes stale fast — always take the highest manifest version from the actual zips, not the number written in the task title.",
+      "pr": "https://github.com/giusemc1988/bayready/pull/10",
+      "gate": "green"
     },
     {
       "id": "T26",
@@ -264,9 +268,27 @@
       "updated": "2026-11-14T20:47:19.015Z",
       "by": "pipeline",
       "updatedBy": "hermes-win"
+    },
+    {
+      "id": "T29",
+      "title": "Review: BayReady repo: import the live newest version (3.21.8) so the repo is not behind",
+      "project": "bayready",
+      "kind": "code",
+      "owner": "milo",
+      "role": "review",
+      "parent": "T25",
+      "pr": "https://github.com/giusemc1988/bayready/pull/10",
+      "risk": "high",
+      "round": 1,
+      "brief": "Review the pull request https://github.com/giusemc1988/bayready/pull/10 for BayReady repo: import the live newest version (3.21.8) so the repo is not behind. You are the REVIEWER: use the other OmniRoute combo (review-hard), not the one the coder used.\nRead the diff and the task. Check: does it do what the task says, does it break anything else, is there a test or check that proves it, does it stay inside the limits (no secrets, nothing deleted, no feature removed).\nRun the gate again yourself. Then write in the RESULT file, in this order: first line DONE; \"VERDICT: APPROVE\" or \"VERDICT: CHANGES\"; \"NOTES: <what to fix, one line>\" when CHANGES; \"GATE: green\" or \"GATE: red\".\nThis is a HIGH-risk change: do NOT merge. Write \"MERGED: no\". Chanh decides.\nNever push the release zip: a release only happens when Chanh says \"phát hành X\".",
+      "status": "todo",
+      "created": "2026-11-14T20:47:21.294Z",
+      "updated": "2026-11-14T20:47:21.294Z",
+      "by": "pipeline",
+      "updatedBy": "hermes-win"
     }
   ],
-  "next": 29,
+  "next": 30,
   "claudeSeen": "2026-11-14T13:57:56.251Z",
   "feed": [
     {
@@ -443,6 +465,20 @@
       "to": "reviewer",
       "text": "T23 coder xong, cổng green, PR https://github.com/giusemc1988/bayready/pull/9",
       "ref": "T23"
+    },
+    {
+      "t": "2026-11-14T20:47:21.294Z",
+      "from": "Milo",
+      "to": "reviewer",
+      "text": "T29 mời xem PR của T25",
+      "ref": "T29"
+    },
+    {
+      "t": "2026-11-14T20:47:21.294Z",
+      "from": "Milo",
+      "to": "reviewer",
+      "text": "T25 coder xong, cổng green, PR https://github.com/giusemc1988/bayready/pull/10",
+      "ref": "T25"
     }
   ],
   "seen": [

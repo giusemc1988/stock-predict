@@ -13,3 +13,4 @@ Written by itself when a RESULT has a line starting `LESSON:`. Read before a job
 | 2026-11-14 | T21 | bayready | hermes-win | A "did not start" safety timer must check only whether anything was logged, never whether the panel already looks busy — a background read sets running=true, so a timer gated on !running never fires and the tap stays silent. |
 | 2026-11-14 | T22 | bayready | hermes-win | A test that cannot load the code it tests lets every change go in untested — when a repo is flattened, fix the test's path in the same change, or the only test stays broken. |
 | 2026-11-14 | T23 | bayready | hermes-win | Before pushing a new branch, fetch first — a parallel worker may already have created the same branch; use theirs instead of force-pushing over it. |
+| 2026-11-14 | T25 | bayready | hermes-win | A task's version number goes stale fast — always take the highest manifest version from the actual zips, not the number written in the task title. |
