@@ -224,13 +224,22 @@
       "kind": "code",
       "owner": "milo",
       "brief": "Read docs/library/playbooks/bayready-pipeline.md first. The repo giusemc1988/bayready main is behind the real source in milo-shared\\stage74\\src. 1) Clone the repo, create branch sync-stage74. 2) Copy the contents of stage74\\src into it (manifest.json at the repo root, same layout as now); delete nothing in milo-shared. 3) Run node bayready-gate.mjs on the checkout (script is scripts/bayready-gate.mjs in stock-predict) and fix only what blocks it. 4) Open a PR, do not merge it: Chanh or the reviewer decides. 5) Do NOT release or touch bayready-latest.zip. RESULT file: PR: <url>, GATE: green|red, what differs from the old main.",
-      "status": "todo",
+      "status": "cancelled",
       "created": "2026-11-14T04:57:43.399Z",
-      "updated": "2026-11-14T04:57:43.399Z",
+      "updated": "2026-11-14T04:59:45.139Z",
       "by": "claude",
       "updatedBy": "claude"
     }
   ],
   "next": 15,
-  "claudeSeen": "2026-11-14T04:57:43.399Z"
+  "claudeSeen": "2026-11-14T04:59:45.139Z",
+  "feed": [
+    {
+      "t": "2026-11-14T04:59:45.139Z",
+      "from": "Claude",
+      "to": "team",
+      "text": "T14 huỷ: Sync real BayReady source into the bayready repo (branch sync-stage74, PR, no release)",
+      "ref": "T14"
+    }
+  ]
 }
