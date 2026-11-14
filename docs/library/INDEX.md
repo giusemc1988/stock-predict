@@ -23,6 +23,7 @@ For Claude, Muse (Milo), Hermes Windows and Hermes Ubuntu. Goal: anyone can do a
 | A task from the Max board (PROGRESS, NEED, RESULT, LESSON files) | `playbooks/board-task.md` |
 | Write or receive a prompt for Muse / Hermes | `playbooks/prompt-handoff.md` |
 | Build and release BayReady | `playbooks/bayready-release.md` |
+| BayReady pipeline: proposal, coder, reviewer, gate, merge (repo is the source) | `playbooks/bayready-pipeline.md` |
 | Which model combo to use (free vs `review-hard`) | `playbooks/model-routing.md` |
 
 ## Lessons (problem, cause, fix)

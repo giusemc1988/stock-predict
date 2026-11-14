@@ -256,3 +256,71 @@ console.log('team board: Milo hand-off ok')
   assert.equal(doneNone.log.lesson, undefined)
   console.log('team board: GO line and reopen ok')
 }
+
+// ---- pipeline: proposal -> coder -> reviewer -> merge (2.0.43) ----
+{
+  const N2 = '2026-11-14T05:00:00.000Z'
+  let p = emptyTeam()
+  p = applyAction(p, { type: 'propose', title: 'Chip cut at 360', project: 'bayready', risk: 'low', evidence: 'shot 360', check: 'gate green', key: 'chip360', from: 'scout' }, N2, 'scout').state
+  assert.equal(p.tasks[0].status, 'proposed')
+  assert.throws(() => applyAction(p, { type: 'propose', title: 'Chip cut again', project: 'bayready', key: 'chip360' }, N2, 'scout')) // same key: once only
+  assert.equal(needsChanh(p, Date.now()).length, 1)
+  p = applyAction(p, { type: 'approve', id: 'T1' }, N2, 'chanh').state
+  assert.match(taskFile(p.tasks[0]), /Pipeline \(coder, round 1, risk low\)/)
+  // coder done with a PR and a green gate -> a review task for the reviewer appears by itself
+  p = applyAction(p, { type: 'finish', id: 'T1', ok: true, result: 'DONE\nPR: https://github.com/giusemc1988/bayready/pull/5\nGATE: green\nLESSON: none' }, N2, 'milo').state
+  assert.equal(p.tasks[1].role, 'review')
+  assert.match(p.tasks[1].brief, /review-hard/)
+  // reviewer asks for changes -> coder round 2
+  p = applyAction(p, { type: 'finish', id: 'T2', ok: true, result: 'DONE\nVERDICT: CHANGES\nNOTES: add a test\nGATE: green' }, N2, 'milo').state
+  assert.equal(p.tasks[2].round, 2)
+  // red gate on the coder's own result goes straight back, until round 3, then it waits for Chanh
+  let q = p
+  q = applyAction(q, { type: 'finish', id: 'T3', ok: true, result: 'DONE\nPR: https://github.com/giusemc1988/bayready/pull/5\nGATE: red' }, N2, 'milo').state
+  assert.equal(q.tasks[3].round, 3)
+  q = applyAction(q, { type: 'finish', id: 'T4', ok: true, result: 'DONE\nPR: https://github.com/giusemc1988/bayready/pull/5\nGATE: red' }, N2, 'milo').state
+  assert.equal(q.tasks.find((t: { id: string }) => t.id === 'T4').awaiting, true)
+  // approve + low risk + merged: the chain counts as merged; Undo makes a revert task
+  p = applyAction(p, { type: 'finish', id: 'T3', ok: true, result: 'DONE\nPR: https://github.com/giusemc1988/bayready/pull/5\nGATE: green' }, N2, 'milo').state
+  p = applyAction(p, { type: 'finish', id: 'T4', ok: true, result: 'DONE\nVERDICT: APPROVE\nGATE: green\nMERGED: yes' }, N2, 'milo').state
+  assert.equal(p.tasks[0].merged, true)
+  p = applyAction(p, { type: 'followup', id: 'T1', what: 'revert' }, N2, 'chanh').state
+  assert.match(p.tasks.at(-1).title, /^Hoàn tác/)
+  // high risk: reviewer agrees but nothing merges; it waits for Chanh's Merge tap
+  let h = applyAction(emptyTeam(), { type: 'propose', title: 'Change sign-in flow', project: 'bayready', key: 'k2' }, N2, 'scout').state
+  h = applyAction(h, { type: 'approve', id: 'T1' }, N2, 'chanh').state
+  h = applyAction(h, { type: 'finish', id: 'T1', ok: true, result: 'DONE\nPR: https://github.com/x/y/pull/1\nGATE: green' }, N2, 'milo').state
+  h = applyAction(h, { type: 'finish', id: 'T2', ok: true, result: 'DONE\nVERDICT: APPROVE\nGATE: green\nMERGED: no' }, N2, 'milo').state
+  assert.equal(h.tasks[0].awaiting, true)
+  assert.equal(h.tasks[0].merged, undefined)
+  // a dropped proposal is never proposed again
+  let d = applyAction(emptyTeam(), { type: 'propose', title: 'Idea x', project: 'bayready', key: 'k3' }, N2, 'scout').state
+  d = applyAction(d, { type: 'cancel', id: 'T1' }, N2, 'chanh').state
+  assert.throws(() => applyAction(d, { type: 'propose', title: 'Idea x', project: 'bayready', key: 'k3' }, N2, 'scout'))
+  // the browser may only send approve / cancel / followup, never propose or say
+  assert.equal(checkAction({ type: 'propose', title: 'x y z', project: 'bayready' }), null)
+  assert.deepEqual(checkAction({ type: 'followup', id: 'T1', what: 'merge' }), { type: 'followup', id: 'T1', what: 'merge' })
+  assert.equal(p.feed.length > 5, true)
+}
+
+// ---- BayReady gate ----
+{
+  // @ts-expect-error plain JS module
+  const { gate } = await import('./bayready-gate.mjs')
+  const d = mkdtempSync(join(tmpdir(), 'ext-'))
+  writeFileSync(join(d, 'manifest.json'), JSON.stringify({ version: '3.21', manifest_version: 3, background: { service_worker: 'bg.js' } }))
+  writeFileSync(join(d, 'bg.js'), 'const a = 1')
+  assert.deepEqual(gate(d, null), [])
+  assert.match(gate(d, { version: '3.21' })[0], /not newer/)
+  writeFileSync(join(d, 'bg.js'), 'const a = ;')
+  assert.equal(gate(d, null).length, 1)
+  writeFileSync(join(d, 'bg.js'), 'const a = 1\n<<<<<<< HEAD\n')
+  assert.ok(gate(d, null).some((x: string) => /conflict/.test(x)))
+  // @ts-expect-error plain JS module
+  const { scout, scoutDue } = await import('./scout-core.mjs')
+  assert.equal(scout({ src: d }).length, 1)
+  assert.equal(scout({ src: d })[0].key, scout({ src: d })[0].key)
+  assert.equal(scoutDue(undefined, Date.now()), true)
+  assert.equal(scoutDue({ scoutAt: new Date().toISOString() }, Date.now()), false)
+}
+console.log('team board: pipeline (proposal, coder, reviewer, merge, undo) and BayReady gate ok')

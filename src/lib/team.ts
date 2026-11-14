@@ -11,7 +11,7 @@ import { NOVA_REPO } from './studioJobs'
 export type Owner = 'claude' | 'milo' | 'windows' | 'ubuntu'
 export type Project = 'bayready' | 'neohub' | 'atlas' | 'nova' | 'volt' | 'other'
 export type Job = 'status' | 'neohub-test' | 'bayready-pull' | 'bayready-zip'
-export type TaskStatus = 'needs-ok' | 'todo' | 'running' | 'done' | 'failed' | 'cancelled'
+export type TaskStatus = 'proposed' | 'needs-ok' | 'todo' | 'running' | 'done' | 'failed' | 'cancelled'
 
 export interface TeamTask {
   id: string
@@ -40,6 +40,25 @@ export interface TeamTask {
   updatedBy?: string
   /** 2+ when Milo went back to a task the board had closed as failed. */
   tries?: number
+  /** Pipeline: coder writes the change, review checks it (another model), merge is Chanh's go-ahead. */
+  role?: 'coder' | 'review' | 'merge'
+  round?: number
+  parent?: string
+  risk?: 'low' | 'high'
+  pr?: string
+  gate?: 'green' | 'red' | 'unknown'
+  verdict?: 'APPROVE' | 'CHANGES' | ''
+  merged?: boolean
+  /** Waits for Chanh after the pipeline (reviewer agreed on a high-risk change, or 3 rounds were not enough). */
+  awaiting?: boolean
+  from?: string
+}
+export interface FeedLine {
+  t: string
+  from: string
+  to: string
+  text: string
+  ref?: string
 }
 export interface TeamState {
   v: 1
@@ -49,6 +68,8 @@ export interface TeamState {
   next: number
   /** Last time Claude changed or read the board. */
   claudeSeen?: string
+  /** Newest lines of team talk (who said what to whom). */
+  feed?: FeedLine[]
 }
 export interface LogLine {
   time: string
@@ -59,6 +80,7 @@ export interface LogLine {
 export type TeamAction =
   | { type: 'add'; title?: string; project: Project; owner: Owner; kind?: 'code' | 'idea'; job?: Job; red?: boolean; brief?: string }
   | { type: 'approve' | 'cancel'; id: string }
+  | { type: 'followup'; id: string; what: 'merge' | 'revert' }
   | { type: 'driver'; who: 'claude' | 'milo' }
 
 export const PROJECTS = core.PROJECTS as Project[]
@@ -82,6 +104,7 @@ export function checkAction(a: unknown): TeamAction | null {
   if (!a || typeof a !== 'object') return null
   const x = a as Record<string, unknown>
   if (x.type === 'approve' || x.type === 'cancel') return typeof x.id === 'string' && /^T\d{1,6}$/.test(x.id) ? { type: x.type, id: x.id } : null
+  if (x.type === 'followup') return typeof x.id === 'string' && /^T\d{1,6}$/.test(x.id) && (x.what === 'merge' || x.what === 'revert') ? { type: 'followup', id: x.id, what: x.what } : null
   if (x.type === 'driver') return x.who === 'claude' || x.who === 'milo' ? { type: 'driver', who: x.who } : null
   if (x.type !== 'add') return null
   try {

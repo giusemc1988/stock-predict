@@ -2,7 +2,7 @@
  * Version and "What's new". Bump APP_VERSION and add an entry to the top of RELEASES
  * with each update. The banner shows once per version, then stays dismissed.
  */
-export const APP_VERSION = '2.0.42'
+export const APP_VERSION = '2.0.43'
 
 export interface Release {
   version: string
@@ -13,6 +13,12 @@ export interface Release {
 }
 
 export const RELEASES: Release[] = [
+  {
+    version: '2.0.43',
+    date: '2026-11-14',
+    changes: ['Max office: the team now works as a line. A scout (no AI) checks the BayReady source and writes “Proposals”; you tap Approve or Dismiss. Approved work goes to Milo as coder, a second pass by a reviewer (other model) checks it, and an automatic gate must be green. Low-risk changes merge by themselves with an Undo button; high-risk ones wait for your Merge tap. Three rounds at most, then it waits for you. New “Team talk” list shows who told whom what. Releasing BayReady still needs your “phát hành X”.'],
+    changesVi: ['Văn phòng Max: đội giờ làm việc theo dây chuyền. Scout (không dùng AI) kiểm tra code BayReady và ghi “Đề xuất”; anh bấm Duyệt hoặc Huỷ. Việc đã duyệt giao cho Milo viết, rồi người kiểm tra (model khác) xem lại, và cổng tự động phải xanh. Việc rủi ro thấp tự merge và có nút Hoàn tác; việc rủi ro cao chờ anh bấm Merge. Tối đa 3 vòng, quá thì chờ anh. Mục “Đội trao đổi” cho thấy ai nói gì với ai. Phát hành BayReady vẫn cần anh nói “phát hành X”.'],
+  },
   {
     version: '2.0.42',
     date: '2026-11-14',
