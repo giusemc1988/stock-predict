@@ -10,6 +10,7 @@ import { join } from 'node:path'
 import { failedRecent, handedOpen, isOnline, JOBS, MACHINES, nextJob, ONLINE_MS, progressFileName, readProgress, resultFileName, taskFile, taskFileName, toHandOff } from './team-core.mjs'
 import { applyInDir } from './team-apply.mjs'
 import { backupBayReady } from './bayready-backup.mjs'
+import { scout, scoutDue } from './scout-core.mjs'
 
 const arg = (k, d) => {
   const i = process.argv.indexOf(`--${k}`)
@@ -150,6 +151,23 @@ if (miloDir && existsSync(miloDir)) {
       console.log(`result ${t.id} skipped: ${tail(e.message)}`)
     }
   }
+}
+// Scout (no AI): every 6 hours one machine checks the BayReady source and proposes what it finds on the board.
+try {
+  const src = arg('bayready-src')
+  if (src && scoutDue(state().machines[machine], Date.now())) {
+    for (const p of scout({ src })) {
+      try {
+        act({ type: 'propose', ...p, from: 'scout' })
+        console.log(`proposed: ${p.title}`)
+      } catch (e) {
+        console.log(`propose skipped: ${tail(e.message)}`) // already proposed or dropped before
+      }
+    }
+    act({ type: 'beat', machine, note: 'scout done', scout: true })
+  }
+} catch (e) {
+  console.log(`scout failed: ${tail(e.message)}`)
 }
 const s = state()
 const job = nextJob(s, machine)

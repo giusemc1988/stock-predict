@@ -9,7 +9,13 @@ export const OWNERS = ['claude', 'milo', 'windows', 'ubuntu']
 export const PROJECTS = ['bayready', 'neohub', 'atlas', 'nova', 'volt', 'other']
 /** Jobs a machine may run: fixed scripts only (Chanh 2026-11-12: Hermes runs scripts, Claude/Milo write code). */
 export const JOBS = ['status', 'neohub-test', 'bayready-pull', 'bayready-zip']
-export const STATUSES = ['needs-ok', 'todo', 'running', 'done', 'failed', 'cancelled']
+export const STATUSES = ['proposed', 'needs-ok', 'todo', 'running', 'done', 'failed', 'cancelled']
+/** Pipeline roles of a code task: the coder writes the change, the reviewer (another model) checks it. */
+export const ROLES = ['coder', 'review']
+/** A change goes back to the coder at most this many times before it waits for Chanh. */
+export const MAX_ROUNDS = 3
+const MAX_FEED = 60
+const MAX_SEEN = 300
 /** A machine counts as on when its last heartbeat is newer than this. */
 export const ONLINE_MS = 45 * 60 * 1000
 const MAX_TITLE = 300
@@ -19,7 +25,7 @@ const MAX_NOTE = 300
 const MAX_LESSON = 400
 const KEEP_DONE = 40
 
-export const emptyTeam = () => ({ v: 1, driver: { who: 'claude', since: null }, machines: {}, tasks: [], next: 1 })
+export const emptyTeam = () => ({ v: 1, driver: { who: 'claude', since: null }, machines: {}, tasks: [], next: 1, feed: [], seen: [] })
 
 /** Multi-line text (a brief): keeps line breaks, drops other control characters. The repo is public: never put secrets in a brief. */
 const block = (x, max) => (typeof x === 'string' ? x.replace(/\r/g, '').replace(/[^\S\n]+/g, ' ').replace(/\n{3,}/g, '\n\n').trim().slice(0, max) : '')
@@ -37,11 +43,36 @@ const find = (s, id) => {
 export function applyAction(state, a, now, by) {
   const who = text(by, 20) || 'chanh'
   const out = applyOne(state, a, now, who)
+  talk(out.state, a, out.log, now, who)
   // every changed task remembers who touched it last; anything Claude does counts as "Claude has looked"
   const before = new Map((state?.tasks ?? []).map((t) => [t.id, t.updated]))
   for (const t of out.state.tasks) if (before.get(t.id) !== t.updated) t.updatedBy = who
   if (who === 'claude') out.state.claudeSeen = now
   return out
+}
+
+
+/** Short team talk (the "Trao đổi" feed in Max office) written by itself from what happened. No AI. */
+const ROLE_OF = { claude: 'Claude', milo: 'Milo', windows: 'Hermes Windows', ubuntu: 'Hermes Ubuntu', chanh: 'Chanh', scout: 'Scout' }
+const nm = (x) => ROLE_OF[x] ?? text(x, 20)
+function say(s, now, from, to, line, ref = '') {
+  s.feed = [...(s.feed ?? []), { t: now, from: nm(from), to: nm(to), text: text(line, 240), ref }].slice(-MAX_FEED)
+}
+function talk(s, a, log, now, who) {
+  if (!log) return
+  const t = a.id ? s.tasks.find((x) => x.id === a.id) : s.tasks[s.tasks.length - 1]
+  const id = t?.id ?? ''
+  switch (a.type) {
+    case 'propose': return say(s, now, a.from || 'scout', 'chanh', `${id} Đề xuất: ${t.title}`, id)
+    case 'approve': return say(s, now, who, t?.owner ?? 'milo', `${id} duyệt, làm đi: ${t?.title ?? ''}`, id)
+    case 'cancel': return say(s, now, who, 'team', `${id} huỷ: ${t?.title ?? ''}`, id)
+    case 'handoff': return say(s, now, a.machine, 'milo', `${id} đã đưa việc cho Milo`, id)
+    case 'finish':
+      if (!t) return
+      if (t.role === 'review') return say(s, now, 'milo', 'team', `${id} reviewer: ${t.verdict ?? (a.ok ? 'xong' : 'lỗi')}${t.merged ? ', đã merge' : ''}`, id)
+      return say(s, now, 'milo', a.ok ? (t.pr ? 'reviewer' : 'chanh') : 'chanh', `${id} coder ${a.ok ? 'xong' : 'lỗi'}${t.gate ? `, cổng ${t.gate}` : ''}${t.pr ? `, PR ${t.pr}` : ''}`, id)
+    default:
+  }
 }
 
 function applyOne(state, a, now, who) {
@@ -65,9 +96,24 @@ function applyOne(state, a, now, who) {
       s.tasks.push({ id, title, project, kind, owner, ...(kind === 'job' ? { job: a.job } : {}), ...(brief ? { brief } : {}), status: red ? 'needs-ok' : 'todo', created: now, updated: now, by: who })
       return { state: trim(s), log: { who, type: 'ADD', what: `${id} ${title} → ${owner}${red ? ' (needs Chanh OK)' : ''}`, ref: project } }
     }
+    case 'propose': {
+      // a finder (script or model) found something: it waits as an "Đề xuất" until Chanh or Claude taps Duyệt or Huỷ
+      const project = PROJECTS.includes(a.project) ? a.project : 'other'
+      const title = text(a.title, MAX_TITLE)
+      if (title.length < 3) throw new Error('empty title')
+      const key = text(a.key, 80) || `${project}:${title.toLowerCase().slice(0, 60)}`
+      s.seen = s.seen ?? []
+      if (s.seen.includes(key) || s.tasks.some((t) => t.key === key && !['done', 'cancelled', 'failed'].includes(t.status))) throw new Error('already proposed')
+      s.seen = [...s.seen, key].slice(-MAX_SEEN)
+      const risk = a.risk === 'low' ? 'low' : 'high' // unknown = careful
+      const id = `T${s.next++}`
+      const brief = block([a.evidence ? `Evidence: ${a.evidence}` : '', a.check ? `Done when this passes: ${a.check}` : 'No automatic check given: write one first (a test or a script), then fix.'].filter(Boolean).join('\n'), MAX_BRIEF)
+      s.tasks.push({ id, title, project, kind: 'code', owner: 'milo', role: 'coder', round: 1, risk, key, from: nm(a.from || 'scout'), brief, status: 'proposed', created: now, updated: now, by: text(a.from, 20) || who })
+      return { state: trim(s), log: { who, type: 'PROPOSE', what: `${id} ${title} (${risk})`, ref: project } }
+    }
     case 'approve': {
       const t = find(s, a.id)
-      if (t.status !== 'needs-ok') throw new Error('not waiting for OK')
+      if (t.status !== 'needs-ok' && t.status !== 'proposed') throw new Error('not waiting for OK')
       Object.assign(t, { status: 'todo', updated: now })
       return { state: s, log: { who, type: 'OK', what: `${t.id} approved: ${t.title}`, ref: t.project } }
     }
@@ -75,6 +121,7 @@ function applyOne(state, a, now, who) {
       const t = find(s, a.id)
       if (t.status === 'done' || t.status === 'cancelled') throw new Error('already closed')
       Object.assign(t, { status: 'cancelled', updated: now })
+      if (t.key) s.seen = [...new Set([...(s.seen ?? []), t.key])].slice(-MAX_SEEN) // a dropped proposal is not proposed again
       return { state: trim(s), log: { who, type: 'CANCEL', what: `${t.id} ${t.title}`, ref: t.project } }
     }
     case 'claim': {
@@ -116,6 +163,31 @@ function applyOne(state, a, now, who) {
       Object.assign(t, { status: 'running', updated: now, tries: (t.tries ?? 1) + 1 })
       return { state: s, log: { who, type: 'REOPEN', what: `${t.id} Milo is working on it again (try ${t.tries})`, ref: t.project } }
     }
+    case 'followup': {
+      // Chanh taps "Merge" (after the reviewer agreed) or "Hoàn tác" (undo a merge): a small task for Milo, ordered by Chanh himself
+      const t = find(s, a.id)
+      if (!t.pr) throw new Error('no pull request on this task')
+      const merge = a.what === 'merge'
+      if (!merge && a.what !== 'revert') throw new Error('merge or revert')
+      if (merge && t.merged) throw new Error('already merged')
+      if (!merge && !t.merged) throw new Error('not merged')
+      delete t.need
+      delete t.awaiting
+      t.updated = now
+      const id = `T${s.next++}`
+      const brief = merge
+        ? `Merge the pull request ${t.pr} (squash) now: Chanh approved it. Check that it is merged, then write "MERGED: yes" in the RESULT file. Do NOT release the BayReady zip.`
+        : `Undo the merged change of ${t.pr}: open a pull request that reverts it, run the gate, merge it, then write "PR: <url>", "GATE: green|red" and "MERGED: yes". Never release the BayReady zip.`
+      s.tasks.push({ id, title: `${merge ? 'Merge' : 'Hoàn tác'}: ${t.title}`.slice(0, MAX_TITLE), project: t.project, kind: 'code', owner: 'milo', role: 'merge', parent: t.id, pr: t.pr, risk: t.risk ?? 'high', brief, status: 'todo', created: now, updated: now, by: who })
+      return { state: s, log: { who, type: merge ? 'MERGE-OK' : 'REVERT', what: `${t.id} ${t.pr}`, ref: t.project } }
+    }
+    case 'say': {
+      // one line of team talk (a role speaking to another); the feed keeps the newest 60
+      const line = text(a.text, 240)
+      if (line.length < 2) throw new Error('empty line')
+      say(s, now, a.from || who, a.to || 'team', line, text(a.ref, 12))
+      return { state: s, log: null }
+    }
     case 'seen': {
       // Claude is back and has read the board: "new since Claude last looked" starts again from now
       if (who !== 'claude') throw new Error('only Claude marks the board as read')
@@ -129,6 +201,7 @@ function applyOne(state, a, now, who) {
       const lesson = /^none\b/i.test(found) ? '' : found
       Object.assign(t, { status: a.ok ? 'done' : 'failed', updated: now, result: text(a.result, MAX_RESULT), ...(lesson ? { lesson } : {}) })
       delete t.need
+      if (t.kind === 'code' && t.owner === 'milo' && typeof a.result === 'string') pipeline(s, t, a.result, now)
       return { state: trim(s), log: { who, type: a.ok ? 'DONE' : 'FAILED', what: `${t.id} ${t.title}${t.result ? `: ${t.result.slice(0, 120)}` : ''}`, ref: t.project, ...(lesson ? { lesson, id: t.id } : {}) } }
     }
     case 'driver': {
@@ -139,12 +212,84 @@ function applyOne(state, a, now, who) {
     }
     case 'beat': {
       if (!MACHINES.includes(a.machine)) throw new Error('unknown machine')
-      s.machines[a.machine] = { seen: now, note: text(a.note, 200) }
+      s.machines[a.machine] = { ...(s.machines[a.machine]?.scoutAt ? { scoutAt: s.machines[a.machine].scoutAt } : {}), seen: now, note: text(a.note, 200), ...(a.scout ? { scoutAt: now } : {}) }
       return { state: s, log: null }
     }
     default:
       throw new Error(`unknown action ${a.type}`)
   }
+}
+
+
+/** What a result file says in fixed lines: PR: <url>, GATE: green|red, VERDICT: APPROVE|CHANGES, MERGED: yes|no. */
+export function readResult(txt) {
+  const line = (k) => String(txt ?? '').match(new RegExp(`^\\W*${k}:\\s*(.+)$`, 'im'))?.[1]?.trim() ?? ''
+  const gate = /^green/i.test(line('GATE')) ? 'green' : /^red/i.test(line('GATE')) ? 'red' : ''
+  const verdict = /^approve/i.test(line('VERDICT')) ? 'APPROVE' : /^changes/i.test(line('VERDICT')) ? 'CHANGES' : ''
+  return { pr: line('PR').match(/https?:\/\/\S+/)?.[0] ?? '', gate, verdict, merged: /^yes/i.test(line('MERGED')), notes: line('NOTES') }
+}
+const REVIEW_HOW = (t) => [
+  `Review the pull request ${t.pr} for ${t.parentTitle}. You are the REVIEWER: use the other OmniRoute combo (review-hard), not the one the coder used.`,
+  'Read the diff and the task. Check: does it do what the task says, does it break anything else, is there a test or check that proves it, does it stay inside the limits (no secrets, nothing deleted, no feature removed).',
+  'Run the gate again yourself. Then write in the RESULT file, in this order: first line DONE; "VERDICT: APPROVE" or "VERDICT: CHANGES"; "NOTES: <what to fix, one line>" when CHANGES; "GATE: green" or "GATE: red".',
+  t.risk === 'low'
+    ? 'This is a LOW-risk change. If VERDICT is APPROVE and the gate is green, merge the pull request yourself (squash), check that it is merged, and write "MERGED: yes". Otherwise write "MERGED: no" and merge nothing.'
+    : 'This is a HIGH-risk change: do NOT merge. Write "MERGED: no". Chanh decides.',
+  'Never push the release zip: a release only happens when Chanh says "phát hành X".',
+]
+const CODER_HOW = (t) => [
+  `Open a new branch and a pull request in ${t.project === 'bayready' ? 'giusemc1988/bayready (private repo, the real source)' : 'giusemc1988/stock-predict'}. Never push to main.`,
+  `Run the gate before you finish (${t.project === 'bayready' ? 'node milo-shared\\bayready-gate.mjs <your checkout>' : 'npm test and npm run build'}). Fix what it says until it is green, or say why you cannot.`,
+  'In the RESULT file write, one per line: "PR: <url>", then "GATE: green" or "GATE: red", then what changed.',
+]
+const clip = (x, n = 600) => String(x ?? '').replace(/\s+/g, ' ').trim().slice(0, n)
+/** After a pipeline result: coder done → review task; review APPROVE → merged or waits for Chanh; CHANGES / red gate → coder again (3 rounds max). */
+function pipeline(s, t, txt, now) {
+  const r = readResult(txt)
+  if (t.role === 'merge') {
+    const parent = s.tasks.find((x) => x.id === t.parent)
+    if (parent && t.status === 'done' && r.merged) parent.merged = !/^Hoàn tác/.test(t.title)
+    return
+  }
+  if (t.role === 'review') {
+    const parent = s.tasks.find((x) => x.id === t.parent)
+    t.verdict = r.verdict
+    t.merged = r.merged
+    if (!parent) return
+    if (t.status === 'failed' || !r.verdict) return waitChanh(s, parent, 'reviewer chưa cho kết luận rõ', now)
+    if (r.verdict === 'APPROVE' && r.gate !== 'red') {
+      parent.pr = parent.pr || t.pr
+      if (r.merged && parent.risk === 'low') {
+        for (let p = parent, n = 0; p && n < 6; p = s.tasks.find((x) => x.id === p.parent), n++) p.merged = true // the whole chain counts as merged
+        return say(s, now, 'milo', 'chanh', `${parent.id} đã merge (rủi ro thấp). Cần thì bấm Hoàn tác.`, parent.id)
+      }
+      return waitChanh(s, parent, 'reviewer đồng ý, chờ anh Duyệt merge', now)
+    }
+    return again(s, parent, r.notes || 'reviewer yêu cầu sửa', now)
+  }
+  if (t.role === 'coder' || !t.role) {
+    if (t.status !== 'done') return
+    t.pr = r.pr
+    t.gate = r.gate || 'unknown'
+    if (!t.pr) return // nothing to review (an answer, not a change)
+    if (t.gate === 'red') return again(s, t, 'cổng kiểm tra còn đỏ', now)
+    const id = `T${s.next++}`
+    s.tasks.push({ id, title: `Review: ${t.title}`.slice(0, MAX_TITLE), project: t.project, kind: 'code', owner: 'milo', role: 'review', parent: t.id, pr: t.pr, risk: t.risk ?? 'high', round: t.round ?? 1, brief: block(REVIEW_HOW({ ...t, parentTitle: t.title }).join('\n'), MAX_BRIEF), status: 'todo', created: now, updated: now, by: 'pipeline' })
+    say(s, now, 'milo', 'reviewer', `${id} mời xem PR của ${t.id}`, id)
+  }
+}
+function again(s, t, why, now) {
+  const round = (t.round ?? 1) + 1
+  if (round > MAX_ROUNDS) return waitChanh(s, t, `sau ${MAX_ROUNDS} vòng vẫn chưa xong: ${clip(why, 120)}`, now)
+  const id = `T${s.next++}`
+  s.tasks.push({ id, title: `Sửa lại (vòng ${round}): ${t.title}`.slice(0, MAX_TITLE), project: t.project, kind: 'code', owner: 'milo', role: 'coder', parent: t.id, pr: t.pr, risk: t.risk ?? 'high', round, key: t.key, brief: block(`${t.brief ?? ''}\n\nReviewer / gate says: ${clip(why)}\nFix it on the SAME branch and pull request (${t.pr || 'none yet'}), then run the gate again.`, MAX_BRIEF), status: 'todo', created: now, updated: now, by: 'pipeline' })
+  say(s, now, 'reviewer', 'milo', `${id} cần sửa: ${clip(why, 100)}`, id)
+}
+function waitChanh(s, t, why, now) {
+  t.need = clip(why, MAX_NOTE)
+  t.awaiting = true
+  t.updated = now
+  say(s, now, 'milo', 'chanh', `${t.id} chờ anh: ${t.need}`, t.id)
 }
 
 /** Keep every open task and only the newest closed ones. */
@@ -179,7 +324,7 @@ export function readProgress(txt) {
 /** Tasks someone else changed after Claude last looked: what Claude reads first when back. */
 export const sinceClaude = (s) => s.tasks.filter((t) => t.updatedBy !== 'claude' && (!s.claudeSeen || t.updated > s.claudeSeen) && (s.claudeSeen || !['done', 'cancelled'].includes(t.status)))
 /** What needs Chanh now: red tasks, Milo asking for something, a failure, or a hand-off nobody opened. */
-export const needsChanh = (s, nowMs) => s.tasks.filter((t) => t.status === 'needs-ok' || !!t.need || isStuck(t, nowMs) || (t.status === 'failed' && nowMs - Date.parse(t.updated) < 24 * 3600 * 1000))
+export const needsChanh = (s, nowMs) => s.tasks.filter((t) => t.status === 'needs-ok' || t.status === 'proposed' || t.awaiting || !!t.need || isStuck(t, nowMs) || (t.status === 'failed' && nowMs - Date.parse(t.updated) < 24 * 3600 * 1000))
 /** Milo's own standing rule is "write a prompt first, then wait for 'Do this prompt'". A board task is already that order. */
 export const GO = (by) =>
   `GO: this task is the order to act, ${by === 'claude' ? 'given by Claude on Chanh\'s standing order' : 'given by Chanh himself with the Give button on the Max board'}. It already counts as his "Do this prompt". Start the work now. Do NOT answer with another prompt, do NOT ask him to paste anything or to type "do this prompt". Stop only for a real question (write it as NEED:) or a step that cannot be undone.`
@@ -200,6 +345,7 @@ export function taskFile(t) {
     `Goal: ${t.title}`,
     '',
     t.brief ? `Steps and limits:\n${t.brief}` : 'No extra brief: do exactly the goal above and nothing else.',
+    ...(t.role === 'coder' && t.risk ? ['', `Pipeline (coder, round ${t.round ?? 1}, risk ${t.risk}):`, ...CODER_HOW(t)] : []),
     '',
     'Rules: delete nothing, no secrets in files or chat, never remove a feature, free tools only, do not merge or deploy.',
     ...HOW(t.id),

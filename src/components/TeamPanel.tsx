@@ -41,6 +41,22 @@ const T = {
   dLesson: { en: 'Lesson for the team', vi: 'Bài học cho đội' },
   dLast: { en: 'Last change', vi: 'Thay đổi cuối' },
   dClaude: { en: 'waits for Claude (when Claude has limit)', vi: 'chờ Claude (khi Claude còn limit)' },
+  feedT: { en: 'Team talk', vi: 'Đội trao đổi' },
+  feedHow: { en: 'Finder, coder and reviewer talk here by themselves. You only check, approve and give work.', vi: 'Người tìm việc, người viết code và người kiểm tra tự nói chuyện ở đây. Anh chỉ kiểm tra, duyệt và giao việc.' },
+  feedNone: { en: 'Nothing said yet.', vi: 'Chưa có trao đổi.' },
+  propT: { en: 'Proposals', vi: 'Đề xuất' },
+  propHow: { en: 'Found by the team. Approve = it goes to the coder. Dismiss = it never comes back.', vi: 'Do đội tự tìm ra. Duyệt = giao cho người viết code. Huỷ = không đề xuất lại.' },
+  dismiss: { en: 'Dismiss', vi: 'Huỷ' },
+  lowRisk: { en: 'low risk', vi: 'rủi ro thấp' },
+  highRisk: { en: 'needs your OK to merge', vi: 'merge cần anh duyệt' },
+  roleReview: { en: 'reviewer', vi: 'người kiểm tra' },
+  roleCoder: { en: 'coder', vi: 'người viết' },
+  roleMerge: { en: 'merge / undo', vi: 'merge / hoàn tác' },
+  round: { en: 'round', vi: 'vòng' },
+  gate: { en: 'Gate', vi: 'Cổng' },
+  mergeNow: { en: 'Merge', vi: 'Merge' },
+  undo: { en: 'Undo', vi: 'Hoàn tác' },
+  merged: { en: 'merged', vi: 'đã merge' },
   learn: { en: 'What the team learned', vi: 'Đội đã rút kinh nghiệm' },
   learnHow: { en: 'Every finished task ends with one lesson. They are saved in the Max library so Claude, Muse and Hermes read them before the next job.', vi: 'Mỗi việc xong đều kết thúc bằng một bài học. Bài học được lưu trong thư viện Max để Claude, Muse và Hermes đọc trước việc sau.' },
   learnNone: { en: 'No lessons yet.', vi: 'Chưa có bài học nào.' },
@@ -99,6 +115,7 @@ const JOB_NAME: Record<Job, Bi> = {
   'bayready-zip': { en: 'BayReady: build zip', vi: 'BayReady: đóng gói zip' },
 }
 const STATUS: Record<TeamTask['status'], Bi> = {
+  proposed: { en: 'Proposal', vi: 'Đề xuất' },
   'needs-ok': { en: 'Needs your OK', vi: 'Chờ anh duyệt' },
   todo: { en: 'Waiting', vi: 'Chờ làm' },
   running: { en: 'Working', vi: 'Đang làm' },
@@ -208,8 +225,8 @@ export function TeamPanel() {
   const urgent = team ? needsChanh(team, now) : []
   const lessons = team ? team.tasks.filter((t) => t.lesson).slice(-5).reverse() : []
   const news = team ? sinceClaude(team) : []
-  const why = (t: TeamTask) => (t.status === 'needs-ok' ? L('rRed') : t.need ? `${L('rNeed')}: ${t.need}` : t.status === 'failed' ? `${L('rFail')}: ${(t.result ?? '').slice(0, 140)}` : L('rStuck'))
-  const open = team ? team.tasks.filter((t) => t.status !== 'done' && t.status !== 'cancelled' && t.status !== 'failed') : []
+  const why = (t: TeamTask) => (t.status === 'proposed' ? L('propT') : t.awaiting && t.need ? t.need : t.status === 'needs-ok' ? L('rRed') : t.need ? `${L('rNeed')}: ${t.need}` : t.status === 'failed' ? `${L('rFail')}: ${(t.result ?? '').slice(0, 140)}` : L('rStuck'))
+  const open = team ? team.tasks.filter((t) => (t.status !== 'done' && t.status !== 'cancelled' && t.status !== 'failed') || t.awaiting) : []
   const closed = team ? team.tasks.filter((t) => !open.includes(t)).slice(-5).reverse() : []
 
   return (
@@ -343,7 +360,8 @@ export function TeamPanel() {
                     <li key={t.id} className={`vt-row tp-t s-${t.status}`}>
                       <div>
                         <b>{t.id}</b> {t.title}
-                        <div className="small muted">{t.project} · {OWNER_NAME[t.owner][lang]} · <span className="tp-st">{STATUS[t.status][lang]}</span></div>
+                        <div className="small muted">{t.project} · {OWNER_NAME[t.owner][lang]} · <span className="tp-st">{STATUS[t.status][lang]}</span>{t.role && ` · ${t.role === 'review' ? L('roleReview') : t.role === 'merge' ? L('roleMerge') : L('roleCoder')}${t.round && t.round > 1 ? ` (${L('round')} ${t.round})` : ''}`}{t.risk && ` · ${t.risk === 'low' ? L('lowRisk') : L('highRisk')}`}{t.gate && ` · ${L('gate')} ${t.gate}`}{t.merged && ` · ${L('merged')}`}</div>
+                        {t.pr && <div className="small"><a href={t.pr} target="_blank" rel="noopener noreferrer">PR</a></div>}
                         {t.owner === 'milo' && t.kind === 'code' && t.status !== 'needs-ok' && t.status !== 'cancelled' && (
                           <ol className="tp-steps" aria-label={STATUS[t.status][lang]}>
                             {(['st1', 'st2', 'st3', 'st4'] as const).map((k, i) => (
@@ -379,9 +397,11 @@ export function TeamPanel() {
                         </ul>
                       </div>
                       <div className="ag-acts">
-                        {t.status === 'needs-ok' && <button className="btn primary" disabled={busy} onClick={() => void act({ type: 'approve', id: t.id })}>{L('ok')}</button>}
+                        {(t.status === 'needs-ok' || t.status === 'proposed') && <button className="btn primary" disabled={busy} onClick={() => void act({ type: 'approve', id: t.id })}>{L('ok')}</button>}
+                        {t.pr && t.awaiting && !t.merged && <button className="btn primary" disabled={busy} onClick={() => void act({ type: 'followup', id: t.id, what: 'merge' })}>{L('mergeNow')}</button>}
+                        {t.pr && t.merged && <button className="btn" disabled={busy} onClick={() => void act({ type: 'followup', id: t.id, what: 'revert' })}>{L('undo')}</button>}
                         {t.owner === 'milo' && t.kind === 'code' && (t.status === 'todo' || t.status === 'running') && <button className="btn" onClick={() => void copyText(miloPrompt([t], imgs.length))}>{L('copyOne')}</button>}
-                        {(t.status === 'needs-ok' || t.status === 'todo') && <button className="btn" disabled={busy} onClick={() => void act({ type: 'cancel', id: t.id })}>{L('cancel')}</button>}
+                        {(t.status === 'needs-ok' || t.status === 'todo' || t.status === 'proposed') && <button className="btn" disabled={busy} onClick={() => void act({ type: 'cancel', id: t.id })}>{t.status === 'proposed' ? L('dismiss') : L('cancel')}</button>}
                       </div>
                     </li>
                   ))}
@@ -389,6 +409,16 @@ export function TeamPanel() {
               )}
             </div>
             <div className="tp-side">
+            <details className="tp-log" open>
+              <summary><b>{L('feedT')} ({(team.feed ?? []).length})</b></summary>
+              <p className="muted small">{L('feedHow')}</p>
+              {(team.feed ?? []).length ? (
+                <ul className="tp-plain">
+                  {[...(team.feed ?? [])].reverse().slice(0, 25).map((f, i) => <li key={i} className="small"><span className="muted">{hm(f.t)}</span> <b>{f.from}</b> → {f.to}: {f.text}</li>)}
+                </ul>
+              ) : <p className="muted small">{L('feedNone')}</p>}
+              {open.some((t) => t.status === 'proposed') && <p className="muted small">{L('propT')}: {L('propHow')}</p>}
+            </details>
             <details className="tp-log" open={lessons.length > 0}>
               <summary><b>{L('learn')} ({lessons.length})</b></summary>
               <p className="muted small">{L('learnHow')}</p>
