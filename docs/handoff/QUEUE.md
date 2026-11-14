@@ -12,13 +12,10 @@ Driver: **claude** since 2026-11-14 00:25 UTC.
 | T22 | Review: BayReady repo: tests/enrich-pick.test.js cannot run (looks for src/routes.js, repo is flat) | bayready | milo | running | 2026-11-14 12:47 |  |
 | T23 | TEST of the wake-up script (harmless): comment-only change in giusemc1988/bayready | bayready | milo | running | 2026-11-14 12:22 |  |
 | T24 | TEST of the wake-up script (harmless): comment-only change in giusemc1988/bayready | bayready | milo | done | 2026-11-14 12:37 | DONE Changed: Added "// wake-up test, safe to ignore" comment line at top of README.md in giusemc1988/bayready Version: N/A (test PR, no version bump) Checks run: - Branch created: wake-test2 - Commit: wake-up test: add comment line - README.md first 3 lines verified: "// wake-up test, safe to ignore" is present - PR opened: https://github.com/giusemc1988/bayready/pull/8 LESSON: none |
+| T25 | BayReady repo: import the live newest version (3.21.8) so the repo is not behind | bayready | milo | todo | 2026-11-14 13:13 |  |
 
-## New since Claude last looked (2026-11-14 12:21 UTC)
+## New since Claude last looked (2026-11-14 13:13 UTC)
 
 Claude: read this first when back, check each one against real files, then run the `seen` action (team-update.yml, who=claude).
 
-- T18 **done** by hermes-win at 2026-11-14 12:52: BayReady: Chat home tiles Appointment status and Today's services show nothing when tapped | NEEDS: reviewer đồng ý, chờ anh Duyệt merge | at: picked up T18 (bayready tiles show nothing when tapped); reading the tile path in content.js/background.js/routes.js from main v3.21.4 | result: DONE PR: https://github.com/giusemc1988/bayready/pull/5 GATE: green Suspect: 3 (wait before first log) BayReady 3.21.5 (from main 3.21.4, branch tiles-fix). Tapping Appointment status or Today's servi
-- T21 **done** by hermes-win at 2026-11-14 12:52: Review: BayReady: Chat home tiles Appointment status and Today's services show nothing when tapped | at: Đang phân tích diff và kiểm tra tính đúng đắn | result: DONE VERDICT: APPROVE GATE: green MERGED: no Version: 3.21.5 (from 3.21.4) SUMMARY: BayReady: Chat home tiles Appointment status and Today's services show nothing when tapped CHANGES MADE: 1. routes.j
-- T22 **running** by hermes-win at 2026-11-14 12:47: Review: BayReady repo: tests/enrich-pick.test.js cannot run (looks for src/routes.js, repo is flat) | at: Reviewing BayReady PR #6: tests/enrich-pick.test.js path fix
-- T23 **running** by hermes-win at 2026-11-14 12:22: TEST of the wake-up script (harmless): comment-only change in giusemc1988/bayready | at: Bắt đầu task: comment test wake-up script trong bayready.
-- T24 **done** by hermes-win at 2026-11-14 12:37: TEST of the wake-up script (harmless): comment-only change in giusemc1988/bayready | at: Added comment line to README.md, creating branch wake-test2 | result: DONE Changed: Added "// wake-up test, safe to ignore" comment line at top of README.md in giusemc1988/bayready Version: N/A (test PR, no version bump) Checks run: - Branch created: wake-test2 - Commit
+- nothing
