@@ -58,3 +58,4 @@ The copy of this file on `main` is frozen history up to 2026-11-11.
 | 2026-11-14 00:24 | chanh | OUT | driver: milo |  | — |
 | 2026-11-14 00:25 | chanh | CLAUDE-BACK | driver: claude |  | — |
 | 2026-11-14 02:56 | chanh | ADD | T12 BayReady: hàng chip dưới tên xe bị cắt bên phải, chữ cảnh báo bị cụt. Sửa cho thấy đủ, ở cả 360, 390 và 820px." Thêm ảnh bằng nút thêm/dán ảnh → milo | neohub | — |
+| 2026-11-14 02:57 | hermes-win | HANDOFF | T12 file written for Milo on windows | neohub | — |

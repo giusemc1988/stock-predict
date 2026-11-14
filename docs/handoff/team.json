@@ -189,9 +189,13 @@
       "owner": "milo",
       "status": "todo",
       "created": "2026-11-14T02:56:24.872Z",
-      "updated": "2026-11-14T02:56:24.872Z",
+      "updated": "2026-11-14T02:57:19.480Z",
       "by": "chanh",
-      "updatedBy": "chanh"
+      "updatedBy": "hermes-win",
+      "handed": {
+        "at": "2026-11-14T02:57:19.480Z",
+        "machine": "windows"
+      }
     }
   ],
   "next": 13,
