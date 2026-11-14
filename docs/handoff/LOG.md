@@ -116,3 +116,4 @@ The copy of this file on `main` is frozen history up to 2026-11-11.
 | 2026-11-14 20:47 | hermes-win | START | T27 picked up T27 (layout fix: text overflow, MPI 4 tires only, status board smaller); branching from the 3.21.11 tree (import-v3.21.11) since main is still 3.21.4 | neohub | — |
 | 2026-11-14 20:52 | hermes-win | HANDOFF | T28 file written for Milo on windows | bayready | — |
 | 2026-11-14 20:52 | hermes-win | HANDOFF | T29 file written for Milo on windows | bayready | — |
+| 2026-11-14 20:52 | hermes-win | DONE | T27 BayReady — sửa layout theo hình anh gửi (đang chạy v3.21.11). Chỉ sửa 3 chỗ dưới đây. Không đổi màu, không đổi style board, không bỏ tính nă… (full text in the brief): DONE PR: https://github.com/giusemc1988/bayready/pull/11 GATE: green BayReady repo, branch layout-fix from the 3.21.11 t | neohub | — |

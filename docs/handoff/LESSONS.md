@@ -14,3 +14,4 @@ Written by itself when a RESULT has a line starting `LESSON:`. Read before a job
 | 2026-11-14 | T22 | bayready | hermes-win | A test that cannot load the code it tests lets every change go in untested — when a repo is flattened, fix the test's path in the same change, or the only test stays broken. |
 | 2026-11-14 | T23 | bayready | hermes-win | Before pushing a new branch, fetch first — a parallel worker may already have created the same branch; use theirs instead of force-pushing over it. |
 | 2026-11-14 | T25 | bayready | hermes-win | A task's version number goes stale fast — always take the highest manifest version from the actual zips, not the number written in the task title. |
+| 2026-11-14 | T27 | neohub | hermes-win | When the repo is behind the live build, branch the fix from the import branch (the live tree), not from main — a fix built on the stale main would miss the live version's changes. |
