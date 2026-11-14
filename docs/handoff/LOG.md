@@ -93,3 +93,4 @@ The copy of this file on `main` is frozen history up to 2026-11-11.
 | 2026-11-14 12:02 | hermes-win | HANDOFF | T21 file written for Milo on windows | bayready | — |
 | 2026-11-14 12:02 | hermes-win | HANDOFF | T22 file written for Milo on windows | bayready | — |
 | 2026-11-14 12:14 | claude | ADD | T23 TEST of the wake-up script (harmless): comment-only change in giusemc1988/bayready → milo | bayready | — |
+| 2026-11-14 12:17 | hermes-win | HANDOFF | T23 file written for Milo on windows | bayready | — |

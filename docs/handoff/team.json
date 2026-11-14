@@ -141,9 +141,13 @@
       "brief": "This is a wiring test, nothing real. In giusemc1988/bayready add ONE comment line \"// wake-up test, safe to ignore\" at the very top of routes.js. No other change, no version bump. Branch name wake-test. Open a pull request and write RESULT right after it opens (PR: and GATE: lines). Do NOT merge, do NOT release.",
       "status": "todo",
       "created": "2026-11-14T12:14:04.971Z",
-      "updated": "2026-11-14T12:14:04.971Z",
+      "updated": "2026-11-14T12:17:19.407Z",
       "by": "claude",
-      "updatedBy": "claude"
+      "updatedBy": "hermes-win",
+      "handed": {
+        "at": "2026-11-14T12:17:19.407Z",
+        "machine": "windows"
+      }
     }
   ],
   "next": 24,
@@ -239,6 +243,13 @@
       "to": "Milo",
       "text": "T22 đã đưa việc cho Milo",
       "ref": "T22"
+    },
+    {
+      "t": "2026-11-14T12:17:19.407Z",
+      "from": "Hermes Windows",
+      "to": "Milo",
+      "text": "T23 đã đưa việc cho Milo",
+      "ref": "T23"
     }
   ],
   "seen": [
