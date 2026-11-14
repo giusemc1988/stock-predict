@@ -40,6 +40,7 @@ export const TRIAL_LEDGER = {
   ensembles: 2, // survivors-only and all-sleeves portfolios
   momentumRound5: MOMENTUM_TRIALS, // M1-M4: 12-1 momentum, stocks and ETFs, with and without the trend filter
   shortRound6: SHORT_TRIALS, // S1-S4: short side (fade spike, weak-market break-down, 12-1 losers, overnight losers)
+  setups15m7: 40, // 2026-11-14 Atlas 15m setup study (SPEC.md): 8 setups S1-S8 plus 3 baselines, ~10 variations each of red-to-green and opening drive; L5/L6 shadow. Judged on the same 60 days of 15m bars as the 340 rules, so not counted in HOLDOUT_TRIALS
 }
 export const ALL_ROUNDS_TRIALS = Object.values(TRIAL_LEDGER).reduce((a, b) => a + b, 0)
 /** Trials judged on the recent years (the daily labs' exam since 2020 and the factory's vault since 2023): every
@@ -47,7 +48,7 @@ export const ALL_ROUNDS_TRIALS = Object.values(TRIAL_LEDGER).reduce((a, b) => a 
  *  Atlas's own trades, a different data set. The Deflated Sharpe of an idea counts the ideas that were judged on
  *  the same data as it (lab audit 2026-11-02): ideas that only ever saw other data cannot have made it lucky there.
  *  The bar still rises with every new idea judged on these years. */
-export const HOLDOUT_TRIALS = ALL_ROUNDS_TRIALS - TRIAL_LEDGER.replay15mRules
+export const HOLDOUT_TRIALS = ALL_ROUNDS_TRIALS - TRIAL_LEDGER.replay15mRules - TRIAL_LEDGER.setups15m7
 /** Trials counted by the Deflated Sharpe of a single idea and of an ensemble. */
 export const SINGLE_TRIALS = HOLDOUT_TRIALS
 export const ENSEMBLE_TRIALS = HOLDOUT_TRIALS

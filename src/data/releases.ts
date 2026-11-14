@@ -2,7 +2,7 @@
  * Version and "What's new". Bump APP_VERSION and add an entry to the top of RELEASES
  * with each update. The banner shows once per version, then stays dismissed.
  */
-export const APP_VERSION = '2.0.39'
+export const APP_VERSION = '2.0.40'
 
 export interface Release {
   version: string
@@ -13,6 +13,12 @@ export interface Release {
 }
 
 export const RELEASES: Release[] = [
+  {
+    version: '2.0.40',
+    date: '2026-11-14',
+    changes: ['Atlas 1.3.12: two new shadow-only setups, L5 "Red to green" and L6 "Opening drive". After the close Atlas looks at every name that gapped up 3%+ at the open, replays its day, and records what each setup would have done (entry, stop, exit, result). No real paper trade is touched. The study showed about +1.2% and +0.85% per trade, but only in-sample, so they are judged again after about 50 shadow signals each.'],
+    changesVi: ['Atlas 1.3.12: thêm hai mẫu chạy bóng L5 "Đỏ sang xanh" và L6 "Đà mở cửa". Sau giờ đóng cửa Atlas xem mọi mã gap tăng từ 3% lúc mở cửa, chạy lại phiên đó và ghi lại mỗi mẫu sẽ làm gì (giá vào, cắt lỗ, giá ra, kết quả). Không đụng đến lệnh luyện tập thật. Nghiên cứu cho thấy khoảng +1,2% và +0,85% mỗi lệnh nhưng mới trên dữ liệu cũ, nên sẽ chấm lại sau khoảng 50 tín hiệu bóng mỗi mẫu.'],
+  },
   {
     version: '2.0.39',
     date: '2026-11-13',
