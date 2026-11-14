@@ -9,4 +9,9 @@
   4. After an auto-update, tabs that were already open (Scheduling, TIS, Inspect) keep the OLD code: press F5 on them, then Reload the extension.
   5. Device rule: CN88 (Windows) is the always-on machine. A cloud thread bound to the Ubuntu Surface cannot see CN88; use a Remote Control session on the CN88 folder, never assume "not connected" means CN88 is off. Anything Chanh must click has to work from the machine he is at.
   6. Release only when Chanh says "phát hành X". A merge never updates a machine.
+  7. After an auto-update, tabs that were already open keep the old content script and every call to them fails with "message channel closed". Recover by reloading the agent / Scheduling tabs once. Never reload a tab the user may be typing in.
+  8. Mock tests never caught the blank Chat or the dozens of hidden Inspect tabs on the real shop pages. After a release, look at the real page and watch the tab count.
+  9. Release small: one change per version, so a rollback is cheap.
+  10. The updater installs only a HIGHER version (tuple compare). A rollback is the old code under a higher number (3.19 code released as 3.21.1, then 3.21.2). `bayready-check-latest.py` FAILs on purpose in that case: that is expected, not a bug.
+  11. Never run unbounded hidden-tab opens. Caps now: 6 per 2 minutes, 8 hidden pages in total.
 - **Check:** `node scripts/bayready-gate.mjs <folder>` prints `GATE: green`, and `manifest.json` version matches what Chanh confirmed.
