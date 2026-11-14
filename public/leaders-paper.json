@@ -1,6 +1,6 @@
 {
- "generated": "2026-11-13T02:08:30.956Z",
- "asOf": "2026-11-11",
+ "generated": "2026-11-14T01:47:20.932Z",
+ "asOf": "2026-11-13",
  "strategy": "leaders-tight-base",
  "score": {
   "graded": 1,
@@ -14,20 +14,20 @@
  },
  "watching": [
   {
-   "symbol": "SYRE",
-   "setupDay": "2026-11-05",
-   "entry": 100.42,
-   "stop": 95.33,
-   "adr": 5.07,
-   "age": 4
-  },
-  {
    "symbol": "TRAX",
    "setupDay": "2026-11-09",
    "entry": 50.41,
    "stop": 46.48,
    "adr": 7.8,
-   "age": 2
+   "age": 3
+  },
+  {
+   "symbol": "BHC",
+   "setupDay": "2026-11-13",
+   "entry": 8.56,
+   "stop": 8.16,
+   "adr": 5.01,
+   "age": 0
   }
  ],
  "open": [],
