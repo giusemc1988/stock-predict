@@ -1,4 +1,4 @@
-driver: Milo since 2026-11-14 00:24 UTC
+driver: Claude since 2026-11-14 00:25 UTC
 
 # Handoff log (LIVE copy, branch `handoff-log`)
 
@@ -56,3 +56,4 @@ The copy of this file on `main` is frozen history up to 2026-11-11.
 | 2026-11-13 05:27 | hermes-win | START | T11 Dang tim co che dang nhap cua trang Max va xem Claude vua doi gi (git log/diff tren CN88). | neohub | — |
 | 2026-11-13 05:32 | hermes-win | FAILED | T11 Mục tiêu: Kiểm tra nguyên nhân trang Max (Neo Hub) vẫn chưa đăng nhập được sau các thay đổi của Claude, khắc phục dứt điểm và xác nhận hệ th… (full text in the brief): FAILED Em chưa sửa được lỗi đăng nhập vì chưa thấy màn hình lỗi — ảnh anh đính kèm ở task T11 chỉ nằm trên máy anh, chưa | neohub | — |
 | 2026-11-14 00:24 | chanh | OUT | driver: milo |  | — |
+| 2026-11-14 00:25 | chanh | CLAUDE-BACK | driver: claude |  | — |
