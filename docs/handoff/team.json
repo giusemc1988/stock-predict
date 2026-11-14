@@ -229,9 +229,27 @@
       "updated": "2026-11-14T04:59:45.139Z",
       "by": "claude",
       "updatedBy": "claude"
+    },
+    {
+      "id": "T15",
+      "title": "BayReady: kiểm tra tự động báo 1 lỗi trong code nguồn",
+      "project": "bayready",
+      "kind": "code",
+      "owner": "milo",
+      "role": "coder",
+      "round": 1,
+      "risk": "low",
+      "key": "bayready-gate:3b6f8610",
+      "from": "Scout",
+      "brief": "Evidence: com.bayready.updater.json: invalid JSON\nDone when this passes: node bayready-gate.mjs <source folder> prints \"GATE: green\"",
+      "status": "proposed",
+      "created": "2026-11-14T05:02:22.768Z",
+      "updated": "2026-11-14T05:02:22.768Z",
+      "by": "scout",
+      "updatedBy": "hermes-win"
     }
   ],
-  "next": 15,
+  "next": 16,
   "claudeSeen": "2026-11-14T04:59:45.139Z",
   "feed": [
     {
@@ -240,6 +258,16 @@
       "to": "team",
       "text": "T14 huỷ: Sync real BayReady source into the bayready repo (branch sync-stage74, PR, no release)",
       "ref": "T14"
+    },
+    {
+      "t": "2026-11-14T05:02:22.768Z",
+      "from": "Scout",
+      "to": "Chanh",
+      "text": "T15 Đề xuất: BayReady: kiểm tra tự động báo 1 lỗi trong code nguồn",
+      "ref": "T15"
     }
+  ],
+  "seen": [
+    "bayready-gate:3b6f8610"
   ]
 }

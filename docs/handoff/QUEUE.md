@@ -19,9 +19,11 @@ Driver: **claude** since 2026-11-14 00:25 UTC.
 | T12 | BayReady: hàng chip dưới tên xe bị cắt bên phải, chữ cảnh báo bị cụt. Sửa cho thấy đủ, ở cả 360, 390 và 820px." Thêm ảnh bằng nút thêm/dán ảnh | neohub | milo | cancelled | 2026-11-14 02:58 |  |
 | T13 | BayReady 3.21 — dọn giao diện cho gọn, KHÔNG bỏ tính năng nào (trừ ô complaints, anh đã đồng ý bỏ): 1. Tab Chat: thu nhỏ chữ, nút, khoảng tr… (full text in the brief) | neohub | milo | running | 2026-11-14 05:02 |  |
 | T14 | Sync real BayReady source into the bayready repo (branch sync-stage74, PR, no release) | bayready | milo | cancelled | 2026-11-14 04:59 |  |
+| T15 | BayReady: kiểm tra tự động báo 1 lỗi trong code nguồn | bayready | milo | proposed | 2026-11-14 05:02 |  |
 
 ## New since Claude last looked (2026-11-14 04:59 UTC)
 
 Claude: read this first when back, check each one against real files, then run the `seen` action (team-update.yml, who=claude).
 
 - T13 **running** by hermes-win at 2026-11-14 05:02: BayReady 3.21 — dọn giao diện cho gọn, KHÔNG bỏ tính năng nào (trừ ô complaints, anh đã đồng ý bỏ): 1. Tab Chat: thu nhỏ | at: REBASE: Desktop already on v3.21 (Claude, water-drop/MPI-axle/voice, built 22:00) — T13 rebased onto it as v3.22 (patch applied clean, 16/16 hunks; 18/18 tests pass; voice files copied). My earlier v3.21.zip in milo-shared is WRONG (built from v3.20, misses Claude 3.21) — do NOT install it; v3.22.zi
+- T15 **proposed** by hermes-win at 2026-11-14 05:02: BayReady: kiểm tra tự động báo 1 lỗi trong code nguồn
