@@ -205,15 +205,17 @@
       "kind": "code",
       "owner": "milo",
       "brief": "Full request from chanh:\nBayReady 3.21 — dọn giao diện cho gọn, KHÔNG bỏ tính năng nào (trừ ô complaints, anh đã đồng ý bỏ):\n1. Tab Chat: thu nhỏ chữ, nút, khoảng trống cho đỡ phí chỗ. Thêm đồng hồ (giờ hiện tại) nhỏ trên đầu panel.\n2. Thu nhỏ các box/thẻ trong mọi tab cho gọn hơn.\n3. Kiểm tra toàn bộ panel ở 360/390/820px: chỗ nào lệch, không cân đối, đè lên nhau (overlap) hay bị cắt thì sửa hết. Gồm cả hàng chip dưới tên xe bị cắt bên phải.\n4. Chỗ nào có 2 vòng viền lồng nhau (ví dụ chip số RO dưới banner xe trong Vehicle): bỏ vòng trong, cho ô đó phát sáng nhẹ (glow) thay vào.\n5. Bỏ chip \"complaints\" ở banner xe (không bấm được, không giúp gì).\n6. Factory warranty: làm bản nhỏ gọn (vd. 1 hàng chip/thanh nhỏ: Basic, Powertrain còn/hết) đặt trong banner xe; bấm vào mới mở bảng đầy đủ.\nTăng version + What's new. Chụp ảnh 360/390/820 trước và sau, gửi anh duyệt rồi mới phát hành. Cuối cùng ghi LESSON vào thư viện Max.",
-      "status": "todo",
+      "status": "running",
       "created": "2026-11-14T04:26:44.005Z",
-      "updated": "2026-11-14T04:27:28.654Z",
+      "updated": "2026-11-14T04:32:20.872Z",
       "by": "chanh",
       "updatedBy": "hermes-win",
       "handed": {
         "at": "2026-11-14T04:27:28.654Z",
         "machine": "windows"
-      }
+      },
+      "started": "2026-11-14T04:32:20.872Z",
+      "progress": "reading TASK + playbooks, investigating v3.20 panel code for the 6 cleanup items"
     }
   ],
   "next": 14,
