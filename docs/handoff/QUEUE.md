@@ -7,6 +7,7 @@ Driver: **claude** since 2026-11-14 00:25 UTC.
 |---|---|---|---|---|---|---|
 | T18 | BayReady: Chat home tiles Appointment status and Today's services show nothing when tapped | bayready | milo | todo | 2026-11-14 07:07 |  |
 | T19 | BayReady repo: tests/enrich-pick.test.js cannot run (looks for src/routes.js, repo is flat) | bayready | milo | proposed | 2026-11-14 07:12 |  |
+| T20 | BayReady: page timers keep running and throwing after the extension is updated (stale tab) | bayready | milo | proposed | 2026-11-14 07:12 |  |
 
 ## New since Claude last looked (2026-11-14 07:12 UTC)
 

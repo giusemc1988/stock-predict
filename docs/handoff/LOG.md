@@ -84,3 +84,4 @@ The copy of this file on `main` is frozen history up to 2026-11-11.
 | 2026-11-14 07:07 | chanh | OK | T18 approved: BayReady: Chat home tiles Appointment status and Today's services show nothing when tapped | bayready | — |
 | 2026-11-14 07:07 | hermes-win | HANDOFF | T18 file written for Milo on windows | bayready | — |
 | 2026-11-14 07:12 | claude | PROPOSE | T19 BayReady repo: tests/enrich-pick.test.js cannot run (looks for src/routes.js, repo is flat) (low) | bayready | — |
+| 2026-11-14 07:12 | claude | PROPOSE | T20 BayReady: page timers keep running and throwing after the extension is updated (stale tab) (high) | bayready | — |
