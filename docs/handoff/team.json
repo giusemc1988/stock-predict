@@ -187,11 +187,11 @@
       "project": "neohub",
       "kind": "code",
       "owner": "milo",
-      "status": "todo",
+      "status": "cancelled",
       "created": "2026-11-14T02:56:24.872Z",
-      "updated": "2026-11-14T02:57:19.480Z",
+      "updated": "2026-11-14T02:58:42.347Z",
       "by": "chanh",
-      "updatedBy": "hermes-win",
+      "updatedBy": "chanh",
       "handed": {
         "at": "2026-11-14T02:57:19.480Z",
         "machine": "windows"
