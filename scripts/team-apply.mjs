@@ -9,6 +9,8 @@ export function applyInDir(dir, action, who, now = new Date().toISOString()) {
   const p = (f) => join(dir, 'docs/handoff', f)
   const state = existsSync(p('team.json')) ? JSON.parse(readFileSync(p('team.json'), 'utf8')) : emptyTeam()
   const { state: next, log } = applyAction(state, action, now, who)
+  // a cleared board is archived first, never deleted
+  if (action?.type === 'clear') writeFileSync(p(`ARCHIVE-${now.slice(0, 16).replace(/[:T]/g, '-')}.json`), JSON.stringify({ archivedAt: now, by: who, tasks: state.tasks, feed: state.feed ?? [] }, null, 2) + '\n')
   writeFileSync(p('team.json'), JSON.stringify(next, null, 2) + '\n')
   writeFileSync(p('QUEUE.md'), renderQueue(next))
   const logMd = existsSync(p('LOG.md')) ? readFileSync(p('LOG.md'), 'utf8') : ''

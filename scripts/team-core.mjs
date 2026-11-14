@@ -181,6 +181,16 @@ function applyOne(state, a, now, who) {
       s.tasks.push({ id, title: `${merge ? 'Merge' : 'Hoàn tác'}: ${t.title}`.slice(0, MAX_TITLE), project: t.project, kind: 'code', owner: 'milo', role: 'merge', parent: t.id, pr: t.pr, risk: t.risk ?? 'high', brief, status: 'todo', created: now, updated: now, by: who })
       return { state: s, log: { who, type: merge ? 'MERGE-OK' : 'REVERT', what: `${t.id} ${t.pr}`, ref: t.project } }
     }
+    case 'clear': {
+      // Chanh 2026-11-14: "clear the cache" of the Max office. The caller (team-apply) saves every task and the talk
+      // to an archive file first; here the board starts clean. Dropped proposals stay remembered so they do not return.
+      if (who !== 'claude' && who !== 'chanh') throw new Error('only Claude or Chanh clear the board')
+      const n = s.tasks.length
+      s.seen = [...new Set([...(s.seen ?? []), ...s.tasks.map((t) => t.key).filter(Boolean)])].slice(-MAX_SEEN)
+      s.tasks = []
+      s.feed = []
+      return { state: s, log: { who, type: 'CLEAR', what: `board cleared (${n} tasks archived)`, ref: '' } }
+    }
     case 'say': {
       // one line of team talk (a role speaking to another); the feed keeps the newest 60
       const line = text(a.text, 240)

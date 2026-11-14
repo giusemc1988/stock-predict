@@ -327,4 +327,21 @@ console.log('team board: Milo hand-off ok')
   assert.equal(scoutDue(undefined, Date.now()), true)
   assert.equal(scoutDue({ scoutAt: new Date().toISOString() }, Date.now()), false)
 }
+{
+  // clear: the board starts clean, every task is archived to a file first, a dropped proposal does not come back
+  const N3 = '2026-11-14T06:00:00.000Z'
+  const dir = mkdtempSync(join(tmpdir(), 'clear-'))
+  mkdirSync(join(dir, 'docs/handoff'), { recursive: true })
+  let c = applyAction(emptyTeam(), { type: 'propose', title: 'Old idea', project: 'bayready', key: 'old1' }, N3, 'scout').state
+  c = applyAction(c, { type: 'say', from: 'milo', to: 'chanh', text: 'hello there' }, N3, 'milo').state
+  writeFileSync(join(dir, 'docs/handoff/team.json'), JSON.stringify(c))
+  const { next } = applyInDir(dir, { type: 'clear' }, 'claude', N3)
+  assert.equal(next.tasks.length, 0)
+  assert.equal(next.feed.length, 0)
+  const arch = readdirSync(join(dir, 'docs/handoff')).filter((f: string) => f.startsWith('ARCHIVE-'))
+  assert.equal(arch.length, 1)
+  assert.equal(JSON.parse(readFileSync(join(dir, 'docs/handoff', arch[0]), 'utf8')).tasks.length, 1)
+  assert.throws(() => applyAction(next, { type: 'propose', title: 'Old idea', project: 'bayready', key: 'old1' }, N3, 'scout'))
+  assert.throws(() => applyAction(next, { type: 'clear' }, N3, 'milo'))
+}
 console.log('team board: pipeline (proposal, coder, reviewer, merge, undo) and BayReady gate ok')

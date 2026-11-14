@@ -2,7 +2,7 @@
  * Version and "What's new". Bump APP_VERSION and add an entry to the top of RELEASES
  * with each update. The banner shows once per version, then stays dismissed.
  */
-export const APP_VERSION = '2.0.44'
+export const APP_VERSION = '2.0.45'
 
 export interface Release {
   version: string
@@ -13,6 +13,12 @@ export interface Release {
 }
 
 export const RELEASES: Release[] = [
+  {
+    version: '2.0.45',
+    date: '2026-11-14',
+    changes: ['Max board: a “clear” action starts the office from a clean board. Every task and the team talk are saved first to an archive file on the handoff branch (nothing is deleted), and a dropped proposal is never proposed again. New library lesson: BayReady source, newest version first, release rules.'],
+    changesVi: ['Bảng Max: thêm thao tác “xoá sạch” để văn phòng bắt đầu lại từ bảng trống. Mọi việc và phần trao đổi được lưu vào file lưu trữ trên nhánh handoff trước (không xoá mất gì), và đề xuất đã huỷ không bị đề xuất lại. Thêm bài học thư viện: nguồn BayReady, tìm bản cao nhất trước, quy tắc phát hành.'],
+  },
   {
     version: '2.0.44',
     date: '2026-11-14',
