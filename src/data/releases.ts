@@ -2,7 +2,7 @@
  * Version and "What's new". Bump APP_VERSION and add an entry to the top of RELEASES
  * with each update. The banner shows once per version, then stays dismissed.
  */
-export const APP_VERSION = '2.0.43'
+export const APP_VERSION = '2.0.44'
 
 export interface Release {
   version: string
@@ -13,6 +13,12 @@ export interface Release {
 }
 
 export const RELEASES: Release[] = [
+  {
+    version: '2.0.44',
+    date: '2026-11-14',
+    changes: ['BayReady scout: its first real run flagged a false alarm (a helper’s own config file next to the extension is not valid JSON on purpose). The gate now only checks the JSON the extension itself loads (manifest, languages, rules), so it stops proposing fixes for files that are fine.'],
+    changesVi: ['Scout BayReady: lần chạy thật đầu tiên báo nhầm (file cấu hình riêng của công cụ cập nhật nằm cạnh extension vốn không phải JSON chuẩn). Cổng kiểm tra giờ chỉ xét JSON mà extension thật sự tải (manifest, ngôn ngữ, rules), nên không đề xuất sửa những file vẫn ổn.'],
+  },
   {
     version: '2.0.43',
     date: '2026-11-14',

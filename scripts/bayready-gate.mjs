@@ -59,7 +59,8 @@ export function gate(dir, prevManifest) {
     if (!/\.(js|mjs|json|html|css)$/i.test(f) || statSync(f).size > 5e6) continue
     const src = readFileSync(f, 'utf8')
     if (/^(<{7}|={7}|>{7})( |$)/m.test(src)) bad.push(`${rel(f)}: merge conflict marker`)
-    if (/\.json$/i.test(f)) {
+    // only JSON the extension itself loads must parse: a helper's own config in the same folder (com.bayready.updater.json) is not extension code
+    if (/\.json$/i.test(f) && (rel(f) === 'manifest.json' || /(^|\/)_locales\//.test(rel(f)) || /(^|\/)rules[^/]*\.json$/i.test(rel(f)))) {
       try {
         JSON.parse(src)
       } catch (e) {
