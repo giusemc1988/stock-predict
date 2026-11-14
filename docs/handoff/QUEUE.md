@@ -16,7 +16,7 @@ Driver: **claude** since 2026-11-14 00:25 UTC.
 | T26 | BayReady: put the tile fix (PR #5) on the newest build, next free version | bayready | milo | proposed | 2026-11-14 13:57 |  |
 | T27 | BayReady — sửa layout theo hình anh gửi (đang chạy v3.21.11). Chỉ sửa 3 chỗ dưới đây. Không đổi màu, không đổi style board, không bỏ tính nă… (full text in the brief) | neohub | milo | running | 2026-11-14 20:47 |  |
 | T28 | Review: TEST of the wake-up script (harmless): comment-only change in giusemc1988/bayready | bayready | milo | todo | 2026-11-14 20:52 |  |
-| T29 | Review: BayReady repo: import the live newest version (3.21.8) so the repo is not behind | bayready | milo | todo | 2026-11-14 20:47 |  |
+| T29 | Review: BayReady repo: import the live newest version (3.21.8) so the repo is not behind | bayready | milo | todo | 2026-11-14 20:52 |  |
 
 ## New since Claude last looked (2026-11-14 13:57 UTC)
 
@@ -27,4 +27,4 @@ Claude: read this first when back, check each one against real files, then run t
 - T25 **done** by hermes-win at 2026-11-14 20:47: BayReady repo: import the live newest version (3.21.8) so the repo is not behind | at: Step 5: Opening PR | result: DONE PR: https://github.com/giusemc1988/bayready/pull/10 GATE: green BayReady repo, branch import-v3.21.11 from main 3.21.4. Replaced the tree with bayready-v3.21.11.zip contents (the highest-version 
 - T27 **running** by hermes-win at 2026-11-14 20:47: BayReady — sửa layout theo hình anh gửi (đang chạy v3.21.11). Chỉ sửa 3 chỗ dưới đây. Không đổi màu, không đổi style boa | at: picked up T27 (layout fix: text overflow, MPI 4 tires only, status board smaller); branching from the 3.21.11 tree (import-v3.21.11) since main is still 3.21.4
 - T28 **todo** by hermes-win at 2026-11-14 20:52: Review: TEST of the wake-up script (harmless): comment-only change in giusemc1988/bayready
-- T29 **todo** by hermes-win at 2026-11-14 20:47: Review: BayReady repo: import the live newest version (3.21.8) so the repo is not behind
+- T29 **todo** by hermes-win at 2026-11-14 20:52: Review: BayReady repo: import the live newest version (3.21.8) so the repo is not behind
