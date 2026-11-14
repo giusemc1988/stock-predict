@@ -316,6 +316,10 @@ console.log('team board: Milo hand-off ok')
   assert.equal(gate(d, null).length, 1)
   writeFileSync(join(d, 'bg.js'), 'const a = 1\n<<<<<<< HEAD\n')
   assert.ok(gate(d, null).some((x: string) => /conflict/.test(x)))
+  writeFileSync(join(d, 'helper.config.json'), '{ not json, # comment }')
+  writeFileSync(join(d, 'bg.js'), 'const a = 1')
+  assert.deepEqual(gate(d, null), []) // a helper config next to the extension is not extension code
+  writeFileSync(join(d, 'bg.js'), 'const a = 1\n<<<<<<< HEAD\n')
   // @ts-expect-error plain JS module
   const { scout, scoutDue } = await import('./scout-core.mjs')
   assert.equal(scout({ src: d }).length, 1)
