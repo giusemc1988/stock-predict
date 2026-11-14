@@ -14,4 +14,5 @@
   9. Release small: one change per version, so a rollback is cheap.
   10. The updater installs only a HIGHER version (tuple compare). A rollback is the old code under a higher number (3.19 code released as 3.21.1, then 3.21.2). `bayready-check-latest.py` FAILs on purpose in that case: that is expected, not a bug.
   11. Never run unbounded hidden-tab opens. Caps now: 6 per 2 minutes, 8 hidden pages in total.
+  12. 3.21.3 (live, repo = 3.21.3): the quick-bar needs a solid background (no see-through over the page); chips wrap instead of being cut; a call that gets no answer shows a message after 5 s instead of failing silently; on "message channel closed" the stale tab is reloaded ONCE automatically, and never a Reservation/RO tab the user may be typing in.
 - **Check:** `node scripts/bayready-gate.mjs <folder>` prints `GATE: green`, and `manifest.json` version matches what Chanh confirmed.
