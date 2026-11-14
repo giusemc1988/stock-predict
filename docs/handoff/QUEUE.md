@@ -14,9 +14,10 @@ Driver: **claude** since 2026-11-14 00:25 UTC.
 | T24 | TEST of the wake-up script (harmless): comment-only change in giusemc1988/bayready | bayready | milo | done | 2026-11-14 12:37 | DONE Changed: Added "// wake-up test, safe to ignore" comment line at top of README.md in giusemc1988/bayready Version: N/A (test PR, no version bump) Checks run: - Branch created: wake-test2 - Commit: wake-up test: add comment line - README.md first 3 lines verified: "// wake-up test, safe to ignore" is present - PR opened: https://github.com/giusemc1988/bayready/pull/8 LESSON: none |
 | T25 | BayReady repo: import the live newest version (3.21.8) so the repo is not behind | bayready | milo | running | 2026-11-14 13:27 |  |
 | T26 | BayReady: put the tile fix (PR #5) on the newest build, next free version | bayready | milo | proposed | 2026-11-14 13:57 |  |
+| T27 | BayReady — sửa layout theo hình anh gửi (đang chạy v3.21.11). Chỉ sửa 3 chỗ dưới đây. Không đổi màu, không đổi style board, không bỏ tính nă… (full text in the brief) | neohub | milo | todo | 2026-11-14 20:40 |  |
 
 ## New since Claude last looked (2026-11-14 13:57 UTC)
 
 Claude: read this first when back, check each one against real files, then run the `seen` action (team-update.yml, who=claude).
 
-- nothing
+- T27 **todo** by chanh at 2026-11-14 20:40: BayReady — sửa layout theo hình anh gửi (đang chạy v3.21.11). Chỉ sửa 3 chỗ dưới đây. Không đổi màu, không đổi style boa
