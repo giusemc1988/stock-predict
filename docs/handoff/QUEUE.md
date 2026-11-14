@@ -10,11 +10,12 @@ Driver: **claude** since 2026-11-14 00:25 UTC.
 | T20 | BayReady: page timers keep running and throwing after the extension is updated (stale tab) | bayready | milo | proposed | 2026-11-14 07:12 |  |
 | T21 | Review: BayReady: Chat home tiles Appointment status and Today's services show nothing when tapped | bayready | milo | todo | 2026-11-14 12:02 |  |
 | T22 | Review: BayReady repo: tests/enrich-pick.test.js cannot run (looks for src/routes.js, repo is flat) | bayready | milo | todo | 2026-11-14 12:02 |  |
-| T23 | TEST of the wake-up script (harmless): comment-only change in giusemc1988/bayready | bayready | milo | todo | 2026-11-14 12:17 |  |
+| T23 | TEST of the wake-up script (harmless): comment-only change in giusemc1988/bayready | bayready | milo | running | 2026-11-14 12:22 |  |
 | T24 | TEST of the wake-up script (harmless): comment-only change in giusemc1988/bayready | bayready | milo | todo | 2026-11-14 12:22 |  |
 
 ## New since Claude last looked (2026-11-14 12:21 UTC)
 
 Claude: read this first when back, check each one against real files, then run the `seen` action (team-update.yml, who=claude).
 
+- T23 **running** by hermes-win at 2026-11-14 12:22: TEST of the wake-up script (harmless): comment-only change in giusemc1988/bayready | at: Bắt đầu task: comment test wake-up script trong bayready.
 - T24 **todo** by hermes-win at 2026-11-14 12:22: TEST of the wake-up script (harmless): comment-only change in giusemc1988/bayready
