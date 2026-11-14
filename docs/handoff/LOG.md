@@ -82,3 +82,4 @@ The copy of this file on `main` is frozen history up to 2026-11-11.
 | 2026-11-14 05:39 | claude | CLEAR | board cleared (17 tasks archived) |  | — |
 | 2026-11-14 07:06 | claude | PROPOSE | T18 BayReady: Chat home tiles Appointment status and Today's services show nothing when tapped (high) | bayready | — |
 | 2026-11-14 07:07 | chanh | OK | T18 approved: BayReady: Chat home tiles Appointment status and Today's services show nothing when tapped | bayready | — |
+| 2026-11-14 07:07 | hermes-win | HANDOFF | T18 file written for Milo on windows | bayready | — |
