@@ -15,11 +15,39 @@
       "note": "idle"
     }
   },
-  "tasks": [],
-  "next": 18,
-  "claudeSeen": "2026-11-14T05:39:44.114Z",
-  "feed": [],
+  "tasks": [
+    {
+      "id": "T18",
+      "title": "BayReady: Chat home tiles Appointment status and Today's services show nothing when tapped",
+      "project": "bayready",
+      "kind": "code",
+      "owner": "milo",
+      "role": "coder",
+      "round": 1,
+      "risk": "high",
+      "key": "tiles-nothing-3214",
+      "from": "Claude",
+      "brief": "Evidence: Chanh, real RO page, v3.21: tap tile Appointment status or Today's services and nothing appears (no user line, no error). Find a car works. Code path: content.js home tile handler (search w.querySelectorAll('.tile')) -> runJob('builtin-xtime-status' or 'builtin-xtime-day') = post({type:'run_route', id}); background.js case 'run_route' -> runRouteTask(...).catch(() => {}) (silent); routes.js runRouteTaskInner has `if (!route) return;` (silent); runRouteTask/waitQuiet/withSched can wait before the first addLog so the tap shows nothing meanwhile. Say which suspect it was: 1) port to background dead (stale tab), 2) route id not found, 3) wait before first log, 4) error swallowed by .catch.\nDone when this passes: Start from repo giusemc1988/bayready main (v3.21.4), branch tiles-fix, bump to 3.21.5, change ONLY content.js/background.js/routes.js as needed. 1) node scripts/bayready-gate.mjs (from stock-predict) prints GATE: green. 2) Tapping each of the two tiles shows a user line at once, then the result or a clear error message within 5 s (never silent). Do NOT release, do NOT touch bayready-latest.zip, do NOT merge: open a PR and write PR:, GATE:, and the suspect number in the RESULT file.",
+      "status": "proposed",
+      "created": "2026-11-14T07:06:48.696Z",
+      "updated": "2026-11-14T07:06:48.696Z",
+      "by": "claude",
+      "updatedBy": "claude"
+    }
+  ],
+  "next": 19,
+  "claudeSeen": "2026-11-14T07:06:48.696Z",
+  "feed": [
+    {
+      "t": "2026-11-14T07:06:48.696Z",
+      "from": "Claude",
+      "to": "Chanh",
+      "text": "T18 Đề xuất: BayReady: Chat home tiles Appointment status and Today's services show nothing when tapped",
+      "ref": "T18"
+    }
+  ],
   "seen": [
-    "bayready-gate:3b6f8610"
+    "bayready-gate:3b6f8610",
+    "tiles-nothing-3214"
   ]
 }
