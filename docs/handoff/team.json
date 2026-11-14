@@ -125,15 +125,17 @@
       "risk": "low",
       "round": 1,
       "brief": "Review the pull request https://github.com/giusemc1988/bayready/pull/6 for BayReady repo: tests/enrich-pick.test.js cannot run (looks for src/routes.js, repo is flat). You are the REVIEWER: use the other OmniRoute combo (review-hard), not the one the coder used.\nRead the diff and the task. Check: does it do what the task says, does it break anything else, is there a test or check that proves it, does it stay inside the limits (no secrets, nothing deleted, no feature removed).\nRun the gate again yourself. Then write in the RESULT file, in this order: first line DONE; \"VERDICT: APPROVE\" or \"VERDICT: CHANGES\"; \"NOTES: <what to fix, one line>\" when CHANGES; \"GATE: green\" or \"GATE: red\".\nThis is a LOW-risk change. If VERDICT is APPROVE and the gate is green, merge the pull request yourself (squash), check that it is merged, and write \"MERGED: yes\". Otherwise write \"MERGED: no\" and merge nothing.\nNever push the release zip: a release only happens when Chanh says \"phát hành X\".",
-      "status": "todo",
+      "status": "running",
       "created": "2026-11-14T11:57:21.073Z",
-      "updated": "2026-11-14T12:02:21.376Z",
+      "updated": "2026-11-14T12:47:21.608Z",
       "by": "pipeline",
       "updatedBy": "hermes-win",
       "handed": {
         "at": "2026-11-14T12:02:21.376Z",
         "machine": "windows"
-      }
+      },
+      "started": "2026-11-14T12:47:21.608Z",
+      "progress": "Reviewing BayReady PR #6: tests/enrich-pick.test.js path fix"
     },
     {
       "id": "T23",
