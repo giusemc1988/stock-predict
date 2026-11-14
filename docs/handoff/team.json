@@ -131,10 +131,23 @@
         "at": "2026-11-14T12:02:21.376Z",
         "machine": "windows"
       }
+    },
+    {
+      "id": "T23",
+      "title": "TEST of the wake-up script (harmless): comment-only change in giusemc1988/bayready",
+      "project": "bayready",
+      "kind": "code",
+      "owner": "milo",
+      "brief": "This is a wiring test, nothing real. In giusemc1988/bayready add ONE comment line \"// wake-up test, safe to ignore\" at the very top of routes.js. No other change, no version bump. Branch name wake-test. Open a pull request and write RESULT right after it opens (PR: and GATE: lines). Do NOT merge, do NOT release.",
+      "status": "todo",
+      "created": "2026-11-14T12:14:04.971Z",
+      "updated": "2026-11-14T12:14:04.971Z",
+      "by": "claude",
+      "updatedBy": "claude"
     }
   ],
-  "next": 23,
-  "claudeSeen": "2026-11-14T07:12:53.149Z",
+  "next": 24,
+  "claudeSeen": "2026-11-14T12:14:04.971Z",
   "feed": [
     {
       "t": "2026-11-14T07:06:48.696Z",

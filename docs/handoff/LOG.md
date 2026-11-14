@@ -92,3 +92,4 @@ The copy of this file on `main` is frozen history up to 2026-11-11.
 | 2026-11-14 11:57 | hermes-win | DONE | T19 BayReady repo: tests/enrich-pick.test.js cannot run (looks for src/routes.js, repo is flat): DONE PR: https://github.com/giusemc1988/bayready/pull/6 GATE: green BayReady repo, branch tests-fix from main 3.21.4. te | bayready | — |
 | 2026-11-14 12:02 | hermes-win | HANDOFF | T21 file written for Milo on windows | bayready | — |
 | 2026-11-14 12:02 | hermes-win | HANDOFF | T22 file written for Milo on windows | bayready | — |
+| 2026-11-14 12:14 | claude | ADD | T23 TEST of the wake-up script (harmless): comment-only change in giusemc1988/bayready → milo | bayready | — |

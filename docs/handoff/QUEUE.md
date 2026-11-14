@@ -10,12 +10,10 @@ Driver: **claude** since 2026-11-14 00:25 UTC.
 | T20 | BayReady: page timers keep running and throwing after the extension is updated (stale tab) | bayready | milo | proposed | 2026-11-14 07:12 |  |
 | T21 | Review: BayReady: Chat home tiles Appointment status and Today's services show nothing when tapped | bayready | milo | todo | 2026-11-14 12:02 |  |
 | T22 | Review: BayReady repo: tests/enrich-pick.test.js cannot run (looks for src/routes.js, repo is flat) | bayready | milo | todo | 2026-11-14 12:02 |  |
+| T23 | TEST of the wake-up script (harmless): comment-only change in giusemc1988/bayready | bayready | milo | todo | 2026-11-14 12:14 |  |
 
-## New since Claude last looked (2026-11-14 07:12 UTC)
+## New since Claude last looked (2026-11-14 12:14 UTC)
 
 Claude: read this first when back, check each one against real files, then run the `seen` action (team-update.yml, who=claude).
 
-- T18 **done** by hermes-win at 2026-11-14 11:57: BayReady: Chat home tiles Appointment status and Today's services show nothing when tapped | at: picked up T18 (bayready tiles show nothing when tapped); reading the tile path in content.js/background.js/routes.js from main v3.21.4 | result: DONE PR: https://github.com/giusemc1988/bayready/pull/5 GATE: green Suspect: 3 (wait before first log) BayReady 3.21.5 (from main 3.21.4, branch tiles-fix). Tapping Appointment status or Today's servi
-- T19 **done** by hermes-win at 2026-11-14 11:57: BayReady repo: tests/enrich-pick.test.js cannot run (looks for src/routes.js, repo is flat) | result: DONE PR: https://github.com/giusemc1988/bayready/pull/6 GATE: green BayReady repo, branch tests-fix from main 3.21.4. tests/enrich-pick.test.js looked for src/routes.js but the repo is flat (routes.js
-- T21 **todo** by hermes-win at 2026-11-14 12:02: Review: BayReady: Chat home tiles Appointment status and Today's services show nothing when tapped
-- T22 **todo** by hermes-win at 2026-11-14 12:02: Review: BayReady repo: tests/enrich-pick.test.js cannot run (looks for src/routes.js, repo is flat)
+- nothing
