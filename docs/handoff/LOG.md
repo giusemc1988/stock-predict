@@ -76,3 +76,4 @@ The copy of this file on `main` is frozen history up to 2026-11-11.
 | 2026-11-14 05:12 | hermes-win | HANDOFF | T16 file written for Milo on windows | bayready | — |
 | 2026-11-14 05:26 | claude | ADD | T17 BayReady: after an auto-update, tabs that were already open (Scheduling, TIS, Inspect) keep the OLD content script; the schedule read then f… (full text in the brief) → milo | bayready | — |
 | 2026-11-14 05:26 | claude | CANCEL | T15 BayReady: kiểm tra tự động báo 1 lỗi trong code nguồn | bayready | — |
+| 2026-11-14 05:27 | hermes-win | HANDOFF | T17 file written for Milo on windows | bayready | — |
