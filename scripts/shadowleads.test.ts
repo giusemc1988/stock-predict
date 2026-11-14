@@ -321,7 +321,7 @@ class FakeKv {
   // the report
   const rep = leadsReport(leads)
   assert.equal(rep.asOf, D2)
-  assert.equal(rep.vi.length, 4)
+  assert.equal(rep.vi.length, 6)
   assert.ok(rep.vi.every((l) => l.length < 120))
   assert.ok(rep.l3 && rep.l3.equity > 0 && rep.l3.spy > 0)
   const msg = summaryText({ day: D2, report: { trades: 0, opened: 0, wins: 0, net: 0, lessons: [] } as never, trades: [], equity: 1, totalRetPct: 0, learning: '', brakes: '', shadow: 'x', shadowLeads: rep.vi })

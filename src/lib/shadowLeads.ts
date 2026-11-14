@@ -24,6 +24,7 @@ import { dayKey, kindOf, type PracticeTrade } from './practice'
 import { HIGH_VOL } from './replayUniverse'
 import { ETF_UNIVERSE, sideCost } from './replayRound2'
 import { netRetPct } from './replayStrategies'
+import { emptySetup, type SetupState } from './shadowSetups'
 
 export const L1_NOTIONAL = 1000
 export const L1_HOLD = 5
@@ -376,21 +377,27 @@ export interface ShadowLeads {
   l2: L2State
   l3: L3State | null
   l4: L4State
+  /** L5 Red to green and L6 Opening drive (2026-11-14, src/lib/shadowSetups.ts). */
+  l5: SetupState
+  l6: SetupState
 }
-export const emptyLeads = (): ShadowLeads => ({ v: 1, doneDay: '', l1: emptyL1(), l2: emptyL2(), l3: null, l4: emptyL4() })
+export const emptyLeads = (): ShadowLeads => ({ v: 1, doneDay: '', l1: emptyL1(), l2: emptyL2(), l3: null, l4: emptyL4(), l5: emptySetup(), l6: emptySetup() })
 
 export function parseLeads(raw: unknown): ShadowLeads | null {
   const r = raw as Partial<ShadowLeads> | null
   if (!r || r.v !== 1 || typeof r.doneDay !== 'string' || !r.l1 || !r.l2) return null
-  return { v: 1, doneDay: r.doneDay, l1: { ...emptyL1(), ...r.l1 }, l2: { ...emptyL2(), ...r.l2 }, l3: r.l3 ?? null, l4: { ...emptyL4(), ...r.l4 } }
+  return { v: 1, doneDay: r.doneDay, l1: { ...emptyL1(), ...r.l1 }, l2: { ...emptyL2(), ...r.l2 }, l3: r.l3 ?? null, l4: { ...emptyL4(), ...r.l4 }, l5: { ...emptySetup(), ...r.l5 }, l6: { ...emptySetup(), ...r.l6 } }
 }
 
+export interface SetupReport { n: number; winRate: number | null; avgRet: number | null; total: number; days: number; names: number }
 export interface LeadsReport {
   asOf: string | null
   l1: { n: number; winRate: number | null; avgRet: number | null; total: number; open: number; pending: number; signalDays: number; gateDays: number }
   l2: { n: number; winRate: number | null; shadowTotal: number; actualTotal: number; delta: number; avgDeltaRet: number | null; pending: number; proxy: { n: number; delta: number } }
   l3: { since: string; equity: number; spy: number; diffPct: number; hold: string[]; rebalances: number } | null
   l4: { n: number; winRate: number | null; avgRet: number | null; total: number; pending: number; signalDays: number; core: { n: number; avgRet: number | null; total: number } }
+  l5: SetupReport
+  l6: SetupReport
   /** Plain Vietnamese lines for the daily Telegram summary. */
   vi: string[]
 }
@@ -419,6 +426,11 @@ export function leadsReport(leads: ShadowLeads | null): LeadsReport {
   const a4 = L.l4.agg
   const c4 = L.l4.core
   const l4 = { n: a4.n, winRate: a4.n ? r2((a4.wins / a4.n) * 100) : null, avgRet: a4.n ? r2(a4.sumRet / a4.n) : null, total: r2(a4.total), pending: L.l4.pending.length, signalDays: L.l4.signalDays, core: { n: c4.n, avgRet: c4.n ? r2(c4.sumRet / c4.n) : null, total: r2(c4.total) } }
+  const setupRep = (x: SetupState): SetupReport => ({ n: x.agg.n, winRate: x.agg.n ? r2((x.agg.wins / x.agg.n) * 100) : null, avgRet: x.agg.n ? r2(x.agg.sumRet / x.agg.n) : null, total: r2(x.agg.total), days: x.days, names: x.names })
+  const l5 = setupRep(L.l5)
+  const l6 = setupRep(L.l6)
+  const setupVi = (name: string, x: SetupReport) =>
+    x.n ? `${name}: ${x.n} lệnh bóng (chạy thử, chưa mua thật), thắng ${Math.round(x.winRate!)}%, TB ${pc(x.avgRet!, 2)}/lệnh, ${money(x.total)}` : `${name}: chưa có tín hiệu (đã xem ${x.names} mã gap trong ${x.days} phiên)`
   const vi = [
     l1.n
       ? `L1 đảo chiều+VIX: ${l1.n} lệnh, thắng ${Math.round(l1.winRate!)}%, TB ${pc(l1.avgRet!, 2)}/lệnh, ${money(l1.total)}, mở ${l1.open}`
@@ -428,6 +440,8 @@ export function leadsReport(leads: ShadowLeads | null): LeadsReport {
     l4.n
       ? `L4 qua đêm: ${l4.n} lệnh, thắng ${Math.round(l4.winRate!)}%, TB ${pc(l4.avgRet!, 2)}/lệnh, ${money(l4.total)}; bỏ 14 mã nóng: ${l4.core.n} lệnh, ${l4.core.avgRet == null ? 'chưa có' : `TB ${pc(l4.core.avgRet, 2)}`}`
       : `L4 qua đêm: chưa có lệnh đóng (chờ bán ${l4.pending})`,
+    setupVi('L5 đỏ sang xanh', l5),
+    setupVi('L6 đà mở cửa', l6),
   ]
-  return { asOf: L.doneDay || null, l1, l2, l3, l4, vi }
+  return { asOf: L.doneDay || null, l1, l2, l3, l4, l5, l6, vi }
 }

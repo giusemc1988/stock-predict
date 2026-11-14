@@ -17,6 +17,7 @@ import { costsFrom } from '../lib/costs'
 import { dayKey, sessionEnd } from '../lib/practice'
 import { ETF_UNIVERSE } from '../lib/replayRound2'
 import { STOCKS } from '../lib/replayUniverse'
+import { gapNames, openingDrive, redToGreen, addSetupDay, type Bar15, type SetupTrade } from '../lib/shadowSetups'
 import { emptyLeads, etfCompact, l1Step, l2Candidates, l2Step, l3Step, l4Step, parseLeads, type DayBar, type EtfData, type Opens, type Px, type ShadowLeads } from '../lib/shadowLeads'
 import type { WorkerEnv } from './practiceCycle'
 
@@ -51,6 +52,8 @@ interface Work {
   opens: Opens
   /** L4: the last daily bars [day, open, close, volume] of every universe name (Alpaca), or null when not fetched. */
   l4bars?: Record<string, DayBar[]> | null
+  /** L5/L6: 15m bars (about a month) of each gap name, fetched after the daily bars say which names gapped. */
+  m15?: Record<string, Bar15[]>
 }
 const newWork = (day: string): Work => ({ day, tries: {}, done: [], stocks: {}, etf: {}, tail: {}, vix: null, opens: {}, l4bars: null })
 
@@ -96,6 +99,30 @@ async function runOpen(f: Fetch, sym: string, w: Work) {
   const px = toPx(r?.timestamp, r?.indicators?.quote?.[0]?.open)
   if (!px.length) throw new Error('chart: no bars')
   w.opens[sym] = px
+}
+
+/** L5/L6 need a month of 15m bars of one name (volume profile + today). */
+async function runM15(f: Fetch, sym: string, w: Work) {
+  const j = await getJson(f, `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(sym)}?interval=15m&range=1mo`)
+  const r = j.chart?.result?.[0]
+  const q = r?.indicators?.quote?.[0]
+  const ts: number[] = r?.timestamp ?? []
+  const rows: Bar15[] = []
+  ts.forEach((t, i) => {
+    const row: Bar15 = [t, q?.open?.[i], q?.high?.[i], q?.low?.[i], q?.close?.[i], q?.volume?.[i] ?? 0]
+    if ([1, 2, 3, 4].every((k) => row[k] != null && Number.isFinite(row[k]))) rows.push(row)
+  })
+  if (!rows.length) throw new Error('chart: no 15m bars')
+  ;(w.m15 ??= {})[sym] = rows
+}
+
+/** The gap names of `day` whose 15m bars L5/L6 need: the biggest gaps first, at most MAX_GAP_NAMES. Empty without today's daily bars. */
+export const MAX_GAP_NAMES = 25
+export function gapTargets(w: Work): { sym: string; gap: number }[] {
+  const b = w.l4bars
+  if (!b) return []
+  const ok = STOCKS.filter((x) => b[x]?.at(-1)?.[0] === w.day).length >= STOCKS.length * 0.9
+  return ok ? gapNames(b, w.day).sort((a, c) => c.gap - a.gap || a.sym.localeCompare(c.sym)).slice(0, MAX_GAP_NAMES) : []
 }
 
 type AlpacaKeys = { keyId: string; secret: string }
@@ -159,9 +186,26 @@ export function applyDay(leads: ShadowLeads, w: Work, state: StateLite | null, r
   const rankOk = STOCKS.filter((x) => series[x]?.at(-1)?.[0] === day).length >= STOCKS.length * 0.9
   const l4bars = w.l4bars ?? null
   const l4Ok = !!l4bars && STOCKS.filter((x) => l4bars[x]?.at(-1)?.[0] === day).length >= STOCKS.length * 0.9
+  // L5/L6: replay today's finished 15m session of every gap name through both setups
+  const targets = l4Ok ? gapTargets(w) : []
+  const costsNow = costs
+  const sigA: SetupTrade[] = []
+  const sigB: SetupTrade[] = []
+  for (const t of targets) {
+    const bars15 = w.m15?.[t.sym]
+    const d = l4bars?.[t.sym]
+    if (!bars15 || !d || d.length < 2) continue
+    const pc = d[d.length - 2][2]
+    const a = redToGreen(t.sym, day, bars15, pc, costsNow)
+    if (a) sigA.push(a)
+    const b = openingDrive(t.sym, day, bars15, pc, costsNow)
+    if (b) sigB.push(b)
+  }
   return {
     ...leads,
     doneDay: day,
+    l5: l4Ok ? addSetupDay(leads.l5, day, targets.length, sigA) : leads.l5,
+    l6: l4Ok ? addSetupDay(leads.l6, day, targets.length, sigB) : leads.l6,
     l4: l4Step(leads.l4, { day, bars: l4bars, costs, rankOk: l4Ok }),
     l1: l1Step(leads.l1, { day, series, opens: w.opens, vix: w.vix, rankOk, costs }),
     l2: l2Step(leads.l2, { day, trades: state?.trades ?? [], opens: w.opens }),
@@ -199,14 +243,16 @@ export async function shadowStep(env: WorkerEnv, now: number, rules: AiRules, f:
   // the requests still to do, in order: ETF/VIX batches first (the first one holds SPY, which tells a holiday), stocks, then opens
   const notDone = (id: string) => !w.done.includes(id)
   const holiday = w.done.includes('e0') && w.etf.SPY?.lastDay !== day
-  const todo: { id: string; run: () => Promise<void> }[] = holiday
+  const todoNow = (): { id: string; run: () => Promise<void> }[] => holiday
     ? []
     : [
         ...BATCHES.filter((b) => notDone(b.id)).map((b) => ({ id: b.id, run: () => runBatch(f, b, w) })),
         ...(keys && notDone('a4') ? [{ id: 'a4', run: () => runAlpacaBars(f, keys, day, w) }] : []),
         ...openSymbols(leads, state, day).filter((x) => notDone(`o:${x}`)).map((x) => ({ id: `o:${x}`, run: () => runOpen(f, x, w) })),
+        // the gap names are only known once the daily bars (a4) are in, so this list grows between ticks
+        ...gapTargets(w).filter((x) => notDone(`g:${x.sym}`)).map((x) => ({ id: `g:${x.sym}`, run: () => runM15(f, x.sym, w) })),
       ]
-  const batch = todo.slice(0, FETCH_BUDGET)
+  const batch = todoNow().slice(0, FETCH_BUDGET)
   await Promise.all(
     batch.map(async (t) => {
       try {
@@ -218,7 +264,7 @@ export async function shadowStep(env: WorkerEnv, now: number, rules: AiRules, f:
       }
     }),
   )
-  if (todo.some((t) => notDone(t.id))) {
+  if (todoNow().some((t) => notDone(t.id)) || (keys && notDone('a4'))) {
     await env.PRACTICE.put('shadow:work', JSON.stringify(w)) // progress for the next tick
     return { note: `shadow ${day}: ${w.done.length} requests done, more next tick`, finished: false }
   }
