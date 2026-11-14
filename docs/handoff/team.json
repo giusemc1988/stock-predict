@@ -243,11 +243,11 @@
       "key": "bayready-gate:3b6f8610",
       "from": "Scout",
       "brief": "Evidence: com.bayready.updater.json: invalid JSON\nDone when this passes: node bayready-gate.mjs <source folder> prints \"GATE: green\"",
-      "status": "proposed",
+      "status": "cancelled",
       "created": "2026-11-14T05:02:22.768Z",
-      "updated": "2026-11-14T05:02:22.768Z",
+      "updated": "2026-11-14T05:26:53.562Z",
       "by": "scout",
-      "updatedBy": "hermes-win"
+      "updatedBy": "claude"
     },
     {
       "id": "T16",
@@ -281,7 +281,7 @@
     }
   ],
   "next": 18,
-  "claudeSeen": "2026-11-14T05:26:12.604Z",
+  "claudeSeen": "2026-11-14T05:26:53.562Z",
   "feed": [
     {
       "t": "2026-11-14T04:59:45.139Z",
@@ -303,6 +303,13 @@
       "to": "Milo",
       "text": "T16 đã đưa việc cho Milo",
       "ref": "T16"
+    },
+    {
+      "t": "2026-11-14T05:26:53.562Z",
+      "from": "Claude",
+      "to": "team",
+      "text": "T15 huỷ: BayReady: kiểm tra tự động báo 1 lỗi trong code nguồn",
+      "ref": "T15"
     }
   ],
   "seen": [

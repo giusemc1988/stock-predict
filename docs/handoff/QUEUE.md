@@ -19,7 +19,7 @@ Driver: **claude** since 2026-11-14 00:25 UTC.
 | T12 | BayReady: hàng chip dưới tên xe bị cắt bên phải, chữ cảnh báo bị cụt. Sửa cho thấy đủ, ở cả 360, 390 và 820px." Thêm ảnh bằng nút thêm/dán ảnh | neohub | milo | cancelled | 2026-11-14 02:58 |  |
 | T13 | BayReady 3.21 — dọn giao diện cho gọn, KHÔNG bỏ tính năng nào (trừ ô complaints, anh đã đồng ý bỏ): 1. Tab Chat: thu nhỏ chữ, nút, khoảng tr… (full text in the brief) | neohub | milo | running | 2026-11-14 05:07 |  |
 | T14 | Sync real BayReady source into the bayready repo (branch sync-stage74, PR, no release) | bayready | milo | cancelled | 2026-11-14 04:59 |  |
-| T15 | BayReady: kiểm tra tự động báo 1 lỗi trong code nguồn | bayready | milo | proposed | 2026-11-14 05:02 |  |
+| T15 | BayReady: kiểm tra tự động báo 1 lỗi trong code nguồn | bayready | milo | cancelled | 2026-11-14 05:26 |  |
 | T16 | BayReady: Chat home tiles Appointment status and Today's services do nothing when tapped (no board, no message). Do this AFTER T13 (3.22) is released, on top of 3.22. | bayready | milo | todo | 2026-11-14 05:12 |  |
 | T17 | BayReady: after an auto-update, tabs that were already open (Scheduling, TIS, Inspect) keep the OLD content script; the schedule read then f… (full text in the brief) | bayready | milo | todo | 2026-11-14 05:26 |  |
 
