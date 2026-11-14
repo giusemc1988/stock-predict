@@ -87,3 +87,4 @@ The copy of this file on `main` is frozen history up to 2026-11-11.
 | 2026-11-14 07:12 | claude | PROPOSE | T20 BayReady: page timers keep running and throwing after the extension is updated (stale tab) (high) | bayready | — |
 | 2026-11-14 07:12 | claude | OK | T19 approved: BayReady repo: tests/enrich-pick.test.js cannot run (looks for src/routes.js, repo is flat) | bayready | — |
 | 2026-11-14 07:17 | hermes-win | HANDOFF | T19 file written for Milo on windows | bayready | — |
+| 2026-11-14 11:52 | hermes-win | START | T18 picked up T18 (bayready tiles show nothing when tapped); reading the tile path in content.js/background.js/routes.js from main v3.21.4 | bayready | — |

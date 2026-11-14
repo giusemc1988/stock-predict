@@ -5,7 +5,7 @@ Driver: **claude** since 2026-11-14 00:25 UTC.
 
 | id | task | project | owner | status | updated (UTC) | result |
 |---|---|---|---|---|---|---|
-| T18 | BayReady: Chat home tiles Appointment status and Today's services show nothing when tapped | bayready | milo | todo | 2026-11-14 07:07 |  |
+| T18 | BayReady: Chat home tiles Appointment status and Today's services show nothing when tapped | bayready | milo | running | 2026-11-14 11:52 |  |
 | T19 | BayReady repo: tests/enrich-pick.test.js cannot run (looks for src/routes.js, repo is flat) | bayready | milo | todo | 2026-11-14 07:17 |  |
 | T20 | BayReady: page timers keep running and throwing after the extension is updated (stale tab) | bayready | milo | proposed | 2026-11-14 07:12 |  |
 
@@ -13,4 +13,5 @@ Driver: **claude** since 2026-11-14 00:25 UTC.
 
 Claude: read this first when back, check each one against real files, then run the `seen` action (team-update.yml, who=claude).
 
+- T18 **running** by hermes-win at 2026-11-14 11:52: BayReady: Chat home tiles Appointment status and Today's services show nothing when tapped | at: picked up T18 (bayready tiles show nothing when tapped); reading the tile path in content.js/background.js/routes.js from main v3.21.4
 - T19 **todo** by hermes-win at 2026-11-14 07:17: BayReady repo: tests/enrich-pick.test.js cannot run (looks for src/routes.js, repo is flat)
