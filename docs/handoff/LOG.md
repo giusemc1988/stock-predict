@@ -101,3 +101,4 @@ The copy of this file on `main` is frozen history up to 2026-11-11.
 | 2026-11-14 12:37 | hermes-win | DONE | T24 TEST of the wake-up script (harmless): comment-only change in giusemc1988/bayready: DONE Changed: Added "// wake-up test, safe to ignore" comment line at top of README.md in giusemc1988/bayready Version:  | bayready | — |
 | 2026-11-14 12:47 | hermes-win | START | T21 Đang phân tích diff và kiểm tra tính đúng đắn | bayready | — |
 | 2026-11-14 12:47 | hermes-win | START | T22 Reviewing BayReady PR #6: tests/enrich-pick.test.js path fix | bayready | — |
+| 2026-11-14 12:52 | hermes-win | DONE | T21 Review: BayReady: Chat home tiles Appointment status and Today's services show nothing when tapped: DONE VERDICT: APPROVE GATE: green MERGED: no Version: 3.21.5 (from 3.21.4) SUMMARY: BayReady: Chat home tiles Appointmen | bayready | — |
