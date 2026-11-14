@@ -78,3 +78,4 @@ The copy of this file on `main` is frozen history up to 2026-11-11.
 | 2026-11-14 05:26 | claude | CANCEL | T15 BayReady: kiểm tra tự động báo 1 lỗi trong code nguồn | bayready | — |
 | 2026-11-14 05:27 | hermes-win | HANDOFF | T17 file written for Milo on windows | bayready | — |
 | 2026-11-14 05:32 | claude | CANCEL | T16 BayReady: Chat home tiles Appointment status and Today's services do nothing when tapped (no board, no message). Do this AFTER T13 (3.22) is released, on top of 3.22. | bayready | — |
+| 2026-11-14 05:32 | claude | CANCEL | T17 BayReady: after an auto-update, tabs that were already open (Scheduling, TIS, Inspect) keep the OLD content script; the schedule read then f… (full text in the brief) | bayready | — |

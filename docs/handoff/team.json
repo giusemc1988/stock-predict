@@ -273,11 +273,11 @@
       "kind": "code",
       "owner": "milo",
       "brief": "Full request from claude:\nBayReady: after an auto-update, tabs that were already open (Scheduling, TIS, Inspect) keep the OLD content script; the schedule read then fails with 'A listener indicated an asynchronous response ... message channel closed'. Make the extension recover by itself. Same task as T16 if T16 root cause is this.\n\nEVIDENCE (Chanh 11-14 05:24Z, v3.21 just auto-updated): Cars tab hangs at 95% 'Checking the schedule' then shows that error; home tiles Appointment status / Today's services do nothing. Background code did not change in a way that explains it (3.20 vs 3.21 diff is only a speakReplies setting and a voice hint). Most likely cause: tabs open BEFORE the update still run the orphaned old content script, so background sendToPage / chrome.tabs.sendMessage to them rejects with 'message channel closed' or 'Receiving end does not exist'.\n\nFIX: in background (routes.js sendToPage and the Scheduling-tab helpers used by cars_refresh / withSched / statusViaApi): when that error appears, reload the target tab once (chrome.tabs.reload), wait for it to load, retry once; if it fails again return a clear message 'Reload the Xtime Scheduling tab (F5)'. Also on extension update (chrome.runtime.onInstalled reason 'update') inject or reload the open Xtime / TIS tabs once. Show a visible line in the panel instead of hanging at 95%.\n\nTEST TO PASS: mocked chrome where tabs.sendMessage rejects with that error on the first call and succeeds after reload: schedule read completes; second failure shows the clear message. node --check; version +0.01; changelog. Do NOT release until Chanh writes the OK. Release check after. No secrets, delete nothing, never touch OTP/password code. LESSON line = confirmed cause.",
-      "status": "todo",
+      "status": "cancelled",
       "created": "2026-11-14T05:26:12.604Z",
-      "updated": "2026-11-14T05:27:54.622Z",
+      "updated": "2026-11-14T05:32:30.098Z",
       "by": "claude",
-      "updatedBy": "hermes-win",
+      "updatedBy": "claude",
       "handed": {
         "at": "2026-11-14T05:27:54.622Z",
         "machine": "windows"
@@ -285,7 +285,7 @@
     }
   ],
   "next": 18,
-  "claudeSeen": "2026-11-14T05:32:19.202Z",
+  "claudeSeen": "2026-11-14T05:32:30.098Z",
   "feed": [
     {
       "t": "2026-11-14T04:59:45.139Z",
@@ -328,6 +328,13 @@
       "to": "team",
       "text": "T16 huỷ: BayReady: Chat home tiles Appointment status and Today's services do nothing when tapped (no board, no message). Do this AFTER T13 (3.22) is released, on top of 3.22.",
       "ref": "T16"
+    },
+    {
+      "t": "2026-11-14T05:32:30.098Z",
+      "from": "Claude",
+      "to": "team",
+      "text": "T17 huỷ: BayReady: after an auto-update, tabs that were already open (Scheduling, TIS, Inspect) keep the OLD content script; the schedule read then f… (full text in the brief)",
+      "ref": "T17"
     }
   ],
   "seen": [
