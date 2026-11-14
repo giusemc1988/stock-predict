@@ -102,9 +102,13 @@
       "brief": "Review the pull request https://github.com/giusemc1988/bayready/pull/5 for BayReady: Chat home tiles Appointment status and Today's services show nothing when tapped. You are the REVIEWER: use the other OmniRoute combo (review-hard), not the one the coder used.\nRead the diff and the task. Check: does it do what the task says, does it break anything else, is there a test or check that proves it, does it stay inside the limits (no secrets, nothing deleted, no feature removed).\nRun the gate again yourself. Then write in the RESULT file, in this order: first line DONE; \"VERDICT: APPROVE\" or \"VERDICT: CHANGES\"; \"NOTES: <what to fix, one line>\" when CHANGES; \"GATE: green\" or \"GATE: red\".\nThis is a HIGH-risk change: do NOT merge. Write \"MERGED: no\". Chanh decides.\nNever push the release zip: a release only happens when Chanh says \"phát hành X\".",
       "status": "todo",
       "created": "2026-11-14T11:57:18.980Z",
-      "updated": "2026-11-14T11:57:18.980Z",
+      "updated": "2026-11-14T12:02:19.328Z",
       "by": "pipeline",
-      "updatedBy": "hermes-win"
+      "updatedBy": "hermes-win",
+      "handed": {
+        "at": "2026-11-14T12:02:19.328Z",
+        "machine": "windows"
+      }
     },
     {
       "id": "T22",
@@ -204,6 +208,13 @@
       "to": "reviewer",
       "text": "T19 coder xong, cổng green, PR https://github.com/giusemc1988/bayready/pull/6",
       "ref": "T19"
+    },
+    {
+      "t": "2026-11-14T12:02:19.328Z",
+      "from": "Hermes Windows",
+      "to": "Milo",
+      "text": "T21 đã đưa việc cho Milo",
+      "ref": "T21"
     }
   ],
   "seen": [
