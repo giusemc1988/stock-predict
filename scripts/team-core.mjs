@@ -125,7 +125,8 @@ function applyOne(state, a, now, who) {
       const t = find(s, a.id)
       if (t.status !== 'running' && t.status !== 'todo') throw new Error('not open')
       // a line "LESSON: ..." in the result goes to LESSONS.md so the whole team learns from it
-      const lesson = text((typeof a.result === 'string' ? a.result : '').match(/^\W*LESSON:\s*(.+)$/im)?.[1], MAX_LESSON)
+      const found = text((typeof a.result === 'string' ? a.result : '').match(/^\W*LESSON:\s*(.+)$/im)?.[1], MAX_LESSON)
+      const lesson = /^none\b/i.test(found) ? '' : found
       Object.assign(t, { status: a.ok ? 'done' : 'failed', updated: now, result: text(a.result, MAX_RESULT), ...(lesson ? { lesson } : {}) })
       delete t.need
       return { state: trim(s), log: { who, type: a.ok ? 'DONE' : 'FAILED', what: `${t.id} ${t.title}${t.result ? `: ${t.result.slice(0, 120)}` : ''}`, ref: t.project, ...(lesson ? { lesson, id: t.id } : {}) } }
@@ -185,7 +186,7 @@ export const GO = (by) =>
 const HOW = (id) => [
   'Before you start: read docs/library/INDEX.md (stock-predict repo) and docs/handoff/LESSONS.md (branch handoff-log), then the one playbook that fits.',
   `When you start, write ${progressFileName(id)} in milo-shared: one line saying what you are doing now. Rewrite it at each new step (newest step on the last line). If you need something from Chanh, add a line starting "NEED:". The board shows these to Chanh, so he knows the task was picked up.`,
-  `When finished write ${resultFileName(id)} in milo-shared: first line DONE or FAILED, then what changed, the version, and the exact checks you ran with their real output. If you learned something the team should know, add one line starting "LESSON:". Short and plain.`,
+  `When finished write ${resultFileName(id)} in milo-shared: first line DONE or FAILED, then what changed, the version, and the exact checks you ran with their real output. LAST line, always: "LESSON: ..." = one sentence the next worker must know (the cause, or what to do next time, under 400 characters). If truly nothing new was learned write "LESSON: none". The board saves every lesson in the team library (docs/handoff/LESSONS.md, listed in docs/library/INDEX.md) and shows it to everyone, so the whole team learns. A longer write-up goes in docs/library/lessons/ with your PR. Short and plain.`,
 ]
 /** The TASK file a machine writes for Milo. Fixed shape so Milo does not have to investigate. */
 export function taskFile(t) {

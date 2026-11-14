@@ -2,7 +2,7 @@
  * Version and "What's new". Bump APP_VERSION and add an entry to the top of RELEASES
  * with each update. The banner shows once per version, then stays dismissed.
  */
-export const APP_VERSION = '2.0.40'
+export const APP_VERSION = '2.0.41'
 
 export interface Release {
   version: string
@@ -13,6 +13,12 @@ export interface Release {
 }
 
 export const RELEASES: Release[] = [
+  {
+    version: '2.0.41',
+    date: '2026-11-14',
+    changes: ['Max board: every task now ends with a lesson. The task file and the Milo prompt tell the worker to finish its result with one “LESSON:” line (or “LESSON: none”). Lessons are saved in the Max library (LESSONS.md) and the board shows “What the team learned”, so Claude, Muse and Hermes learn from each task, also when Claude is out of limit.'],
+    changesVi: ['Bảng Max: mỗi việc giờ phải kết thúc bằng một bài học. File việc và lời nhắc cho Milo dặn ghi dòng “LESSON:” cuối kết quả (hoặc “LESSON: none”). Bài học được lưu trong thư viện Max (LESSONS.md) và bảng hiện mục “Đội đã rút kinh nghiệm”, để Claude, Muse và Hermes học từ từng việc, kể cả khi Claude hết limit.'],
+  },
   {
     version: '2.0.40',
     date: '2026-11-14',
