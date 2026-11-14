@@ -105,3 +105,4 @@ The copy of this file on `main` is frozen history up to 2026-11-11.
 | 2026-11-14 13:13 | claude | ADD | T25 BayReady repo: import the live newest version (3.21.8) so the repo is not behind → milo | bayready | — |
 | 2026-11-14 13:17 | hermes-win | HANDOFF | T25 file written for Milo on windows | bayready | — |
 | 2026-11-14 13:22 | hermes-win | START | T25 Starting T25: checking files in milo-shared and locating BayReady repo | bayready | — |
+| 2026-11-14 13:27 | hermes-win | PROGRESS | T25 Step 5: Opening PR | bayready | — |
