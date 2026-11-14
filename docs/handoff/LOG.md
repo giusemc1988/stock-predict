@@ -57,3 +57,4 @@ The copy of this file on `main` is frozen history up to 2026-11-11.
 | 2026-11-13 05:32 | hermes-win | FAILED | T11 Mục tiêu: Kiểm tra nguyên nhân trang Max (Neo Hub) vẫn chưa đăng nhập được sau các thay đổi của Claude, khắc phục dứt điểm và xác nhận hệ th… (full text in the brief): FAILED Em chưa sửa được lỗi đăng nhập vì chưa thấy màn hình lỗi — ảnh anh đính kèm ở task T11 chỉ nằm trên máy anh, chưa | neohub | — |
 | 2026-11-14 00:24 | chanh | OUT | driver: milo |  | — |
 | 2026-11-14 00:25 | chanh | CLAUDE-BACK | driver: claude |  | — |
+| 2026-11-14 02:56 | chanh | ADD | T12 BayReady: hàng chip dưới tên xe bị cắt bên phải, chữ cảnh báo bị cụt. Sửa cho thấy đủ, ở cả 360, 390 và 820px." Thêm ảnh bằng nút thêm/dán ảnh → milo | neohub | — |
