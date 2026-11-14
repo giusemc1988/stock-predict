@@ -97,3 +97,4 @@ The copy of this file on `main` is frozen history up to 2026-11-11.
 | 2026-11-14 12:21 | claude | ADD | T24 TEST of the wake-up script (harmless): comment-only change in giusemc1988/bayready → milo | bayready | — |
 | 2026-11-14 12:22 | hermes-win | HANDOFF | T24 file written for Milo on windows | bayready | — |
 | 2026-11-14 12:22 | hermes-win | START | T23 Bắt đầu task: comment test wake-up script trong bayready. | bayready | — |
+| 2026-11-14 12:32 | hermes-win | START | T24 Added comment line to README.md, creating branch wake-test2 | bayready | — |
