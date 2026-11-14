@@ -122,3 +122,4 @@ The copy of this file on `main` is frozen history up to 2026-11-11.
 | 2026-11-14 20:57 | hermes-win | START | T29 Bắt đầu review PR #10 cho BayReady phiên bản 3.21.8 - đang fetch diff và kiểm tra | bayready | — |
 | 2026-11-14 21:02 | hermes-win | NEED | T28 Milo needs: PR #9 (https://github.com/giusemc1988/bayready/pull/9) returns 404. Has the PR been closed, moved, or is there a different PR URL? Please verify the correct PR link or provide updated  | bayready | — |
 | 2026-11-14 21:02 | hermes-win | PROGRESS | T29 [STOPPED] PR #10 trên GitHub là phiên bản 3.21.11 (task ghi 3.21.8 - version mismatch). Cần hỏi Chanh. | bayready | — |
+| 2026-11-14 21:02 | hermes-win | START | T30 Đang review PR BayReady #11 với combo review-hard | neohub | — |
