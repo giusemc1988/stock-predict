@@ -1,0 +1,239 @@
+{
+ "source": "tradingview-screener",
+ "generatedAt": 1794617965045,
+ "matched": 29,
+ "rows": [
+  {
+   "symbol": "LFTO",
+   "price": 24.44,
+   "marketCap": 4138462334,
+   "rvol": 10.89,
+   "changePct": 30.63,
+   "exchange": "NASDAQ"
+  },
+  {
+   "symbol": "WSE",
+   "price": 11.23,
+   "marketCap": 13268716986,
+   "rvol": 8.66,
+   "changePct": 2.74,
+   "exchange": "NASDAQ"
+  },
+  {
+   "symbol": "NMAX",
+   "price": 9.58,
+   "marketCap": 1237358977,
+   "rvol": 6.6,
+   "changePct": 31.41,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "HAWK",
+   "price": 18.16,
+   "marketCap": 1779054456,
+   "rvol": 3.84,
+   "changePct": 23.79,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "CDNL",
+   "price": 6.46,
+   "marketCap": 306675953,
+   "rvol": 3.54,
+   "changePct": 14.54,
+   "exchange": "NASDAQ"
+  },
+  {
+   "symbol": "CBRS",
+   "price": 108.72,
+   "marketCap": 24336812449,
+   "rvol": 3.27,
+   "changePct": 11.22,
+   "exchange": "NASDAQ"
+  },
+  {
+   "symbol": "KLAR",
+   "price": 13.8,
+   "marketCap": 5232408908,
+   "rvol": 2.72,
+   "changePct": 8.58,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "MOD",
+   "price": 135.66,
+   "marketCap": 7216693857,
+   "rvol": 2.68,
+   "changePct": 27.86,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "AGRO",
+   "price": 9.11,
+   "marketCap": 1314645631,
+   "rvol": 2.57,
+   "changePct": 7.56,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "PUBM",
+   "price": 20.61,
+   "marketCap": 938242447,
+   "rvol": 2.54,
+   "changePct": 8.36,
+   "exchange": "NASDAQ"
+  },
+  {
+   "symbol": "ADIG",
+   "price": 10.09,
+   "marketCap": 766065012,
+   "rvol": 2.5,
+   "changePct": 2.75,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "CGON",
+   "price": 74.4,
+   "marketCap": 6645327518,
+   "rvol": 2.48,
+   "changePct": 6.06,
+   "exchange": "NASDAQ"
+  },
+  {
+   "symbol": "ITG",
+   "price": 5.68,
+   "marketCap": 705213014,
+   "rvol": 2.45,
+   "changePct": 7.17,
+   "exchange": "NASDAQ"
+  },
+  {
+   "symbol": "KDP",
+   "price": 36.34,
+   "marketCap": 49456861000,
+   "rvol": 2.44,
+   "changePct": 2.6,
+   "exchange": "NASDAQ"
+  },
+  {
+   "symbol": "SO",
+   "price": 93.59,
+   "marketCap": 108963187148,
+   "rvol": 2.42,
+   "changePct": 1.21,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "WWW",
+   "price": 24.89,
+   "marketCap": 2042631216,
+   "rvol": 2.4,
+   "changePct": 8.83,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "JBGS",
+   "price": 12.54,
+   "marketCap": 734538915,
+   "rvol": 2.38,
+   "changePct": 4.59,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "VKTX",
+   "price": 29.22,
+   "marketCap": 3726198272,
+   "rvol": 2.37,
+   "changePct": 5.95,
+   "exchange": "NASDAQ"
+  },
+  {
+   "symbol": "NU",
+   "price": 13.22,
+   "marketCap": 63859004506,
+   "rvol": 2.11,
+   "changePct": 11.75,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "STNE",
+   "price": 7.92,
+   "marketCap": 1926367505,
+   "rvol": 2.1,
+   "changePct": 2.59,
+   "exchange": "NASDAQ"
+  },
+  {
+   "symbol": "CLBT",
+   "price": 11.53,
+   "marketCap": 2897962564,
+   "rvol": 2.07,
+   "changePct": 5.88,
+   "exchange": "NASDAQ"
+  },
+  {
+   "symbol": "EZPW",
+   "price": 27.55,
+   "marketCap": 1692764976,
+   "rvol": 1.9,
+   "changePct": 1.85,
+   "exchange": "NASDAQ"
+  },
+  {
+   "symbol": "YETI",
+   "price": 39.42,
+   "marketCap": 2877218440,
+   "rvol": 1.87,
+   "changePct": 2.92,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "WMG",
+   "price": 32.3,
+   "marketCap": 16896445269,
+   "rvol": 1.76,
+   "changePct": 1.99,
+   "exchange": "NASDAQ"
+  },
+  {
+   "symbol": "MBX",
+   "price": 55.94,
+   "marketCap": 2777771393,
+   "rvol": 1.62,
+   "changePct": 2.62,
+   "exchange": "NASDAQ"
+  },
+  {
+   "symbol": "ALM",
+   "price": 8.22,
+   "marketCap": 2371311746,
+   "rvol": 1.56,
+   "changePct": 7.73,
+   "exchange": "NASDAQ"
+  },
+  {
+   "symbol": "TDC",
+   "price": 34.81,
+   "marketCap": 3181634081,
+   "rvol": 1.54,
+   "changePct": 1.84,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "SB",
+   "price": 8.29,
+   "marketCap": 943679453,
+   "rvol": 1.51,
+   "changePct": 2.22,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "DX",
+   "price": 10.07,
+   "marketCap": 2614444964,
+   "rvol": 1.5,
+   "changePct": 1.1,
+   "exchange": "NYSE"
+  }
+ ]
+}
