@@ -28,7 +28,7 @@ For Claude, Muse (Milo), Hermes Windows and Hermes Ubuntu. Goal: anyone can do a
 ## Lessons (problem, cause, fix)
 In `lessons/`, one file each, date in the filename. Seeded 2026-11-12.
 
-Short lessons write themselves: a line starting `LESSON:` in a board task's RESULT file is added to `docs/handoff/LESSONS.md` on branch `handoff-log` (no AI). Read that file before a job on the same project. When Claude gives or checks a task, Claude adds the lesson the same way, so each task teaches the next one.
+Short lessons write themselves and every board task must end with one (`LESSON: none` if nothing new): a line starting `LESSON:` in a board task's RESULT file is added to `docs/handoff/LESSONS.md` on branch `handoff-log` (no AI). Read that file before a job on the same project. When Claude gives or checks a task, Claude adds the lesson the same way, so each task teaches the next one.
 
 ## Team name
 **Max Team** = Claude + Muse (Milo) + Hermes Windows + Hermes Ubuntu, working with Chanh. Claude plans, checks and writes hard code; Milo does machine work on both PCs; Hermes only runs fixed scripts; Chanh decides and presses Update/Reload. Some days Chanh has only one machine (for example only the Ubuntu shop PC): every step for him must work from that machine or his phone. A change is done only when it is on BOTH machines and he just has to Reload (see `lessons/2026-11-12-bayready-update-path-two-machines.md`).

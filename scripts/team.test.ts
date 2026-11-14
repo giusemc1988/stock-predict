@@ -246,5 +246,13 @@ console.log('team board: Milo hand-off ok')
   s = applyAction(r.state, { type: 'finish', id: 'T1', ok: true, result: 'DONE' }, '2026-11-13T04:00:00.000Z', 'hermes-win').state
   assert.equal(s.tasks[0].status, 'done')
   assert.throws(() => applyAction(s, { type: 'reopen', id: 'T1' }, '2026-11-13T04:01:00.000Z', 'hermes-win'), /not failed/)
+  // every task asks for a closing LESSON line; "LESSON: none" is not recorded
+  assert.match(taskFile(s.tasks[0]), /LAST line, always: "LESSON: \.\.\."/)
+  assert.match(taskFile(s.tasks[0]), /LESSON: none/)
+  assert.match(miloPrompt(s.tasks.filter((t: { status: string }) => t.status === 'done')), /whole team learns/)
+  const none = applyAction(emptyTeam(), { type: 'add', title: 'Tiny job', project: 'neohub', owner: 'milo' }, NOW, 'chanh').state
+  const doneNone = applyAction(none, { type: 'finish', id: 'T1', ok: true, result: 'DONE\nLESSON: none' }, NOW, 'hermes-win')
+  assert.equal(doneNone.state.tasks[0].lesson, undefined)
+  assert.equal(doneNone.log.lesson, undefined)
   console.log('team board: GO line and reopen ok')
 }

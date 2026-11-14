@@ -40,6 +40,10 @@ const T = {
   dLesson: { en: 'Lesson for the team', vi: 'Bài học cho đội' },
   dLast: { en: 'Last change', vi: 'Thay đổi cuối' },
   dClaude: { en: 'waits for Claude (when Claude has limit)', vi: 'chờ Claude (khi Claude còn limit)' },
+  learn: { en: 'What the team learned', vi: 'Đội đã rút kinh nghiệm' },
+  learnHow: { en: 'Every finished task ends with one lesson. They are saved in the Max library so Claude, Muse and Hermes read them before the next job.', vi: 'Mỗi việc xong đều kết thúc bằng một bài học. Bài học được lưu trong thư viện Max để Claude, Muse và Hermes đọc trước việc sau.' },
+  learnNone: { en: 'No lessons yet.', vi: 'Chưa có bài học nào.' },
+  learnAll: { en: 'All lessons (library)', vi: 'Xem hết bài học (thư viện)' },
   away: { en: 'Changed since Claude last looked', vi: 'Thay đổi từ lần cuối Claude xem' },
   awayHow: { en: 'Claude reads this list first when back, checks each one, then marks it read.', vi: 'Khi quay lại Claude đọc danh sách này trước, kiểm tra từng việc rồi đánh dấu đã xem.' },
   awayNone: { en: 'Nothing new.', vi: 'Không có gì mới.' },
@@ -201,6 +205,7 @@ export function TeamPanel() {
   const waiting = team ? miloOpen(team) : []
   const allPrompt = miloPrompt(waiting, imgs.length)
   const urgent = team ? needsChanh(team, now) : []
+  const lessons = team ? team.tasks.filter((t) => t.lesson).slice(-5).reverse() : []
   const news = team ? sinceClaude(team) : []
   const why = (t: TeamTask) => (t.status === 'needs-ok' ? L('rRed') : t.need ? `${L('rNeed')}: ${t.need}` : t.status === 'failed' ? `${L('rFail')}: ${(t.result ?? '').slice(0, 140)}` : L('rStuck'))
   const open = team ? team.tasks.filter((t) => t.status !== 'done' && t.status !== 'cancelled' && t.status !== 'failed') : []
@@ -378,6 +383,16 @@ export function TeamPanel() {
               )}
             </div>
             <div className="tp-side">
+            <details className="tp-log" open={lessons.length > 0}>
+              <summary><b>{L('learn')} ({lessons.length})</b></summary>
+              <p className="muted small">{L('learnHow')}</p>
+              {lessons.length ? (
+                <ul className="tp-plain">
+                  {lessons.map((t) => <li key={t.id} className="small"><b>{t.id}</b> · {t.lesson}</li>)}
+                </ul>
+              ) : <p className="muted small">{L('learnNone')}</p>}
+              <p className="small"><a href="https://github.com/giusemc1988/stock-predict/blob/handoff-log/docs/handoff/LESSONS.md" target="_blank" rel="noopener noreferrer">{L('learnAll')}</a></p>
+            </details>
             <details className="tp-log" open={news.length > 0}>
               <summary><b>{L('away')} ({news.length})</b></summary>
               <p className="muted small">{L('awayHow')}{team.claudeSeen ? ` · ${hm(team.claudeSeen)}` : ''}</p>
