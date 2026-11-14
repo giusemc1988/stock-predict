@@ -157,7 +157,7 @@
       "brief": "This is a wiring test, nothing real. In giusemc1988/bayready add ONE comment line \"// wake-up test, safe to ignore\" at the very top of routes.js. No other change, no version bump. Branch name wake-test. Open a pull request and write RESULT right after it opens (PR: and GATE: lines). Do NOT merge, do NOT release.",
       "status": "running",
       "created": "2026-11-14T12:14:04.971Z",
-      "updated": "2026-11-14T12:22:22.077Z",
+      "updated": "2026-11-14T20:42:23.187Z",
       "by": "claude",
       "updatedBy": "hermes-win",
       "handed": {
@@ -165,7 +165,7 @@
         "machine": "windows"
       },
       "started": "2026-11-14T12:22:22.077Z",
-      "progress": "Bắt đầu task: comment test wake-up script trong bayready."
+      "progress": "picked up T23 (wake-up test: one comment line on top of routes.js); branching wake-test from main"
     },
     {
       "id": "T24",

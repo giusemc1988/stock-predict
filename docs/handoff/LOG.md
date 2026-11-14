@@ -110,3 +110,4 @@ The copy of this file on `main` is frozen history up to 2026-11-11.
 | 2026-11-14 20:40 | chanh | ADD | T27 BayReady — sửa layout theo hình anh gửi (đang chạy v3.21.11). Chỉ sửa 3 chỗ dưới đây. Không đổi màu, không đổi style board, không bỏ tính nă… (full text in the brief) → milo | neohub | — |
 | 2026-11-14 20:42 | hermes-win | HANDOFF | T27 file written for Milo on windows | neohub | — |
 | 2026-11-14 20:42 | hermes-win | DONE | T22 Review: BayReady repo: tests/enrich-pick.test.js cannot run (looks for src/routes.js, repo is flat): DONE VERDICT: APPROVE GATE: green MERGED: yes Review of PR #6 (tests/enrich-pick.test.js, branch tests-fix, from main 3. | bayready | — |
+| 2026-11-14 20:42 | hermes-win | PROGRESS | T23 picked up T23 (wake-up test: one comment line on top of routes.js); branching wake-test from main | bayready | — |
