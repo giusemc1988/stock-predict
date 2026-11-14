@@ -158,9 +158,9 @@
       "kind": "code",
       "owner": "milo",
       "brief": "This is a wiring test, nothing real. In giusemc1988/bayready add ONE comment line \"// wake-up test, safe to ignore\" at the very top of manifest-free file README.md (create nothing else). No other change, no version bump. Branch name wake-test2 (a first test PR #7 already exists, ignore it). Open a pull request and write RESULT right after it opens (PR: and GATE: lines). Do NOT merge, do NOT release.",
-      "status": "running",
+      "status": "done",
       "created": "2026-11-14T12:21:24.415Z",
-      "updated": "2026-11-14T12:32:18.843Z",
+      "updated": "2026-11-14T12:37:19.098Z",
       "by": "claude",
       "updatedBy": "hermes-win",
       "handed": {
@@ -168,7 +168,10 @@
         "machine": "windows"
       },
       "started": "2026-11-14T12:32:18.843Z",
-      "progress": "Added comment line to README.md, creating branch wake-test2"
+      "progress": "Added comment line to README.md, creating branch wake-test2",
+      "result": "DONE Changed: Added \"// wake-up test, safe to ignore\" comment line at top of README.md in giusemc1988/bayready Version: N/A (test PR, no version bump) Checks run: - Branch created: wake-test2 - Commit: wake-up test: add comment line - README.md first 3 lines verified: \"// wake-up test, safe to ignore\" is present - PR opened: https://github.com/giusemc1988/bayready/pull/8 LESSON: none",
+      "pr": "",
+      "gate": "unknown"
     }
   ],
   "next": 25,
@@ -277,6 +280,13 @@
       "from": "Hermes Windows",
       "to": "Milo",
       "text": "T24 đã đưa việc cho Milo",
+      "ref": "T24"
+    },
+    {
+      "t": "2026-11-14T12:37:19.098Z",
+      "from": "Milo",
+      "to": "Chanh",
+      "text": "T24 coder xong, cổng unknown",
       "ref": "T24"
     }
   ],
