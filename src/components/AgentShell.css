@@ -137,7 +137,7 @@
 /* Văn phòng (TeamPanel) */
 .tp-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
 .tp-note { color: var(--acc, var(--gold)); }
-.tp-top { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+.tp-top { display: grid; grid-template-columns: minmax(0, 1fr); gap: 12px; }
 .tp-box { display: grid; gap: 6px; align-content: start; padding: 12px 14px; border-radius: 16px; border: 1px solid var(--line); background: var(--panel-2); min-width: 0; }
 .tp-big { font: 600 18px var(--display, inherit); }
 .tp-up { color: var(--up); }
@@ -228,3 +228,13 @@
 @media (max-width: 640px) { .of-room { grid-template-columns: repeat(2, minmax(0, 1fr)); } .of-room > :first-child { grid-column: 1 / -1; } .of-bar i { display: none; } .of-bar b { margin-left: 0; } }
 @media (max-width: 380px) { .of-room { gap: 8px; } .of-screen { height: 64px; } }
 @media (prefers-reduced-motion: reduce) { .of-screen *, .of-screen { animation: none !important; } }
+.hp { display: block; min-width: 0; }
+.hp-line { font-size: 12px; color: var(--muted); overflow-wrap: anywhere; }
+.hp-q { display: inline-grid; place-items: center; width: 24px; height: 24px; margin-left: 6px; padding: 0; border-radius: 50%; border: 1px solid var(--line); background: var(--panel-2); color: inherit; font: 600 13px inherit; cursor: pointer; vertical-align: middle; }
+.hp-more { display: block; margin-top: 6px; padding: 8px 10px; border-left: 3px solid var(--acc, var(--gold)); background: var(--panel-2); border-radius: 0 10px 10px 0; font-size: 13px; line-height: 1.45; overflow-wrap: anywhere; }
+.hp-item { display: grid; gap: 4px; min-width: 0; align-content: start; flex: 1 1 140px; }
+.hp-item > .btn { width: 100%; }
+.mx-more > summary { cursor: pointer; font-weight: 600; }
+.mx-more { display: grid; gap: 12px; }
+/* task rows on a phone: the buttons go under the text so none is cut off */
+@media (max-width: 520px) { .tp-t { flex-wrap: wrap; } .tp-t > div:first-child { flex: 1 1 100%; } .tp-t > .ag-acts { flex: 1 1 100%; } .tp-t > .ag-acts .btn { flex: 1 1 120px; } }

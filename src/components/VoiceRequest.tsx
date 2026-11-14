@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import type { Bi } from '../lib/hubText'
 import { useLang } from '../lib/i18n'
+import { Help, WithHelp } from './Help'
 import { appendSpeech, buildPrompt, captionLang, CLAUDE_PROJECT_URL, MAX_RECORD_MS, WHISPER_HINT, type VoiceMode } from '../lib/voiceRequest'
 
 const T = {
@@ -241,18 +242,20 @@ export function VoiceRequest() {
             <span className="vr-dot" aria-hidden="true" />
             {phase === 'wait' ? L('chep') : on ? L('micOn') : L('mic')}
           </button>
+          <Help k="mic" />
           {on && live && <p className="small muted vr-live" aria-live="polite">{L('live')} {live}</p>}
           <div className="vr-lang" role="group" aria-label="Language">
             {(['auto', 'vi', 'en'] as const).map((l) => (
               <button key={l} type="button" className={`btn${mode === l ? ' primary' : ''}`} disabled={phase !== 'idle'} onClick={() => setMode(l)}>{l === 'auto' ? L('auto') : l === 'vi' ? 'Tiếng Việt' : 'English'}</button>
             ))}
           </div>
+          <Help k="lang" />
           {err && <p className="small vr-err" role="alert">{L(err)}</p>}
           {note && <p className="small" role="status">{note}</p>}
           <textarea rows={4} value={text} onChange={(e) => setText(e.target.value)} spellCheck={false} autoCorrect="off" autoCapitalize="off" placeholder={L('ph')} maxLength={3000} />
           <div className="ag-acts">
-            <button className="btn primary vr-big" disabled={phase !== 'idle' || text.trim().length < 4} onClick={finish}>{L('done')}</button>
-            {text && <button className="btn" onClick={() => { setText(''); setNote('') }}>{L('clear')}</button>}
+            <WithHelp k="done"><button className="btn primary vr-big" disabled={phase !== 'idle' || text.trim().length < 4} onClick={finish}>{L('done')}</button></WithHelp>
+            {text && <WithHelp k="clear"><button className="btn" onClick={() => { setText(''); setNote('') }}>{L('clear')}</button></WithHelp>}
           </div>
         </>
       ) : (
@@ -261,12 +264,14 @@ export function VoiceRequest() {
           <textarea className="vr-prompt" rows={10} value={prompt} onChange={(e) => setPrompt(e.target.value)} spellCheck={false} maxLength={4000} />
           <div className="vr-steps">
             <button className="btn primary vr-big" disabled={!prompt.trim()} onClick={() => void copyPrompt()}>{L('step1')}</button>
+            <Help k="copyPrompt" />
             {step1 && <p className="vr-ok" role="status">{L('step1Done')}</p>}
             <a className={`btn${step1 ? ' primary' : ''} vr-big`} href={CLAUDE_PROJECT_URL} target="_blank" rel="noopener noreferrer" onClick={() => setNote(L('step2Done'))}>{L('step2')}</a>
+            <Help k="openClaude" />
           </div>
           <div className="ag-acts">
-            {canShare && <button className="btn" onClick={share}>{L('share')}</button>}
-            <button className="btn" onClick={() => { setPrompt(null); setNote(''); setStep1(false) }}>{L('back')}</button>
+            {canShare && <WithHelp k="share"><button className="btn" onClick={share}>{L('share')}</button></WithHelp>}
+            <WithHelp k="back"><button className="btn" onClick={() => { setPrompt(null); setNote(''); setStep1(false) }}>{L('back')}</button></WithHelp>
           </div>
           {note && <p className="vr-ok" role="status">{note}</p>}
         </>
@@ -282,9 +287,9 @@ export function VoiceRequest() {
         {muse.trim() && museAt > 0 && <p className="muted small">{L('museSaved')}: {new Date(museAt).toLocaleString([], { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</p>}
         <textarea rows={5} value={muse} onChange={(e) => editMuse(e.target.value)} maxLength={20000} />
         <div className="ag-acts">
-          <button className="btn primary" disabled={!muse.trim()} onClick={() => void copyMuse()}>{L('copy')}</button>
-          <button className="btn" onClick={pasteMuse}>{L('paste')}</button>
-          <button className="btn" disabled={!muse.trim()} onClick={() => editMuse('')}>{L('museClear')}</button>
+          <WithHelp k="museCopy"><button className="btn primary" disabled={!muse.trim()} onClick={() => void copyMuse()}>{L('copy')}</button></WithHelp>
+          <WithHelp k="musePaste"><button className="btn" onClick={pasteMuse}>{L('paste')}</button></WithHelp>
+          <WithHelp k="museClear"><button className="btn" disabled={!muse.trim()} onClick={() => editMuse('')}>{L('museClear')}</button></WithHelp>
         </div>
         {copied && <p className="vr-ok" role="status">{L('museCopied')}</p>}
       </details>
