@@ -269,11 +269,11 @@
       "risk": "high",
       "round": 1,
       "brief": "Review the pull request https://github.com/giusemc1988/bayready/pull/9 for TEST of the wake-up script (harmless): comment-only change in giusemc1988/bayready. You are the REVIEWER: use the other OmniRoute combo (review-hard), not the one the coder used.\nRead the diff and the task. Check: does it do what the task says, does it break anything else, is there a test or check that proves it, does it stay inside the limits (no secrets, nothing deleted, no feature removed).\nRun the gate again yourself. Then write in the RESULT file, in this order: first line DONE; \"VERDICT: APPROVE\" or \"VERDICT: CHANGES\"; \"NOTES: <what to fix, one line>\" when CHANGES; \"GATE: green\" or \"GATE: red\".\nThis is a HIGH-risk change: do NOT merge. Write \"MERGED: no\". Chanh decides.\nNever push the release zip: a release only happens when Chanh says \"phát hành X\".",
-      "status": "running",
+      "status": "cancelled",
       "created": "2026-11-14T20:47:19.015Z",
-      "updated": "2026-11-14T21:57:19.693Z",
+      "updated": "2026-11-15T01:24:31.768Z",
       "by": "pipeline",
-      "updatedBy": "hermes-win",
+      "updatedBy": "claude",
       "handed": {
         "at": "2026-11-14T20:52:18.988Z",
         "machine": "windows"
@@ -333,7 +333,7 @@
     }
   ],
   "next": 31,
-  "claudeSeen": "2026-11-14T13:57:56.251Z",
+  "claudeSeen": "2026-11-15T01:24:31.768Z",
   "feed": [
     {
       "t": "2026-11-14T07:06:48.696Z",
@@ -558,6 +558,13 @@
       "to": "Milo",
       "text": "T30 đã đưa việc cho Milo",
       "ref": "T30"
+    },
+    {
+      "t": "2026-11-15T01:24:31.768Z",
+      "from": "Claude",
+      "to": "team",
+      "text": "T28 huỷ: Review: TEST of the wake-up script (harmless): comment-only change in giusemc1988/bayready",
+      "ref": "T28"
     }
   ],
   "seen": [

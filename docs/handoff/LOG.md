@@ -127,3 +127,4 @@ The copy of this file on `main` is frozen history up to 2026-11-11.
 | 2026-11-14 21:57 | hermes-win | PROGRESS | T29 [Milo 2026-11-14 15:57 CST] Checked: 3.21.8 vs 3.21.11 mismatch was already resolved in T25 (task says take highest version; PR #10 imports 3.21.11). Review still paused per Chanh. | bayready | — |
 | 2026-11-14 21:57 | hermes-win | PROGRESS | T30 [Milo 2026-11-14 15:57 CST] Review paused per Chanh; no RESULT yet. | neohub | — |
 | 2026-11-14 22:07 | hermes-win | NEED | T30 Milo needs: PR BayReady #11 URL đúng không? Link mới hoặc thông tin chi tiết? | neohub | — |
+| 2026-11-15 01:24 | claude | CANCEL | T28 Review: TEST of the wake-up script (harmless): comment-only change in giusemc1988/bayready | bayready | — |
