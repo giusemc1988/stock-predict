@@ -128,3 +128,4 @@ The copy of this file on `main` is frozen history up to 2026-11-11.
 | 2026-11-14 21:57 | hermes-win | PROGRESS | T30 [Milo 2026-11-14 15:57 CST] Review paused per Chanh; no RESULT yet. | neohub | — |
 | 2026-11-14 22:07 | hermes-win | NEED | T30 Milo needs: PR BayReady #11 URL đúng không? Link mới hoặc thông tin chi tiết? | neohub | — |
 | 2026-11-15 01:24 | claude | CANCEL | T28 Review: TEST of the wake-up script (harmless): comment-only change in giusemc1988/bayready | bayready | — |
+| 2026-11-15 01:24 | claude | CANCEL | T30 Review: BayReady — sửa layout theo hình anh gửi (đang chạy v3.21.11). Chỉ sửa 3 chỗ dưới đây. Không đổi màu, không đổi style board, không bỏ tính nă… (full text in the brief) | neohub | — |
