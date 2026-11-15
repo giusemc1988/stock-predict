@@ -6,9 +6,9 @@
   },
   "machines": {
     "windows": {
-      "scoutAt": "2026-11-15T17:27:18.660Z",
-      "seen": "2026-11-15T23:07:18.315Z",
-      "note": "idle"
+      "scoutAt": "2026-11-15T23:32:19.340Z",
+      "seen": "2026-11-15T23:32:19.340Z",
+      "note": "scout done"
     },
     "ubuntu": {
       "scoutAt": "2026-11-15T19:05:02.883Z",
