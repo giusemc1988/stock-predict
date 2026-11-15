@@ -351,15 +351,15 @@
       "kind": "code",
       "owner": "milo",
       "brief": "Chanh said do it (2026-11-14 evening). BASE: repo main is still 3.21.4. The newest code is the open PR #14 branch layout-fix-4 (3.21.15) or a higher zip in milo-shared. Branch from the branch/zip with the HIGHEST version (check manifest.json), open ONE PR against main, say in the PR which base you used. Version = next free number above the highest one you find (also check milo-shared zips). Changelog EN+VI.\n\nFIX 1 (tiles): tapping home tile Appointment status or Today's services shows nothing when the extension is busy with a background TIS read. In routes.js runRouteTaskInner: look up the route and write the user line BEFORE waitQuiet (a missing route errors at once). In content.js runJob (home tiles): the 5s 'did not start' alert must fire on no-log alone, even when state.running is already true. First check by reading the code whether the newest build already does this; if yes skip FIX 1 and say so.\n\nFIX 2 (stale timers): after an extension update, an open old tab keeps ~17 setInterval timers that throw 'Extension context invalidated' every tick. content.js: when the existing stale watcher (staleIv) sees chrome.runtime.id is gone it must clear every page timer (route page timers through one helper that records ids, then clear them all there). Do NOT reload the tab automatically.\n\nChecks: node --check on all js, gate green with --prev, tests/enrich-pick.test.js passes. Write RESULT right after opening the PR. Do not merge, do not release, do not touch bayready-latest.zip.",
-      "status": "todo",
+      "status": "cancelled",
       "created": "2026-11-15T01:29:15.886Z",
-      "updated": "2026-11-15T01:29:15.886Z",
+      "updated": "2026-11-15T01:29:33.587Z",
       "by": "claude",
       "updatedBy": "claude"
     }
   ],
   "next": 33,
-  "claudeSeen": "2026-11-15T01:29:15.886Z",
+  "claudeSeen": "2026-11-15T01:29:33.587Z",
   "feed": [
     {
       "t": "2026-11-14T07:06:48.696Z",
@@ -619,6 +619,13 @@
       "to": "team",
       "text": "T20 huỷ: BayReady: page timers keep running and throwing after the extension is updated (stale tab)",
       "ref": "T20"
+    },
+    {
+      "t": "2026-11-15T01:29:33.587Z",
+      "from": "Claude",
+      "to": "team",
+      "text": "T32 huỷ: BayReady: tapped tiles answer at once + stale tabs stop their timers (2 small fixes, one PR)",
+      "ref": "T32"
     }
   ],
   "seen": [
