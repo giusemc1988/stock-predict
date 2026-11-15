@@ -86,9 +86,9 @@
       "key": "stale-intervals-3214",
       "from": "Claude",
       "brief": "Evidence: content.js has 17 setInterval calls that run for the life of the page (e.g. lines ~4823 roslot refresh, ~6848 tload bars, ~7368 cvPreScanBar, ~7493 RO watcher, ~5326 port ping). Only one watcher (staleIv, ~line 4262) notices the extension was updated (chrome.runtime.id gone) and it only shows a banner and hides the panel; the other timers keep firing and call chrome.runtime.sendMessage / chrome.storage, which throw 'Extension context invalidated' every tick on every stale tab.\nDone when this passes: Branch stale-timers from repo giusemc1988/bayready main (v3.21.4), bump to 3.21.6 only if 3.21.5 (task tiles fix) is not yet in main, otherwise 3.21.5+1. Change ONLY content.js. When staleIv sees the context is dead it must clear every page timer (e.g. route page timers through one helper that records ids, then clear them all there). Do not reload the tab automatically (3.21.3 rule: never reload a tab the user may be typing in). Gate: node scripts/bayready-gate.mjs (from stock-predict) prints GATE: green and tests/enrich-pick.test.js still passes if it runs. Do NOT release, do NOT touch bayready-latest.zip, do NOT merge: open a PR and write PR:, GATE: and the list of timers you routed through the helper in the RESULT file.",
-      "status": "proposed",
+      "status": "cancelled",
       "created": "2026-11-14T07:12:36.574Z",
-      "updated": "2026-11-14T07:12:36.574Z",
+      "updated": "2026-11-15T01:28:57.147Z",
       "by": "claude",
       "updatedBy": "claude"
     },
@@ -333,7 +333,7 @@
     }
   ],
   "next": 31,
-  "claudeSeen": "2026-11-15T01:28:46.857Z",
+  "claudeSeen": "2026-11-15T01:28:57.147Z",
   "feed": [
     {
       "t": "2026-11-14T07:06:48.696Z",
@@ -586,6 +586,13 @@
       "to": "team",
       "text": "T26 huỷ: BayReady: put the tile fix (PR #5) on the newest build, next free version",
       "ref": "T26"
+    },
+    {
+      "t": "2026-11-15T01:28:57.147Z",
+      "from": "Claude",
+      "to": "team",
+      "text": "T20 huỷ: BayReady: page timers keep running and throwing after the extension is updated (stale tab)",
+      "ref": "T20"
     }
   ],
   "seen": [
