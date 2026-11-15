@@ -132,3 +132,4 @@ The copy of this file on `main` is frozen history up to 2026-11-11.
 | 2026-11-15 01:25 | claude | CANCEL | T29 Review: BayReady repo: import the live newest version (3.21.8) so the repo is not behind | bayready | — |
 | 2026-11-15 01:28 | claude | CANCEL | T26 BayReady: put the tile fix (PR #5) on the newest build, next free version | bayready | — |
 | 2026-11-15 01:28 | claude | CANCEL | T20 BayReady: page timers keep running and throwing after the extension is updated (stale tab) | bayready | — |
+| 2026-11-15 01:29 | claude | ADD | T31 BayReady 3.21.16: fix silent tiles (if still broken) and stale-tab timers, one PR on top of 3.21.15 → milo | bayready | — |
