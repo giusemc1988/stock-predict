@@ -340,7 +340,7 @@
       "brief": "Chanh approved this on 2026-11-15 (\"giao cho Milo lam luon\"). It replaces the two old proposals T20 and T26 (their briefs named a stale base). Two small fixes in ONE pull request.\nBASE: the newest build is v3.21.15 on branch layout-fix-4 (open PR #14 in giusemc1988/bayready, NOT merged, main is still 3.21.4). Start a new branch fixes-3.21.16 from layout-fix-4 and open the pull request against layout-fix-4. Never push to main or layout-fix-4 itself.\nFIX 1 (tiles that stay silent): in content.js runJob, the 5-second safety message must fire when the chat log has not grown, even when state.running is already true (a background TIS read sets it). In routes.js runRouteTaskInner, look up the route and write the user line to the chat BEFORE waitQuiet, so a tap never shows nothing. First check by reading the code whether 3.21.15 already does both; if it does, skip this fix and say so in RESULT.\nFIX 2 (stale tab timers): content.js has about 17 setInterval timers. Only the staleIv watcher notices the extension was updated (chrome.runtime.id gone) and it only shows a banner. Route the page timers through one helper that records their ids, and when staleIv sees the context is dead clear them all. Do not reload the tab automatically. In RESULT list the timers you routed through the helper.\nVersion 3.21.16, changelog EN+VI, node --check on every js file, gate: node milo-shared\\bayready-gate.mjs <checkout> --prev 3.21.15 must print GATE: green. Do NOT release, do NOT touch bayready-latest.zip, do NOT merge. Write RESULT right after opening the PR (PR: and GATE: lines).",
       "status": "running",
       "created": "2026-11-15T01:29:12.651Z",
-      "updated": "2026-11-15T01:37:18.573Z",
+      "updated": "2026-11-15T01:56:41.456Z",
       "by": "claude",
       "updatedBy": "hermes-win",
       "handed": {
@@ -348,7 +348,7 @@
         "machine": "windows"
       },
       "started": "2026-11-15T01:37:18.573Z",
-      "progress": "đang đọc code gốc để kiểm tra FIX 1 (silent tiles) và FIX 2 (stale tab timers) trong content.js và routes.js"
+      "progress": "11|đã ghi RESULT-board-T31.md và thông báo cho Chanh"
     },
     {
       "id": "T32",
