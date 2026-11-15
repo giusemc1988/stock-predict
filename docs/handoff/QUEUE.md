@@ -19,6 +19,7 @@ Driver: **claude** since 2026-11-14 00:25 UTC.
 | T29 | Review: BayReady repo: import the live newest version (3.21.8) so the repo is not behind | bayready | milo | cancelled | 2026-11-15 01:25 |  |
 | T30 | Review: BayReady — sửa layout theo hình anh gửi (đang chạy v3.21.11). Chỉ sửa 3 chỗ dưới đây. Không đổi màu, không đổi style board, không bỏ tính nă… (full text in the brief) | neohub | milo | cancelled | 2026-11-15 01:24 |  |
 | T31 | BayReady 3.21.16: fix silent tiles (if still broken) and stale-tab timers, one PR on top of 3.21.15 | bayready | milo | todo | 2026-11-15 01:29 |  |
+| T32 | BayReady: tapped tiles answer at once + stale tabs stop their timers (2 small fixes, one PR) | bayready | milo | todo | 2026-11-15 01:29 |  |
 
 ## New since Claude last looked (2026-11-15 01:29 UTC)
 
