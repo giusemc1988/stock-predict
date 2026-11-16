@@ -20,11 +20,11 @@ Driver: **claude** since 2026-11-14 00:25 UTC.
 | T30 | Review: BayReady — sửa layout theo hình anh gửi (đang chạy v3.21.11). Chỉ sửa 3 chỗ dưới đây. Không đổi màu, không đổi style board, không bỏ tính nă… (full text in the brief) | neohub | milo | cancelled | 2026-11-15 01:24 |  |
 | T31 | BayReady 3.21.16: fix silent tiles (if still broken) and stale-tab timers, one PR on top of 3.21.15 | bayready | milo | running | 2026-11-15 01:56 |  |
 | T32 | BayReady: tapped tiles answer at once + stale tabs stop their timers (2 small fixes, one PR) | bayready | milo | cancelled | 2026-11-15 01:29 |  |
-| T33 | # Role & Context You are building a new UI module and DOM automation feature for **BayReady**, a browser extension designed for automotive t… (full text in the brief) | neohub | milo | todo | 2026-11-16 03:22 |  |
+| T33 | # Role & Context You are building a new UI module and DOM automation feature for **BayReady**, a browser extension designed for automotive t… (full text in the brief) | neohub | milo | running | 2026-11-16 03:27 |  |
 
 ## New since Claude last looked (2026-11-15 01:29 UTC)
 
 Claude: read this first when back, check each one against real files, then run the `seen` action (team-update.yml, who=claude).
 
 - T31 **running** by hermes-win at 2026-11-15 01:56: BayReady 3.21.16: fix silent tiles (if still broken) and stale-tab timers, one PR on top of 3.21.15 | at: 11/đã ghi RESULT-board-T31.md và thông báo cho Chanh
-- T33 **todo** by hermes-win at 2026-11-16 03:22: # Role & Context You are building a new UI module and DOM automation feature for **BayReady**, a browser extension desig
+- T33 **running** by hermes-win at 2026-11-16 03:27: # Role & Context You are building a new UI module and DOM automation feature for **BayReady**, a browser extension desig | at: Step 3: Planning implementation approach - will extend content.js with new quick-fill UI
