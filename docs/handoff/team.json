@@ -372,9 +372,13 @@
       "brief": "Full request from chanh:\n# Role & Context\nYou are building a new UI module and DOM automation feature for **BayReady**, a browser extension designed for automotive technicians working inside **Xtime** (MPI / Multi-Point Inspection workflow). \n\n# Objective\nBuild a fast, low-click **MPI Quick-Fill & Recommendations Panel** inside the MPI section of the BayReady extension. The design must strictly adhere to BayReady's existing main theme (colors, typography, border-radius, spacing, and dark/light styling).\n\n# Functional Requirements\n\n## 1. Tires & Brakes Quick-Click Matrix (Max 6 Clicks Total)\nCreate a dedicated, compact card/box titled **\"Tires & Brakes\"** designed as a zero-typing fallback when voice input is unavailable.\n- **Goal:** A technician must be able to populate all 4 tires and both brake axles into Xtime in **6 clicks total** (1 click per item).\n- **Layout:** Clean 2-column or grid layout matching the main theme:\n - **Tires (4 buttons):** `Left Front (LF)`, `Right Front (RF)`, `Right Rear (RR)`, `Left Rear (LR)`\n - **Brakes (2 buttons):** `Front Brakes`, `Rear Brakes`\n- **Interaction & Behavior:**\n - Each button should allow quick selection/toggling of standard measurement presets (e.g., tread depth in `/32\"` and brake pad thickness in `mm`, with sensible defaults or quick-step increments on click/cycle) and immediately inject/sync the value into the corresponding Xtime MPI form fields.\n - Show clear visual feedback (active state, checkmark, or color badge) once a tire/brake position has been filled so the tech can track progress at a glance.\n\n## 2. One-Click MPI Recommendations Grid\nCreate a second dedicated card/box titled **\"Quick Recommendations\"** containing a grid of compact, clickable preset tiles.\n- **Default Priority Behavior:** Every recommendation item defaults to **Yellow (Recommended Soon)** when clicked.\n- **Red Priority Override:** Each tile must include a small, non-intrusive toggle/badge/corner icon (e.g., a small red dot/flag button) allowing the tech to mark/switch that specific item to **Red (Immediate Attention)** before or upon adding, without cluttering the tile.\n- **Click Action:** Clicking a tile automatically injects the item title, priority status (`Yellow` by default, or `Red` if flagged), and its pre-written customer-friendly recommendation text directly into Xtime's MPI recommendation fields. Show a subtle toast or active highlight confirming it was added.\n\n## 3. Preset Recommendation Data (Pre-loaded Tiles)\nInclude the following 10 preset items with their exact customer-facing recommendation copy:\n\n1. **Front Lower Ball Joint (Leaking Grease)**\n - *Text:* \"To keep your steering precise and safe, we recommend replacing the front lower ball joint, as its protective boot is torn and losing essential lubrication. Replacing it now restores factory handling and prevents premature tire wear or a sudden loss of steering control.\"\n2. **Front Control Arm Bushings (Cracked)**\n - *Text:* \"We recommend replacing the front control arm bushings, as the rubber is showing stress cracks from normal road wear. Fresh bushings will bring back that smooth, quiet ride and protect your tires from uneven wear and costly alignment issues down the road.\"\n3. **Front Sway Bar Links – Both (Leaking)**\n - *Text:* \"Both front sway bar links have torn grease boots and are recommended for replacement to maintain your vehicle’s cornering stability. Installing new links eliminates annoying suspension rattles and keeps your vehicle feeling planted and secure on every turn.\"\n4. **Front Axle / CV Axle (Leaking/Damaged)**\n - *Text:* \"We recommend replacing the front axle assembly, as the torn boot is allowing critical joint grease to escape. Addressing this proactively ensures smooth, reliable power to your wheels and prevents a sudden joint failure that could leave your vehicle immobilized.\"\n5. **Wheel Alignment**\n - *Text:* \"Based on your mileage, a precision four-wheel alignment is recommended to keep your vehicle tracking straight an",
       "status": "todo",
       "created": "2026-11-16T03:18:26.591Z",
-      "updated": "2026-11-16T03:18:26.591Z",
+      "updated": "2026-11-16T03:22:20.021Z",
       "by": "chanh",
-      "updatedBy": "chanh"
+      "updatedBy": "hermes-win",
+      "handed": {
+        "at": "2026-11-16T03:22:20.021Z",
+        "machine": "windows"
+      }
     }
   ],
   "next": 34,
@@ -652,6 +656,13 @@
       "to": "Milo",
       "text": "T31 đã đưa việc cho Milo",
       "ref": "T31"
+    },
+    {
+      "t": "2026-11-16T03:22:20.021Z",
+      "from": "Hermes Windows",
+      "to": "Milo",
+      "text": "T33 đã đưa việc cho Milo",
+      "ref": "T33"
     }
   ],
   "seen": [
