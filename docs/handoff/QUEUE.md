@@ -18,7 +18,7 @@ Driver: **claude** since 2026-11-14 00:25 UTC.
 | T28 | Review: TEST of the wake-up script (harmless): comment-only change in giusemc1988/bayready | bayready | milo | cancelled | 2026-11-15 01:24 |  |
 | T29 | Review: BayReady repo: import the live newest version (3.21.8) so the repo is not behind | bayready | milo | cancelled | 2026-11-15 01:25 |  |
 | T30 | Review: BayReady — sửa layout theo hình anh gửi (đang chạy v3.21.11). Chỉ sửa 3 chỗ dưới đây. Không đổi màu, không đổi style board, không bỏ tính nă… (full text in the brief) | neohub | milo | cancelled | 2026-11-15 01:24 |  |
-| T31 | BayReady 3.21.16: fix silent tiles (if still broken) and stale-tab timers, one PR on top of 3.21.15 | bayready | milo | running | 2026-11-15 01:56 |  |
+| T31 | BayReady 3.21.16: fix silent tiles (if still broken) and stale-tab timers, one PR on top of 3.21.15 | bayready | milo | running | 2026-11-16 03:32 |  |
 | T32 | BayReady: tapped tiles answer at once + stale tabs stop their timers (2 small fixes, one PR) | bayready | milo | cancelled | 2026-11-15 01:29 |  |
 | T33 | # Role & Context You are building a new UI module and DOM automation feature for **BayReady**, a browser extension designed for automotive t… (full text in the brief) | neohub | milo | running | 2026-11-16 03:27 |  |
 
@@ -26,5 +26,5 @@ Driver: **claude** since 2026-11-14 00:25 UTC.
 
 Claude: read this first when back, check each one against real files, then run the `seen` action (team-update.yml, who=claude).
 
-- T31 **running** by hermes-win at 2026-11-15 01:56: BayReady 3.21.16: fix silent tiles (if still broken) and stale-tab timers, one PR on top of 3.21.15 | at: 11/đã ghi RESULT-board-T31.md và thông báo cho Chanh
+- T31 **running** by hermes-win at 2026-11-16 03:32: BayReady 3.21.16: fix silent tiles (if still broken) and stale-tab timers, one PR on top of 3.21.15 | at: reading TASK + docs, starting T31
 - T33 **running** by hermes-win at 2026-11-16 03:27: # Role & Context You are building a new UI module and DOM automation feature for **BayReady**, a browser extension desig | at: Step 3: Planning implementation approach - will extend content.js with new quick-fill UI
