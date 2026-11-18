@@ -1,0 +1,19 @@
+{
+  "timestamp": "2026-11-18T01:57:13.510Z",
+  "version": "2.0.45",
+  "branch": "main",
+  "commit": "11f7a97b3d77ecb3e9269434ee2f878f775aada6",
+  "counts": {
+    "practice": {
+      "keys": 7,
+      "saved": 5,
+      "failed": 0
+    },
+    "settings": {
+      "keys": 16,
+      "saved": 5,
+      "failed": 0
+    }
+  },
+  "note": "Keys holding secrets (API keys, tokens, Telegram config) are excluded. Restore with scripts/restore-kv.js"
+}
