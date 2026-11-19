@@ -1,6 +1,6 @@
 {
- "generated": "2026-11-18T03:08:50.624Z",
- "asOf": "2026-11-17",
+ "generated": "2026-11-19T02:49:07.278Z",
+ "asOf": "2026-11-18",
  "strategy": "leaders-tight-base",
  "score": {
   "graded": 1,
@@ -14,39 +14,66 @@
  },
  "watching": [
   {
-   "symbol": "BHC",
-   "setupDay": "2026-11-13",
-   "entry": 8.56,
-   "stop": 8.16,
-   "adr": 5.01,
-   "age": 2
-  },
-  {
-   "symbol": "GKOS",
-   "setupDay": "2026-11-16",
-   "entry": 255.18,
-   "stop": 240.93,
-   "adr": 5.59,
-   "age": 1
-  },
-  {
-   "symbol": "INTA",
-   "setupDay": "2026-11-16",
-   "entry": 47.33,
-   "stop": 44.78,
-   "adr": 5.39,
-   "age": 1
-  },
-  {
    "symbol": "KNSA",
    "setupDay": "2026-11-17",
    "entry": 99.31,
    "stop": 93.81,
    "adr": 5.53,
+   "age": 1
+  },
+  {
+   "symbol": "ASO",
+   "setupDay": "2026-11-18",
+   "entry": 73.82,
+   "stop": 70.87,
+   "adr": 4,
+   "age": 0
+  },
+  {
+   "symbol": "GCT",
+   "setupDay": "2026-11-18",
+   "entry": 67.4,
+   "stop": 63.8,
+   "adr": 5.35,
+   "age": 0
+  },
+  {
+   "symbol": "VFC",
+   "setupDay": "2026-11-18",
+   "entry": 21.25,
+   "stop": 20.37,
+   "adr": 4.14,
+   "age": 0
+  },
+  {
+   "symbol": "VRDN",
+   "setupDay": "2026-11-18",
+   "entry": 31.63,
+   "stop": 29.97,
+   "adr": 5.26,
+   "age": 0
+  },
+  {
+   "symbol": "HOG",
+   "setupDay": "2026-11-18",
+   "entry": 34.84,
+   "stop": 33.43,
+   "adr": 4.04,
    "age": 0
   }
  ],
- "open": [],
+ "open": [
+  {
+   "symbol": "BHC",
+   "entryDay": "2026-11-18",
+   "entry": 8.56,
+   "stop": 8.16,
+   "adr": 5.01,
+   "days": 1,
+   "lastClose": 8.73,
+   "openPct": 1.99
+  }
+ ],
  "closed": [
   {
    "symbol": "LION",
