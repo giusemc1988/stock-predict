@@ -1,6 +1,6 @@
 {
- "generated": "2026-11-19T02:49:07.278Z",
- "asOf": "2026-11-18",
+ "generated": "2026-11-20T02:36:34.935Z",
+ "asOf": "2026-11-19",
  "strategy": "leaders-tight-base",
  "score": {
   "graded": 1,
@@ -38,14 +38,6 @@
    "age": 0
   },
   {
-   "symbol": "VFC",
-   "setupDay": "2026-11-18",
-   "entry": 21.25,
-   "stop": 20.37,
-   "adr": 4.14,
-   "age": 0
-  },
-  {
    "symbol": "VRDN",
    "setupDay": "2026-11-18",
    "entry": 31.63,
@@ -54,11 +46,11 @@
    "age": 0
   },
   {
-   "symbol": "HOG",
-   "setupDay": "2026-11-18",
-   "entry": 34.84,
-   "stop": 33.43,
-   "adr": 4.04,
+   "symbol": "ALGT",
+   "setupDay": "2026-11-19",
+   "entry": 98.7,
+   "stop": 93.1,
+   "adr": 5.67,
    "age": 0
   }
  ],
@@ -69,9 +61,9 @@
    "entry": 8.56,
    "stop": 8.16,
    "adr": 5.01,
-   "days": 1,
-   "lastClose": 8.73,
-   "openPct": 1.99
+   "days": 2,
+   "lastClose": 8.56,
+   "openPct": 0
   }
  ],
  "closed": [
