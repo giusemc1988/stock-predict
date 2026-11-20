@@ -16,7 +16,7 @@ import { runStrategy } from './strategy'
 import { shadowTag } from './shadowFilters'
 import { baseSymbol } from './kronosView'
 import { fetchAlpacaNews } from './newsProvider'
-import { analyzeSentiment } from './newsSentiment'
+import { analyzeSentiment, classifyCatalyst, type CatalystTag } from './newsSentiment'
 
 export const PICK_TF = '15m' as const
 export const BAR_SEC = 15 * 60
@@ -114,6 +114,7 @@ export async function scanCycle(input: ScanInput): Promise<ScanResult> {
   const newBars: Record<string, Candle[]> = {}
   const latestTimes: Record<string, number> = {}
   const sentiments: Record<string, number | null> = {}
+  const catalysts: Record<string, CatalystTag> = {}
   for (const m of input.markets) {
     try {
       const all = await input.fetchBars(m)
@@ -136,6 +137,7 @@ export async function scanCycle(input: ScanInput): Promise<ScanResult> {
           if (news.length > 0) {
             const headlines = news.map(n => n.headline)
             sentiment = analyzeSentiment(headlines).sentiment
+            if (rules.shadowCatalyst) catalysts[m.symbol] = classifyCatalyst(news, now)
           }
         } catch {
           // news fetch failed, sentiment stays null
@@ -252,6 +254,7 @@ export async function scanCycle(input: ScanInput): Promise<ScanResult> {
           // #271 (2), shadow-only: planned stop distance from the fill, in % of entry.
           // Recorded only — the live entry gates in practice.ts are untouched.
           stopPct: opened.entry > 0 ? ((opened.entry - opened.stop) / opened.entry) * 100 : null,
+          catalyst: rules.shadowCatalyst ? (catalysts[x.symbol] ?? null) : null,
           kronosPct: rules.shadowKronos ? (input.kronosPct?.[baseSymbol(opened.symbol)] ?? null) : null,
         }, shadowLearner)
         s = { ...s, open: s.open.map((p) => (p.id === opened.id ? { ...p, info: { ...p.info, shadow: tag } } : p)) }

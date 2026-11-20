@@ -37,6 +37,7 @@ const dims = {
   'exit reason': (t) => t.exitReason ?? 'unknown',
   regime: (t) => t.info?.regime ?? 'unknown',
   grade: (t) => t.info?.grade ?? 'unknown',
+  catalyst: (t) => { const c = t.info?.shadow?.catalyst; return c ? (c.hard ? `news: ${c.kind}` : 'no company news') : 'untagged' },
   'passes filters': (t) => (t.info?.shadow ? (t.info.shadow.pass ? 'yes' : 'no') : 'untagged'),
 }
 

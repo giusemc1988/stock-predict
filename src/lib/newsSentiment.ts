@@ -72,3 +72,37 @@ export function analyzeSentiment(headlines: string[]): NewsSentimentResult {
     isPositive: avgSentiment >= 0.2, // threshold: slightly positive
   }
 }
+
+/** Hard catalyst words: a company event, not commentary. Record-only tag (shadowCatalyst), never gates a trade. */
+const CATALYST_WORDS: [string, RegExp][] = [
+  ['earnings', /\b(earnings|q[1-4] (results|revenue|eps)|quarterly results|guidance|outlook)\b/i],
+  ['analyst', /\b(upgrade[sd]?|downgrade[sd]?|price target|raises? .*target|initiates?|reiterates?)\b/i],
+  ['filing', /\b(8-k|sec filing|files? for|offering|buyback|repurchase)\b/i],
+  ['deal', /\b(acquire[sd]?|acquisition|merger|buyout|takeover|partnership|contract|awarded)\b/i],
+  ['fda', /\b(fda|phase [123]|trial|approval|clinical)\b/i],
+]
+
+export interface CatalystTag {
+  /** A company-event headline (earnings, analyst, filing, deal, FDA) was published in the last 24h. */
+  hard: boolean
+  /** Which kind matched first (null when none). */
+  kind: string | null
+  /** Headlines published in the last 24h before the buy. */
+  fresh: number
+  /** Hours since the newest headline (null when there is none). */
+  ageH: number | null
+}
+
+/** Tag the news seen at the buy. Pure, so it is easy to test. */
+export function classifyCatalyst(items: { headline: string; created_at: string }[], nowMs: number): CatalystTag {
+  const dated = items
+    .map((n) => ({ h: n.headline ?? '', t: Date.parse(n.created_at) }))
+    .filter((n) => Number.isFinite(n.t) && n.t <= nowMs + 60_000)
+  const fresh = dated.filter((n) => nowMs - n.t <= 24 * 3600_000)
+  let kind: string | null = null
+  for (const [k, re] of CATALYST_WORDS) {
+    if (fresh.some((n) => re.test(n.h))) { kind = k; break }
+  }
+  const newest = dated.length ? Math.max(...dated.map((n) => n.t)) : null
+  return { hard: kind != null, kind, fresh: fresh.length, ageH: newest == null ? null : +((nowMs - newest) / 3600_000).toFixed(1) }
+}
