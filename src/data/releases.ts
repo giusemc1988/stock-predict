@@ -2,7 +2,7 @@
  * Version and "What's new". Bump APP_VERSION and add an entry to the top of RELEASES
  * with each update. The banner shows once per version, then stays dismissed.
  */
-export const APP_VERSION = '2.0.45'
+export const APP_VERSION = '2.0.46'
 
 export interface Release {
   version: string
@@ -13,6 +13,12 @@ export interface Release {
 }
 
 export const RELEASES: Release[] = [
+  {
+    version: '2.0.46',
+    date: '2026-11-20',
+    changes: ['Atlas: every new stock buy is now tagged with whether a company-event headline (earnings, analyst, filing, deal, FDA) came out in the 24 hours before it. Record only, nothing is blocked. The daily ledger gets a “catalyst” table so we can see whether buys with real news win more than buys that just ride a sector move. Off switch in Settings > AI rules.'],
+    changesVi: ['Atlas: mỗi lệnh mua cổ phiếu mới được ghi lại xem trong 24 giờ trước có tin sự kiện công ty không (báo cáo, nâng/hạ hạng, hồ sơ, thương vụ, FDA). Chỉ ghi, không chặn lệnh nào. Sổ cái hằng ngày có thêm bảng “catalyst” để xem lệnh có tin thật có thắng nhiều hơn lệnh chỉ chạy theo cả nhóm ngành không. Có nút tắt trong Cài đặt > Luật AI.'],
+  },
   {
     version: '2.0.45',
     date: '2026-11-14',

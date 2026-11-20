@@ -23,6 +23,7 @@
  * matters is the live-tagged slice (`liveKeep` / `liveSkip`), not the backfilled one.
  */
 import type { PracticeKind, PracticeTrade } from './practice'
+import type { CatalystTag } from './newsSentiment'
 
 /** #271 (1): proposed volume floor, shadow-only. The LIVE floor is MIN_VOL_MULT = 1 (practice.ts) — do not change it here. */
 export const SHADOW_MIN_VOL = 1.5
@@ -50,18 +51,20 @@ export interface ShadowTag {
   midday?: boolean
   /** Kronos's 5-day forecast at the buy: 'against' = a drop of SHADOW_KRONOS_PCT or more, 'n/a' = no forecast for the symbol. Absent on older trades. */
   kronos?: 'against' | 'ok' | 'n/a'
+  /** News at the buy: was there a company-event headline in the last 24h? Recorded only, not part of `pass`. Absent on older trades and on crypto. */
+  catalyst?: CatalystTag
   /** volOk, srcOk and stopOk: the trade the #271 (1)+(2) pair would still take. */
   pass: boolean
 }
 
-export function shadowTag(x: { kind: PracticeKind; source?: string | null; volVsAvg?: number | null; kronosPct?: number | null; stopPct?: number | null; openedAt?: number | null }, learner: ShadowTag['learner'] = 'n/a'): ShadowTag {
+export function shadowTag(x: { kind: PracticeKind; source?: string | null; volVsAvg?: number | null; kronosPct?: number | null; stopPct?: number | null; openedAt?: number | null; catalyst?: CatalystTag | null }, learner: ShadowTag['learner'] = 'n/a'): ShadowTag {
   // unknown volume counts as passing: the rule only skips trades it can see are thin
   const volOk = x.volVsAvg == null || x.volVsAvg >= SHADOW_MIN_VOL
   const srcOk = !(x.kind === 'day' && x.source === 'watchlist')
   // unknown stop distance counts as passing, same convention as unknown volume
   const stopOk = x.stopPct == null || x.stopPct >= SHADOW_MIN_STOP_PCT
   const kronos = x.kronosPct == null ? 'n/a' : x.kronosPct <= SHADOW_KRONOS_PCT ? 'against' : 'ok'
-  return { volOk, srcOk, stopOk, stopPct: x.stopPct ?? null, learner, kronos, midday: isMidday(x.openedAt), pass: volOk && srcOk && stopOk }
+  return { volOk, srcOk, stopOk, stopPct: x.stopPct ?? null, learner, kronos, midday: isMidday(x.openedAt), ...(x.catalyst ? { catalyst: x.catalyst } : {}), pass: volOk && srcOk && stopOk }
 }
 
 /** The tag a trade carries, or one rebuilt from its pick info for trades closed before tags existed. */
@@ -107,6 +110,9 @@ export interface ShadowReport {
   tightStop: ShadowBucket
   /** Entered 11:00-14:59 ET (record only, never gates). */
   midday: ShadowBucket
+  /** Live-tagged stock trades with / without a company-event headline in the prior 24h (record only). */
+  catalystHard: ShadowBucket
+  catalystNone: ShadowBucket
   /** Learner calls, only on trades tagged live (it is not rebuilt for older trades). */
   learnerBuy: ShadowBucket
   learnerHold: ShadowBucket
@@ -142,6 +148,8 @@ export function shadowReport(trades: (Pick<PracticeTrade, 'pnl' | 'info' | 'kind
     watchlistDay: bucket(tagged.filter((x) => !x.tag.srcOk).map((x) => x.t)),
     tightStop: bucket(tagged.filter((x) => !x.tag.stopOk).map((x) => x.t)),
     midday: bucket(tagged.filter((x) => (x.tag.midday ?? isMidday((x.t as { openedAt?: number }).openedAt))).map((x) => x.t)),
+    catalystHard: bucket(live.filter((x) => x.tag.catalyst?.hard).map((x) => x.t)),
+    catalystNone: bucket(live.filter((x) => x.tag.catalyst && !x.tag.catalyst.hard).map((x) => x.t)),
     learnerBuy: bucket(live.filter((x) => x.tag.learner === 'BUY').map((x) => x.t)),
     learnerHold: bucket(live.filter((x) => x.tag.learner === 'HOLD').map((x) => x.t)),
     live: live.length,

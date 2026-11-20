@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict'
 import { SHADOW_KRONOS_PCT, isMidday, shadowReport, shadowTag, tagOf } from '../src/lib/shadowFilters'
 import { summaryText } from '../src/lib/telegramText'
+import { classifyCatalyst } from '../src/lib/newsSentiment'
 import { scanCycle } from '../src/lib/practiceScan'
 import { DEFAULT_AI_RULES } from '../src/lib/aiRules'
 import { emptyPractice } from '../src/lib/practice'
@@ -69,6 +70,19 @@ const kr = shadowReport([kt(-4, -5), kt(-2, -2), kt(3, 1), kt(1, null), trades[0
 assert.deepEqual([kr.kronosAgainst.n, kr.kronosAgainst.net, kr.kronosOk.n, kr.kronosNone], [2, -6, 1, 1])
 assert.match(kr.kronosVi, /^Kronos phản đối 2 lệnh \(thắng 0%, −\$6\.00\) · không phản đối 1 lệnh \(thắng 100%, \+\$3\.00\) · 1 lệnh chưa có dự báo$/)
 assert.match(shadowReport([trades[0]]).kronosVi, /chưa có dự báo cho lệnh nào/)
+
+// catalyst tag: company-event headline in the last 24h, record only (never changes pass)
+const nowC = Date.UTC(2026, 10, 19, 15, 0)
+const hr = (h: number) => new Date(nowC - h * 3600_000).toISOString()
+const c1 = classifyCatalyst([{ headline: 'Acme Q3 earnings beat, raises guidance', created_at: hr(3) }, { headline: 'Why did Acme jump?', created_at: hr(2) }], nowC)
+assert.deepEqual([c1.hard, c1.kind, c1.fresh, c1.ageH], [true, 'earnings', 2, 2])
+const c2 = classifyCatalyst([{ headline: 'Acme upgrade by Jefferies', created_at: hr(40) }, { headline: 'Is Acme outpacing peers?', created_at: hr(5) }], nowC)
+assert.deepEqual([c2.hard, c2.kind, c2.fresh], [false, null, 1])
+assert.deepEqual(classifyCatalyst([], nowC), { hard: false, kind: null, fresh: 0, ageH: null })
+const ct = (pnl: number, catalyst: ReturnType<typeof classifyCatalyst>) => ({ pnl, kind: 'day' as const, info: info({ source: 'gainer', volVsAvg: 2 }, shadowTag({ kind: 'day', source: 'gainer', volVsAvg: 2, catalyst })) })
+const cr = shadowReport([ct(5, c1), ct(-3, c2), ct(-2, c2)])
+assert.deepEqual([cr.catalystHard.n, cr.catalystHard.net, cr.catalystNone.n, cr.catalystNone.net], [1, 5, 2, -5])
+assert.equal(shadowTag({ kind: 'day', source: 'gainer', volVsAvg: 2, catalyst: c1 }).pass, shadowTag({ kind: 'day', source: 'gainer', volVsAvg: 2 }).pass)
 
 // the daily Telegram summary carries the line only when given
 const report = { trades: 0, opened: 0, wins: 0, net: 0, lessons: [] } as never

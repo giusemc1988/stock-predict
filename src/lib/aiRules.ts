@@ -115,6 +115,7 @@ export interface AiRules {
   dashMotion: boolean // dashboard cards and motion: project cards on the Hub, stat cards with change chips; off = the previous look
   briefAi: boolean // a free AI helper writes the Neo Brief from the page's real data (once per scan)
   practiceCryptoMovers: boolean // practice also scans today's top crypto gainers and most-traded coins
+  shadowCatalyst: boolean // record-only: tag each stock buy with whether a company-event headline (earnings, analyst, filing, deal, FDA) came out in the prior 24h; never blocks a trade
   shadowKronos: boolean // record-only: tag each buy with whether Kronos's 5-day forecast for the symbol objected (a drop of 1% or more); never blocks a trade
   atlasControl: boolean // Atlas control panel on top: health lights, "Check the system", to-do with ready prompts for Claude, 6-step map, learner leaderboard, upgrade ideas
   atlasSignals: boolean // Atlas signal board: verdict, learning progress, signals with TP/SL and real win rate (display only)
@@ -270,6 +271,7 @@ export const DEFAULT_AI_RULES: AiRules = {
   webFlash: true,
   briefAi: true,
   practiceCryptoMovers: true,
+  shadowCatalyst: true,
   shadowKronos: true,
   atlasControl: true,
   atlasSignals: true,
@@ -366,6 +368,7 @@ export const RULE_FIELDS: RuleField[] = [
   { group: 'modules', key: 'practiceAutoPick', en: 'Practice picks its own stocks (best volume, gain and Trade Score)', vi: 'Luyện tập tự chọn mã (khối lượng, mức tăng và Điểm GD tốt nhất)' },
   { group: 'modules', key: 'practiceMovers', en: "Practice also scans today's top gainers and most-traded stocks", vi: 'Luyện tập quét thêm mã tăng mạnh và giao dịch nhiều nhất hôm nay' },
   { group: 'modules', key: 'practiceCryptoMovers', en: "Practice also scans today's top crypto gainers and most-traded coins", vi: 'Luyện tập quét thêm crypto tăng mạnh và giao dịch nhiều nhất hôm nay' },
+  { group: 'modules', key: 'shadowCatalyst', en: 'Tag each stock buy with whether a company-event headline (earnings, analyst, filing, deal, FDA) came out in the last 24h (record only, never blocks a trade)', vi: 'Ghi lại mỗi lệnh mua cổ phiếu xem trong 24h trước có tin sự kiện công ty không (báo cáo, nâng/hạ hạng, hồ sơ, thương vụ, FDA). Chỉ ghi, không bao giờ chặn lệnh' },
   { group: 'modules', key: 'shadowKronos', en: 'Tag each buy with whether Kronos\'s 5-day forecast objected (record only, never blocks a trade)', vi: 'Ghi lại mỗi lệnh mua xem dự báo 5 phiên của Kronos có phản đối không (chỉ ghi, không bao giờ chặn lệnh)' },
   { group: 'modules', key: 'atlasControl', en: 'Atlas control panel: health lights, a "Check the system" button, a to-do list with ready prompts for Claude, the 6-step map, the learner leaderboard and upgrade ideas', vi: 'Bảng điều khiển Atlas: đèn sức khoẻ, nút "Kiểm tra hệ thống", việc cần xử lý có prompt viết sẵn cho Claude, bản đồ 6 bước, bảng xếp hạng học viên và gợi ý nâng cấp' },
   { group: 'modules', key: 'atlasSignals', en: 'Atlas signal board: honest verdict, learning progress and each signal with entry, TP, SL and its real win rate (display only)', vi: 'Bảng tín hiệu Atlas: kết luận thật, tiến độ học và mỗi tín hiệu có giá vào, TP, SL và % thắng thật (chỉ hiển thị)' },
