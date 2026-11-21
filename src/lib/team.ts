@@ -41,7 +41,7 @@ export interface TeamTask {
   /** 2+ when Milo went back to a task the board had closed as failed. */
   tries?: number
   /** Pipeline: coder writes the change, review checks it (another model), merge is Chanh's go-ahead. */
-  role?: 'coder' | 'review' | 'merge'
+  role?: 'coder' | 'review' | 'merge' | 'direct'
   round?: number
   parent?: string
   risk?: 'low' | 'high'
@@ -52,6 +52,10 @@ export interface TeamTask {
   /** Waits for Chanh after the pipeline (reviewer agreed on a high-risk change, or 3 rounds were not enough). */
   awaiting?: boolean
   from?: string
+  /** Direct jobs (given to Muse outside the board): `direct:<slug>`. */
+  key?: string
+  /** Direct jobs Muse handed to a Hermes machine. */
+  to?: 'windows' | 'ubuntu'
 }
 export interface FeedLine {
   t: string

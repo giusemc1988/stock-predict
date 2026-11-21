@@ -2,7 +2,7 @@
  * Version and "What's new". Bump APP_VERSION and add an entry to the top of RELEASES
  * with each update. The banner shows once per version, then stays dismissed.
  */
-export const APP_VERSION = '2.0.46'
+export const APP_VERSION = '2.0.47'
 
 export interface Release {
   version: string
@@ -13,6 +13,12 @@ export interface Release {
 }
 
 export const RELEASES: Release[] = [
+  {
+    version: '2.0.47',
+    date: '2026-11-21',
+    changes: ['Max office: jobs Chanh gives Muse directly (and jobs Muse hands to a Hermes machine) now show on the board, with start, where it is, what it needs and the result. Muse writes two small files in milo-shared and the Windows bridge sends them. A task stuck on “running” for 12 hours or more no longer makes Muse look busy; the office lists it as stuck instead.'],
+    changesVi: ['Văn phòng Max: việc anh giao thẳng cho Muse (và việc Muse giao cho máy Hermes) giờ hiện trên bảng, có lúc bắt đầu, đang làm tới đâu, cần gì và kết quả. Muse ghi hai file nhỏ trong milo-shared, bridge trên Windows gửi lên bảng. Việc kẹt “đang chạy” từ 12 giờ trở lên không còn làm Muse trông như đang bận; văn phòng ghi là bị kẹt.'],
+  },
   {
     version: '2.0.46',
     date: '2026-11-20',

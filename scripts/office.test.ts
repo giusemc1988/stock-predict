@@ -47,3 +47,12 @@ assert.equal(by(s, 'ubuntuPc').state, 'working')
 assert.deepEqual(by(s, 'hermesUbu').recent.map((t) => t.id), ['T8', 'T9'])
 
 console.log('office tests passed')
+
+// a "running" task nobody touched for 12h+ is stuck: the seat rests and lists it; a direct job Muse handed to a machine makes that machine work
+s = officeSeats(team([task('T8', 'milo', 'running', 13 * 60)], { driver: { who: 'claude', since: null } }), NOW)
+assert.equal(by(s, 'muse').state, 'idle')
+assert.equal(by(s, 'muse').stale.length, 1)
+assert.equal(by(s, 'muse').queued, 0)
+s = officeSeats(team([{ ...task('T9', 'milo', 'running', 3), to: 'windows' }]), NOW)
+assert.equal(by(s, 'hermesWin').state, 'working')
+assert.equal(by(s, 'muse').state, 'working')

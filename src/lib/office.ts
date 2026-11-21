@@ -12,8 +12,10 @@ export interface OfficeSeat {
   state: OfficeState
   /** the task being worked on (or the one waiting / failed), if any */
   task?: TeamTask
-  /** open tasks (not done, dropped or failed) that belong to this seat */
+  /** open tasks (not done, dropped or failed) that belong to this seat, without the stale ones */
   queued: number
+  /** "running" tasks with no update for STALE_MS: probably abandoned, they no longer make the seat look busy */
+  stale: TeamTask[]
   /** ISO time the machine was last seen; machines only */
   seen?: string
   note?: string
@@ -21,6 +23,8 @@ export interface OfficeSeat {
   recent: TeamTask[]
 }
 
+/** A running task nobody has touched for this long is shown as stuck, not as work in progress. */
+export const STALE_MS = 12 * 3600 * 1000
 const OPEN = (t: TeamTask) => t.status === 'needs-ok' || t.status === 'todo' || t.status === 'running'
 const newest = (a: TeamTask, b: TeamTask) => Date.parse(b.updated) - Date.parse(a.updated)
 
@@ -31,14 +35,16 @@ function failed(mine: TeamTask[]): TeamTask | undefined {
 }
 
 function seat(who: OfficeWho, owner: Owner, team: TeamState, nowMs: number, opts: { machine?: 'windows' | 'ubuntu'; lead?: boolean }): OfficeSeat {
-  const mine = team.tasks.filter((t) => t.owner === owner).sort(newest)
-  const open = mine.filter(OPEN)
+  const mine = team.tasks.filter((t) => t.owner === owner || t.to === owner).sort(newest)
+  const isStale = (t: TeamTask) => t.status === 'running' && nowMs - Date.parse(t.updated) > STALE_MS
+  const stale = mine.filter(isStale)
+  const open = mine.filter((t) => OPEN(t) && !isStale(t))
   const running = open.find((t) => t.status === 'running')
   const needsOk = open.find((t) => t.status === 'needs-ok')
   const todo = open.find((t) => t.status === 'todo')
   const bad = failed(mine)
   const m = opts.machine ? team.machines[opts.machine] : undefined
-  const base = { who, queued: open.length, seen: m?.seen, note: m?.note, recent: mine.slice(0, 4) }
+  const base = { who, queued: open.length, stale, seen: m?.seen, note: m?.note, recent: mine.slice(0, 4) }
 
   if (opts.machine && !isOnline(m, nowMs)) return { ...base, state: 'off' }
   if (running) return { ...base, state: 'working', task: running }

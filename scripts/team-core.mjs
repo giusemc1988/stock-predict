@@ -155,6 +155,44 @@ function applyOne(state, a, now, who) {
       else delete t.need
       return { state: s, log: { who, type: need ? 'NEED' : first ? 'START' : 'PROGRESS', what: `${t.id} ${need ? `Milo needs: ${need}` : progress}`.slice(0, 200), ref: t.project } }
     }
+    case 'direct': {
+      // A job Chanh gave Muse directly (not through the board). Muse writes PROGRESS-direct-<slug>.md / RESULT-direct-<slug>.md
+      // in milo-shared; the Windows bridge reads them and sends this action, so the job shows in the office like any other.
+      const slug = text(a.slug, 40).toLowerCase()
+      if (!/^[a-z0-9][a-z0-9-]*$/.test(slug)) throw new Error('bad direct slug')
+      const key = `direct:${slug}`
+      const progress = text(a.text, MAX_NOTE)
+      const need = text(a.need, MAX_NOTE)
+      const closing = a.done === true
+      let t = s.tasks.find((x) => x.key === key)
+      if (!t) {
+        const title = text(a.title, MAX_TITLE) || slug
+        if (title.length < 3) throw new Error('empty title')
+        const project = PROJECTS.includes(a.project) ? a.project : 'other'
+        const to = MACHINES.includes(a.to) ? a.to : ''
+        const id = `T${s.next++}`
+        t = { id, title, project, kind: 'code', owner: 'milo', role: 'direct', key, from: to ? 'Milo' : 'Chanh', ...(to ? { to } : {}), status: 'running', created: now, updated: now, started: now, by: 'milo', ...(progress ? { progress } : {}), ...(need ? { need } : {}) }
+        s.tasks.push(t)
+        if (to) say(s, now, 'milo', to, `${id} Milo giao: ${title}`, id)
+        else say(s, now, 'chanh', 'milo', `${id} việc giao thẳng: ${title}`, id)
+      } else {
+        if (t.status === 'done' || t.status === 'failed' || t.status === 'cancelled') throw new Error('already closed')
+        if (!closing && (t.progress ?? '') === progress && (t.need ?? '') === need) throw new Error('nothing new')
+        Object.assign(t, { updated: now, ...(progress ? { progress } : {}) })
+        if (need) t.need = need
+        else delete t.need
+      }
+      if (closing) {
+        const found = text((typeof a.result === 'string' ? a.result : '').match(/^\W*LESSON:\s*(.+)$/im)?.[1], MAX_LESSON)
+        const lesson = /^none/i.test(found) ? '' : found
+        Object.assign(t, { status: a.ok ? 'done' : 'failed', updated: now, result: text(a.result, MAX_RESULT), ...(lesson ? { lesson } : {}) })
+        delete t.need
+        say(s, now, t.to ?? 'milo', 'chanh', `${t.id} ${a.ok ? 'xong' : 'lỗi'}: ${text(t.result, 120)}`, t.id)
+        return { state: trim(s), log: { who, type: a.ok ? 'DONE' : 'FAILED', what: `${t.id} ${t.title}${t.result ? `: ${t.result.slice(0, 120)}` : ''}`, ref: t.project, ...(lesson ? { lesson, id: t.id } : {}) } }
+      }
+      const type = need ? 'NEED' : t.created === now ? 'START' : 'PROGRESS'
+      return { state: trim(s), log: { who, type, what: `${t.id} ${need ? `Milo needs: ${need}` : progress || t.title}`.slice(0, 200), ref: t.project } }
+    }
     case 'reopen': {
       // Milo kept working after the board closed the task as failed (newer RESULT or PROGRESS file): open it again
       const t = find(s, a.id)
@@ -331,6 +369,28 @@ export function readProgress(txt) {
   const lines = String(txt ?? '').split('\n').map((l) => l.replace(/^[#>*\-\s]+/, '').trim()).filter(Boolean)
   const need = lines.find((l) => /^NEED:/i.test(l))?.replace(/^NEED:\s*/i, '') ?? ''
   return { text: (lines.filter((l) => !/^NEED:/i.test(l)).pop() ?? '').slice(0, MAX_NOTE), need: need.slice(0, MAX_NOTE) }
+}
+/** Muse's direct-job files (not from the board): PROGRESS-direct-<slug>.md and RESULT-direct-<slug>.md in milo-shared. */
+export const DIRECT_FILE = /^(PROGRESS|RESULT)-direct-([a-z0-9][a-z0-9-]{0,39})\.md$/
+/**
+ * Turn the two files of one direct job into a 'direct' action. PROGRESS: optional "JOB: <title>" and "PROJECT: <name>" lines,
+ * the last plain line is where the work is, a "NEED:" line is what blocks it. RESULT: first line DONE or FAILED, then the one-line result.
+ */
+export function readDirect(slug, progressTxt, resultTxt) {
+  const lines = String(progressTxt ?? '').split('\n').map((l) => l.replace(/^[#>*\-\s]+/, '').trim()).filter(Boolean)
+  const pick = (k) => lines.find((l) => new RegExp(`^${k}:`, 'i').test(l))?.replace(new RegExp(`^${k}:\\s*`, 'i'), '') ?? ''
+  const plain = lines.filter((l) => !/^(JOB|PROJECT|TO|NEED):/i.test(l))
+  const res = String(resultTxt ?? '').trim()
+  return {
+    type: 'direct',
+    slug,
+    title: pick('JOB') || (res.match(/^\W*JOB:\s*(.+)$/im)?.[1] ?? '').trim(),
+    project: pick('PROJECT').toLowerCase(),
+    to: pick('TO').toLowerCase().replace(/^hermes[\s-]*/, ''),
+    text: (plain.pop() ?? '').slice(0, MAX_NOTE),
+    need: pick('NEED').slice(0, MAX_NOTE),
+    ...(res ? { done: true, ok: !/^\W*FAILED/i.test(res), result: res.replace(/^\W*(DONE|FAILED)\W*\n?/i, '').trim() || res } : {}),
+  }
 }
 /** Tasks someone else changed after Claude last looked: what Claude reads first when back. */
 export const sinceClaude = (s) => s.tasks.filter((t) => t.updatedBy !== 'claude' && (!s.claudeSeen || t.updated > s.claudeSeen) && (s.claudeSeen || !['done', 'cancelled'].includes(t.status)))
