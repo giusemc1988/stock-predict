@@ -1,0 +1,311 @@
+{
+ "source": "tradingview-screener",
+ "generatedAt": 1795226802924,
+ "matched": 38,
+ "rows": [
+  {
+   "symbol": "GLOB",
+   "price": 41.63,
+   "marketCap": 1797564812,
+   "rvol": 4.17,
+   "changePct": 4.13,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "BIPC",
+   "price": 43.14,
+   "marketCap": 5307128970,
+   "rvol": 3.5,
+   "changePct": 5.01,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "GAP",
+   "price": 20.94,
+   "marketCap": 7355596484,
+   "rvol": 3.39,
+   "changePct": 11.44,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "GPN",
+   "price": 91.83,
+   "marketCap": 24301504833,
+   "rvol": 2.75,
+   "changePct": 9.95,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "NAVI",
+   "price": 6.21,
+   "marketCap": 576803589,
+   "rvol": 2.67,
+   "changePct": 3.16,
+   "exchange": "NASDAQ"
+  },
+  {
+   "symbol": "NTLA",
+   "price": 10.0,
+   "marketCap": 1403585272,
+   "rvol": 2.42,
+   "changePct": 5.04,
+   "exchange": "NASDAQ"
+  },
+  {
+   "symbol": "CPNG",
+   "price": 14.27,
+   "marketCap": 25576087785,
+   "rvol": 2.36,
+   "changePct": 1.49,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "BIP",
+   "price": 42.94,
+   "marketCap": 27826397557,
+   "rvol": 2.32,
+   "changePct": 4.54,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "MMS",
+   "price": 62.79,
+   "marketCap": 3287543837,
+   "rvol": 2.17,
+   "changePct": 1.27,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "VOR",
+   "price": 19.19,
+   "marketCap": 1178925114,
+   "rvol": 2.16,
+   "changePct": 3.62,
+   "exchange": "NASDAQ"
+  },
+  {
+   "symbol": "DNLI",
+   "price": 18.45,
+   "marketCap": 2957360635,
+   "rvol": 2.05,
+   "changePct": 1.37,
+   "exchange": "NASDAQ"
+  },
+  {
+   "symbol": "ALH",
+   "price": 24.27,
+   "marketCap": 4767843292,
+   "rvol": 1.97,
+   "changePct": 1.46,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "WMT",
+   "price": 127.95,
+   "marketCap": 1015122820069,
+   "rvol": 1.95,
+   "changePct": 1.52,
+   "exchange": "NASDAQ"
+  },
+  {
+   "symbol": "UGI",
+   "price": 35.51,
+   "marketCap": 7616715861,
+   "rvol": 1.92,
+   "changePct": 1.17,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "RKT",
+   "price": 13.75,
+   "marketCap": 39021077753,
+   "rvol": 1.92,
+   "changePct": 4.25,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "RCI",
+   "price": 35.45,
+   "marketCap": 19161402067,
+   "rvol": 1.91,
+   "changePct": 3.44,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "IVR",
+   "price": 5.38,
+   "marketCap": 586977821,
+   "rvol": 1.9,
+   "changePct": 3.26,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "GIS",
+   "price": 35.74,
+   "marketCap": 19109717907,
+   "rvol": 1.89,
+   "changePct": 3.65,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "CSGP",
+   "price": 29.61,
+   "marketCap": 11913208089,
+   "rvol": 1.86,
+   "changePct": 3.17,
+   "exchange": "NASDAQ"
+  },
+  {
+   "symbol": "JBGS",
+   "price": 12.15,
+   "marketCap": 711694428,
+   "rvol": 1.82,
+   "changePct": 2.97,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "NJR",
+   "price": 55.54,
+   "marketCap": 5636865532,
+   "rvol": 1.73,
+   "changePct": 2.51,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "CTSH",
+   "price": 58.06,
+   "marketCap": 25954587167,
+   "rvol": 1.7,
+   "changePct": 3.11,
+   "exchange": "NASDAQ"
+  },
+  {
+   "symbol": "KVYO",
+   "price": 22.24,
+   "marketCap": 6262044040,
+   "rvol": 1.68,
+   "changePct": 4.41,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "UNH",
+   "price": 339.88,
+   "marketCap": 304544666494,
+   "rvol": 1.67,
+   "changePct": 2.85,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "RLAY",
+   "price": 16.12,
+   "marketCap": 3561866664,
+   "rvol": 1.65,
+   "changePct": 1.32,
+   "exchange": "NASDAQ"
+  },
+  {
+   "symbol": "EFOR",
+   "price": 31.32,
+   "marketCap": 1287251982,
+   "rvol": 1.63,
+   "changePct": 7.89,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "RVMD",
+   "price": 161.2,
+   "marketCap": 34866321652,
+   "rvol": 1.62,
+   "changePct": 1.11,
+   "exchange": "NASDAQ"
+  },
+  {
+   "symbol": "EVER",
+   "price": 29.0,
+   "marketCap": 1028691772,
+   "rvol": 1.59,
+   "changePct": 1.15,
+   "exchange": "NASDAQ"
+  },
+  {
+   "symbol": "VZ",
+   "price": 46.52,
+   "marketCap": 192806712758,
+   "rvol": 1.55,
+   "changePct": 1.71,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "CBLL",
+   "price": 27.39,
+   "marketCap": 1063690938,
+   "rvol": 1.55,
+   "changePct": 6.37,
+   "exchange": "NASDAQ"
+  },
+  {
+   "symbol": "IFF",
+   "price": 79.63,
+   "marketCap": 19938659086,
+   "rvol": 1.53,
+   "changePct": 1.3,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "TSN",
+   "price": 65.12,
+   "marketCap": 22453416294,
+   "rvol": 1.53,
+   "changePct": 1.97,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "MKC",
+   "price": 47.4,
+   "marketCap": 12754708049,
+   "rvol": 1.52,
+   "changePct": 3.43,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "JNJ",
+   "price": 270.47,
+   "marketCap": 651105253283,
+   "rvol": 1.52,
+   "changePct": 1.25,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "WRB",
+   "price": 78.31,
+   "marketCap": 29093401116,
+   "rvol": 1.52,
+   "changePct": 1.18,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "CPB",
+   "price": 23.78,
+   "marketCap": 7092020810,
+   "rvol": 1.51,
+   "changePct": 1.84,
+   "exchange": "NASDAQ"
+  },
+  {
+   "symbol": "PAYX",
+   "price": 112.63,
+   "marketCap": 40094080744,
+   "rvol": 1.51,
+   "changePct": 1.1,
+   "exchange": "NASDAQ"
+  },
+  {
+   "symbol": "CALM",
+   "price": 72.33,
+   "marketCap": 3378578789,
+   "rvol": 1.5,
+   "changePct": 3.52,
+   "exchange": "NASDAQ"
+  }
+ ]
+}
