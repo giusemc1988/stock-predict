@@ -1,13 +1,13 @@
 {
- "generated": "2026-11-20T02:36:34.935Z",
- "asOf": "2026-11-19",
+ "generated": "2026-11-21T02:50:43.702Z",
+ "asOf": "2026-11-20",
  "strategy": "leaders-tight-base",
  "score": {
-  "graded": 1,
+  "graded": 2,
   "wins": 0,
   "winRate": 0,
-  "avgPct": -4.78,
-  "avgR": -1.07,
+  "avgPct": -4.87,
+  "avgR": -1.06,
   "profitFactor": 0,
   "status": "testing",
   "need": 20
@@ -19,53 +19,26 @@
    "entry": 99.31,
    "stop": 93.81,
    "adr": 5.53,
-   "age": 1
+   "age": 2
   },
   {
-   "symbol": "ASO",
-   "setupDay": "2026-11-18",
-   "entry": 73.82,
-   "stop": 70.87,
-   "adr": 4,
+   "symbol": "XERS",
+   "setupDay": "2026-11-20",
+   "entry": 17.28,
+   "stop": 16.47,
+   "adr": 4.67,
    "age": 0
   },
   {
-   "symbol": "GCT",
-   "setupDay": "2026-11-18",
-   "entry": 67.4,
-   "stop": 63.8,
-   "adr": 5.35,
-   "age": 0
-  },
-  {
-   "symbol": "VRDN",
-   "setupDay": "2026-11-18",
-   "entry": 31.63,
-   "stop": 29.97,
-   "adr": 5.26,
-   "age": 0
-  },
-  {
-   "symbol": "ALGT",
-   "setupDay": "2026-11-19",
-   "entry": 98.7,
-   "stop": 93.1,
-   "adr": 5.67,
+   "symbol": "RGR",
+   "setupDay": "2026-11-20",
+   "entry": 53.81,
+   "stop": 51.53,
+   "adr": 4.24,
    "age": 0
   }
  ],
- "open": [
-  {
-   "symbol": "BHC",
-   "entryDay": "2026-11-18",
-   "entry": 8.56,
-   "stop": 8.16,
-   "adr": 5.01,
-   "days": 2,
-   "lastClose": 8.56,
-   "openPct": 0
-  }
- ],
+ "open": [],
  "closed": [
   {
    "symbol": "LION",
@@ -76,6 +49,17 @@
    "retPct": -4.78,
    "r": -1.07,
    "days": 1,
+   "reason": "stop"
+  },
+  {
+   "symbol": "BHC",
+   "entryDay": "2026-11-18",
+   "exitDay": "2026-11-20",
+   "entry": 8.56,
+   "exit": 8.16,
+   "retPct": -4.97,
+   "r": -1.06,
+   "days": 3,
    "reason": "stop"
   }
  ]
