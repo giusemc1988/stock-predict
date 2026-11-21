@@ -345,3 +345,36 @@ console.log('team board: Milo hand-off ok')
   assert.throws(() => applyAction(next, { type: 'clear' }, N3, 'milo'))
 }
 console.log('team board: pipeline (proposal, coder, reviewer, merge, undo) and BayReady gate ok')
+
+// direct jobs: Muse writes PROGRESS-direct / RESULT-direct files, the bridge sends 'direct' actions
+{
+  // @ts-expect-error plain JS module
+  const core = await import('./team-core.mjs')
+  const A = (st: unknown, a: unknown, t = NOW) => core.applyAction(st, a, t, 'milo')
+  const p1 = core.readDirect('tyre-fix-1121', 'JOB: Fix tyre list\nPROJECT: bayready\nreading the code\nstarted editing', '')
+  assert.deepEqual([p1.title, p1.project, p1.text, p1.need, p1.done], ['Fix tyre list', 'bayready', 'started editing', '', undefined])
+  let st = A(core.emptyTeam(), p1).state
+  assert.equal(st.tasks[0].status, 'running')
+  assert.equal(st.tasks[0].owner, 'milo')
+  assert.equal(st.tasks[0].from, 'Chanh')
+  assert.throws(() => A(st, p1), /nothing new/)
+  st = A(st, core.readDirect('tyre-fix-1121', 'JOB: Fix tyre list\nNEED: which tyre brand?', ''), '2026-11-12T02:00:00.000Z').state
+  assert.equal(st.tasks[0].need, 'which tyre brand?')
+  st = A(st, core.readDirect('tyre-fix-1121', 'JOB: Fix tyre list\nnow testing', 'DONE\nfixed, 12 tests pass\nLESSON: none'), '2026-11-12T03:00:00.000Z').state
+  assert.equal(st.tasks[0].status, 'done')
+  assert.equal(st.tasks[0].need, undefined)
+  assert.match(st.tasks[0].result, /fixed, 12 tests pass/)
+  assert.throws(() => A(st, p1), /already closed/)
+  // handed to a Hermes machine, and a job reported only at the end
+  const h = core.readDirect('zip-1121', 'JOB: Build zip\nTO: Hermes Windows\nrunning', '')
+  assert.equal(h.to, 'windows')
+  const hs = A(core.emptyTeam(), h).state
+  assert.equal(hs.tasks[0].to, 'windows')
+  assert.equal(hs.tasks[0].from, 'Milo')
+  assert.match(hs.feed.at(-1).text, /Milo giao/)
+  const late = A(core.emptyTeam(), core.readDirect('late-1121', '', 'FAILED\nno access')).state
+  assert.equal(late.tasks[0].status, 'failed')
+  assert.equal(late.tasks[0].title, 'late-1121')
+  assert.ok(core.DIRECT_FILE.test('PROGRESS-direct-tyre-fix-1121.md') && !core.DIRECT_FILE.test('PROGRESS-board-T1.md'))
+  assert.throws(() => A(core.emptyTeam(), { type: 'direct', slug: 'Bad Slug', title: 'x y z' }), /bad direct slug/)
+}

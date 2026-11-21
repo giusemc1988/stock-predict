@@ -5,9 +5,9 @@
 // With --milo-dir it also carries board tasks for Milo: writes TASK-board-<id>.md there and reads PROGRESS-board-<id>.md and RESULT-board-<id>.md back (plain files, no AI).
 // Each run also keeps the two newest BayReady versions zipped on the Desktop (bayready-backup.mjs).
 import { execFileSync } from 'node:child_process'
-import { existsSync, mkdirSync, readFileSync, statfsSync, statSync, writeFileSync } from 'node:fs'
+import { existsSync, mkdirSync, readdirSync, readFileSync, statfsSync, statSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
-import { failedRecent, handedOpen, isOnline, JOBS, MACHINES, nextJob, ONLINE_MS, progressFileName, readProgress, resultFileName, taskFile, taskFileName, toHandOff } from './team-core.mjs'
+import { applyAction, DIRECT_FILE, failedRecent, handedOpen, isOnline, JOBS, MACHINES, nextJob, ONLINE_MS, progressFileName, readDirect, readProgress, resultFileName, taskFile, taskFileName, toHandOff } from './team-core.mjs'
 import { applyInDir } from './team-apply.mjs'
 import { backupBayReady } from './bayready-backup.mjs'
 import { scout, scoutDue } from './scout-core.mjs'
@@ -150,6 +150,32 @@ if (miloDir && existsSync(miloDir)) {
     } catch (e) {
       console.log(`result ${t.id} skipped: ${tail(e.message)}`)
     }
+  }
+  // Jobs Chanh gave Muse directly: PROGRESS-direct-<slug>.md / RESULT-direct-<slug>.md. Each one lands on the board
+  // (start, where it is, NEED, result). Only files touched in the last 14 days; only when the board would change.
+  try {
+    const slugs = new Set()
+    for (const n of readdirSync(miloDir)) {
+      const m = DIRECT_FILE.exec(n)
+      if (m && Date.now() - statSync(join(miloDir, n)).mtimeMs < 14 * 24 * 3600 * 1000) slugs.add(m[2])
+    }
+    for (const slug of slugs) {
+      try {
+        const rd = (k) => (existsSync(join(miloDir, `${k}-direct-${slug}.md`)) ? readFileSync(join(miloDir, `${k}-direct-${slug}.md`), 'utf8') : '')
+        const action = readDirect(slug, rd('PROGRESS'), rd('RESULT'))
+        try {
+          applyAction(state(), action, new Date().toISOString(), 'milo') // nothing new / already closed throws: skip without a push
+        } catch {
+          continue
+        }
+        act(action)
+        console.log(`direct ${slug} sent`)
+      } catch (e) {
+        console.log(`direct ${slug} skipped: ${tail(e.message)}`)
+      }
+    }
+  } catch (e) {
+    console.log(`direct scan failed: ${tail(e.message)}`)
   }
 }
 // Scout (no AI): every 6 hours one machine checks the BayReady source and proposes what it finds on the board.

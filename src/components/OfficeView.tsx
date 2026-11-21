@@ -20,6 +20,7 @@ const T = {
   nothing: { en: 'Nothing right now.', vi: 'Chưa có gì.' },
   recent: { en: 'Latest work', vi: 'Việc gần đây' },
   lead: { en: 'In charge', vi: 'Đang chỉ huy' },
+  stale: { en: 'Looks stuck (no update for 12h+)', vi: 'Có vẻ bị kẹt (hơn 12 giờ không cập nhật)' },
   logTitle: { en: 'Latest log', vi: 'Nhật ký mới nhất' },
 } satisfies Record<string, Bi>
 
@@ -78,6 +79,7 @@ function Details({ seat, lang, now, lead }: { seat: OfficeSeat; lang: 'en' | 'vi
       <p className="small muted">{WHY[seat.state][lang]}{seat.seen ? ` ${T.seen[lang]} ${ago(seat.seen, now)}.` : ''}{seat.note ? ` (${seat.note})` : ''}</p>
       <p className="small"><b>{T.now[lang]}:</b> {seat.task ? `${seat.task.id} ${seat.task.title}` : T.nothing[lang]}</p>
       {seat.task?.result && <p className="small muted">{seat.task.result}</p>}
+      {seat.stale.length > 0 && <p className="small muted"><b>{T.stale[lang]}:</b> {seat.stale.map((t) => `${t.id} ${t.title.slice(0, 40)} (${ago(t.updated, now)})`).join('; ')}</p>}
       {seat.recent.length > 0 && (
         <>
           <p className="small"><b>{T.recent[lang]}</b></p>
