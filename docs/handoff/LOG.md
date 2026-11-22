@@ -146,3 +146,4 @@ The copy of this file on `main` is frozen history up to 2026-11-11.
 | 2026-11-16 03:37 | hermes-win | PROGRESS | T33 26/- If module not loaded, may need to inline the code or adjust load order | neohub | — |
 | 2026-11-22 12:52 | hermes-win | START | T34 Step now: extracting bayready-v3.21.107.zip to bayready-work\t108 and reading structure. No release until Chanh says go after tests. | bayready | — |
 | 2026-11-22 13:12 | hermes-win | PROGRESS | T34 BayReady "New look" for Xtime Inspect pages (new skin + merged dashboard/RO page, on/off switch, default OFF). Built on 3.21.107 as 3.21.108. Claude owns this job. | bayready | — |
+| 2026-11-22 13:17 | hermes-win | PROGRESS | T34 BayReady "New look" for Xtime Inspect pages (new skin + merged dashboard/RO page, on/off switch, default OFF). Built on 3.21.107 as 3.21.108. Claude owns this job. | bayready | — |
