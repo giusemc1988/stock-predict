@@ -381,9 +381,26 @@
       },
       "started": "2026-11-16T03:27:19.490Z",
       "progress": "26|- If module not loaded, may need to inline the code or adjust load order"
+    },
+    {
+      "id": "T34",
+      "title": "BayReady \"New look\" for Xtime Inspect pages (new skin + merged dashboard/RO page, on/off switch, default OFF). Built on 3.21.107 as 3.21.108. Claude owns this job.",
+      "project": "bayready",
+      "kind": "code",
+      "owner": "milo",
+      "role": "direct",
+      "key": "direct:newlook-1122",
+      "from": "Chanh",
+      "status": "running",
+      "created": "2026-11-22T12:52:19.300Z",
+      "updated": "2026-11-22T12:52:19.300Z",
+      "started": "2026-11-22T12:52:19.300Z",
+      "by": "milo",
+      "progress": "Step now: extracting bayready-v3.21.107.zip to bayready-work\\t108 and reading structure. No release until Chanh says go after tests.",
+      "updatedBy": "hermes-win"
     }
   ],
-  "next": 34,
+  "next": 35,
   "claudeSeen": "2026-11-15T01:29:33.587Z",
   "feed": [
     {
@@ -665,6 +682,13 @@
       "to": "Milo",
       "text": "T33 đã đưa việc cho Milo",
       "ref": "T33"
+    },
+    {
+      "t": "2026-11-22T12:52:19.300Z",
+      "from": "Chanh",
+      "to": "Milo",
+      "text": "T34 việc giao thẳng: BayReady \"New look\" for Xtime Inspect pages (new skin + merged dashboard/RO page, on/off switch, default OFF). Built on 3.21.107 as 3.21.108. Claude owns this job.",
+      "ref": "T34"
     }
   ],
   "seen": [

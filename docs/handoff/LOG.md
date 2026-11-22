@@ -144,3 +144,4 @@ The copy of this file on `main` is frozen history up to 2026-11-11.
 | 2026-11-16 03:32 | hermes-win | PROGRESS | T31 reading TASK + docs, starting T31 | bayready | — |
 | 2026-11-16 03:32 | hermes-win | PROGRESS | T33 Will use existing TOOLS.mpi_fill() to inject values into Xtime | neohub | — |
 | 2026-11-16 03:37 | hermes-win | PROGRESS | T33 26/- If module not loaded, may need to inline the code or adjust load order | neohub | — |
+| 2026-11-22 12:52 | hermes-win | START | T34 Step now: extracting bayready-v3.21.107.zip to bayready-work\t108 and reading structure. No release until Chanh says go after tests. | bayready | — |
