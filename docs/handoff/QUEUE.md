@@ -21,7 +21,7 @@ Driver: **claude** since 2026-11-14 00:25 UTC.
 | T31 | BayReady 3.21.16: fix silent tiles (if still broken) and stale-tab timers, one PR on top of 3.21.15 | bayready | milo | running | 2026-11-16 03:32 |  |
 | T32 | BayReady: tapped tiles answer at once + stale tabs stop their timers (2 small fixes, one PR) | bayready | milo | cancelled | 2026-11-15 01:29 |  |
 | T33 | # Role & Context You are building a new UI module and DOM automation feature for **BayReady**, a browser extension designed for automotive t… (full text in the brief) | neohub | milo | running | 2026-11-16 03:37 |  |
-| T34 | BayReady "New look" for Xtime Inspect pages (new skin + merged dashboard/RO page, on/off switch, default OFF). Built on 3.21.107 as 3.21.108. Claude owns this job. | bayready | milo | running | 2026-11-23 04:47 |  |
+| T34 | BayReady "New look" for Xtime Inspect pages (new skin + merged dashboard/RO page, on/off switch, default OFF). Built on 3.21.107 as 3.21.108. Claude owns this job. | bayready | milo | running | 2026-11-23 04:52 |  |
 
 ## New since Claude last looked (2026-11-15 01:29 UTC)
 
@@ -29,4 +29,4 @@ Claude: read this first when back, check each one against real files, then run t
 
 - T31 **running** by hermes-win at 2026-11-16 03:32: BayReady 3.21.16: fix silent tiles (if still broken) and stale-tab timers, one PR on top of 3.21.15 | at: reading TASK + docs, starting T31
 - T33 **running** by hermes-win at 2026-11-16 03:37: # Role & Context You are building a new UI module and DOM automation feature for **BayReady**, a browser extension desig | at: 26/- If module not loaded, may need to inline the code or adjust load order
-- T34 **running** by hermes-win at 2026-11-23 04:47: BayReady "New look" for Xtime Inspect pages (new skin + merged dashboard/RO page, on/off switch, default OFF). Built on  | at: Step now: extracting bayready-v3.21.107.zip to bayready-work\t108 and reading structure. No release until Chanh says go after tests.
+- T34 **running** by hermes-win at 2026-11-23 04:52: BayReady "New look" for Xtime Inspect pages (new skin + merged dashboard/RO page, on/off switch, default OFF). Built on  | at: Step now: extracting bayready-v3.21.107.zip to bayready-work\t108 and reading structure. No release until Chanh says go after tests.
