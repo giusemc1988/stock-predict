@@ -1,6 +1,6 @@
 {
- "generated": "2026-11-21T02:50:43.702Z",
- "asOf": "2026-11-20",
+ "generated": "2026-11-24T05:31:11.273Z",
+ "asOf": "2026-11-23",
  "strategy": "leaders-tight-base",
  "score": {
   "graded": 2,
@@ -19,7 +19,7 @@
    "entry": 99.31,
    "stop": 93.81,
    "adr": 5.53,
-   "age": 2
+   "age": 3
   },
   {
    "symbol": "XERS",
@@ -27,7 +27,7 @@
    "entry": 17.28,
    "stop": 16.47,
    "adr": 4.67,
-   "age": 0
+   "age": 1
   },
   {
    "symbol": "RGR",
@@ -35,6 +35,38 @@
    "entry": 53.81,
    "stop": 51.53,
    "adr": 4.24,
+   "age": 1
+  },
+  {
+   "symbol": "APPN",
+   "setupDay": "2026-11-23",
+   "entry": 57.26,
+   "stop": 53.62,
+   "adr": 6.35,
+   "age": 0
+  },
+  {
+   "symbol": "VCEL",
+   "setupDay": "2026-11-23",
+   "entry": 59.75,
+   "stop": 57.32,
+   "adr": 4.87,
+   "age": 0
+  },
+  {
+   "symbol": "LTH",
+   "setupDay": "2026-11-23",
+   "entry": 48.48,
+   "stop": 46.47,
+   "adr": 4.16,
+   "age": 0
+  },
+  {
+   "symbol": "AEO",
+   "setupDay": "2026-11-23",
+   "entry": 22.5,
+   "stop": 21.48,
+   "adr": 4.51,
    "age": 0
   }
  ],
