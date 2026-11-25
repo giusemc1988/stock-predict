@@ -7,8 +7,8 @@
   "machines": {
     "windows": {
       "scoutAt": "2026-11-25T22:42:21.101Z",
-      "seen": "2026-11-25T22:42:21.101Z",
-      "note": "scout done"
+      "seen": "2026-11-25T23:17:20.895Z",
+      "note": "idle"
     },
     "ubuntu": {
       "scoutAt": "2026-11-25T18:50:02.085Z",
