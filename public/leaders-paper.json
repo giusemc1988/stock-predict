@@ -1,6 +1,6 @@
 {
- "generated": "2026-11-24T05:31:11.273Z",
- "asOf": "2026-11-23",
+ "generated": "2026-11-25T04:36:14.610Z",
+ "asOf": "2026-11-24",
  "strategy": "leaders-tight-base",
  "score": {
   "graded": 2,
@@ -19,7 +19,7 @@
    "entry": 99.31,
    "stop": 93.81,
    "adr": 5.53,
-   "age": 3
+   "age": 4
   },
   {
    "symbol": "XERS",
@@ -27,15 +27,7 @@
    "entry": 17.28,
    "stop": 16.47,
    "adr": 4.67,
-   "age": 1
-  },
-  {
-   "symbol": "RGR",
-   "setupDay": "2026-11-20",
-   "entry": 53.81,
-   "stop": 51.53,
-   "adr": 4.24,
-   "age": 1
+   "age": 2
   },
   {
    "symbol": "APPN",
@@ -43,7 +35,7 @@
    "entry": 57.26,
    "stop": 53.62,
    "adr": 6.35,
-   "age": 0
+   "age": 1
   },
   {
    "symbol": "VCEL",
@@ -51,7 +43,7 @@
    "entry": 59.75,
    "stop": 57.32,
    "adr": 4.87,
-   "age": 0
+   "age": 1
   },
   {
    "symbol": "LTH",
@@ -59,7 +51,7 @@
    "entry": 48.48,
    "stop": 46.47,
    "adr": 4.16,
-   "age": 0
+   "age": 1
   },
   {
    "symbol": "AEO",
@@ -67,6 +59,46 @@
    "entry": 22.5,
    "stop": 21.48,
    "adr": 4.51,
+   "age": 1
+  },
+  {
+   "symbol": "SYRE",
+   "setupDay": "2026-11-24",
+   "entry": 107.87,
+   "stop": 101.65,
+   "adr": 5.77,
+   "age": 0
+  },
+  {
+   "symbol": "ASO",
+   "setupDay": "2026-11-24",
+   "entry": 73.82,
+   "stop": 70.84,
+   "adr": 4.03,
+   "age": 0
+  },
+  {
+   "symbol": "AMRX",
+   "setupDay": "2026-11-24",
+   "entry": 22.56,
+   "stop": 21.65,
+   "adr": 4.04,
+   "age": 0
+  },
+  {
+   "symbol": "RGR",
+   "setupDay": "2026-11-24",
+   "entry": 53.81,
+   "stop": 51.5,
+   "adr": 4.3,
+   "age": 0
+  },
+  {
+   "symbol": "ADMA",
+   "setupDay": "2026-11-24",
+   "entry": 14.2,
+   "stop": 13.43,
+   "adr": 5.42,
    "age": 0
   }
  ],
