@@ -1,6 +1,6 @@
 {
- "generated": "2026-11-25T04:36:14.610Z",
- "asOf": "2026-11-24",
+ "generated": "2026-11-26T03:46:17.697Z",
+ "asOf": "2026-11-25",
  "strategy": "leaders-tight-base",
  "score": {
   "graded": 2,
@@ -14,20 +14,12 @@
  },
  "watching": [
   {
-   "symbol": "KNSA",
-   "setupDay": "2026-11-17",
-   "entry": 99.31,
-   "stop": 93.81,
-   "adr": 5.53,
-   "age": 4
-  },
-  {
    "symbol": "XERS",
    "setupDay": "2026-11-20",
    "entry": 17.28,
    "stop": 16.47,
    "adr": 4.67,
-   "age": 2
+   "age": 3
   },
   {
    "symbol": "APPN",
@@ -35,7 +27,7 @@
    "entry": 57.26,
    "stop": 53.62,
    "adr": 6.35,
-   "age": 1
+   "age": 2
   },
   {
    "symbol": "VCEL",
@@ -43,7 +35,7 @@
    "entry": 59.75,
    "stop": 57.32,
    "adr": 4.87,
-   "age": 1
+   "age": 2
   },
   {
    "symbol": "LTH",
@@ -51,7 +43,7 @@
    "entry": 48.48,
    "stop": 46.47,
    "adr": 4.16,
-   "age": 1
+   "age": 2
   },
   {
    "symbol": "AEO",
@@ -59,7 +51,7 @@
    "entry": 22.5,
    "stop": 21.48,
    "adr": 4.51,
-   "age": 1
+   "age": 2
   },
   {
    "symbol": "SYRE",
@@ -67,7 +59,7 @@
    "entry": 107.87,
    "stop": 101.65,
    "adr": 5.77,
-   "age": 0
+   "age": 1
   },
   {
    "symbol": "ASO",
@@ -75,23 +67,7 @@
    "entry": 73.82,
    "stop": 70.84,
    "adr": 4.03,
-   "age": 0
-  },
-  {
-   "symbol": "AMRX",
-   "setupDay": "2026-11-24",
-   "entry": 22.56,
-   "stop": 21.65,
-   "adr": 4.04,
-   "age": 0
-  },
-  {
-   "symbol": "RGR",
-   "setupDay": "2026-11-24",
-   "entry": 53.81,
-   "stop": 51.5,
-   "adr": 4.3,
-   "age": 0
+   "age": 1
   },
   {
    "symbol": "ADMA",
@@ -99,6 +75,30 @@
    "entry": 14.2,
    "stop": 13.43,
    "adr": 5.42,
+   "age": 1
+  },
+  {
+   "symbol": "AXGN",
+   "setupDay": "2026-11-25",
+   "entry": 60.11,
+   "stop": 56.95,
+   "adr": 5.26,
+   "age": 0
+  },
+  {
+   "symbol": "AMRX",
+   "setupDay": "2026-11-25",
+   "entry": 22.56,
+   "stop": 21.64,
+   "adr": 4.09,
+   "age": 0
+  },
+  {
+   "symbol": "VERX",
+   "setupDay": "2026-11-25",
+   "entry": 19.26,
+   "stop": 18.4,
+   "adr": 4.47,
    "age": 0
   }
  ],

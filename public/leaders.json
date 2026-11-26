@@ -1,878 +1,69 @@
 {
  "source": "tradingview-screener",
- "generated": "2026-11-25T04:36:05.959Z",
- "universe": 1738,
- "listA": 113,
- "listB": 74,
+ "generated": "2026-11-26T03:46:08.787Z",
+ "universe": 1748,
+ "listA": 119,
+ "listB": 82,
  "topSectors": [
   {
+   "sector": "Consumer Durables",
+   "median3m": 2.5,
+   "n": 40
+  },
+  {
+   "sector": "Consumer Non-Durables",
+   "median3m": 2.5,
+   "n": 65
+  },
+  {
    "sector": "Utilities",
-   "median3m": 2.2,
-   "n": 55
-  },
-  {
-   "sector": "Retail Trade",
-   "median3m": 1.5,
-   "n": 71
-  },
-  {
-   "sector": "Commercial Services",
-   "median3m": 1.5,
-   "n": 53
+   "median3m": 2.5,
+   "n": 56
   }
  ],
  "leaders": [
   {
-   "symbol": "KOD",
-   "price": 114.68,
+   "symbol": "GKOS",
+   "price": 259.9,
    "rs": 100,
-   "p1m": 34.7,
-   "p3m": 187.1,
-   "p6m": 228.3,
-   "py": 455.6,
+   "p1m": 46.5,
+   "p3m": 45.6,
+   "p6m": 143.9,
+   "py": 163.4,
    "sector": "Health Technology",
    "inTopSector": false,
    "tags": [
     "A",
     "B"
    ],
-   "offHigh": 1.1,
-   "rvol": 1.6
+   "offHigh": 1.2,
+   "rvol": 0.96
   },
   {
    "symbol": "XERS",
-   "price": 17.69,
+   "price": 17.37,
    "rs": 100,
-   "p1m": 63,
-   "p3m": 102.4,
-   "p6m": 184.4,
-   "py": 158.2,
+   "p1m": 70,
+   "p3m": 101.5,
+   "p6m": 172.7,
+   "py": 146.7,
    "sector": "Health Technology",
    "inTopSector": false,
    "tags": [
     "A",
     "B"
    ],
-   "offHigh": 1.9,
-   "rvol": 0.83
-  },
-  {
-   "symbol": "ETON",
-   "price": 67.47,
-   "rs": 100,
-   "p1m": 35.2,
-   "p3m": 6.1,
-   "p6m": 110,
-   "py": 308.9,
-   "sector": "Health Technology",
-   "inTopSector": false,
-   "tags": [
-    "A",
-    "B"
-   ],
-   "offHigh": 4.5,
-   "rvol": 1.09
-  },
-  {
-   "symbol": "REPL",
-   "price": 22.24,
-   "rs": 100,
-   "p1m": 86.6,
-   "p3m": 42.6,
-   "p6m": 373.2,
-   "py": 142,
-   "sector": "Health Technology",
-   "inTopSector": false,
-   "tags": [
-    "A",
-    "B"
-   ],
-   "offHigh": 5.5,
-   "rvol": 1.16
-  },
-  {
-   "symbol": "XNCR",
-   "price": 38.18,
-   "rs": 100,
-   "p1m": 49.6,
-   "p3m": 33,
-   "p6m": 226.3,
-   "py": 136.4,
-   "sector": "Health Technology",
-   "inTopSector": false,
-   "tags": [
-    "A",
-    "B"
-   ],
-   "offHigh": 6,
-   "rvol": 1.69
-  },
-  {
-   "symbol": "CDNA",
-   "price": 77.83,
-   "rs": 100,
-   "p1m": 13.6,
-   "p3m": 55.2,
-   "p6m": 252,
-   "py": 350.4,
-   "sector": "Health Technology",
-   "inTopSector": false,
-   "tags": [
-    "A",
-    "B"
-   ],
-   "offHigh": 14.4,
-   "rvol": 1.45
-  },
-  {
-   "symbol": "MRNA",
-   "price": 227.38,
-   "rs": 100,
-   "p1m": 15.6,
-   "p3m": 47.5,
-   "p6m": 381.3,
-   "py": 857,
-   "sector": "Health Technology",
-   "inTopSector": false,
-   "tags": [
-    "A",
-    "B"
-   ],
-   "offHigh": 19,
-   "rvol": 1.14
-  },
-  {
-   "symbol": "GKOS",
-   "price": 256.98,
-   "rs": 99,
-   "p1m": 46.1,
-   "p3m": 42.7,
-   "p6m": 137.3,
-   "py": 160.3,
-   "sector": "Health Technology",
-   "inTopSector": false,
-   "tags": [
-    "A",
-    "B"
-   ],
-   "offHigh": 0.2,
-   "rvol": 0.93
-  },
-  {
-   "symbol": "KNSA",
-   "price": 102.72,
-   "rs": 99,
-   "p1m": 28.1,
-   "p3m": 29,
-   "p6m": 97.5,
-   "py": 146.1,
-   "sector": "Health Technology",
-   "inTopSector": false,
-   "tags": [
-    "A",
-    "B"
-   ],
-   "offHigh": 0.6,
-   "rvol": 1.56
-  },
-  {
-   "symbol": "BMBL",
-   "price": 5.98,
-   "rs": 99,
-   "p1m": 0.7,
-   "p3m": 113.6,
-   "p6m": 87.5,
-   "py": 72.8,
-   "sector": "Technology Services",
-   "inTopSector": false,
-   "tags": [
-    "A",
-    "B"
-   ],
-   "offHigh": 1,
-   "rvol": 1.34
-  },
-  {
-   "symbol": "SGRY",
-   "price": 26.83,
-   "rs": 99,
-   "p1m": 69.9,
-   "p3m": 91.5,
-   "p6m": 99.2,
-   "py": 68.8,
-   "sector": "Health Services",
-   "inTopSector": false,
-   "tags": [
-    "A",
-    "B"
-   ],
-   "offHigh": 1.5,
-   "rvol": 0.53
-  },
-  {
-   "symbol": "KYMR",
-   "price": 173.92,
-   "rs": 99,
-   "p1m": 56.9,
-   "p3m": 37.8,
-   "p6m": 112.6,
-   "py": 156.7,
-   "sector": "Health Technology",
-   "inTopSector": false,
-   "tags": [
-    "A",
-    "B"
-   ],
-   "offHigh": 3.4,
-   "rvol": 4.24
-  },
-  {
-   "symbol": "VIA",
-   "price": 46.27,
-   "rs": 99,
-   "p1m": 29.5,
-   "p3m": 70,
-   "p6m": 222.7,
-   "py": 30.2,
-   "sector": "Technology Services",
-   "inTopSector": false,
-   "tags": [
-    "A",
-    "B"
-   ],
-   "offHigh": 4.1,
+   "offHigh": 3.7,
    "rvol": 0.8
   },
   {
-   "symbol": "NTSK",
-   "price": 25.53,
-   "rs": 99,
-   "p1m": 16,
-   "p3m": 93.4,
-   "p6m": 129,
-   "py": 33.2,
-   "sector": "Technology Services",
-   "inTopSector": false,
-   "tags": [
-    "A",
-    "B"
-   ],
-   "offHigh": 4.4,
-   "rvol": 1.13
-  },
-  {
-   "symbol": "ULCC",
-   "price": 8.19,
-   "rs": 99,
-   "p1m": 60,
-   "p3m": 33.6,
-   "p6m": 45.7,
-   "py": 117.2,
-   "sector": "Transportation",
-   "inTopSector": false,
-   "tags": [
-    "A",
-    "B"
-   ],
-   "offHigh": 6.2,
-   "rvol": 1.02
-  },
-  {
-   "symbol": "ORKA",
-   "price": 104.63,
-   "rs": 99,
-   "p1m": 28.9,
-   "p3m": 3.3,
-   "p6m": 81.3,
-   "py": 249.9,
-   "sector": "Health Technology",
-   "inTopSector": false,
-   "tags": [
-    "A",
-    "B"
-   ],
-   "offHigh": 9.4,
-   "rvol": 1.63
-  },
-  {
-   "symbol": "CBRL",
-   "price": 75.19,
-   "rs": 99,
-   "p1m": 11.6,
-   "p3m": 28.5,
-   "p6m": 118.2,
-   "py": 180.7,
-   "sector": "Consumer Services",
-   "inTopSector": false,
-   "tags": [
-    "A"
-   ],
-   "offHigh": 0.8,
-   "rvol": 1.28
-  },
-  {
-   "symbol": "SN",
-   "price": 228.93,
-   "rs": 99,
-   "p1m": 15.6,
-   "p3m": 24.1,
-   "p6m": 96.4,
-   "py": 162.7,
-   "sector": "Consumer Durables",
-   "inTopSector": false,
-   "tags": [
-    "A"
-   ],
-   "offHigh": 1.7,
-   "rvol": 1.03
-  },
-  {
-   "symbol": "PRCH",
-   "price": 22.02,
-   "rs": 99,
-   "p1m": 23.1,
-   "p3m": 26.6,
-   "p6m": 116.3,
-   "py": 140.9,
-   "sector": "Finance",
-   "inTopSector": false,
-   "tags": [
-    "A"
-   ],
-   "offHigh": 2.8,
-   "rvol": 1.51
-  },
-  {
-   "symbol": "ANF",
-   "price": 168.1,
-   "rs": 99,
-   "p1m": 5.1,
-   "p3m": 28,
-   "p6m": 109.6,
-   "py": 143.2,
-   "sector": "Retail Trade",
-   "inTopSector": true,
-   "tags": [
-    "A"
-   ],
-   "offHigh": 5.8,
-   "rvol": 4.28
-  },
-  {
-   "symbol": "SYRE",
-   "price": 103.13,
-   "rs": 99,
-   "p1m": 13.7,
-   "p3m": 11.6,
-   "p6m": 42.5,
-   "py": 313.3,
-   "sector": "Health Technology",
-   "inTopSector": false,
-   "tags": [
-    "A"
-   ],
-   "offHigh": 6.8,
-   "rvol": 1.98
-  },
-  {
-   "symbol": "TRAX",
-   "price": 49.13,
-   "rs": 99,
-   "p1m": 13.9,
-   "p3m": 7.2,
-   "p6m": 206.5,
-   "py": 145.7,
-   "sector": "Health Technology",
-   "inTopSector": false,
-   "tags": [
-    "B"
-   ],
-   "offHigh": 10.3,
-   "rvol": 1.74
-  },
-  {
-   "symbol": "MANE",
-   "price": 133.33,
-   "rs": 99,
-   "p1m": -4.4,
-   "p3m": 30.7,
-   "p6m": 32,
-   "py": 292.1,
-   "sector": "Health Technology",
-   "inTopSector": false,
-   "tags": [
-    "A"
-   ],
-   "offHigh": 14.9,
-   "rvol": 0.88
-  },
-  {
-   "symbol": "VCEL",
-   "price": 61.18,
-   "rs": 98,
-   "p1m": 42.3,
-   "p3m": 41.6,
-   "p6m": 78.8,
-   "py": 54.5,
-   "sector": "Health Technology",
-   "inTopSector": false,
-   "tags": [
-    "A",
-    "B"
-   ],
-   "offHigh": 0.1,
-   "rvol": 1.28
-  },
-  {
-   "symbol": "AXGN",
-   "price": 59.83,
-   "rs": 98,
-   "p1m": 63.3,
-   "p3m": 19.6,
-   "p6m": 51.7,
-   "py": 122.3,
-   "sector": "Health Technology",
-   "inTopSector": false,
-   "tags": [
-    "A",
-    "B"
-   ],
-   "offHigh": 0.3,
-   "rvol": 0.54
-  },
-  {
-   "symbol": "BRZE",
-   "price": 46.44,
-   "rs": 98,
-   "p1m": 1.3,
-   "p3m": 55.1,
-   "p6m": 105.3,
-   "py": 69.4,
-   "sector": "Technology Services",
-   "inTopSector": false,
-   "tags": [
-    "A",
-    "B"
-   ],
-   "offHigh": 0.8,
-   "rvol": 0.8
-  },
-  {
-   "symbol": "TGTX",
-   "price": 70.13,
-   "rs": 98,
-   "p1m": 33.4,
-   "p3m": 26.4,
-   "p6m": 79.8,
-   "py": 117.5,
-   "sector": "Health Technology",
-   "inTopSector": false,
-   "tags": [
-    "A",
-    "B"
-   ],
-   "offHigh": 1.6,
-   "rvol": 1.81
-  },
-  {
-   "symbol": "AZTA",
-   "price": 47.54,
-   "rs": 98,
-   "p1m": 33.3,
-   "p3m": 44.8,
-   "p6m": 122.9,
-   "py": 35.3,
-   "sector": "Health Services",
-   "inTopSector": false,
-   "tags": [
-    "A",
-    "B"
-   ],
-   "offHigh": 5,
-   "rvol": 0.82
-  },
-  {
-   "symbol": "SG",
-   "price": 12.09,
-   "rs": 98,
-   "p1m": 15.3,
-   "p3m": 74,
-   "p6m": 20.7,
-   "py": 80.2,
-   "sector": "Consumer Services",
-   "inTopSector": false,
-   "tags": [
-    "A",
-    "B"
-   ],
-   "offHigh": 13,
-   "rvol": 0.7
-  },
-  {
-   "symbol": "VRDN",
-   "price": 35.7,
-   "rs": 98,
-   "p1m": 56.9,
-   "p3m": 47.8,
-   "p6m": 106.6,
-   "py": 15.5,
-   "sector": "Health Technology",
-   "inTopSector": false,
-   "tags": [
-    "B"
-   ],
-   "offHigh": 0.3,
-   "rvol": 1.61
-  },
-  {
-   "symbol": "ASO",
-   "price": 72.24,
-   "rs": 98,
-   "p1m": 18.5,
-   "p3m": 66.5,
-   "p6m": 36.4,
-   "py": 63.6,
-   "sector": "Retail Trade",
-   "inTopSector": true,
-   "tags": [
-    "B"
-   ],
-   "offHigh": 2.1,
-   "rvol": 0.82
-  },
-  {
-   "symbol": "APPN",
-   "price": 54.8,
-   "rs": 98,
-   "p1m": 8.2,
-   "p3m": 41.6,
-   "p6m": 149.8,
-   "py": 32.5,
-   "sector": "Technology Services",
-   "inTopSector": false,
-   "tags": [
-    "A"
-   ],
-   "offHigh": 4.3,
-   "rvol": 0.82
-  },
-  {
-   "symbol": "TBBB",
-   "price": 65.65,
-   "rs": 98,
-   "p1m": 14.1,
-   "p3m": 29.6,
-   "p6m": 89,
-   "py": 112.8,
-   "sector": "Retail Trade",
-   "inTopSector": true,
-   "tags": [
-    "A"
-   ],
-   "offHigh": 6.6,
-   "rvol": 0.99
-  },
-  {
-   "symbol": "AMPL",
-   "price": 16.98,
-   "rs": 98,
-   "p1m": -1.5,
-   "p3m": 32.8,
-   "p6m": 145.4,
-   "py": 68.8,
-   "sector": "Technology Services",
-   "inTopSector": false,
-   "tags": [
-    "A"
-   ],
-   "offHigh": 9.9,
-   "rvol": 0.88
-  },
-  {
-   "symbol": "HNGE",
-   "price": 109.03,
-   "rs": 98,
-   "p1m": -0.4,
-   "p3m": 22.1,
-   "p6m": 102.8,
-   "py": 134,
-   "sector": "Technology Services",
-   "inTopSector": false,
-   "tags": [
-    "A"
-   ],
-   "offHigh": 13.7,
-   "rvol": 0.59
-  },
-  {
-   "symbol": "FIGS",
-   "price": 20.48,
-   "rs": 98,
-   "p1m": 1.2,
-   "p3m": 37.5,
-   "p6m": 62.8,
-   "py": 113.3,
-   "sector": "Consumer Non-Durables",
-   "inTopSector": false,
-   "tags": [
-    "A"
-   ],
-   "offHigh": 13.8,
-   "rvol": 0.68
-  },
-  {
-   "symbol": "KSS",
-   "price": 25.33,
-   "rs": 97,
-   "p1m": 4,
-   "p3m": 52.2,
-   "p6m": 63.3,
-   "py": 61.1,
-   "sector": "Retail Trade",
-   "inTopSector": true,
-   "tags": [
-    "A",
-    "B"
-   ],
-   "offHigh": 1.1,
-   "rvol": 2.96
-  },
-  {
-   "symbol": "CROX",
-   "price": 159.24,
-   "rs": 97,
-   "p1m": 35.9,
-   "p3m": 29.8,
-   "p6m": 34.8,
-   "py": 97.5,
-   "sector": "Consumer Non-Durables",
-   "inTopSector": false,
-   "tags": [
-    "A",
-    "B"
-   ],
-   "offHigh": 3,
-   "rvol": 0.68
-  },
-  {
-   "symbol": "UPBD",
-   "price": 26.98,
-   "rs": 97,
-   "p1m": 57.3,
-   "p3m": 38.6,
-   "p6m": 42.8,
-   "py": 54.7,
-   "sector": "Finance",
-   "inTopSector": false,
-   "tags": [
-    "B"
-   ],
-   "offHigh": 1,
-   "rvol": 1.03
-  },
-  {
-   "symbol": "CON",
-   "price": 43.25,
-   "rs": 97,
-   "p1m": 8.8,
-   "p3m": 23.7,
-   "p6m": 68.4,
-   "py": 113.7,
-   "sector": "Health Services",
-   "inTopSector": false,
-   "tags": [
-    "A"
-   ],
-   "offHigh": 2.2,
-   "rvol": 1.5
-  },
-  {
-   "symbol": "RXO",
-   "price": 28.88,
-   "rs": 97,
-   "p1m": 0.6,
-   "p3m": 33.9,
-   "p6m": 16.5,
-   "py": 150.7,
-   "sector": "Technology Services",
-   "inTopSector": false,
-   "tags": [
-    "A"
-   ],
-   "offHigh": 3.4,
-   "rvol": 0.52
-  },
-  {
-   "symbol": "LFST",
-   "price": 14.16,
-   "rs": 97,
-   "p1m": 12.8,
-   "p3m": 16,
-   "p6m": 86.3,
-   "py": 117.5,
-   "sector": "Health Services",
-   "inTopSector": false,
-   "tags": [
-    "A"
-   ],
-   "offHigh": 9.6,
-   "rvol": 0.51
-  },
-  {
-   "symbol": "ACHC",
-   "price": 35.8,
-   "rs": 97,
-   "p1m": 13.3,
-   "p3m": 18.7,
-   "p6m": 49,
-   "py": 132.3,
-   "sector": "Health Services",
-   "inTopSector": false,
-   "tags": [
-    "A"
-   ],
-   "offHigh": 9.8,
-   "rvol": 1.08
-  },
-  {
-   "symbol": "CRL",
-   "price": 336.13,
-   "rs": 97,
-   "p1m": -0.5,
-   "p3m": 14.7,
-   "p6m": 105,
-   "py": 100.6,
-   "sector": "Commercial Services",
-   "inTopSector": true,
-   "tags": [
-    "A"
-   ],
-   "offHigh": 11.5,
-   "rvol": 0.89
-  },
-  {
-   "symbol": "MGNI",
-   "price": 26.31,
-   "rs": 97,
-   "p1m": 15.6,
-   "p3m": 12.9,
-   "p6m": 96.8,
-   "py": 89,
-   "sector": "Technology Services",
-   "inTopSector": false,
-   "tags": [
-    "A"
-   ],
-   "offHigh": 11.7,
-   "rvol": 0.43
-  },
-  {
-   "symbol": "ARHS",
-   "price": 12.94,
-   "rs": 97,
-   "p1m": 12.9,
-   "p3m": 44.7,
-   "p6m": 95.2,
-   "py": 38.2,
-   "sector": "Consumer Durables",
-   "inTopSector": false,
-   "tags": [
-    "A"
-   ],
-   "offHigh": 14.7,
-   "rvol": 0.86
-  },
-  {
-   "symbol": "TENB",
-   "price": 45.23,
-   "rs": 97,
-   "p1m": 7.7,
-   "p3m": 39.9,
-   "p6m": 82.3,
-   "py": 73.2,
-   "sector": "Technology Services",
-   "inTopSector": false,
-   "tags": [
-    "A"
-   ],
-   "offHigh": 15,
-   "rvol": 0.86
-  },
-  {
-   "symbol": "VSXY",
-   "price": 93.38,
-   "rs": 97,
-   "p1m": 6.4,
-   "p3m": 6.6,
-   "p6m": 64.9,
-   "py": 154.9,
-   "sector": "Retail Trade",
-   "inTopSector": true,
-   "tags": [
-    "A"
-   ],
-   "offHigh": 19.7,
-   "rvol": 0.92
-  },
-  {
-   "symbol": "ADT",
-   "price": 9.91,
-   "rs": 96,
-   "p1m": 42.4,
-   "p3m": 33.9,
-   "p6m": 44.9,
-   "py": 25.3,
-   "sector": "Commercial Services",
-   "inTopSector": true,
-   "tags": [
-    "A",
-    "B"
-   ],
-   "offHigh": 0.9,
-   "rvol": 2.38
-  },
-  {
-   "symbol": "PGNY",
-   "price": 36.48,
-   "rs": 96,
-   "p1m": 25.5,
-   "p3m": 42.5,
-   "p6m": 43.3,
-   "py": 38.2,
-   "sector": "Commercial Services",
-   "inTopSector": true,
-   "tags": [
-    "A",
-    "B"
-   ],
-   "offHigh": 2,
-   "rvol": 0.63
-  },
-  {
-   "symbol": "WWW",
-   "price": 25.55,
-   "rs": 96,
-   "p1m": 25.3,
-   "p3m": 24.2,
-   "p6m": 43.6,
-   "py": 64.1,
-   "sector": "Consumer Non-Durables",
-   "inTopSector": false,
-   "tags": [
-    "A",
-    "B"
-   ],
-   "offHigh": 2.7,
-   "rvol": 0.59
-  },
-  {
-   "symbol": "BHC",
-   "price": 8.61,
-   "rs": 96,
-   "p1m": 33.7,
-   "p3m": 28.7,
-   "p6m": 59.4,
-   "py": 42.8,
+   "symbol": "KOD",
+   "price": 110.38,
+   "rs": 100,
+   "p1m": 25.4,
+   "p3m": 180.4,
+   "p6m": 200.8,
+   "py": 409.4,
    "sector": "Health Technology",
    "inTopSector": false,
    "tags": [
@@ -880,779 +71,1587 @@
     "B"
    ],
    "offHigh": 4.8,
-   "rvol": 0.92
+   "rvol": 0.94
   },
   {
-   "symbol": "CGON",
-   "price": 87.5,
-   "rs": 96,
-   "p1m": 40.3,
-   "p3m": 11.8,
-   "p6m": 45.1,
-   "py": 103.1,
+   "symbol": "ETON",
+   "price": 65.23,
+   "rs": 100,
+   "p1m": 30.5,
+   "p3m": 4.4,
+   "p6m": 106.3,
+   "py": 305.7,
    "sector": "Health Technology",
    "inTopSector": false,
    "tags": [
     "A",
     "B"
    ],
-   "offHigh": 6.9,
-   "rvol": 1.08
+   "offHigh": 7.7,
+   "rvol": 1.34
   },
   {
-   "symbol": "HZO",
-   "price": 52.94,
-   "rs": 96,
-   "p1m": 1,
-   "p3m": 1.5,
-   "p6m": 52.4,
-   "py": 127.1,
-   "sector": "Retail Trade",
-   "inTopSector": true,
+   "symbol": "REPL",
+   "price": 21.67,
+   "rs": 100,
+   "p1m": 87.5,
+   "p3m": 37.5,
+   "p6m": 173.3,
+   "py": 130,
+   "sector": "Health Technology",
+   "inTopSector": false,
    "tags": [
-    "A"
+    "A",
+    "B"
    ],
-   "offHigh": 0,
-   "rvol": 1.24
+   "offHigh": 7.9,
+   "rvol": 0.78
   },
   {
-   "symbol": "IPAR",
-   "price": 140.53,
-   "rs": 96,
-   "p1m": 21.3,
-   "p3m": 20.1,
-   "p6m": 48.7,
-   "py": 73.5,
-   "sector": "Consumer Non-Durables",
+   "symbol": "CDNA",
+   "price": 75.86,
+   "rs": 100,
+   "p1m": 10.1,
+   "p3m": 48.7,
+   "p6m": 234.8,
+   "py": 318.7,
+   "sector": "Health Technology",
+   "inTopSector": false,
+   "tags": [
+    "A",
+    "B"
+   ],
+   "offHigh": 16.5,
+   "rvol": 0.71
+  },
+  {
+   "symbol": "MRNA",
+   "price": 220.84,
+   "rs": 100,
+   "p1m": 18.2,
+   "p3m": 53.2,
+   "p6m": 367.2,
+   "py": 812.2,
+   "sector": "Health Technology",
+   "inTopSector": false,
+   "tags": [
+    "A",
+    "B"
+   ],
+   "offHigh": 21.4,
+   "rvol": 0.85
+  },
+  {
+   "symbol": "GDYN",
+   "price": 14.12,
+   "rs": 99,
+   "p1m": 63.8,
+   "p3m": 82.2,
+   "p6m": 97.5,
+   "py": 68.9,
+   "sector": "Technology Services",
+   "inTopSector": false,
+   "tags": [
+    "A",
+    "B"
+   ],
+   "offHigh": 1.4,
+   "rvol": 0.82
+  },
+  {
+   "symbol": "KNSA",
+   "price": 100.99,
+   "rs": 99,
+   "p1m": 32.9,
+   "p3m": 29.1,
+   "p6m": 99.1,
+   "py": 144.3,
+   "sector": "Health Technology",
+   "inTopSector": false,
+   "tags": [
+    "A",
+    "B"
+   ],
+   "offHigh": 2.3,
+   "rvol": 0.85
+  },
+  {
+   "symbol": "NTSK",
+   "price": 26.44,
+   "rs": 99,
+   "p1m": 8.7,
+   "p3m": 83,
+   "p6m": 127.5,
+   "py": 44.7,
+   "sector": "Technology Services",
+   "inTopSector": false,
+   "tags": [
+    "A",
+    "B"
+   ],
+   "offHigh": 2.4,
+   "rvol": 1.35
+  },
+  {
+   "symbol": "SGRY",
+   "price": 26.55,
+   "rs": 99,
+   "p1m": 15.3,
+   "p3m": 91,
+   "p6m": 95.5,
+   "py": 63,
+   "sector": "Health Services",
+   "inTopSector": false,
+   "tags": [
+    "A",
+    "B"
+   ],
+   "offHigh": 2.5,
+   "rvol": 0.85
+  },
+  {
+   "symbol": "VIA",
+   "price": 46.71,
+   "rs": 99,
+   "p1m": 27.4,
+   "p3m": 65.6,
+   "p6m": 219.1,
+   "py": 29.5,
+   "sector": "Technology Services",
+   "inTopSector": false,
+   "tags": [
+    "A",
+    "B"
+   ],
+   "offHigh": 3.2,
+   "rvol": 0.79
+  },
+  {
+   "symbol": "KYMR",
+   "price": 173.77,
+   "rs": 99,
+   "p1m": 55.2,
+   "p3m": 39,
+   "p6m": 112.4,
+   "py": 164.1,
+   "sector": "Health Technology",
+   "inTopSector": false,
+   "tags": [
+    "A",
+    "B"
+   ],
+   "offHigh": 3.5,
+   "rvol": 2.31
+  },
+  {
+   "symbol": "XNCR",
+   "price": 38.37,
+   "rs": 99,
+   "p1m": 18.8,
+   "p3m": 36.3,
+   "p6m": 220.6,
+   "py": 126.5,
+   "sector": "Health Technology",
+   "inTopSector": false,
+   "tags": [
+    "A",
+    "B"
+   ],
+   "offHigh": 5.5,
+   "rvol": 1.14
+  },
+  {
+   "symbol": "ORKA",
+   "price": 106.01,
+   "rs": 99,
+   "p1m": 29.3,
+   "p3m": 7.2,
+   "p6m": 82.8,
+   "py": 253.4,
+   "sector": "Health Technology",
+   "inTopSector": false,
+   "tags": [
+    "A",
+    "B"
+   ],
+   "offHigh": 8.2,
+   "rvol": 0.68
+  },
+  {
+   "symbol": "CBRL",
+   "price": 75.35,
+   "rs": 99,
+   "p1m": 11.8,
+   "p3m": 30.5,
+   "p6m": 120.8,
+   "py": 183.5,
+   "sector": "Consumer Services",
    "inTopSector": false,
    "tags": [
     "A"
    ],
-   "offHigh": 0.3,
-   "rvol": 1.37
+   "offHigh": 0.6,
+   "rvol": 0.76
   },
   {
-   "symbol": "ROIV",
-   "price": 42.34,
-   "rs": 96,
-   "p1m": 13.9,
-   "p3m": 14.7,
-   "p6m": 43.4,
-   "py": 109.9,
-   "sector": "Health Technology",
+   "symbol": "ANF",
+   "price": 176.96,
+   "rs": 99,
+   "p1m": 12.6,
+   "p3m": 22.3,
+   "p6m": 122.5,
+   "py": 126.1,
+   "sector": "Retail Trade",
    "inTopSector": false,
    "tags": [
     "A"
    ],
    "offHigh": 0.8,
-   "rvol": 1.54
+   "rvol": 1.46
   },
   {
-   "symbol": "BOX",
-   "price": 45.92,
-   "rs": 96,
-   "p1m": 7.6,
-   "p3m": 33.9,
-   "p6m": 83.7,
-   "py": 52.2,
+   "symbol": "VRDN",
+   "price": 37.91,
+   "rs": 99,
+   "p1m": 68.5,
+   "p3m": 56.5,
+   "p6m": 118.4,
+   "py": 18.2,
+   "sector": "Health Technology",
+   "inTopSector": false,
+   "tags": [
+    "B"
+   ],
+   "offHigh": 0.9,
+   "rvol": 1.6
+  },
+  {
+   "symbol": "SN",
+   "price": 232.5,
+   "rs": 99,
+   "p1m": 18.1,
+   "p3m": 23.7,
+   "p6m": 95.9,
+   "py": 163,
+   "sector": "Consumer Durables",
+   "inTopSector": true,
+   "tags": [
+    "A"
+   ],
+   "offHigh": 1.2,
+   "rvol": 1.09
+  },
+  {
+   "symbol": "PRCH",
+   "price": 21.49,
+   "rs": 99,
+   "p1m": 20.3,
+   "p3m": 23,
+   "p6m": 106,
+   "py": 127.2,
+   "sector": "Finance",
+   "inTopSector": false,
+   "tags": [
+    "A"
+   ],
+   "offHigh": 5.2,
+   "rvol": 0.68
+  },
+  {
+   "symbol": "TBBB",
+   "price": 65.58,
+   "rs": 99,
+   "p1m": 12.6,
+   "p3m": 31,
+   "p6m": 94.4,
+   "py": 104.6,
+   "sector": "Retail Trade",
+   "inTopSector": false,
+   "tags": [
+    "A"
+   ],
+   "offHigh": 6.7,
+   "rvol": 0.55
+  },
+  {
+   "symbol": "TRAX",
+   "price": 50.94,
+   "rs": 99,
+   "p1m": 18.2,
+   "p3m": 15.5,
+   "p6m": 221.8,
+   "py": 154.7,
+   "sector": "Health Technology",
+   "inTopSector": false,
+   "tags": [
+    "B"
+   ],
+   "offHigh": 7,
+   "rvol": 1.8
+  },
+  {
+   "symbol": "SYRE",
+   "price": 102.36,
+   "rs": 99,
+   "p1m": 11.8,
+   "p3m": 9.3,
+   "p6m": 41.9,
+   "py": 282.9,
+   "sector": "Health Technology",
+   "inTopSector": false,
+   "tags": [
+    "A"
+   ],
+   "offHigh": 7.5,
+   "rvol": 0.83
+  },
+  {
+   "symbol": "OKTA",
+   "price": 201.77,
+   "rs": 99,
+   "p1m": -6.2,
+   "p3m": 21.4,
+   "p6m": 87.6,
+   "py": 155.3,
    "sector": "Technology Services",
    "inTopSector": false,
    "tags": [
     "A"
    ],
-   "offHigh": 1.8,
-   "rvol": 1.13
+   "offHigh": 14.1,
+   "rvol": 0.83
   },
   {
-   "symbol": "AMRX",
-   "price": 21.65,
-   "rs": 96,
-   "p1m": 5.9,
-   "p3m": 20.3,
-   "p6m": 69.4,
-   "py": 80.6,
+   "symbol": "UPBD",
+   "price": 27.39,
+   "rs": 98,
+   "p1m": 58.9,
+   "p3m": 43,
+   "p6m": 40.9,
+   "py": 56.6,
+   "sector": "Finance",
+   "inTopSector": false,
+   "tags": [
+    "A",
+    "B"
+   ],
+   "offHigh": 0.3,
+   "rvol": 0.76
+  },
+  {
+   "symbol": "VCEL",
+   "price": 61.01,
+   "rs": 98,
+   "p1m": 42.8,
+   "p3m": 43.9,
+   "p6m": 78.1,
+   "py": 54.8,
+   "sector": "Health Technology",
+   "inTopSector": false,
+   "tags": [
+    "A",
+    "B"
+   ],
+   "offHigh": 0.4,
+   "rvol": 0.7
+  },
+  {
+   "symbol": "AXGN",
+   "price": 59.34,
+   "rs": 98,
+   "p1m": 55.9,
+   "p3m": 14.4,
+   "p6m": 47.1,
+   "py": 108.9,
+   "sector": "Health Technology",
+   "inTopSector": false,
+   "tags": [
+    "A",
+    "B"
+   ],
+   "offHigh": 1.3,
+   "rvol": 0.78
+  },
+  {
+   "symbol": "AZTA",
+   "price": 46.78,
+   "rs": 98,
+   "p1m": 27.8,
+   "p3m": 39.4,
+   "p6m": 108.5,
+   "py": 26.7,
+   "sector": "Health Services",
+   "inTopSector": false,
+   "tags": [
+    "A",
+    "B"
+   ],
+   "offHigh": 6.5,
+   "rvol": 0.55
+  },
+  {
+   "symbol": "ULCC",
+   "price": 7.88,
+   "rs": 98,
+   "p1m": 59.5,
+   "p3m": 32.4,
+   "p6m": 36.1,
+   "py": 102.1,
+   "sector": "Transportation",
+   "inTopSector": false,
+   "tags": [
+    "A",
+    "B"
+   ],
+   "offHigh": 9.7,
+   "rvol": 1.01
+  },
+  {
+   "symbol": "SG",
+   "price": 11.49,
+   "rs": 98,
+   "p1m": 16.6,
+   "p3m": 67.2,
+   "p6m": 12.8,
+   "py": 75.7,
+   "sector": "Consumer Services",
+   "inTopSector": false,
+   "tags": [
+    "A",
+    "B"
+   ],
+   "offHigh": 17.3,
+   "rvol": 1.25
+  },
+  {
+   "symbol": "ASO",
+   "price": 73.33,
+   "rs": 98,
+   "p1m": 22,
+   "p3m": 70,
+   "p6m": 35.1,
+   "py": 63.7,
+   "sector": "Retail Trade",
+   "inTopSector": false,
+   "tags": [
+    "B"
+   ],
+   "offHigh": 0.7,
+   "rvol": 0.81
+  },
+  {
+   "symbol": "BRZE",
+   "price": 46.41,
+   "rs": 98,
+   "p1m": 1.2,
+   "p3m": 45.5,
+   "p6m": 93.6,
+   "py": 68.6,
+   "sector": "Technology Services",
+   "inTopSector": false,
+   "tags": [
+    "A"
+   ],
+   "offHigh": 0.9,
+   "rvol": 1.06
+  },
+  {
+   "symbol": "APPN",
+   "price": 55.08,
+   "rs": 98,
+   "p1m": 5.1,
+   "p3m": 41.9,
+   "p6m": 147,
+   "py": 32.7,
+   "sector": "Technology Services",
+   "inTopSector": false,
+   "tags": [
+    "A"
+   ],
+   "offHigh": 3.8,
+   "rvol": 0.72
+  },
+  {
+   "symbol": "TGTX",
+   "price": 68.37,
+   "rs": 98,
+   "p1m": 24.7,
+   "p3m": 24.3,
+   "p6m": 76.2,
+   "py": 110.4,
    "sector": "Health Technology",
    "inTopSector": false,
    "tags": [
     "A"
    ],
    "offHigh": 4,
-   "rvol": 1.09
+   "rvol": 1.33
   },
   {
-   "symbol": "BILL",
-   "price": 61.45,
-   "rs": 96,
-   "p1m": 22.5,
-   "p3m": 32.2,
-   "p6m": 75.6,
-   "py": 27.5,
+   "symbol": "LFST",
+   "price": 14.48,
+   "rs": 98,
+   "p1m": 12,
+   "p3m": 18.8,
+   "p6m": 85.4,
+   "py": 122.4,
+   "sector": "Health Services",
+   "inTopSector": false,
+   "tags": [
+    "A"
+   ],
+   "offHigh": 7.5,
+   "rvol": 0.93
+  },
+  {
+   "symbol": "AMPL",
+   "price": 17.1,
+   "rs": 98,
+   "p1m": -1.8,
+   "p3m": 29.9,
+   "p6m": 143.4,
+   "py": 71.7,
    "sector": "Technology Services",
    "inTopSector": false,
    "tags": [
     "A"
    ],
-   "offHigh": 7.7,
-   "rvol": 1.57
+   "offHigh": 9.3,
+   "rvol": 0.58
   },
   {
-   "symbol": "CAKE",
-   "price": 109.42,
-   "rs": 96,
-   "p1m": -2.2,
-   "p3m": -4.4,
-   "p6m": 68.8,
-   "py": 140.6,
-   "sector": "Consumer Services",
-   "inTopSector": false,
+   "symbol": "FIGS",
+   "price": 20.88,
+   "rs": 98,
+   "p1m": 3.2,
+   "p3m": 36.1,
+   "p6m": 70.9,
+   "py": 115.7,
+   "sector": "Consumer Non-Durables",
+   "inTopSector": true,
    "tags": [
     "A"
    ],
-   "offHigh": 9.4,
-   "rvol": 0.65
+   "offHigh": 12.1,
+   "rvol": 0.92
   },
   {
-   "symbol": "ADPT",
-   "price": 29.08,
-   "rs": 96,
-   "p1m": 20,
-   "p3m": 11.8,
-   "p6m": 109.7,
-   "py": 53.5,
-   "sector": "Health Technology",
-   "inTopSector": false,
-   "tags": [
-    "A"
-   ],
-   "offHigh": 9.7,
-   "rvol": 0.82
-  },
-  {
-   "symbol": "CERT",
-   "price": 10.92,
-   "rs": 96,
-   "p1m": 9.7,
-   "p3m": 34.5,
-   "p6m": 104.5,
-   "py": 25.7,
+   "symbol": "HNGE",
+   "price": 109.06,
+   "rs": 98,
+   "p1m": -2.4,
+   "p3m": 19,
+   "p6m": 97.6,
+   "py": 133.1,
    "sector": "Technology Services",
    "inTopSector": false,
    "tags": [
     "A"
    ],
-   "offHigh": 13.4,
-   "rvol": 0.77
+   "offHigh": 13.7,
+   "rvol": 0.69
   },
   {
-   "symbol": "RPD",
-   "price": 15.6,
-   "rs": 96,
-   "p1m": 6.1,
-   "p3m": 35.8,
-   "p6m": 118.8,
-   "py": 12.6,
-   "sector": "Technology Services",
+   "symbol": "GRDN",
+   "price": 52.11,
+   "rs": 97,
+   "p1m": 31.1,
+   "p3m": 39.3,
+   "p6m": 35.3,
+   "py": 77.8,
+   "sector": "Retail Trade",
    "inTopSector": false,
    "tags": [
-    "A"
-   ],
-   "offHigh": 15.9,
-   "rvol": 1.01
-  },
-  {
-   "symbol": "INSM",
-   "price": 170.15,
-   "rs": 96,
-   "p1m": 80.8,
-   "p3m": 38.5,
-   "p6m": 59.2,
-   "py": -15.9,
-   "sector": "Health Technology",
-   "inTopSector": false,
-   "tags": [
+    "A",
     "B"
    ],
-   "offHigh": 20,
-   "rvol": 19.44
+   "offHigh": 1.3,
+   "rvol": 2.45
   },
   {
-   "symbol": "AVPT",
-   "price": 17.07,
-   "rs": 95,
-   "p1m": 6.4,
-   "p3m": 32.8,
-   "p6m": 69.5,
-   "py": 33.4,
+   "symbol": "KSS",
+   "price": 26.7,
+   "rs": 97,
+   "p1m": 9.4,
+   "p3m": 51.7,
+   "p6m": 76.1,
+   "py": 37,
+   "sector": "Retail Trade",
+   "inTopSector": false,
+   "tags": [
+    "A",
+    "B"
+   ],
+   "offHigh": 2.1,
+   "rvol": 1.89
+  },
+  {
+   "symbol": "CROX",
+   "price": 159.93,
+   "rs": 97,
+   "p1m": 33.1,
+   "p3m": 29.9,
+   "p6m": 35.4,
+   "py": 97.4,
+   "sector": "Consumer Non-Durables",
+   "inTopSector": true,
+   "tags": [
+    "A",
+    "B"
+   ],
+   "offHigh": 2.6,
+   "rvol": 0.63
+  },
+  {
+   "symbol": "BOX",
+   "price": 46.37,
+   "rs": 97,
+   "p1m": 7.7,
+   "p3m": 37.2,
+   "p6m": 83.6,
+   "py": 54.1,
    "sector": "Technology Services",
+   "inTopSector": false,
+   "tags": [
+    "A"
+   ],
+   "offHigh": 0.9,
+   "rvol": 1.48
+  },
+  {
+   "symbol": "RXO",
+   "price": 29.3,
+   "rs": 97,
+   "p1m": 1.3,
+   "p3m": 31.2,
+   "p6m": 13.4,
+   "py": 139.4,
+   "sector": "Technology Services",
+   "inTopSector": false,
+   "tags": [
+    "A"
+   ],
+   "offHigh": 2,
+   "rvol": 1.42
+  },
+  {
+   "symbol": "CON",
+   "price": 43.06,
+   "rs": 97,
+   "p1m": 9.5,
+   "p3m": 24.4,
+   "p6m": 70.8,
+   "py": 109.9,
+   "sector": "Health Services",
    "inTopSector": false,
    "tags": [
     "A"
    ],
    "offHigh": 2.6,
-   "rvol": 0.92
+   "rvol": 1.21
   },
   {
-   "symbol": "GME",
-   "price": 27.48,
-   "rs": 95,
-   "p1m": 8.4,
-   "p3m": 52.5,
-   "p6m": 26.9,
-   "py": 36.1,
-   "sector": "Retail Trade",
-   "inTopSector": true,
+   "symbol": "CAKE",
+   "price": 109.66,
+   "rs": 97,
+   "p1m": 1.1,
+   "p3m": -3.8,
+   "p6m": 71,
+   "py": 143.4,
+   "sector": "Consumer Services",
+   "inTopSector": false,
    "tags": [
-    "B"
+    "A"
    ],
-   "offHigh": 2.9,
+   "offHigh": 9.2,
    "rvol": 0.77
   },
   {
-   "symbol": "EWTX",
-   "price": 46.73,
-   "rs": 95,
-   "p1m": 17.1,
-   "p3m": 5.7,
-   "p6m": 39.6,
-   "py": 106.1,
+   "symbol": "ACHC",
+   "price": 35.37,
+   "rs": 97,
+   "p1m": 11.5,
+   "p3m": 17.4,
+   "p6m": 50.9,
+   "py": 127.5,
+   "sector": "Health Services",
+   "inTopSector": false,
+   "tags": [
+    "A"
+   ],
+   "offHigh": 10.9,
+   "rvol": 1.01
+  },
+  {
+   "symbol": "MGNI",
+   "price": 26.44,
+   "rs": 97,
+   "p1m": 16.6,
+   "p3m": 13.1,
+   "p6m": 83.2,
+   "py": 79.4,
+   "sector": "Technology Services",
+   "inTopSector": false,
+   "tags": [
+    "A"
+   ],
+   "offHigh": 11.2,
+   "rvol": 0.81
+  },
+  {
+   "symbol": "ARHS",
+   "price": 13.04,
+   "rs": 97,
+   "p1m": 11.7,
+   "p3m": 47.3,
+   "p6m": 90.9,
+   "py": 37.7,
+   "sector": "Consumer Durables",
+   "inTopSector": true,
+   "tags": [
+    "A"
+   ],
+   "offHigh": 14,
+   "rvol": 0.71
+  },
+  {
+   "symbol": "COLM",
+   "price": 80.75,
+   "rs": 96,
+   "p1m": 31.6,
+   "p3m": 40,
+   "p6m": 19.5,
+   "py": 53.1,
+   "sector": "Consumer Non-Durables",
+   "inTopSector": true,
+   "tags": [
+    "A",
+    "B"
+   ],
+   "offHigh": 0.2,
+   "rvol": 0.85
+  },
+  {
+   "symbol": "BHC",
+   "price": 8.52,
+   "rs": 96,
+   "p1m": 30.5,
+   "p3m": 31.7,
+   "p6m": 58.1,
+   "py": 39,
+   "sector": "Health Technology",
+   "inTopSector": false,
+   "tags": [
+    "A",
+    "B"
+   ],
+   "offHigh": 5.8,
+   "rvol": 1.12
+  },
+  {
+   "symbol": "CGON",
+   "price": 84.71,
+   "rs": 96,
+   "p1m": 37.2,
+   "p3m": 8.6,
+   "p6m": 38.6,
+   "py": 94.6,
+   "sector": "Health Technology",
+   "inTopSector": false,
+   "tags": [
+    "A",
+    "B"
+   ],
+   "offHigh": 9.8,
+   "rvol": 0.47
+  },
+  {
+   "symbol": "IPAR",
+   "price": 142.65,
+   "rs": 96,
+   "p1m": 23.9,
+   "p3m": 23.4,
+   "p6m": 48.2,
+   "py": 77.5,
+   "sector": "Consumer Non-Durables",
+   "inTopSector": true,
+   "tags": [
+    "A"
+   ],
+   "offHigh": 0.4,
+   "rvol": 1.11
+  },
+  {
+   "symbol": "FCN",
+   "price": 212.29,
+   "rs": 96,
+   "p1m": 35.5,
+   "p3m": 40.1,
+   "p6m": 37.9,
+   "py": 30.2,
+   "sector": "Commercial Services",
+   "inTopSector": false,
+   "tags": [
+    "B"
+   ],
+   "offHigh": 0.7,
+   "rvol": 0.71
+  },
+  {
+   "symbol": "FLYW",
+   "price": 23.26,
+   "rs": 96,
+   "p1m": 20,
+   "p3m": 23.9,
+   "p6m": 47.9,
+   "py": 74,
+   "sector": "Commercial Services",
+   "inTopSector": false,
+   "tags": [
+    "A"
+   ],
+   "offHigh": 1.2,
+   "rvol": 1.56
+  },
+  {
+   "symbol": "ROIV",
+   "price": 42.2,
+   "rs": 96,
+   "p1m": 15.1,
+   "p3m": 14.5,
+   "p6m": 39.3,
+   "py": 107.3,
    "sector": "Health Technology",
    "inTopSector": false,
    "tags": [
     "A"
    ],
-   "offHigh": 4.2,
-   "rvol": 1.15
-  },
-  {
-   "symbol": "ENR",
-   "price": 27.98,
-   "rs": 95,
-   "p1m": 22.5,
-   "p3m": 26.7,
-   "p6m": 50.3,
-   "py": 53.9,
-   "sector": "Consumer Non-Durables",
-   "inTopSector": false,
-   "tags": [
-    "A"
-   ],
-   "offHigh": 4.4,
-   "rvol": 0.85
-  },
-  {
-   "symbol": "RGR",
-   "price": 51.21,
-   "rs": 95,
-   "p1m": 7.9,
-   "p3m": 33.2,
-   "p6m": 29.4,
-   "py": 74.5,
-   "sector": "Consumer Durables",
-   "inTopSector": false,
-   "tags": [
-    "A"
-   ],
-   "offHigh": 5.2,
-   "rvol": 0.49
+   "offHigh": 1.2,
+   "rvol": 0.66
   },
   {
    "symbol": "VFC",
-   "price": 20.91,
-   "rs": 95,
-   "p1m": 21.9,
-   "p3m": 50.8,
-   "p6m": 21.1,
-   "py": 29.4,
+   "price": 21.47,
+   "rs": 96,
+   "p1m": 23.7,
+   "p3m": 54.2,
+   "p6m": 20.1,
+   "py": 29.6,
    "sector": "Consumer Non-Durables",
+   "inTopSector": true,
+   "tags": [
+    "B"
+   ],
+   "offHigh": 3.6,
+   "rvol": 0.92
+  },
+  {
+   "symbol": "ENR",
+   "price": 27.92,
+   "rs": 96,
+   "p1m": 23.1,
+   "p3m": 29.6,
+   "p6m": 51.3,
+   "py": 58.4,
+   "sector": "Consumer Non-Durables",
+   "inTopSector": true,
+   "tags": [
+    "A"
+   ],
+   "offHigh": 4.6,
+   "rvol": 1.14
+  },
+  {
+   "symbol": "AMRX",
+   "price": 21.48,
+   "rs": 96,
+   "p1m": 4.1,
+   "p3m": 20.5,
+   "p6m": 65.6,
+   "py": 75.9,
+   "sector": "Health Technology",
+   "inTopSector": false,
+   "tags": [
+    "A"
+   ],
+   "offHigh": 4.8,
+   "rvol": 0.85
+  },
+  {
+   "symbol": "VNT",
+   "price": 45.51,
+   "rs": 96,
+   "p1m": 31.2,
+   "p3m": 36.3,
+   "p6m": 58,
+   "py": 28.3,
+   "sector": "Transportation",
    "inTopSector": false,
    "tags": [
     "B"
    ],
-   "offHigh": 6.1,
+   "offHigh": 5.6,
+   "rvol": 1.23
+  },
+  {
+   "symbol": "GCT",
+   "price": 61.71,
+   "rs": 96,
+   "p1m": 5,
+   "p3m": 19.2,
+   "p6m": 66.4,
+   "py": 77.5,
+   "sector": "Distribution Services",
+   "inTopSector": false,
+   "tags": [
+    "A"
+   ],
+   "offHigh": 8.4,
    "rvol": 0.88
   },
   {
-   "symbol": "CHYM",
-   "price": 32.84,
+   "symbol": "CRL",
+   "price": 332.08,
+   "rs": 96,
+   "p1m": -4.5,
+   "p3m": 11.8,
+   "p6m": 83.1,
+   "py": 94.8,
+   "sector": "Commercial Services",
+   "inTopSector": false,
+   "tags": [
+    "A"
+   ],
+   "offHigh": 12.5,
+   "rvol": 0.75
+  },
+  {
+   "symbol": "TENB",
+   "price": 45.7,
+   "rs": 96,
+   "p1m": 1.1,
+   "p3m": 25.7,
+   "p6m": 73.9,
+   "py": 77.5,
+   "sector": "Technology Services",
+   "inTopSector": false,
+   "tags": [
+    "A"
+   ],
+   "offHigh": 14.1,
+   "rvol": 0.74
+  },
+  {
+   "symbol": "INSM",
+   "price": 170.31,
+   "rs": 96,
+   "p1m": 82.3,
+   "p3m": 36.6,
+   "p6m": 57.9,
+   "py": -17.7,
+   "sector": "Health Technology",
+   "inTopSector": false,
+   "tags": [
+    "B"
+   ],
+   "offHigh": 19.9,
+   "rvol": 2.7
+  },
+  {
+   "symbol": "ADMA",
+   "price": 14.23,
+   "rs": 96,
+   "p1m": 32.6,
+   "p3m": 48.8,
+   "p6m": 77.9,
+   "py": -22.4,
+   "sector": "Health Technology",
+   "inTopSector": false,
+   "tags": [
+    "B"
+   ],
+   "offHigh": 30.4,
+   "rvol": 0.95
+  },
+  {
+   "symbol": "BRBR",
+   "price": 15.66,
+   "rs": 96,
+   "p1m": 65,
+   "p3m": 47.7,
+   "p6m": 80.6,
+   "py": -48.2,
+   "sector": "Consumer Non-Durables",
+   "inTopSector": true,
+   "tags": [
+    "B"
+   ],
+   "offHigh": 53.3,
+   "rvol": 0.94
+  },
+  {
+   "symbol": "ADT",
+   "price": 9.89,
    "rs": 95,
-   "p1m": 10.6,
-   "p3m": -0.5,
-   "p6m": 90.5,
-   "py": 77.8,
+   "p1m": 42.7,
+   "p3m": 33.6,
+   "p6m": 45.4,
+   "py": 25.3,
+   "sector": "Commercial Services",
+   "inTopSector": false,
+   "tags": [
+    "A",
+    "B"
+   ],
+   "offHigh": 1.1,
+   "rvol": 1
+  },
+  {
+   "symbol": "PGNY",
+   "price": 36.27,
+   "rs": 95,
+   "p1m": 25.2,
+   "p3m": 38.1,
+   "p6m": 41.2,
+   "py": 36.3,
+   "sector": "Commercial Services",
+   "inTopSector": false,
+   "tags": [
+    "A",
+    "B"
+   ],
+   "offHigh": 2.5,
+   "rvol": 1.35
+  },
+  {
+   "symbol": "HZO",
+   "price": 52.94,
+   "rs": 95,
+   "p1m": 0.9,
+   "p3m": 1.5,
+   "p6m": 52.8,
+   "py": 124.4,
+   "sector": "Retail Trade",
+   "inTopSector": false,
+   "tags": [
+    "A"
+   ],
+   "offHigh": 0,
+   "rvol": 1.16
+  },
+  {
+   "symbol": "CRAI",
+   "price": 229.1,
+   "rs": 95,
+   "p1m": 14.6,
+   "p3m": 35.1,
+   "p6m": 54.6,
+   "py": 32.2,
+   "sector": "Commercial Services",
+   "inTopSector": false,
+   "tags": [
+    "A"
+   ],
+   "offHigh": 0.6,
+   "rvol": 0.93
+  },
+  {
+   "symbol": "AVPT",
+   "price": 17.3,
+   "rs": 95,
+   "p1m": 4.3,
+   "p3m": 28.8,
+   "p6m": 68.1,
+   "py": 37.2,
+   "sector": "Technology Services",
+   "inTopSector": false,
+   "tags": [
+    "A"
+   ],
+   "offHigh": 1.3,
+   "rvol": 1.17
+  },
+  {
+   "symbol": "EWTX",
+   "price": 47.56,
+   "rs": 95,
+   "p1m": 20.4,
+   "p3m": 7.7,
+   "p6m": 43.3,
+   "py": 102.6,
+   "sector": "Health Technology",
+   "inTopSector": false,
+   "tags": [
+    "A"
+   ],
+   "offHigh": 2.5,
+   "rvol": 0.98
+  },
+  {
+   "symbol": "WWW",
+   "price": 25.34,
+   "rs": 95,
+   "p1m": 23.4,
+   "p3m": 26.3,
+   "p6m": 41.7,
+   "py": 62.7,
+   "sector": "Consumer Non-Durables",
+   "inTopSector": true,
+   "tags": [
+    "A"
+   ],
+   "offHigh": 3.5,
+   "rvol": 0.59
+  },
+  {
+   "symbol": "BILL",
+   "price": 61.55,
+   "rs": 95,
+   "p1m": 22.4,
+   "p3m": 26.1,
+   "p6m": 75.1,
+   "py": 24.3,
    "sector": "Technology Services",
    "inTopSector": false,
    "tags": [
     "A"
    ],
    "offHigh": 7.6,
-   "rvol": 0.47
+   "rvol": 0.86
   },
   {
-   "symbol": "VNT",
-   "price": 44.41,
+   "symbol": "FTDR",
+   "price": 93.87,
    "rs": 95,
-   "p1m": 29.6,
-   "p3m": 33,
-   "p6m": 53.2,
-   "py": 27.8,
-   "sector": "Transportation",
-   "inTopSector": false,
+   "p1m": 10.7,
+   "p3m": 13.7,
+   "p6m": 51.9,
+   "py": 78.3,
+   "sector": "Consumer Durables",
+   "inTopSector": true,
    "tags": [
-    "B"
+    "A"
    ],
-   "offHigh": 7.9,
-   "rvol": 1
+   "offHigh": 8.9,
+   "rvol": 0.58
   },
   {
-   "symbol": "DNTH",
-   "price": 101.14,
+   "symbol": "RPD",
+   "price": 15.93,
    "rs": 95,
-   "p1m": 33,
-   "p3m": -9.2,
-   "p6m": 16.6,
-   "py": 140.8,
-   "sector": "Health Technology",
-   "inTopSector": false,
-   "tags": [
-    "B"
-   ],
-   "offHigh": 14.2,
-   "rvol": 1.35
-  },
-  {
-   "symbol": "FROG",
-   "price": 104.57,
-   "rs": 95,
-   "p1m": 11.7,
-   "p3m": 18.7,
-   "p6m": 42.3,
-   "py": 79,
+   "p1m": 7.1,
+   "p3m": 23.5,
+   "p6m": 112.4,
+   "py": 7.2,
    "sector": "Technology Services",
    "inTopSector": false,
    "tags": [
     "A"
    ],
    "offHigh": 14.2,
-   "rvol": 0.94
+   "rvol": 0.69
   },
   {
-   "symbol": "RLAY",
-   "price": 18.12,
+   "symbol": "CERT",
+   "price": 10.79,
    "rs": 95,
-   "p1m": 0.5,
-   "p3m": -9.2,
-   "p6m": 25,
-   "py": 164.1,
+   "p1m": 5.8,
+   "p3m": 31.1,
+   "p6m": 88.6,
+   "py": 22.5,
+   "sector": "Technology Services",
+   "inTopSector": false,
+   "tags": [
+    "A"
+   ],
+   "offHigh": 14.4,
+   "rvol": 0.77
+  },
+  {
+   "symbol": "MBX",
+   "price": 58.42,
+   "rs": 95,
+   "p1m": 19.4,
+   "p3m": -12.5,
+   "p6m": 83.5,
+   "py": 91.7,
    "sector": "Health Technology",
    "inTopSector": false,
    "tags": [
     "A"
    ],
-   "offHigh": 14.8,
-   "rvol": 1.42
+   "offHigh": 19.6,
+   "rvol": 1.29
   },
   {
-   "symbol": "ADMA",
-   "price": 13.9,
-   "rs": 95,
-   "p1m": 27.8,
-   "p3m": 43.3,
-   "p6m": 75.5,
-   "py": -19.3,
+   "symbol": "TFX",
+   "price": 168.28,
+   "rs": 94,
+   "p1m": 25.2,
+   "p3m": 23.2,
+   "p6m": 30.3,
+   "py": 50,
    "sector": "Health Technology",
    "inTopSector": false,
    "tags": [
+    "A",
     "B"
    ],
-   "offHigh": 32.1,
-   "rvol": 0.94
-  },
-  {
-   "symbol": "TGT",
-   "price": 176.06,
-   "rs": 94,
-   "p1m": 12.2,
-   "p3m": 7.6,
-   "p6m": 35.7,
-   "py": 100.9,
-   "sector": "Retail Trade",
-   "inTopSector": true,
-   "tags": [
-    "A"
-   ],
-   "offHigh": 0.4,
-   "rvol": 0.94
-  },
-  {
-   "symbol": "RPRX",
-   "price": 71.31,
-   "rs": 94,
-   "p1m": 12.3,
-   "p3m": 14.9,
-   "p6m": 32.8,
-   "py": 83.6,
-   "sector": "Health Technology",
-   "inTopSector": false,
-   "tags": [
-    "A"
-   ],
-   "offHigh": 0.7,
-   "rvol": 1.3
+   "offHigh": 0.1,
+   "rvol": 0.77
   },
   {
    "symbol": "PLMR",
-   "price": 167.67,
+   "price": 167.74,
    "rs": 94,
-   "p1m": 15.9,
-   "p3m": 27.2,
-   "p6m": 53.2,
-   "py": 37,
+   "p1m": 17.6,
+   "p3m": 29,
+   "p6m": 53,
+   "py": 35.9,
    "sector": "Finance",
    "inTopSector": false,
    "tags": [
     "A"
    ],
-   "offHigh": 1,
-   "rvol": 1.26
-  },
-  {
-   "symbol": "FLYW",
-   "price": 22.32,
-   "rs": 94,
-   "p1m": 16.7,
-   "p3m": 16.3,
-   "p6m": 42.2,
-   "py": 67.4,
-   "sector": "Commercial Services",
-   "inTopSector": true,
-   "tags": [
-    "A"
-   ],
-   "offHigh": 1.2,
-   "rvol": 1.1
+   "offHigh": 0.9,
+   "rvol": 0.94
   },
   {
    "symbol": "LTH",
-   "price": 47.93,
+   "price": 47.81,
    "rs": 94,
-   "p1m": 15.6,
-   "p3m": 6.5,
-   "p6m": 45.8,
-   "py": 85.8,
+   "p1m": 12.3,
+   "p3m": 8.3,
+   "p6m": 43.2,
+   "py": 82.6,
    "sector": "Consumer Services",
    "inTopSector": false,
    "tags": [
     "A"
    ],
-   "offHigh": 1.4,
-   "rvol": 0.94
+   "offHigh": 1.6,
+   "rvol": 0.71
   },
   {
-   "symbol": "FCN",
-   "price": 207.05,
+   "symbol": "TGT",
+   "price": 172.22,
    "rs": 94,
-   "p1m": 32.4,
-   "p3m": 35.1,
-   "p6m": 34.5,
-   "py": 27.3,
-   "sector": "Commercial Services",
-   "inTopSector": true,
+   "p1m": 13.2,
+   "p3m": 6.2,
+   "p6m": 35.2,
+   "py": 102.6,
+   "sector": "Retail Trade",
+   "inTopSector": false,
    "tags": [
-    "B"
+    "A"
    ],
-   "offHigh": 1.8,
+   "offHigh": 2.6,
+   "rvol": 0.95
+  },
+  {
+   "symbol": "DLTR",
+   "price": 152.21,
+   "rs": 94,
+   "p1m": 21.1,
+   "p3m": 26.8,
+   "p6m": 37.1,
+   "py": 50.7,
+   "sector": "Retail Trade",
+   "inTopSector": false,
+   "tags": [
+    "A"
+   ],
+   "offHigh": 3,
+   "rvol": 1.33
+  },
+  {
+   "symbol": "SAIC",
+   "price": 148.4,
+   "rs": 94,
+   "p1m": 1.4,
+   "p3m": 17.1,
+   "p6m": 42.7,
+   "py": 73.7,
+   "sector": "Technology Services",
+   "inTopSector": false,
+   "tags": [
+    "A"
+   ],
+   "offHigh": 4.3,
    "rvol": 0.89
   },
   {
-   "symbol": "VRNS",
-   "price": 49.24,
-   "rs": 94,
-   "p1m": 0.9,
-   "p3m": 22.1,
-   "p6m": 60.6,
-   "py": 57,
-   "sector": "Technology Services",
-   "inTopSector": false,
-   "tags": [
-    "A"
-   ],
-   "offHigh": 2.1,
-   "rvol": 0.64
-  },
-  {
    "symbol": "MANH",
-   "price": 249.66,
+   "price": 251.97,
    "rs": 94,
-   "p1m": 3.6,
-   "p3m": 19,
-   "p6m": 79.4,
-   "py": 46.4,
+   "p1m": 6,
+   "p3m": 15.4,
+   "p6m": 75.4,
+   "py": 46.9,
    "sector": "Technology Services",
    "inTopSector": false,
    "tags": [
     "A"
    ],
-   "offHigh": 5.2,
-   "rvol": 1.54
+   "offHigh": 4.4,
+   "rvol": 1.85
   },
   {
    "symbol": "PEB",
-   "price": 21.14,
+   "price": 21.27,
    "rs": 94,
-   "p1m": 2.7,
-   "p3m": 14.9,
-   "p6m": 37.7,
-   "py": 90.1,
+   "p1m": 3.9,
+   "p3m": 18.4,
+   "p6m": 35.8,
+   "py": 89.2,
    "sector": "Finance",
    "inTopSector": false,
    "tags": [
     "A"
    ],
-   "offHigh": 5.6,
+   "offHigh": 5,
    "rvol": 1.03
   },
   {
-   "symbol": "INTA",
-   "price": 45.03,
+   "symbol": "VTRS",
+   "price": 19.83,
    "rs": 94,
-   "p1m": -4.1,
-   "p3m": 13.4,
-   "p6m": 132.5,
-   "py": 9,
+   "p1m": 9,
+   "p3m": 18.4,
+   "p6m": 23.5,
+   "py": 87.1,
+   "sector": "Health Technology",
+   "inTopSector": false,
+   "tags": [
+    "A"
+   ],
+   "offHigh": 6.5,
+   "rvol": 0.68
+  },
+  {
+   "symbol": "CHYM",
+   "price": 33.03,
+   "rs": 94,
+   "p1m": 11.9,
+   "p3m": -1.1,
+   "p6m": 80.1,
+   "py": 69,
    "sector": "Technology Services",
    "inTopSector": false,
    "tags": [
     "A"
    ],
-   "offHigh": 6.6,
-   "rvol": 0.85
+   "offHigh": 7.1,
+   "rvol": 0.68
   },
   {
    "symbol": "HAE",
-   "price": 120.4,
+   "price": 120.44,
    "rs": 94,
-   "p1m": 4.2,
-   "p3m": 11.7,
-   "p6m": 79.6,
-   "py": 54.1,
+   "p1m": 1.5,
+   "p3m": 13.9,
+   "p6m": 79.8,
+   "py": 50.6,
    "sector": "Health Technology",
    "inTopSector": false,
    "tags": [
     "A"
    ],
    "offHigh": 8.8,
-   "rvol": 1.03
+   "rvol": 1.37
   },
   {
-   "symbol": "FTDR",
-   "price": 93.18,
+   "symbol": "ADPT",
+   "price": 28.38,
    "rs": 94,
-   "p1m": 8.9,
-   "p3m": 11.6,
-   "p6m": 51.6,
-   "py": 81.6,
-   "sector": "Consumer Durables",
+   "p1m": 10.6,
+   "p3m": 8.2,
+   "p6m": 86.8,
+   "py": 39.4,
+   "sector": "Health Technology",
    "inTopSector": false,
    "tags": [
     "A"
    ],
-   "offHigh": 9.6,
-   "rvol": 0.64
+   "offHigh": 11.9,
+   "rvol": 0.96
   },
   {
-   "symbol": "ATEN",
-   "price": 30.94,
+   "symbol": "XMTR",
+   "price": 107.25,
    "rs": 94,
-   "p1m": 26.5,
-   "p3m": 24.2,
-   "p6m": 5.9,
-   "py": 83.5,
+   "p1m": 19.2,
+   "p3m": 20,
+   "p6m": 12.6,
+   "py": 93.7,
    "sector": "Technology Services",
    "inTopSector": false,
    "tags": [
-    "B"
+    "A"
    ],
-   "offHigh": 19.6,
-   "rvol": 0.63
+   "offHigh": 15.9,
+   "rvol": 1.11
   },
   {
-   "symbol": "BRBR",
-   "price": 15.11,
+   "symbol": "NWL",
+   "price": 5.94,
    "rs": 94,
-   "p1m": 56.7,
-   "p3m": 41.9,
-   "p6m": 75.7,
-   "py": -48.8,
-   "sector": "Consumer Non-Durables",
+   "p1m": 10.4,
+   "p3m": 1,
+   "p6m": 70.7,
+   "py": 70.7,
+   "sector": "Producer Manufacturing",
    "inTopSector": false,
    "tags": [
-    "B"
+    "A"
    ],
-   "offHigh": 55,
-   "rvol": 0.75
-  },
-  {
-   "symbol": "COLM",
-   "price": 77.94,
-   "rs": 93,
-   "p1m": 26.3,
-   "p3m": 31.3,
-   "p6m": 18.3,
-   "py": 47.3,
-   "sector": "Consumer Non-Durables",
-   "inTopSector": false,
-   "tags": [
-    "A",
-    "B"
-   ],
-   "offHigh": 0.8,
-   "rvol": 1.03
+   "offHigh": 16.7,
+   "rvol": 1.28
   },
   {
    "symbol": "OSW",
-   "price": 31.43,
+   "price": 31.09,
    "rs": 93,
-   "p1m": 30.8,
-   "p3m": 19.3,
-   "p6m": 29.1,
-   "py": 54.5,
+   "p1m": 29.4,
+   "p3m": 18,
+   "p6m": 28,
+   "py": 55.8,
    "sector": "Consumer Services",
    "inTopSector": false,
    "tags": [
     "A",
     "B"
    ],
-   "offHigh": 4.9,
-   "rvol": 0.98
+   "offHigh": 5.9,
+   "rvol": 0.5
   },
   {
-   "symbol": "PVLA",
-   "price": 159.32,
+   "symbol": "BDX",
+   "price": 221.24,
    "rs": 93,
-   "p1m": 27.9,
-   "p3m": 7.5,
-   "p6m": 35.9,
-   "py": 66,
-   "sector": "Health Technology",
-   "inTopSector": false,
-   "tags": [
-    "A",
-    "B"
-   ],
-   "offHigh": 11.5,
-   "rvol": 0.81
-  },
-  {
-   "symbol": "TFX",
-   "price": 166.96,
-   "rs": 93,
-   "p1m": 22.4,
-   "p3m": 20,
-   "p6m": 29.7,
-   "py": 51.8,
+   "p1m": 11.7,
+   "p3m": 16.9,
+   "p6m": 49.2,
+   "py": 46.7,
    "sector": "Health Technology",
    "inTopSector": false,
    "tags": [
     "A"
    ],
-   "offHigh": 0.9,
-   "rvol": 1.26
+   "offHigh": 0.7,
+   "rvol": 0.65
   },
   {
-   "symbol": "CRAI",
-   "price": 224.42,
+   "symbol": "RPRX",
+   "price": 70.57,
    "rs": 93,
-   "p1m": 12.5,
-   "p3m": 31.1,
-   "p6m": 54.5,
-   "py": 26.8,
-   "sector": "Commercial Services",
+   "p1m": 10,
+   "p3m": 14.9,
+   "p6m": 29.5,
+   "py": 77.8,
+   "sector": "Health Technology",
+   "inTopSector": false,
+   "tags": [
+    "A"
+   ],
+   "offHigh": 1.7,
+   "rvol": 1.77
+  },
+  {
+   "symbol": "HOG",
+   "price": 34.2,
+   "rs": 93,
+   "p1m": 18.2,
+   "p3m": 21.1,
+   "p6m": 41.8,
+   "py": 43.3,
+   "sector": "Consumer Durables",
    "inTopSector": true,
    "tags": [
     "A"
    ],
-   "offHigh": 2.6,
-   "rvol": 0.93
+   "offHigh": 1.8,
+   "rvol": 0.72
   },
   {
-   "symbol": "HOG",
-   "price": 33.9,
+   "symbol": "VRNS",
+   "price": 49.42,
    "rs": 93,
-   "p1m": 18,
-   "p3m": 22.7,
-   "p6m": 41.5,
-   "py": 43.8,
-   "sector": "Consumer Durables",
+   "p1m": 0.9,
+   "p3m": 16,
+   "p6m": 53.7,
+   "py": 56.5,
+   "sector": "Technology Services",
    "inTopSector": false,
    "tags": [
     "A"
    ],
-   "offHigh": 2.7,
-   "rvol": 0.7
+   "offHigh": 1.8,
+   "rvol": 0.71
   },
   {
-   "symbol": "VTRS",
-   "price": 19.85,
+   "symbol": "APLE",
+   "price": 19.58,
    "rs": 93,
-   "p1m": 8.3,
+   "p1m": 8.2,
    "p3m": 18.7,
-   "p6m": 22.7,
-   "py": 90,
-   "sector": "Health Technology",
+   "p6m": 31.1,
+   "py": 64.7,
+   "sector": "Finance",
    "inTopSector": false,
    "tags": [
     "A"
    ],
-   "offHigh": 6.4,
-   "rvol": 0.8
+   "offHigh": 3.3,
+   "rvol": 1.38
+  },
+  {
+   "symbol": "INTA",
+   "price": 45.81,
+   "rs": 93,
+   "p1m": -3.8,
+   "p3m": 12.3,
+   "p6m": 115.6,
+   "py": 13.4,
+   "sector": "Technology Services",
+   "inTopSector": false,
+   "tags": [
+    "A"
+   ],
+   "offHigh": 4.9,
+   "rvol": 0.73
   },
   {
    "symbol": "DOCU",
-   "price": 80.04,
+   "price": 80.75,
    "rs": 93,
-   "p1m": -4.7,
-   "p3m": 35.9,
-   "p6m": 63,
-   "py": 20.9,
+   "p1m": -5.1,
+   "p3m": 32.1,
+   "p6m": 61,
+   "py": 22.5,
    "sector": "Technology Services",
    "inTopSector": false,
    "tags": [
     "A"
    ],
-   "offHigh": 6.8,
-   "rvol": 0.89
+   "offHigh": 6,
+   "rvol": 0.97
   },
   {
-   "symbol": "GCT",
-   "price": 58.96,
+   "symbol": "VERX",
+   "price": 18.95,
    "rs": 93,
-   "p1m": 0.9,
-   "p3m": 13.2,
-   "p6m": 54.5,
-   "py": 67.5,
-   "sector": "Distribution Services",
-   "inTopSector": false,
-   "tags": [
-    "A"
-   ],
-   "offHigh": 12.5,
-   "rvol": 1.25
-  },
-  {
-   "symbol": "ZS",
-   "price": 231.62,
-   "rs": 93,
-   "p1m": -3,
-   "p3m": 43.8,
-   "p6m": 83,
-   "py": -17,
+   "p1m": 23.8,
+   "p3m": 36.8,
+   "p6m": 47.5,
+   "py": -2.3,
    "sector": "Technology Services",
    "inTopSector": false,
    "tags": [
     "A"
    ],
-   "offHigh": 14.2,
-   "rvol": 1.68
+   "offHigh": 9,
+   "rvol": 0.84
   }
  ]
 }
