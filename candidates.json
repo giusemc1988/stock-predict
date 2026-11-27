@@ -1,0 +1,39 @@
+{
+ "source": "tradingview-screener",
+ "generatedAt": 1795816353150,
+ "matched": 4,
+ "rows": [
+  {
+   "symbol": "XP",
+   "price": 16.99,
+   "marketCap": 10057772599,
+   "rvol": 2.59,
+   "changePct": 18.07,
+   "exchange": "NASDAQ"
+  },
+  {
+   "symbol": "VERA",
+   "price": 34.26,
+   "marketCap": 2476956021,
+   "rvol": 2.31,
+   "changePct": 16.14,
+   "exchange": "NASDAQ"
+  },
+  {
+   "symbol": "KNTK",
+   "price": 59.76,
+   "marketCap": 9705134061,
+   "rvol": 2.0,
+   "changePct": 9.25,
+   "exchange": "NYSE"
+  },
+  {
+   "symbol": "RIG",
+   "price": 5.18,
+   "marketCap": 5785656186,
+   "rvol": 1.55,
+   "changePct": 2.98,
+   "exchange": "NYSE"
+  }
+ ]
+}
