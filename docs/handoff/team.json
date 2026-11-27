@@ -393,7 +393,7 @@
       "from": "Chanh",
       "status": "running",
       "created": "2026-11-22T12:52:19.300Z",
-      "updated": "2026-11-27T15:37:19.419Z",
+      "updated": "2026-11-27T15:42:19.189Z",
       "started": "2026-11-22T12:52:19.300Z",
       "by": "milo",
       "progress": "Step now: extracting bayready-v3.21.107.zip to bayready-work\\t108 and reading structure. No release until Chanh says go after tests.",
