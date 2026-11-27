@@ -2,11 +2,11 @@
 
 Kronos-small forecasts the next daily candles for Atlas's symbols after each US close. It is only logged and graded here; it never touches Atlas or any order (paper or real).
 
-Updated 2026-11-26T03:47Z · 390 forecasts logged · verdict needs 20+ graded per horizon.
+Updated 2026-11-27T03:47Z · 394 forecasts logged · verdict needs 20+ graded per horizon.
 
 | Horizon | Graded | Kronos direction right | Always-up baseline | Kronos avg miss | No-change avg miss | Verdict |
 |---|---|---|---|---|---|---|
-| 1 day | 374 | 49% | 46% | 5.17% | 4.10% | no edge |
+| 1 day | 378 | 49% | 47% | 5.13% | 4.06% | no edge |
 | 5 day | 314 | 49% | 32% | 10.07% | 7.44% | no edge |
 
 ## Latest forecasts
@@ -19,10 +19,10 @@ Updated 2026-11-26T03:47Z · 390 forecasts logged · verdict needs 20+ graded pe
 | TSLA | 2026-11-25 | 380.14 | 369.55 (-2.8%) | 353.89 (-6.9%) |
 | MSFT | 2026-11-25 | 489.93 | 489.55 (-0.1%) | 514.03 (+4.9%) |
 | AMZN | 2026-11-25 | 244.43 | 243.71 (-0.3%) | 242.04 (-1.0%) |
-| BTC-USD | 2026-11-24 | 59,747.77 | 60,878.73 (+1.9%) | 63,293.21 (+5.9%) |
-| ETH-USD | 2026-11-24 | 1,677.69 | 1,714.23 (+2.2%) | 1,767.40 (+5.3%) |
-| SOL-USD | 2026-11-24 | 69.64 | 68.90 (-1.1%) | 74.83 (+7.5%) |
-| BNB-USD | 2026-11-24 | 547.74 | 557.93 (+1.9%) | 581.36 (+6.1%) |
+| BTC-USD | 2026-11-25 | 60,378.20 | 60,839.84 (+0.8%) | 63,945.64 (+5.9%) |
+| ETH-USD | 2026-11-25 | 1,690.77 | 1,680.23 (-0.6%) | 1,741.74 (+3.0%) |
+| SOL-USD | 2026-11-25 | 70.39 | 67.90 (-3.5%) | 71.54 (+1.6%) |
+| BNB-USD | 2026-11-25 | 553.57 | 559.07 (+1.0%) | 570.14 (+3.0%) |
 | INSM | 2026-11-25 | 170.31 | 159.42 (-6.4%) | 154.22 (-9.4%) |
 | WWW | 2026-11-23 | 25.79 | 24.90 (-3.5%) | 22.94 (-11.0%) |
 | PANW | 2026-11-23 | 353.43 | 354.88 (+0.4%) | 341.76 (-3.3%) |
