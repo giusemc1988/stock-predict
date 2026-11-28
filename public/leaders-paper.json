@@ -1,6 +1,6 @@
 {
- "generated": "2026-11-27T03:47:57.467Z",
- "asOf": "2026-11-25",
+ "generated": "2026-11-28T03:30:44.022Z",
+ "asOf": "2026-11-27",
  "strategy": "leaders-tight-base",
  "score": {
   "graded": 2,
@@ -19,7 +19,7 @@
    "entry": 17.28,
    "stop": 16.47,
    "adr": 4.67,
-   "age": 3
+   "age": 4
   },
   {
    "symbol": "APPN",
@@ -27,7 +27,7 @@
    "entry": 57.26,
    "stop": 53.62,
    "adr": 6.35,
-   "age": 2
+   "age": 3
   },
   {
    "symbol": "VCEL",
@@ -35,7 +35,7 @@
    "entry": 59.75,
    "stop": 57.32,
    "adr": 4.87,
-   "age": 2
+   "age": 3
   },
   {
    "symbol": "LTH",
@@ -43,7 +43,7 @@
    "entry": 48.48,
    "stop": 46.47,
    "adr": 4.16,
-   "age": 2
+   "age": 3
   },
   {
    "symbol": "AEO",
@@ -51,7 +51,7 @@
    "entry": 22.5,
    "stop": 21.48,
    "adr": 4.51,
-   "age": 2
+   "age": 3
   },
   {
    "symbol": "SYRE",
@@ -59,7 +59,7 @@
    "entry": 107.87,
    "stop": 101.65,
    "adr": 5.77,
-   "age": 1
+   "age": 2
   },
   {
    "symbol": "ASO",
@@ -67,7 +67,7 @@
    "entry": 73.82,
    "stop": 70.84,
    "adr": 4.03,
-   "age": 1
+   "age": 2
   },
   {
    "symbol": "ADMA",
@@ -75,7 +75,7 @@
    "entry": 14.2,
    "stop": 13.43,
    "adr": 5.42,
-   "age": 1
+   "age": 2
   },
   {
    "symbol": "AXGN",
@@ -83,7 +83,7 @@
    "entry": 60.11,
    "stop": 56.95,
    "adr": 5.26,
-   "age": 0
+   "age": 1
   },
   {
    "symbol": "AMRX",
@@ -91,7 +91,7 @@
    "entry": 22.56,
    "stop": 21.64,
    "adr": 4.09,
-   "age": 0
+   "age": 1
   },
   {
    "symbol": "VERX",
@@ -99,6 +99,54 @@
    "entry": 19.26,
    "stop": 18.4,
    "adr": 4.47,
+   "age": 1
+  },
+  {
+   "symbol": "GKOS",
+   "setupDay": "2026-11-27",
+   "entry": 265.17,
+   "stop": 252.1,
+   "adr": 4.93,
+   "age": 0
+  },
+  {
+   "symbol": "GDYN",
+   "setupDay": "2026-11-27",
+   "entry": 14.5,
+   "stop": 13.57,
+   "adr": 6.41,
+   "age": 0
+  },
+  {
+   "symbol": "VIA",
+   "setupDay": "2026-11-27",
+   "entry": 48.36,
+   "stop": 45.11,
+   "adr": 6.73,
+   "age": 0
+  },
+  {
+   "symbol": "AZTA",
+   "setupDay": "2026-11-27",
+   "entry": 49.64,
+   "stop": 46.36,
+   "adr": 6.6,
+   "age": 0
+  },
+  {
+   "symbol": "LFST",
+   "setupDay": "2026-11-27",
+   "entry": 14.78,
+   "stop": 13.95,
+   "adr": 5.64,
+   "age": 0
+  },
+  {
+   "symbol": "WWW",
+   "setupDay": "2026-11-27",
+   "entry": 26.25,
+   "stop": 24.91,
+   "adr": 5.1,
    "age": 0
   }
  ],
